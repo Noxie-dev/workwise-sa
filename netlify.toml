@@ -11,6 +11,12 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
+  [functions.api]
+    external_node_modules = ["cors", "express", "serverless-http", "firebase-admin"]
+
+  [functions.categories]
+    external_node_modules = ["cors", "express", "serverless-http", "firebase-admin"]
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
