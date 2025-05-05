@@ -19,4 +19,13 @@ export default defineConfig({
       "@shared": path.resolve(__dirname, "../shared"),
     },
   },
+  build: {
+    rollupOptions: {
+      external: [
+        'react-helmet-async',
+        '@tanstack/react-query',
+        '@tanstack/react-query-devtools'
+      ]
+    }
+  },
 });
