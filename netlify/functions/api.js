@@ -12,9 +12,16 @@ app.use(express.json());
 
 // Root route
 app.get('/', (req, res) => {
+  // Check if Firebase is initialized
+  const firebaseStatus = firebaseApp
+    ? 'Firebase connected'
+    : 'Firebase not configured (using mock data)';
+
   res.json({
     message: 'Welcome to WorkWise SA API',
     version: '1.0.0',
+    status: 'Server is running',
+    firebase: firebaseStatus,
     endpoints: {
       '/api/enhance-image': 'POST - Enhance profile pictures using AI',
       '/api/scan-cv': 'POST - Scan and analyze CV documents',
@@ -27,8 +34,7 @@ app.get('/', (req, res) => {
       '/api/jobs/featured': 'GET - Featured job listings',
       '/api/companies': 'GET - Company listings',
       '/api/users': 'POST - Create a new user'
-    },
-    status: 'Server is running'
+    }
   });
 });
 
@@ -37,10 +43,17 @@ app.get('/test-firebase', async (req, res) => {
   try {
     // Simple test to check if Firebase is connected
     const snapshot = await db.collection('test').doc('connection').get();
+
+    // Check if we're using mock data
+    const isMockData = !firebaseApp || (snapshot && snapshot.id === 'mock-id');
+
     res.json({
       success: true,
-      message: 'Firebase connection successful',
-      data: snapshot.exists ? snapshot.data() : { status: 'No test document found, but connection works' }
+      message: isMockData
+        ? 'Using mock Firebase implementation (Firebase credentials not configured)'
+        : 'Firebase connection successful',
+      data: snapshot.exists ? snapshot.data() : { status: 'No test document found, but connection works' },
+      isMockData: isMockData
     });
   } catch (error) {
     console.error('Firebase connection error:', error);
