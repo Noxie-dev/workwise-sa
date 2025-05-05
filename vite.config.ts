@@ -9,6 +9,10 @@ export default defineConfig({
     outDir: "../dist/public",
     emptyOutDir: true,
     chunkSizeWarningLimit: 600, // Increase the warning limit slightly
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true
+    },
     rollupOptions: {
       output: {
         manualChunks: {
@@ -22,7 +26,7 @@ export default defineConfig({
                         '@radix-ui/react-tooltip'],
           'vendor-charts': ['recharts'],
           'vendor-icons': ['lucide-react'],
-          'vendor-query': ['@tanstack/react-query'],
+          'vendor-query': ['@tanstack/react-query', '@tanstack/react-query-devtools'],
           'vendor-router': ['wouter'],
           'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
         },
@@ -63,6 +67,8 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./client/src"),
       "@shared": path.resolve(__dirname, "./shared")
-    }
+    },
+    // Force Vite to resolve these dependencies from node_modules
+    dedupe: ['react', 'react-dom', 'react-helmet-async', '@tanstack/react-query', '@tanstack/react-query-devtools']
   }
 });
