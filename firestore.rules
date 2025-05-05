@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Bookmark rules
+    match /user_bookmarks/{bookmarkId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    // WiseUp content rules
+    match /wiseup_content/{contentId} {
+      allow read: if true;
+      // Allow updates only via trusted backend/functions for counts
+      allow update: if false; // Or restrict to specific fields if needed client-side (less secure)
+
+      // Comments Subcollection
+      match /comments/{commentId} {
+        allow read: if request.auth != null; // Allow logged-in users to read comments
+        allow create: if request.auth != null // Allow logged-in users to create
+                      && request.resource.data.userId == request.auth.uid // User ID must match auth
+                      && request.resource.data.text is string // Ensure text is present
+                      && request.resource.data.text.size() < 500 // Max comment length
+                      && request.resource.data.userName is string
+                      && request.resource.data.userAvatar is string
+                      && request.resource.data.createdAt == request.time; // Set server timestamp
+        allow update: if request.auth != null
+                      && resource.data.userId == request.auth.uid // Only owner can update
+                      && request.resource.data.text is string
+                      && request.resource.data.text.size() < 500
+                      && request.resource.data.keys().hasOnly(['text', 'updatedAt']) // Only allow updating text & timestamp
+                      && request.resource.data.updatedAt == request.time;
+        allow delete: if request.auth != null && resource.data.userId == request.auth.uid; // Only owner can delete
+      }
+    }
+
+    // User profile data
+    match /users/{userId} {
+      allow read: if true;
+      // Allow users to manage their own like records
+      match /likedWiseUpContent/{contentId} {
+         allow read, delete: if request.auth != null && request.auth.uid == userId;
+         allow create: if request.auth != null
+                       && request.auth.uid == userId
+                       && request.resource.data.keys().hasOnly(['likedAt']) // Only allow likedAt field
+                       && request.resource.data.likedAt == request.time;
+      }
+    }
+
+    // Default rule for other collections
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
