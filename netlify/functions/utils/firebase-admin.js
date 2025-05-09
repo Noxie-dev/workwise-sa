@@ -64,8 +64,8 @@ function initializeFirebase() {
 
     return admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      projectId: process.env.FIREBASE_PROJECT_ID || 'workwisesa-dev-us',
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'workwisesa-dev-us.appspot.com'
+      projectId: process.env.FIREBASE_PROJECT_ID || 'workwise-sa-project',
+      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'workwise-sa-project.appspot.com'
     });
   } catch (error) {
     console.error(`Error initializing Firebase: ${error}`);

@@ -61,10 +61,25 @@ const Register = () => {
       await signInWithGoogle();
       navigate('/profile-setup');
     } catch (error: any) {
+      let errorMessage = "Failed to sign in with Google. Please try again.";
+
+      // Handle specific Firebase error codes
+      if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "Google sign-in is not enabled. Please try another method or contact support.";
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Sign-in popup was closed. Please try again.";
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = "Multiple popup requests were made. Please try again.";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "Sign-in popup was blocked by your browser. Please allow popups for this site.";
+      }
+
+      console.error("Google sign-in error:", error.code, error.message);
+
       toast({
         variant: "destructive",
         title: "Registration Failed",
-        description: error.message || "Failed to sign in with Google. Please try again.",
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
@@ -73,11 +88,11 @@ const Register = () => {
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
-    
+
     try {
       // Remove confirmPassword and agreeTerms before sending to API
       const { confirmPassword, agreeTerms, ...userData } = data;
-      
+
       // Create user with Firebase
       const user = await signUpWithEmail(userData.email, userData.password, userData.name);
 
@@ -88,7 +103,7 @@ const Register = () => {
         title: "Registration Successful",
         description: "Your account has been created. Now let's set up your profile.",
       });
-      
+
       // Add a small delay to ensure state is updated before redirect
       setTimeout(() => {
         // Force redirect to profile setup page
@@ -96,22 +111,39 @@ const Register = () => {
       }, 500);
     } catch (error: any) {
       let errorMessage = "Failed to create account. Please try again.";
-      
+      let actionLink = null;
+
       // Handle specific Firebase error codes
       if (error.code === 'auth/email-already-in-use') {
-        errorMessage = "The email address is already in use. Please try another email.";
+        errorMessage = "This email is already registered. Please try logging in instead.";
+        actionLink = '/login';
       } else if (error.code === 'auth/weak-password') {
         errorMessage = "The password is too weak. Please choose a stronger password.";
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = "The email address is invalid. Please enter a valid email.";
       } else if (error.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your internet connection.";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "This sign-up method is not enabled. Please try another method.";
       }
-      
+
+      console.error("Registration error:", error.code, error.message);
+
       toast({
         variant: "destructive",
         title: "Registration Failed",
-        description: errorMessage,
+        description: (
+          <div>
+            {errorMessage}
+            {actionLink && (
+              <div className="mt-2">
+                <Link href={actionLink} className="text-blue-500 hover:underline">
+                  Go to login page
+                </Link>
+              </div>
+            )}
+          </div>
+        ),
       });
     } finally {
       setIsLoading(false);
@@ -129,9 +161,9 @@ const Register = () => {
         <Card className="w-full max-w-lg mx-4">
           <CardHeader className="space-y-1">
             <div className="flex justify-center mb-4">
-              <img 
-                src="/images/logo.png" 
-                alt="WorkWise SA Logo" 
+              <img
+                src="/images/logo.png"
+                alt="WorkWise SA Logo"
                 className="h-36 md:h-40 object-contain transition-all duration-200 hover:scale-105"
               />
             </div>
@@ -171,7 +203,7 @@ const Register = () => {
                     )}
                   />
                 </div>
-                
+
                 <FormField
                   control={form.control}
                   name="email"
@@ -185,7 +217,7 @@ const Register = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="location"
@@ -199,7 +231,7 @@ const Register = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -228,7 +260,7 @@ const Register = () => {
                     )}
                   />
                 </div>
-                
+
                 <FormField
                   control={form.control}
                   name="bio"
@@ -242,16 +274,16 @@ const Register = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="willingToRelocate"
                   render={({ field }) => (
                     <FormItem className="flex items-start space-x-2 space-y-0">
                       <FormControl>
-                        <Checkbox 
-                          checked={field.value} 
-                          onCheckedChange={field.onChange} 
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
@@ -263,16 +295,16 @@ const Register = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="agreeTerms"
                   render={({ field }) => (
                     <FormItem className="flex items-start space-x-2 space-y-0">
                       <FormControl>
-                        <Checkbox 
-                          checked={field.value} 
-                          onCheckedChange={field.onChange} 
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
@@ -284,7 +316,7 @@ const Register = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <Button type="submit" className="w-full bg-primary" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Create Account"}
                 </Button>
@@ -300,9 +332,9 @@ const Register = () => {
                 <span className="bg-light px-2 text-muted">Or continue with</span>
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              className="w-full" 
+            <Button
+              variant="outline"
+              className="w-full"
               onClick={handleGoogleSignIn}
               disabled={isLoading}
               type="button"

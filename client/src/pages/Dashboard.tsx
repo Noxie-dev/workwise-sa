@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'wouter';
 import { Helmet } from 'react-helmet-async';
@@ -7,9 +7,13 @@ import { JobRecommendation, SkillsAnalysisData } from '@/services/dashboardServi
 import { profileService } from '@/services/profileService';
 import useDashboardData from '@/hooks/useDashboardData';
 import analyticsService, { AnalyticsEventType } from '@/services/analyticsService';
-import SkillsHeatmap from '@/components/dashboard/SkillsHeatmap';
-import SkillsRadarChart from '@/components/dashboard/SkillsRadarChart';
-import RealtimeUpdates from '@/components/dashboard/RealtimeUpdates';
+
+// Lazy load dashboard components
+const SkillsHeatmap = lazy(() => import('@/components/dashboard/SkillsHeatmap'));
+const SkillsRadarChart = lazy(() => import('@/components/dashboard/SkillsRadarChart'));
+const RealtimeUpdates = lazy(() => import('@/components/dashboard/RealtimeUpdates'));
+
+// UI Components
 import {
   Card,
   CardContent,
@@ -25,31 +29,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Cell
-} from 'recharts';
+
+// Lazy load chart components
+const ChartComponents = lazy(() => import('../components/dashboard/ChartComponents'));
+
+// Icons - import only what we need
 import {
   AlertCircle,
   TrendingUp,
   MapPin,
   Briefcase,
-  Timer,
   Star,
   Calendar,
   Download
 } from 'lucide-react';
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -395,23 +389,12 @@ export default function DashboardPage() {
                   <Skeleton className="h-64 w-full" />
                 </div>
               ) : jobData?.categories?.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
+                <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                  <ChartComponents.JobCategoryBarChart
                     data={jobData.categories}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="category" angle={-45} textAnchor="end" height={70} />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="count" fill="#8884d8" name="Available Jobs">
-                      {jobData.categories.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                    colors={COLORS}
+                  />
+                </Suspense>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
                   No category data available
@@ -433,26 +416,12 @@ export default function DashboardPage() {
                   <Skeleton className="h-64 w-full rounded-full mx-auto" />
                 </div>
               ) : jobData?.locations?.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={jobData.locations}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {jobData.locations.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => [`${value} jobs`, 'Count']} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+                <Suspense fallback={<Skeleton className="h-64 w-full rounded-full mx-auto" />}>
+                  <ChartComponents.JobLocationPieChart
+                    data={jobData.locations}
+                    colors={COLORS}
+                  />
+                </Suspense>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
                   No location data available
@@ -474,26 +443,11 @@ export default function DashboardPage() {
                   <Skeleton className="h-64 w-full" />
                 </div>
               ) : jobData?.trends?.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
+                <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                  <ChartComponents.ApplicationTrendsLineChart
                     data={jobData.trends}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="applications"
-                      stroke="#ff7300"
-                      name="Applications"
-                      strokeWidth={2}
-                      activeDot={{ r: 8 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                  />
+                </Suspense>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
                   No trend data available
