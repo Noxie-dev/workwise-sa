@@ -37,6 +37,8 @@ service cloud.firestore {
     // User profile data
     match /users/{userId} {
       allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+
       // Allow users to manage their own like records
       match /likedWiseUpContent/{contentId} {
          allow read, delete: if request.auth != null && request.auth.uid == userId;
@@ -45,6 +47,35 @@ service cloud.firestore {
                        && request.resource.data.keys().hasOnly(['likedAt']) // Only allow likedAt field
                        && request.resource.data.likedAt == request.time;
       }
+    }
+
+    // Job listings
+    match /jobs/{jobId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Job categories
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Job applications
+    match /applications/{applicationId} {
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        request.auth.token.admin == true ||
+        resource.data.employerId == request.auth.uid
+      );
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Marketing rules
+    match /marketing_rules/{ruleId} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
     }
 
     // Default rule for other collections

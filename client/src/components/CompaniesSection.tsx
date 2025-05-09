@@ -14,8 +14,9 @@ const CompaniesSection = () => {
   const { data: companiesResponse, isLoading, error } = useQuery<CompanyResponse>({
     queryKey: ['/api/companies'],
     queryFn: async () => {
-      // In production, use mock data to avoid API calls
-      if (import.meta.env.PROD) {
+      // Always use mock data in production or if we're on Netlify
+      if (import.meta.env.PROD || window.location.hostname.includes('netlify.app')) {
+        console.log('Using mock companies data in production or Netlify environment');
         return createMockResponse(mockCompanies);
       }
 

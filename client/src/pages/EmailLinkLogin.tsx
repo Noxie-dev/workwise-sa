@@ -27,7 +27,7 @@ const EmailLinkLogin = () => {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
-  
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,10 +47,25 @@ const EmailLinkLogin = () => {
       await signInWithGoogle();
       navigate('/profile-setup');
     } catch (error: any) {
+      let errorMessage = "Failed to sign in with Google. Please try again.";
+
+      // Handle specific Firebase error codes
+      if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "Google sign-in is not enabled. Please try another method or contact support.";
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Sign-in popup was closed. Please try again.";
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = "Multiple popup requests were made. Please try again.";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "Sign-in popup was blocked by your browser. Please allow popups for this site.";
+      }
+
+      console.error("Google sign-in error:", error.code, error.message);
+
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: error.message || "Failed to sign in with Google. Please try again.",
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
@@ -59,7 +74,7 @@ const EmailLinkLogin = () => {
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
-    
+
     try {
       await sendSignInLink(data.email);
       setEmailSent(true);
@@ -70,14 +85,20 @@ const EmailLinkLogin = () => {
       });
     } catch (error: any) {
       let errorMessage = "Failed to send sign-in link. Please try again.";
-      
+
       // Handle specific Firebase error codes
       if (error.code === 'auth/invalid-email') {
         errorMessage = "The email address is not valid.";
       } else if (error.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your internet connection.";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "Email link sign-in is not enabled. Please try another method or contact support.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = "This domain is not authorized for email link sign-in. Please try another method.";
       }
-      
+
+      console.error("Email link error:", error.code, error.message);
+
       toast({
         variant: "destructive",
         title: "Email Link Failed",
@@ -99,9 +120,9 @@ const EmailLinkLogin = () => {
         <Card className="w-full max-w-md mx-4">
           <CardHeader className="space-y-1">
             <div className="flex justify-center mb-4">
-              <img 
-                src="/images/logo.png" 
-                alt="WorkWise SA Logo" 
+              <img
+                src="/images/logo.png"
+                alt="WorkWise SA Logo"
                 className="h-36 md:h-40 object-contain transition-all duration-200 hover:scale-105"
               />
             </div>
@@ -153,9 +174,9 @@ const EmailLinkLogin = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 gap-4">
-              <Button 
-                variant="outline" 
-                className="w-full" 
+              <Button
+                variant="outline"
+                className="w-full"
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
               >
@@ -181,4 +202,4 @@ const EmailLinkLogin = () => {
   );
 };
 
-export default EmailLinkLogin; 
+export default EmailLinkLogin;
