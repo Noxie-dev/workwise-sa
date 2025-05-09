@@ -46,15 +46,30 @@ const Login = () => {
     setIsLoading(true);
     try {
       await signInWithGoogle();
-      
+
       // For simplicity, we're redirecting to profile-setup
       // In a real app, you'd check if user has completed profile setup
       navigate('/profile-setup');
     } catch (error: any) {
+      let errorMessage = "Failed to sign in with Google. Please try again.";
+
+      // Handle specific Firebase error codes
+      if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "Google sign-in is not enabled. Please try another method or contact support.";
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Sign-in popup was closed. Please try again.";
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = "Multiple popup requests were made. Please try again.";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "Sign-in popup was blocked by your browser. Please allow popups for this site.";
+      }
+
+      console.error("Google sign-in error:", error.code, error.message);
+
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: error.message || "Failed to sign in with Google. Please try again.",
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
@@ -63,16 +78,16 @@ const Login = () => {
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
-    
+
     try {
       await signInWithEmail(data.email, data.password);
-      
+
       // For simplicity, we're redirecting to profile-setup
       // In a real app, you'd check if user has completed profile setup
       navigate('/profile-setup');
     } catch (error: any) {
       let errorMessage = "Invalid email or password. Please try again.";
-      
+
       // Handle specific Firebase error codes
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
         errorMessage = "Invalid email or password. Please try again.";
@@ -81,7 +96,7 @@ const Login = () => {
       } else if (error.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your internet connection.";
       }
-      
+
       toast({
         variant: "destructive",
         title: "Login Failed",
@@ -103,9 +118,9 @@ const Login = () => {
         <Card className="w-full max-w-md mx-4">
           <CardHeader className="space-y-1">
             <div className="flex justify-center mb-4">
-              <img 
-                src="/images/logo.png" 
-                alt="WorkWise SA Logo" 
+              <img
+                src="/images/logo.png"
+                alt="WorkWise SA Logo"
                 className="h-36 md:h-40 object-contain transition-all duration-200 hover:scale-105"
               />
             </div>
@@ -150,9 +165,9 @@ const Login = () => {
                     render={({ field }) => (
                       <FormItem className="flex items-center space-x-2 space-y-0">
                         <FormControl>
-                          <Checkbox 
-                            checked={field.value} 
-                            onCheckedChange={field.onChange} 
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
                           />
                         </FormControl>
                         <FormLabel className="text-sm font-normal cursor-pointer">Remember me</FormLabel>
@@ -184,9 +199,9 @@ const Login = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 gap-4">
-              <Button 
-                variant="outline" 
-                className="w-full" 
+              <Button
+                variant="outline"
+                className="w-full"
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
               >
