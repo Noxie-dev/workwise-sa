@@ -11,10 +11,12 @@ import path from 'path';
 import fs from 'fs';
 import { fileService } from '../fileService';
 import { getJobDistribution, getJobRecommendations, getSkillsAnalysis } from '../routes/dashboard';
-import { db as storage } from '../db';
+import { db } from '../db';
 import { errorHandler, notFoundHandler, requestIdMiddleware } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
 import { setupSwagger } from '../utils/swagger';
+import { eq } from 'drizzle-orm';
+import { users } from '@shared/schema';
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -724,13 +726,14 @@ app.post('/api/users', async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await storage.getUserByUsername(username);
+    const existingUserResult = await db.select().from(users).where(eq(users.username, username));
+    const [existingUser] = existingUserResult;
     if (existingUser) {
       return res.status(409).json({ error: 'Username already exists' });
     }
 
     // Create user in database
-    const user = await storage.createUser({
+    const user = await db.insert(users).values({
       username,
       email,
       name,
