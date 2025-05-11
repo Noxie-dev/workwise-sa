@@ -17,7 +17,7 @@ interface HeaderProps {
 
 /**
  * Header component for WorkWise SA
- * 
+ *
  * Features:
  * - Responsive design with mobile menu
  * - Active link highlighting
@@ -44,6 +44,7 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
     { href: '/companies', label: 'Companies' },
     { href: '/cv-builder', label: 'CV Builder' },
     { href: '/wise-up', label: 'Wise-Up' },
+    { href: '/blog-wise', label: 'Blog Wise' },
     { href: '/resources', label: 'Resources' }
   ];
 
@@ -68,8 +69,8 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
           <ul className="flex space-x-6">
             {navLinks.map(({ href, label }) => (
               <li key={href}>
-                <Link 
-                  href={href} 
+                <Link
+                  href={href}
                   className={`text-dark hover:text-primary font-medium ${location === href ? 'text-primary' : ''}`}
                 >
                   {label}
@@ -83,7 +84,7 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
                 <Link href="/admin">Admin</Link>
               </Button>
             )}
-            
+
             {isAuthenticated ? (
               <div className="flex items-center space-x-3">
                 <Button variant="ghost" size="sm" asChild>
@@ -119,7 +120,7 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div 
+        <div
           id="mobile-menu"
           className="md:hidden bg-white border-t border-gray-100 py-4 px-6"
           role="navigation"
@@ -144,7 +145,7 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
                     <Link href="/admin" onClick={closeMenu}>Admin</Link>
                   </Button>
                 )}
-                
+
                 {isAuthenticated ? (
                   <>
                     <Button variant="ghost" size="sm" asChild className="w-full">

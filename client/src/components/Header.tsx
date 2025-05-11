@@ -50,6 +50,11 @@ const Header = () => {
               </Link>
             </li>
             <li>
+              <Link href="/blog-wise" className={`text-dark hover:text-primary font-medium ${location === '/blog-wise' ? 'text-primary' : ''}`}>
+                Blog Wise
+              </Link>
+            </li>
+            <li>
               <Link href="/resources" className={`text-dark hover:text-primary font-medium ${location === '/resources' ? 'text-primary' : ''}`}>
                 Resources
               </Link>
@@ -109,6 +114,15 @@ const Header = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Wise-Up
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/blog-wise"
+                className={`block text-dark hover:text-primary font-medium ${location === '/blog-wise' ? 'text-primary' : ''}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Blog Wise
               </Link>
             </li>
             <li>

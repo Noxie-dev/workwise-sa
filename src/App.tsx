@@ -7,8 +7,12 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Jobs from "@/pages/Jobs";
 import Resources from "@/pages/Resources";
+import CVTemplateFooterLink from "@/pages/resources/CVTemplateFooterLink";
+import CVTemplatePreview from "@/pages/resources/CVTemplatePreview";
 import WiseUpPage from "@/pages/WiseUp/WiseUpPage";
 import WiseUpBookmarksPage from "@/pages/WiseUp/WiseUpBookmarksPage";
+import BlogWisePage from "@/pages/BlogWisePage";
+
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import CVBuilder from "@/pages/CVBuilder";
@@ -55,8 +59,12 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/jobs" component={Jobs} />
         <Route path="/resources" component={Resources} />
+        <Route path="/resources/cv-template-gallery" component={CVTemplateFooterLink} />
+        <Route path="/cv-template-preview/:id" component={CVTemplatePreview} />
         <Route path="/wise-up" component={WiseUpPage} />
         <Route path="/wise-up/bookmarks" component={WiseUpBookmarksPage} />
+        <Route path="/blog-wise" component={BlogWisePage} />
+
         <Route path="/cv-builder" component={CVBuilder} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
