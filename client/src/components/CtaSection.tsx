@@ -14,7 +14,7 @@ const CtaSection = () => {
                 Create Account
               </Link>
             </Button>
-            <Button asChild variant="outline" className="border border-white text-white hover:bg-yellow-400 hover:text-gray-800">
+            <Button asChild variant="outline" className="border border-white text-blue-500 hover:bg-yellow-400 hover:text-gray-800">
               <Link href="/upload-cv">
                 Upload Your CV
               </Link>

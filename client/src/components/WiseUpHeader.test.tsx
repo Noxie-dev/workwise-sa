@@ -40,6 +40,6 @@ describe('WiseUpHeader Component', () => {
     render(<WiseUpHeader />);
     const logoImage = screen.getByAltText('WorkWise SA Logo');
     expect(logoImage).toBeInTheDocument();
-    expect(logoImage).toHaveAttribute('src', '/images/hero-logo-hardhat.svg');
+    expect(logoImage).toHaveAttribute('src', '/images/hero-logo.png');
   });
 });

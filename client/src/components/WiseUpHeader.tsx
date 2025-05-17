@@ -11,14 +11,14 @@ const WiseUpHeader: React.FC = () => {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Left side: Logo and Title */}
         <div className="flex items-center">
-          <img 
-            src="/images/hero-logo-hardhat.svg" 
-            alt="WorkWise SA Logo" 
+          <img
+            src="/images/hero-logo.png"
+            alt="WorkWise SA Logo"
             className="h-8 w-8 mr-2"
           />
           <span className="font-bold text-xl text-blue-600">WiseUp</span>
         </div>
-        
+
         {/* Right side: Search, Notifications, Menu */}
         <div className="flex items-center space-x-4">
           {/* Search Input */}
@@ -31,17 +31,17 @@ const WiseUpHeader: React.FC = () => {
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           </div>
-          
+
           {/* Notification Button */}
-          <button 
+          <button
             className="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Notifications"
           >
             <Bell className="h-5 w-5 text-gray-600" />
           </button>
-          
+
           {/* Menu Button (visible on mobile) */}
-          <button 
+          <button
             className="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 md:hidden"
             aria-label="Menu"
           >
