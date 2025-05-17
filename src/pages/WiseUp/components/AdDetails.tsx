@@ -18,11 +18,11 @@ const AdDetails: React.FC<AdDetailsProps> = ({ item }) => {
   // State for bookmark status
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
-  
+
   // Hooks
   const { currentUser } = useAuth();
   const { toast } = useToast();
-  
+
   // Check if item is bookmarked on component mount
   useEffect(() => {
     const checkBookmarkStatus = async () => {
@@ -35,10 +35,10 @@ const AdDetails: React.FC<AdDetailsProps> = ({ item }) => {
         }
       }
     };
-    
+
     checkBookmarkStatus();
   }, [currentUser, item.id]);
-  
+
   // Handle bookmark toggle
   const handleBookmarkToggle = async () => {
     if (!currentUser) {
@@ -49,9 +49,9 @@ const AdDetails: React.FC<AdDetailsProps> = ({ item }) => {
       });
       return;
     }
-    
+
     setIsBookmarkLoading(true);
-    
+
     try {
       if (isBookmarked) {
         await wiseupService.removeBookmark(currentUser.uid, item.id.toString());
@@ -79,7 +79,7 @@ const AdDetails: React.FC<AdDetailsProps> = ({ item }) => {
       setIsBookmarkLoading(false);
     }
   };
-  
+
   return (
     <div className="flex flex-col h-full">
       {/* Advertiser Info */}
@@ -107,15 +107,15 @@ const AdDetails: React.FC<AdDetailsProps> = ({ item }) => {
       )}
 
       {/* Bookmark Button */}
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="mb-4 flex items-center justify-center"
+      <Button
+        variant="outline"
+        size="sm"
+        className="mb-4 flex items-center justify-center text-blue-500"
         onClick={handleBookmarkToggle}
         disabled={isBookmarkLoading}
       >
-        <Bookmark 
-          className={`h-4 w-4 mr-2 ${isBookmarked ? 'fill-blue-500 text-blue-500' : ''}`} 
+        <Bookmark
+          className={`h-4 w-4 mr-2 ${isBookmarked ? 'fill-blue-500 text-blue-500' : ''}`}
         />
         {isBookmarked ? 'Bookmarked' : 'Bookmark'}
       </Button>
@@ -126,7 +126,7 @@ const AdDetails: React.FC<AdDetailsProps> = ({ item }) => {
           {item.cta.primary.text}
           <ExternalLink className="ml-2 h-4 w-4" />
         </Button>
-        <Button variant="outline" className="w-full">
+        <Button variant="outline" className="w-full text-blue-500">
           {item.cta.secondary.text}
         </Button>
       </div>

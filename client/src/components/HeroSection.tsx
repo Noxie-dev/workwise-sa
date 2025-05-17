@@ -26,7 +26,7 @@ const HeroSection = () => {
           <div className="flex flex-col md:flex-row items-center justify-center mb-8 md:mb-10">
             <div className="mb-6 md:mb-0 md:mr-10">
               <img
-                src="/images/hero-logo-hardhat.svg"
+                src="/images/hero-logo.png"
                 alt="WorkWise SA Hard Hat Logo"
                 className="w-28 h-28 md:w-40 md:h-40"
               />

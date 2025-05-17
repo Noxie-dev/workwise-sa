@@ -44,7 +44,7 @@ const AdDetails: React.FC<AdDetailsProps> = ({ item }) => {
           {item.cta.primary.text}
           <ExternalLink className="ml-2 h-4 w-4" />
         </Button>
-        <Button variant="outline" className="w-full">
+        <Button variant="outline" className="w-full text-blue-500">
           {item.cta.secondary.text}
         </Button>
       </div>
