@@ -1,0 +1,10 @@
+torch==2.2.2+cu121 -f https://download.pytorch.org/whl/torch_stable.html
+numpy
+pandas
+matplotlib
+scikit-learn
+scipy
+jupyter
+ipykernel
+tqdm
+pillow

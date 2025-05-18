@@ -7,8 +7,15 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <div>
-            <div className="h-10 mb-4">
-              <span className="text-xl font-bold text-primary">WorkWise<span className="text-accent">.SA</span></span>
+            <div className="h-10 mb-4 flex items-center">
+              <div className="flex items-center">
+                <img
+                  src="/images/hero-logo.png"
+                  alt="WorkWise SA Logo"
+                  className="h-8 w-auto mr-2"
+                />
+                <span className="text-xl font-bold text-primary">WORK<span className="text-accent">WISE.SA</span></span>
+              </div>
             </div>
             <p className="text-primary mb-4">The Low Level Jobs Directory is an online platform specifically designed to connect young South Africans with entry-level employment opportunities that require minimal experience or qualifications.</p>
             <div className="flex space-x-4">
