@@ -4,14 +4,16 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "copy-assets": "mkdir -p client/public/images && cp -r public/images/* client/public/images/ && cp public/*.png public/*.ico public/*.svg public/site.webmanifest client/public/",
+    "copy-assets:unix": "mkdir -p client/public/images && cp -r public/images/* client/public/images/ && cp public/*.png public/*.ico public/*.svg public/site.webmanifest client/public/",
+    "copy-assets:win": "if not exist client\\public\\images mkdir client\\public\\images && xcopy /E /Y public\\images client\\public\\images\\ && copy /Y public\\*.png public\\*.ico public\\*.svg public\\site.webmanifest client\\public\\",
+    "copy-assets": "node -e \"process.platform === 'win32' ? process.exit(require('child_process').spawnSync('npm', ['run', 'copy-assets:win'], {stdio:'inherit'}).status) : process.exit(require('child_process').spawnSync('npm', ['run', 'copy-assets:unix'], {stdio:'inherit'}).status)\"",
     "dev:client": "vite --force",
     "dev:server": "tsx --watch server/server/index.ts",
-    "dev": "npm run copy-assets && concurrently --kill-others-on-fail \"npm run dev:server\" \"sleep 2 && npm run dev:client\"",
+    "dev": "npm run copy-assets && concurrently --kill-others-on-fail \"npm run dev:server\" \"node -e \\\"setTimeout(() => require('child_process').spawn('npm', ['run', 'dev:client'], {stdio:'inherit'}), 2000)\\\"\"",
     "build:client": "cd client && npm install react-helmet-async && cd .. && vite build",
     "build:server": "esbuild server/server/index.ts --platform=node --bundle --format=esm --outfile=dist/index.js --packages=external",
     "build": "npm run copy-assets && npm run build:client && npm run build:server",
-    "start": "NODE_ENV=production node dist/index.js",
+    "start": "cross-env NODE_ENV=production tsx server/server/index.ts",
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "db:migrate": "tsx scripts/run-migrations.js",
@@ -33,6 +35,7 @@
   },
   "dependencies": {
     "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
+    "@google/generative-ai": "0.24.1",
     "@hookform/resolvers": "^3.9.1",
     "@neondatabase/serverless": "^0.10.4",
     "@radix-ui/react-accordion": "^1.2.8",
@@ -66,6 +69,7 @@
     "firebase": "11.6.1",
     "firebase-admin": "^13.2.0",
     "lucide-react": "^0.453.0",
+    "multer": "1.4.5-lts.2",
     "postgres": "^3.4.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -78,6 +82,7 @@
     "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7",
     "wouter": "^3.3.5",
+    "ws": "8.18.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -93,6 +98,7 @@
     "@typescript-eslint/parser": "^8.31.1",
     "@vitejs/plugin-react": "^4.3.2",
     "concurrently": "^9.1.2",
+    "cross-env": "7.0.3",
     "drizzle-kit": "^0.31.1",
     "esbuild": "0.25.0",
     "eslint-config-airbnb": "^19.0.4",
@@ -117,9 +123,15 @@
     "rimraf": "^4.0.0",
     "glob": "^9.0.0",
     "move-concurrently": "^1.0.1",
-    "figgy-pudding": "latest",
+    "figgy-pudding": "^3.5.2",
     "copy-concurrently": "^1.0.5",
     "fs-write-stream-atomic": "^1.0.10",
-    "esbuild": "0.25.0"
+    "esbuild": "0.25.0",
+    "@netlify/edge-bundler": {
+      "esbuild": "0.25.0"
+    },
+    "@netlify/zip-it-and-ship-it": {
+      "esbuild": "0.25.0"
+    }
   }
 }

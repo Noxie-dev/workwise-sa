@@ -15,9 +15,9 @@ const HeroSection = () => {
 
   return (
     <section className="relative bg-[#2A4365] overflow-hidden">
-      {/* Background pattern - subtle texture */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0 bg-repeat" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.1\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'3\' cy=\'3\' r=\'3\'/%3E%3Ccircle cx=\'13\' cy=\'13\' r=\'3\'/%3E%3C/g%3E%3C/svg%3E")' }}></div>
+      {/* Background pattern - more visible texture */}
+      <div className="absolute inset-0 opacity-15">
+        <div className="absolute inset-0 bg-repeat" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.25\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'3\' cy=\'3\' r=\'3\'/%3E%3Ccircle cx=\'13\' cy=\'13\' r=\'3\'/%3E%3C/g%3E%3C/svg%3E")' }}></div>
       </div>
 
       <div className="container mx-auto px-4 py-12 md:py-16 relative z-10">
@@ -28,13 +28,13 @@ const HeroSection = () => {
               <img
                 src="/images/hero-logo.png"
                 alt="WorkWise SA Hard Hat Logo"
-                className="w-28 h-28 md:w-40 md:h-40"
+                className="w-32 h-32 md:w-48 md:h-48"
               />
-              <div className="text-yellow-300 text-center font-bold mt-2 text-xl">WORK<span className="text-white">WISE.SA</span></div>
+              <div className="text-yellow-300 text-center font-bold mt-2 text-xl md:text-2xl">WORK<span className="text-white">WISE.SA</span></div>
             </div>
-            <div className="text-center md:text-left">
-              <div className="text-yellow-300 font-bold text-xl md:text-2xl mb-2">FIND THAT NEEDED JOB</div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+            <div className="text-center md:text-left md:self-end">
+              <div className="text-yellow-300 font-bold text-2xl md:text-3xl lg:text-4xl mb-3">FIND THAT NEEDED JOB</div>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight tracking-tight">
                 IN SOUTH<br />AFRICA
               </h1>
             </div>

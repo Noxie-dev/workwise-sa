@@ -21,7 +21,7 @@ const Header = () => {
             <img
               src="/images/logo.png"
               alt="WorkWise SA Logo"
-              className="h-20 sm:h-24 mr-2 transition-all duration-200 hover:scale-105"
+              className="h-24 sm:h-28 mr-2 transition-all duration-200 hover:scale-105"
             />
           </Link>
         </div>
