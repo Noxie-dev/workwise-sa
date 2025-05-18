@@ -36,13 +36,15 @@ export default defineConfig({
   server: {
     port: 5174, // Preferred port, but will try others if unavailable
     host: true, // To ensure proper network connections
-    // strictPort removed to allow alternative ports
+    strictPort: true, // Force the specified port
     hmr: {
       protocol: 'ws',
       host: 'localhost',
-      // port and clientPort removed to allow automatic port selection
+      port: 24678, // Dedicated port for HMR
+      clientPort: 24678, // Ensure client connects to same port
       timeout: 120000, // Increase timeout for slower connections
       overlay: true, // Show errors as overlay
+      reconnect: 10, // Retry connection 10 times
     },
     watch: {
       usePolling: true, // More reliable file watching
@@ -54,6 +56,7 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         ws: true, // Support websocket proxying
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
       "/ws": {
         target: "http://localhost:5000",
@@ -61,7 +64,8 @@ export default defineConfig({
         secure: false,
         ws: true, // Support websocket proxying
       }
-    }
+    },
+    cors: true, // Enable CORS for all origins
   },
   resolve: {
     alias: {
