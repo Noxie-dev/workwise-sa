@@ -20,7 +20,7 @@ const LeftPanel: React.FC<LeftPanelProps> = ({ currentItem }) => {
 
   return (
     <aside
-      className="w-full md:w-2/5 border border-gray-200 rounded-lg bg-white p-4 h-[calc(100vh-12rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+      className="w-full border-2 border-blue-200 rounded-xl bg-white p-6 h-[85vh] max-h-[900px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 shadow-2xl"
       aria-label={getPanelAriaLabel()}
     >
       {!currentItem ? (

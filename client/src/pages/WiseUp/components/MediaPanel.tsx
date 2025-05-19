@@ -75,7 +75,7 @@ const MediaPanel: React.FC<MediaPanelProps> = ({
   };
 
   return (
-    <div className="w-full md:w-3/5 relative bg-black rounded-lg overflow-hidden h-[80vh] max-h-[800px] shadow-xl">
+    <div className="w-full relative bg-black rounded-xl overflow-hidden h-[85vh] max-h-[900px] shadow-2xl border-2 border-blue-800">
       {!currentItem ? (
         <div className="flex items-center justify-center h-full text-white">
           <p>Loading content...</p>

@@ -6,7 +6,7 @@ import MediaPanel from './components/MediaPanel';
 interface WiseUpLayoutProps {
   // Props for both panels
   currentItem: WiseUpItem | null;
-  
+
   // Props specific to MediaPanel
   isPlaying: boolean;
   isMuted: boolean;
@@ -46,14 +46,9 @@ const WiseUpLayout: React.FC<WiseUpLayoutProps> = ({
   isPreviousDisabled
 }) => {
   return (
-    <div className="flex flex-col md:flex-row flex-1 overflow-hidden h-full">
-      {/* Left Panel - Content details */}
-      <div className="w-full md:w-2/5 md:pr-4">
-        <LeftPanel currentItem={currentItem} />
-      </div>
-      
-      {/* Right Panel - Media player */}
-      <div className="w-full md:w-3/5 mt-4 md:mt-0">
+    <div className="flex flex-col md:flex-row flex-1 overflow-hidden h-full max-w-[1600px] mx-auto">
+      {/* Media player - Left side on desktop */}
+      <div className="w-full md:w-3/5 mt-4 md:mt-0 md:order-1">
         <MediaPanel
           currentItem={currentItem}
           isPlaying={isPlaying}
@@ -71,6 +66,11 @@ const WiseUpLayout: React.FC<WiseUpLayoutProps> = ({
           isNextDisabled={isNextDisabled}
           isPreviousDisabled={isPreviousDisabled}
         />
+      </div>
+
+      {/* Content details - Right side on desktop */}
+      <div className="w-full md:w-2/5 md:pl-6 md:order-2">
+        <LeftPanel currentItem={currentItem} />
       </div>
     </div>
   );

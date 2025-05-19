@@ -19,51 +19,53 @@ const ContentDetails: React.FC<ContentDetailsProps> = ({ item }) => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Creator Info */}
-      <div className="flex items-center mb-4">
-        <Avatar className="h-12 w-12 mr-3">
-          <AvatarImage src={item.creator.avatar} alt={item.creator.name} />
-          <AvatarFallback>{creatorInitial}</AvatarFallback>
-        </Avatar>
-        <div>
-          <h2 className="font-semibold text-base">{item.creator.name}</h2>
-          <p className="text-sm text-gray-500">{item.creator.role}</p>
+      {/* Creator Info - Larger and more prominent */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-7 rounded-xl shadow-lg mb-8 border-2 border-blue-200">
+        <div className="flex items-center mb-6">
+          <Avatar className="h-20 w-20 mr-5 ring-4 ring-blue-400 ring-offset-2">
+            <AvatarImage src={item.creator.avatar} alt={item.creator.name} />
+            <AvatarFallback className="bg-blue-600 text-white text-2xl">{creatorInitial}</AvatarFallback>
+          </Avatar>
+          <div>
+            <h2 className="font-bold text-2xl text-blue-800">{item.creator.name}</h2>
+            <p className="text-blue-600 text-lg">{item.creator.role}</p>
+          </div>
         </div>
+
+        {/* Content Title */}
+        <h1 className="text-3xl font-bold mb-4 text-gray-800">{item.title}</h1>
+
+        {/* Description */}
+        <p className="text-gray-700 mb-5 text-xl leading-relaxed">{item.description}</p>
+
+        {/* Tags */}
+        {item.tags && item.tags.length > 0 && (
+          <div className="flex flex-wrap gap-3 mb-2">
+            {item.tags.map((tag, index) => (
+              <span
+                key={index}
+                className="bg-blue-100 text-blue-800 text-base px-4 py-2 rounded-full font-medium shadow-sm"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* Content Title */}
-      <h1 className="text-xl font-bold mb-3">{item.title}</h1>
-
-      {/* Description */}
-      <p className="text-gray-700 mb-4">{item.description}</p>
-
-      {/* Tags */}
-      {item.tags && item.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          {item.tags.map((tag, index) => (
-            <span
-              key={index}
-              className="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
 
       {/* Resources */}
       {item.resources && item.resources.length > 0 && (
-        <div className="mb-6">
-          <h3 className="font-semibold mb-2">Resources</h3>
-          <ul className="space-y-2">
+        <div className="bg-white p-6 rounded-xl shadow-lg border-2 border-blue-100 mb-8">
+          <h3 className="font-bold text-xl mb-4 text-blue-700">Resources</h3>
+          <ul className="space-y-4">
             {item.resources.map((resource, index) => (
-              <li key={index} className="flex items-center">
-                <ExternalLink className="h-4 w-4 mr-2 text-blue-500" />
+              <li key={index} className="flex items-center bg-blue-50 p-4 rounded-lg hover:bg-blue-100 transition-colors shadow-sm">
+                <ExternalLink className="h-6 w-6 mr-4 text-blue-600" />
                 <a
                   href={resource.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  className="text-blue-700 hover:underline font-medium text-lg"
                 >
                   {resource.title}
                 </a>
@@ -74,11 +76,18 @@ const ContentDetails: React.FC<ContentDetailsProps> = ({ item }) => {
       )}
 
       {/* Actions */}
-      <div className="flex gap-2 mt-auto">
-        <Button variant="outline" size="sm" className="flex-1">
+      <div className="flex gap-4 mt-auto">
+        <Button
+          size="lg"
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 text-xl rounded-xl shadow-lg"
+        >
           Save
         </Button>
-        <Button variant="outline" size="sm" className="flex-1">
+        <Button
+          variant="outline"
+          size="lg"
+          className="flex-1 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-4 text-xl rounded-xl shadow-lg"
+        >
           Share
         </Button>
       </div>

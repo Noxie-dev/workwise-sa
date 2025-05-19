@@ -33,6 +33,7 @@ import FAQWheelPage from "@/pages/FAQWheelPage";
 import CVTemplates from "@/pages/resources/CVTemplates";
 import InterviewTipsPage from "@/pages/resources/InterviewTipsPage";
 import SalaryGuide from "@/pages/resources/SalaryGuide";
+import CVBuilderHelp from "@/pages/resources/CVBuilderHelp";
 
 // Employer pages
 import PostJob from "@/pages/employers/PostJob";
@@ -62,6 +63,7 @@ function Router() {
         <Route path="/resources/cv-templates" component={CVTemplates} />
         <Route path="/resources/interview-tips" component={InterviewTipsPage} />
         <Route path="/resources/salary-guide" component={SalaryGuide} />
+        <Route path="/resources/cv-builder-help" component={CVBuilderHelp} />
 
         {/* Employer pages */}
         <Route path="/employers/post-job" component={PostJob} />

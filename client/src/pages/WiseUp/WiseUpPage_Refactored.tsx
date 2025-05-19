@@ -159,7 +159,7 @@ const WiseUpPageRefactored: React.FC = () => {
   }, [state.currentIndex, state.items.length]); // Dependencies adjusted for reducer pattern
 
   // --- Event Handlers ---
-  
+
   // Media control handlers
   const handleTogglePlay = useCallback(() => {
     dispatch({ type: 'TOGGLE_PLAY' });
@@ -212,7 +212,7 @@ const WiseUpPageRefactored: React.FC = () => {
   }, [state.currentIndex]);
 
   // --- Render Logic ---
-  
+
   // Loading state
   if (state.isLoading) {
     // Consider using a Skeleton component here for better UX
@@ -226,7 +226,7 @@ const WiseUpPageRefactored: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 h-full">
-      <h1 className="text-3xl font-bold mb-6">WiseUp Learning Hub (Refactored)</h1>
+      <h1 className="text-4xl font-bold mb-8 text-center text-blue-800 py-2 border-b-2 border-blue-200">WiseUp Learning Hub</h1>
 
       <WiseUpLayout
         currentItem={currentItem}
