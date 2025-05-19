@@ -101,12 +101,14 @@ const Resources = () => {
                 >
                   Career Resources
                 </button>
-                <button
-                  className="px-4 py-2 rounded-md bg-gray-200 text-gray-700 font-medium hover:bg-gray-300"
-                  onClick={() => trackTabClick('CV Builder Help')}
-                >
-                  CV Builder Help
-                </button>
+                <a href="/resources/cv-builder-help">
+                  <button
+                    className="px-4 py-2 rounded-md bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 w-full"
+                    onClick={() => trackTabClick('CV Builder Help')}
+                  >
+                    CV Builder Help
+                  </button>
+                </a>
                 <button
                   className="px-4 py-2 rounded-md bg-gray-200 text-gray-700 font-medium hover:bg-gray-300"
                   onClick={() => trackTabClick('Submit Feedback')}

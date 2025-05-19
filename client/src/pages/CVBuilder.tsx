@@ -94,13 +94,13 @@ export default function CVBuilder() {
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [isGeneratingJobDescription, setIsGeneratingJobDescription] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
-  
+
   // Available languages for the CV
   const availableLanguages = [
-    'English', 'Afrikaans', 'Zulu', 'Xhosa', 'Sotho', 
+    'English', 'Afrikaans', 'Zulu', 'Xhosa', 'Sotho',
     'Tswana', 'French', 'Portuguese', 'Spanish'
   ];
-  
+
   // Set default empty values
   const defaultValues: CVFormValues = {
     personalInfo: {
@@ -138,13 +138,13 @@ export default function CVBuilder() {
     ],
     references: [],
   };
-  
+
   const form = useForm<CVFormValues>({
     resolver: zodResolver(cvFormSchema),
     defaultValues,
     mode: 'onChange',
   });
-  
+
   // Helper functions to add/remove array items
   const addExperience = () => {
     const currentExperience = form.getValues('experience');
@@ -161,7 +161,7 @@ export default function CVBuilder() {
       },
     ]);
   };
-  
+
   const removeExperience = (index: number) => {
     const currentExperience = form.getValues('experience');
     if (currentExperience.length > 1) {
@@ -177,7 +177,7 @@ export default function CVBuilder() {
       });
     }
   };
-  
+
   const addEducation = () => {
     const currentEducation = form.getValues('education');
     form.setValue('education', [
@@ -190,7 +190,7 @@ export default function CVBuilder() {
       },
     ]);
   };
-  
+
   const removeEducation = (index: number) => {
     const currentEducation = form.getValues('education');
     if (currentEducation.length > 1) {
@@ -206,12 +206,12 @@ export default function CVBuilder() {
       });
     }
   };
-  
+
   const addSkill = () => {
     const currentSkills = form.getValues('skills');
     form.setValue('skills', [...currentSkills, '']);
   };
-  
+
   const removeSkill = (index: number) => {
     const currentSkills = form.getValues('skills');
     if (currentSkills.length > 1) {
@@ -227,7 +227,7 @@ export default function CVBuilder() {
       });
     }
   };
-  
+
   const addLanguage = () => {
     const currentLanguages = form.getValues('languages') || [];
     form.setValue('languages', [
@@ -238,7 +238,7 @@ export default function CVBuilder() {
       },
     ]);
   };
-  
+
   const removeLanguage = (index: number) => {
     const currentLanguages = form.getValues('languages') || [];
     form.setValue(
@@ -246,7 +246,7 @@ export default function CVBuilder() {
       currentLanguages.filter((_, i) => i !== index)
     );
   };
-  
+
   const addReference = () => {
     const currentReferences = form.getValues('references') || [];
     form.setValue('references', [
@@ -260,7 +260,7 @@ export default function CVBuilder() {
       },
     ]);
   };
-  
+
   const removeReference = (index: number) => {
     const currentReferences = form.getValues('references') || [];
     form.setValue(
@@ -317,8 +317,8 @@ export default function CVBuilder() {
 
     try {
       const response = await apiRequest(
-        'POST', 
-        '/api/cv/generate-summary', 
+        'POST',
+        '/api/cv/generate-summary',
         {
           name: personalInfo.fullName,
           skills: skills.filter(skill => skill), // Filter out empty skills
@@ -365,7 +365,7 @@ export default function CVBuilder() {
 
     try {
       const response = await apiRequest(
-        'POST', 
+        'POST',
         '/api/cv/generate-job-description',
         {
           jobInfo: experience,
@@ -411,7 +411,7 @@ export default function CVBuilder() {
       if (formData.professionalSummary) {
         const summaryResponse = await apiRequest(
           'POST',
-          '/api/cv/translate', 
+          '/api/cv/translate',
           {
             text: formData.professionalSummary,
             targetLanguage: selectedLanguage
@@ -456,7 +456,7 @@ export default function CVBuilder() {
       setIsTranslating(false);
     }
   };
-  
+
   // Form submission handler
   const onSubmit = (data: CVFormValues) => {
     console.log('Form data submitted:', data);
@@ -464,7 +464,7 @@ export default function CVBuilder() {
     // Generate a printable CV
     const cvContent = generateCVHTML(data);
     setGeneratedCV(cvContent);
-    
+
     toast({
       title: 'CV Generated',
       description: 'Your CV has been generated. You can now download it.',
@@ -597,12 +597,12 @@ export default function CVBuilder() {
             ${data.personalInfo.email} | ${data.personalInfo.phone} | ${data.personalInfo.address}
           </div>
         </div>
-        
+
         <div class="section">
           <h2 class="section-title">Professional Summary</h2>
           <p>${data.professionalSummary}</p>
         </div>
-        
+
         <div class="section">
           <h2 class="section-title">Work Experience</h2>
           ${data.experience.map(exp => `
@@ -618,7 +618,7 @@ export default function CVBuilder() {
             </div>
           `).join('')}
         </div>
-        
+
         <div class="section">
           <h2 class="section-title">Education</h2>
           ${data.education.map(edu => `
@@ -633,7 +633,7 @@ export default function CVBuilder() {
             </div>
           `).join('')}
         </div>
-        
+
         <div class="section">
           <h2 class="section-title">Skills</h2>
           <ul class="skills-list">
@@ -642,7 +642,7 @@ export default function CVBuilder() {
             `).join('')}
           </ul>
         </div>
-        
+
         ${data.languages && data.languages.length > 0 ? `
           <div class="section">
             <h2 class="section-title">Languages</h2>
@@ -653,7 +653,7 @@ export default function CVBuilder() {
             </ul>
           </div>
         ` : ''}
-        
+
         ${data.references && data.references.length > 0 ? `
           <div class="section">
             <h2 class="section-title">References</h2>
@@ -671,7 +671,7 @@ export default function CVBuilder() {
     </html>
     `;
   };
-  
+
   const printCV = () => {
     if (generatedCV) {
       const printWindow = window.open('', '_blank');
@@ -685,7 +685,7 @@ export default function CVBuilder() {
       }
     }
   };
-  
+
   const downloadCV = () => {
     if (generatedCV) {
       const blob = new Blob([generatedCV], { type: 'text/html' });
@@ -699,7 +699,7 @@ export default function CVBuilder() {
       URL.revokeObjectURL(url);
     }
   };
-  
+
   const renderForm = () => {
     switch (activeSection) {
       case 'personalInfo':
@@ -760,7 +760,7 @@ export default function CVBuilder() {
             />
           </div>
         );
-        
+
       case 'summary':
         return (
           <div className="space-y-4">
@@ -780,7 +780,7 @@ export default function CVBuilder() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Button 
+                <Button
                   type="button"
                   onClick={generateSummaryWithAI}
                   disabled={isGeneratingSummary}
@@ -789,7 +789,7 @@ export default function CVBuilder() {
                 >
                   {isGeneratingSummary ? 'Generating...' : 'Generate with AI'}
                 </Button>
-                <Button 
+                <Button
                   type="button"
                   onClick={translateCV}
                   disabled={isTranslating || selectedLanguage === 'English'}
@@ -824,7 +824,7 @@ export default function CVBuilder() {
             </div>
           </div>
         );
-        
+
       case 'experience':
         return (
           <div className="space-y-6">
@@ -834,7 +834,7 @@ export default function CVBuilder() {
                 Add Experience
               </Button>
             </div>
-            
+
             {form.getValues('experience').map((_, index) => (
               <Card key={index} className="p-4">
                 <div className="flex justify-between items-start mb-4">
@@ -850,7 +850,7 @@ export default function CVBuilder() {
                     </Button>
                   )}
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -865,7 +865,7 @@ export default function CVBuilder() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name={`experience.${index}.employer`}
@@ -879,7 +879,7 @@ export default function CVBuilder() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name={`experience.${index}.location`}
@@ -893,7 +893,7 @@ export default function CVBuilder() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <div className="flex items-center gap-4">
                     <FormField
                       control={form.control}
@@ -908,7 +908,7 @@ export default function CVBuilder() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name={`experience.${index}.isCurrentJob`}
@@ -928,7 +928,7 @@ export default function CVBuilder() {
                       )}
                     />
                   </div>
-                  
+
                   {!form.getValues(`experience.${index}.isCurrentJob`) && (
                     <FormField
                       control={form.control}
@@ -945,7 +945,7 @@ export default function CVBuilder() {
                     />
                   )}
                 </div>
-                
+
                 <div className="mt-4">
                   <div className="flex justify-between items-center mb-2">
                     <FormLabel>Job Description</FormLabel>
@@ -985,7 +985,7 @@ export default function CVBuilder() {
             ))}
           </div>
         );
-        
+
       case 'education':
         return (
           <div className="space-y-6">
@@ -995,7 +995,7 @@ export default function CVBuilder() {
                 Add Education
               </Button>
             </div>
-            
+
             {form.getValues('education').map((_, index) => (
               <Card key={index} className="p-4">
                 <div className="flex justify-between items-start mb-4">
@@ -1011,7 +1011,7 @@ export default function CVBuilder() {
                     </Button>
                   )}
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -1026,7 +1026,7 @@ export default function CVBuilder() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name={`education.${index}.school`}
@@ -1040,7 +1040,7 @@ export default function CVBuilder() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name={`education.${index}.location`}
@@ -1054,7 +1054,7 @@ export default function CVBuilder() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name={`education.${index}.graduationDate`}
@@ -1073,7 +1073,7 @@ export default function CVBuilder() {
             ))}
           </div>
         );
-        
+
       case 'skills':
         return (
           <div className="space-y-6">
@@ -1083,7 +1083,7 @@ export default function CVBuilder() {
                 Add Skill
               </Button>
             </div>
-            
+
             {form.getValues('skills').map((_, index) => (
               <div key={index} className="flex items-center gap-2">
                 <FormField
@@ -1098,7 +1098,7 @@ export default function CVBuilder() {
                     </FormItem>
                   )}
                 />
-                
+
                 {index > 0 && (
                   <Button
                     type="button"
@@ -1113,7 +1113,7 @@ export default function CVBuilder() {
             ))}
           </div>
         );
-        
+
       case 'languages':
         return (
           <div className="space-y-6">
@@ -1123,7 +1123,7 @@ export default function CVBuilder() {
                 Add Language
               </Button>
             </div>
-            
+
             {(form.getValues('languages') || []).map((_, index) => (
               <div key={index} className="flex flex-col md:flex-row md:items-end gap-4">
                 <FormField
@@ -1139,7 +1139,7 @@ export default function CVBuilder() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name={`languages.${index}.proficiency`}
@@ -1167,7 +1167,7 @@ export default function CVBuilder() {
                     </FormItem>
                   )}
                 />
-                
+
                 <Button
                   type="button"
                   onClick={() => removeLanguage(index)}
@@ -1181,7 +1181,7 @@ export default function CVBuilder() {
             ))}
           </div>
         );
-        
+
       case 'references':
         return (
           <div className="space-y-6">
@@ -1191,7 +1191,7 @@ export default function CVBuilder() {
                 Add Reference
               </Button>
             </div>
-            
+
             {(form.getValues('references') || []).map((_, index) => (
               <Card key={index} className="p-4">
                 <div className="flex justify-between items-start mb-4">
@@ -1205,7 +1205,7 @@ export default function CVBuilder() {
                     Remove
                   </Button>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -1220,7 +1220,7 @@ export default function CVBuilder() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name={`references.${index}.position`}
@@ -1234,7 +1234,7 @@ export default function CVBuilder() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name={`references.${index}.company`}
@@ -1248,7 +1248,7 @@ export default function CVBuilder() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name={`references.${index}.email`}
@@ -1262,7 +1262,7 @@ export default function CVBuilder() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name={`references.${index}.phone`}
@@ -1281,25 +1281,39 @@ export default function CVBuilder() {
             ))}
           </div>
         );
-        
+
       default:
         return null;
     }
   };
-  
+
   return (
     <div className="container mx-auto py-8 px-4">
+      {/* Floating Help Button with Tooltip */}
+      <div className="fixed bottom-6 right-6 z-50 group">
+        <Button
+          onClick={() => window.open('/resources/cv-builder-help', '_blank')}
+          className="rounded-full w-12 h-12 bg-blue-600 shadow-lg flex items-center justify-center hover:bg-blue-700"
+          aria-label="Get CV Builder Help"
+        >
+          <HelpCircle className="h-6 w-6 text-white" />
+        </Button>
+        <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-gray-800 text-white text-sm rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          Need help? Click for CV Builder Guide
+        </div>
+      </div>
+
       <div className="max-w-4xl mx-auto">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold mb-2 text-gray-800">CV Builder</h1>
           <p className="text-gray-600">Create a professional CV to help you land your dream job</p>
         </div>
-        
+
         {generatedCV ? (
           <div className="bg-white shadow-md rounded-lg p-6">
             <h2 className="text-xl font-bold mb-4">Your CV has been generated!</h2>
             <p className="text-gray-600 mb-6">You can now print or download your CV.</p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4">
               <Button onClick={printCV} className="flex-1">
                 Print CV
@@ -1307,8 +1321,8 @@ export default function CVBuilder() {
               <Button onClick={downloadCV} variant="outline" className="flex-1">
                 Download CV
               </Button>
-              <Button 
-                onClick={() => setGeneratedCV(null)} 
+              <Button
+                onClick={() => setGeneratedCV(null)}
                 variant="secondary"
                 className="flex-1"
               >
@@ -1388,19 +1402,30 @@ export default function CVBuilder() {
                       <Button type="submit" className="w-full">
                         Generate CV
                       </Button>
+                      <Separator className="my-2" />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full flex items-center justify-center gap-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+                        onClick={() => window.open('/resources/cv-builder-help', '_blank')}
+                      >
+                        <HelpCircle className="h-4 w-4" />
+                        CV Builder Help
+                      </Button>
                     </nav>
-                    
-                    <div className="mt-6">
-                      <AiGenerationTips />
-                      <SamplePrompts />
-                    </div>
                   </div>
                 </div>
-                
+
                 {/* Main content */}
                 <div className="md:col-span-3">
                   <div className="bg-white shadow-md rounded-lg p-6">
                     {renderForm()}
+                  </div>
+
+                  {/* AI Tips moved below the CV builder */}
+                  <div className="mt-6">
+                    <AiGenerationTips />
+                    <SamplePrompts />
                   </div>
                 </div>
               </div>
