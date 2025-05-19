@@ -31,7 +31,7 @@ import FAQWheelPage from "@/pages/FAQWheelPage";
 
 // Resource pages
 import CVTemplates from "@/pages/resources/CVTemplates";
-import InterviewTips from "@/pages/resources/InterviewTips";
+import InterviewTipsPage from "@/pages/resources/InterviewTipsPage";
 import SalaryGuide from "@/pages/resources/SalaryGuide";
 
 // Employer pages
@@ -60,7 +60,7 @@ function Router() {
 
         {/* Resource sub-pages */}
         <Route path="/resources/cv-templates" component={CVTemplates} />
-        <Route path="/resources/interview-tips" component={InterviewTips} />
+        <Route path="/resources/interview-tips" component={InterviewTipsPage} />
         <Route path="/resources/salary-guide" component={SalaryGuide} />
 
         {/* Employer pages */}

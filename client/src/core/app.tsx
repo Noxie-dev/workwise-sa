@@ -36,7 +36,8 @@ const FAQWheelPage = lazy(() => import("@/pages/FAQWheelPage"));
 
 // Resource pages
 const CVTemplates = lazy(() => import("@/pages/resources/CVTemplates"));
-const InterviewTips = lazy(() => import("@/pages/resources/InterviewTips"));
+// Use the new InterviewTipsPage component that handles its own lazy loading
+const InterviewTips = lazy(() => import("@/pages/resources/InterviewTipsPage"));
 const SalaryGuide = lazy(() => import("@/pages/resources/SalaryGuide"));
 
 // Employer pages
