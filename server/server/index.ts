@@ -8,7 +8,7 @@ import { setupSwagger } from '../../src/api/swagger';
 import { WiseUpService } from '../wiseup';
 import { storage } from '../storage';
 
-async function main() {
+async function startServer() {
   const app = express();
 
   // Middleware
@@ -18,7 +18,6 @@ async function main() {
 
   // Set up Swagger documentation
   setupSwagger(app);
-
   // Initialize database with sample data
   try {
     await storage.initializeData();
@@ -37,23 +36,19 @@ async function main() {
 
   // For backward compatibility, register original routes
   // These will be deprecated in future versions
-  await registerRoutes(app);
+  const httpServer = await registerRoutes(app);
 
   // Error handling
   app.use(notFoundHandler);
   app.use(errorHandler);
 
-  const port = process.env.PORT || 5000;
-  const server = app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-    console.log(`API documentation available at http://localhost:${port}/api-docs`);
+  const PORT = process.env.PORT || 5000;
+  httpServer.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`API documentation available at http://localhost:${PORT}/api-docs`);
   });
 
-  return server;
+  return httpServer;
 }
 
-if (require.main === module) {
-  main().catch(console.error);
-}
-
-export default main;
+startServer().catch(console.error);
