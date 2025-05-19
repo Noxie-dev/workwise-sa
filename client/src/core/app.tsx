@@ -39,6 +39,7 @@ const CVTemplates = lazy(() => import("@/pages/resources/CVTemplates"));
 // Use the new InterviewTipsPage component that handles its own lazy loading
 const InterviewTips = lazy(() => import("@/pages/resources/InterviewTipsPage"));
 const SalaryGuide = lazy(() => import("@/pages/resources/SalaryGuide"));
+const CVBuilderHelp = lazy(() => import("@/pages/resources/CVBuilderHelp"));
 
 // Employer pages
 const PostJob = lazy(() => import("@/pages/employers/PostJob"));
@@ -73,6 +74,7 @@ function Router() {
             <Route path="/resources/cv-templates" component={CVTemplates} />
             <Route path="/resources/interview-tips" component={InterviewTips} />
             <Route path="/resources/salary-guide" component={SalaryGuide} />
+            <Route path="/resources/cv-builder-help" component={CVBuilderHelp} />
 
             {/* Employer pages */}
             <Route path="/employers/post-job" component={PostJob} />
