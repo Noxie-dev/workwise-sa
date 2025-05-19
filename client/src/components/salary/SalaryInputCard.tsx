@@ -105,7 +105,7 @@ const SalaryInputCard: React.FC<SalaryInputCardProps> = ({
   return (
     <Card className="md:col-span-1">
       <CardHeader>
-        <CardTitle className="flex items-center"><Calculator className="mr-2 h-5 w-5" />Salary Input</CardTitle>
+        <CardTitle className="flex items-center text-[#163b6d]"><Calculator className="mr-2 h-5 w-5" />Salary Input</CardTitle>
         <CardDescription>Enter your salary details below.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

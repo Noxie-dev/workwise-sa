@@ -1,5 +1,5 @@
 import CustomHelmet from '@/components/CustomHelmet';
-import ComingSoon from '@/components/ComingSoon';
+import InterviewTipsContent from '@/components/InterviewTipsContent';
 
 const InterviewTips = () => {
   return (
@@ -12,10 +12,9 @@ const InterviewTips = () => {
       <main className="flex-grow">
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-3xl font-bold mb-6">Interview Tips</h1>
-          <ComingSoon 
-            title="Interview Tips Coming Soon" 
-            description="Our comprehensive guide to acing your job interviews is being prepared for you."
-          />
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <InterviewTipsContent />
+          </div>
         </div>
       </main>
     </>

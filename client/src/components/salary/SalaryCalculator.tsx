@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tabs as TabsType } from '@radix-ui/react-tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // Import custom hooks
 import useSalaryConverter from './hooks/useSalaryConverter';
@@ -167,15 +168,34 @@ function SalaryCalculator() {
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
       <header className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight">South African Salary Calculator</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-[#163b6d]">South African Salary Calculator</h1>
         <p className="text-muted-foreground">Estimate your net pay, tax, and compare with industry benchmarks for all job levels (2024/2025 Tax Year).</p>
         <p className="text-sm text-muted-foreground mt-1">Now includes data for low-level jobs, general workers, and service positions with minimum wage comparisons.</p>
       </header>
 
       <Tabs defaultValue="calculator" className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:w-1/2 md:mx-auto">
-          <TabsTrigger value="calculator">Salary Calculator</TabsTrigger>
-          <TabsTrigger value="comparison">Industry Comparison</TabsTrigger>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="calculator">Salary Calculator</TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Calculate your salary breakdown and take-home pay</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="comparison">Industry Comparison</TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Compare your salary with industry averages</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </TabsList>
 
         <TabsContent value="calculator" className="mt-6">

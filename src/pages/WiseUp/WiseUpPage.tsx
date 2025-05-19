@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { WiseUpItem, ContentItem } from './types';
 import WiseUpLayout from './WiseUpLayout';
 import { wiseupService } from '@/services/wiseupService';
+import { wiseupApiService } from '@/services/wiseupApiService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -161,13 +162,32 @@ const WiseUpPage: React.FC = () => {
         const userInterests = currentUser?.interests || [];
 
         // Fetch content and ads
-        const [contentItems, adItems] = await Promise.all([
-          wiseupService.getContent(),
-          wiseupService.getAds(5, userInterests) // Pass user interests for targeted ads
-        ]);
+        // Try to use the API service first, fall back to the Firebase service if it fails
+        try {
+          const [contentItems, adItems] = await Promise.all([
+            wiseupApiService.getContent(),
+            wiseupApiService.getAds(5, userInterests) // Pass user interests for targeted ads
+          ]);
 
-        // Interleave content and ads
-        const combinedItems = wiseupService.interleaveContentAndAds(contentItems, adItems);
+          // Interleave content and ads
+          const combinedItems = wiseupApiService.interleaveContentAndAds(contentItems, adItems);
+
+          if (combinedItems.length === 0) {
+            throw new Error('No items returned from API');
+          }
+
+          setAllItems(combinedItems);
+        } catch (apiError) {
+          console.warn('API service failed, falling back to Firebase service:', apiError);
+
+          // Fall back to Firebase service
+          const [contentItems, adItems] = await Promise.all([
+            wiseupService.getContent(),
+            wiseupService.getAds(5, userInterests) // Pass user interests for targeted ads
+          ]);
+
+          // Interleave content and ads
+          const combinedItems = wiseupService.interleaveContentAndAds(contentItems, adItems);
 
         if (combinedItems.length === 0) {
           console.warn('No items returned from API, using sample data');
@@ -211,10 +231,16 @@ const WiseUpPage: React.FC = () => {
   // Track ad impressions when currentItem changes to an ad
   useEffect(() => {
     if (currentItem && currentItem.type === 'ad' && !isLoading) {
-      wiseupService.trackAdImpression(
-        currentItem.id,
-        currentUser?.uid || null
-      );
+      // Try to use the API service first, fall back to the Firebase service if it fails
+      try {
+        wiseupApiService.trackAdImpression(currentItem.id);
+      } catch (error) {
+        console.warn('API service failed for tracking impression, falling back to Firebase service:', error);
+        wiseupService.trackAdImpression(
+          currentItem.id,
+          currentUser?.uid || null
+        );
+      }
     }
   }, [currentItem, currentUser, isLoading]);
 
