@@ -235,3 +235,6 @@ export type UserNotification = typeof userNotifications.$inferSelect;
 export type UserJobPreference = typeof userJobPreferences.$inferSelect;
 export type InsertFile = z.infer<typeof insertFileSchema>;
 export type File = typeof files.$inferSelect;
+
+// Import WiseUp schema
+export * from './wiseup-schema';
