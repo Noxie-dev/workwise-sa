@@ -4,24 +4,22 @@ import react from "@vitejs/plugin-react";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    react({
-      babel: {
-        plugins: [
-          ["babel-plugin-react-compiler", { target: '19' }],
-          "@babel/plugin-transform-class-properties",
-          "@babel/plugin-transform-object-rest-spread"
-        ]
-      }
-    })
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
       "@shared": path.resolve(__dirname, "../shared"),
     },
+    extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
     // Force Vite to resolve these dependencies from node_modules
     dedupe: ['react', 'react-dom', 'react-helmet-async', '@tanstack/react-query', '@tanstack/react-query-devtools']
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      loader: {
+        '.js': 'jsx'
+      }
+    }
   },
   build: {
     commonjsOptions: {
