@@ -15,6 +15,8 @@ import {
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+// TODO: Firebase AI is not yet available in the current Firebase SDK version
+// import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -30,6 +32,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
+
+// TODO: Initialize Firebase AI when available
+// const ai = getAI(app, { backend: new GoogleAIBackend() });
+// const model = getGenerativeModel(ai, { model: "gemini-2.0-flash" });
 
 // Connect to emulators in development mode
 if (import.meta.env.DEV) {
@@ -191,4 +197,15 @@ export const uploadFile = async (file: File, path: string): Promise<string> => {
   }
 };
 
+// AI Helper Functions
+
+// TODO: Implement generateContent when Firebase AI is available
+export const generateContent = async (prompt: string): Promise<string> => {
+  // Temporary placeholder implementation
+  console.warn('Firebase AI not yet available. This is a placeholder response.');
+  return `AI Response to: "${prompt}"\n\nThis is a placeholder response. Firebase AI integration will be available when the firebase/ai package is released.`;
+};
+
 export { auth, db, storage };
+// TODO: Export ai and model when Firebase AI is available
+// export { auth, db, storage, ai, model };
