@@ -30,7 +30,12 @@ export default defineConfig({
       external: [],
       output: {
         manualChunks: {
-          'vendor': ['react', 'react-dom', 'react-helmet-async', '@tanstack/react-query', '@tanstack/react-query-devtools']
+          'vendor': ['react', 'react-dom', 'react-helmet-async', '@tanstack/react-query', '@tanstack/react-query-devtools'],
+          'contact': [
+            './src/pages/Contact/components/ContactForm',
+            './src/pages/Contact/components/ContactInformation', 
+            './src/pages/Contact/components/SupportCategoriesDisplay'
+          ]
         }
       }
     }
