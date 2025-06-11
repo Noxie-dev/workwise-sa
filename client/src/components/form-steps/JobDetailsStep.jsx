@@ -6,7 +6,7 @@ import FormField from "../ui/FormField";
 import Input from "../ui/Input";
 import Button from "../ui/Button";
 import Checkbox from "../ui/Checkbox";
-import Label from "../ui/Label";
+import { Label } from "../ui/Label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/Select";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "../ui/Dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/Tabs";

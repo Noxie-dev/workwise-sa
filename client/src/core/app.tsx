@@ -50,6 +50,7 @@ const SuccessStories = lazy(() => import("@/pages/employers/SuccessStories"));
 
 // About pages
 const About = lazy(() => import("@/pages/About"));
+const AboutUsPage = lazy(() => import("@/pages/AboutUsPage"));
 const Contact = lazy(() => import("@/pages/Contact"));
 const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
 const Terms = lazy(() => import("@/pages/Terms"));
@@ -85,6 +86,7 @@ function Router() {
 
             {/* About pages */}
             <Route path="/about" component={About} />
+            <Route path="/about-us" component={AboutUsPage} />
             <Route path="/contact" component={Contact} />
             <Route path="/privacy-policy" component={PrivacyPolicy} />
             <Route path="/terms" component={Terms} />
