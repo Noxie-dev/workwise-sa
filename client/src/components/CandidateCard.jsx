@@ -87,7 +87,7 @@ const CandidateCard = ({ candidate }) => {
             className="w-full bg-accent hover:bg-accent/90 text-accent-foreground shadow-md" // Yellow CTA
             onClick={() => console.log('View Assessment:', assessmentUrl)} // Replace with actual navigation
           >
-            <Award size={16} className="mr-2" /> Assessment Report
+            <Award size={16} className="mr-2" /> Assessment
           </Button>
         </div>
       </CardFooter>
