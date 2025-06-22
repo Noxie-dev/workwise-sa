@@ -34,6 +34,10 @@ const SimpleTest = lazy(() => import("@/pages/SimpleTest"));
 const HomeSimple = lazy(() => import("@/pages/HomeSimple"));
 const FAQWheelPage = lazy(() => import("@/pages/FAQWheelPage"));
 
+// Companies and Blog pages
+const Companies = lazy(() => import("@/pages/Companies"));
+const BlogWise = lazy(() => import("@/pages/BlogWise"));
+
 // Resource pages
 const CVTemplates = lazy(() => import("@/pages/resources/CVTemplates"));
 // Use the new InterviewTipsPage component that handles its own lazy loading
@@ -76,6 +80,10 @@ function Router() {
             <Route path="/resources/interview-tips" component={InterviewTips} />
             <Route path="/resources/salary-guide" component={SalaryGuide} />
             <Route path="/resources/cv-builder-help" component={CVBuilderHelp} />
+
+            {/* Companies and Blog pages */}
+            <Route path="/companies" component={Companies} />
+            <Route path="/blog-wise" component={BlogWise} />
 
             {/* Employer pages */}
             <Route path="/employers/post-job" component={PostJob} />
