@@ -8,10 +8,36 @@ import { setupSwagger } from '../../src/api/swagger';
 import { WiseUpService } from '../wiseup';
 import { storage } from '../storage';
 
+import { secretManager } from '../services/secretManager';
+
+async function preloadSecrets() {
+  const secretKeys = [
+    'ANTHROPIC_API_KEY',
+    'GOOGLE_GENAI_API_KEY',
+    'DATABASE_URL',
+    'FIREBASE_PROJECT_ID',
+    'FIREBASE_STORAGE_BUCKET',
+    'UPLOAD_DIR',
+    'FILE_SERVE_URL',
+    'PORT'
+  ];
+
+  for (const key of secretKeys) {
+    await secretManager.getSecret(key);
+  }
+}
+
+import helmet from 'helmet';
+
+// ... (imports)
+
 async function startServer() {
+  await preloadSecrets();
+
   const app = express();
 
   // Middleware
+  app.use(helmet());
   app.use(cors());
   app.use(express.json());
   app.use(requestIdMiddleware);
@@ -42,7 +68,7 @@ async function startServer() {
   app.use(notFoundHandler);
   app.use(errorHandler);
 
-  const PORT = process.env.PORT || 5000;
+  const PORT = await secretManager.getSecret('PORT') || 5000;
   httpServer.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`API documentation available at http://localhost:${PORT}/api-docs`);
