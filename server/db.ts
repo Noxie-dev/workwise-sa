@@ -4,8 +4,10 @@ import Database from 'better-sqlite3';
 import postgres from 'postgres';
 import * as schema from "../shared/schema";
 
+import { secretManager } from './services/secretManager';
+
 // Get database connection string
-const connectionString = process.env.DATABASE_URL;
+const connectionString = await secretManager.getSecret('DATABASE_URL');
 
 // Create database client based on connection string
 let db;
