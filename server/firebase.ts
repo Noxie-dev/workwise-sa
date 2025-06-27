@@ -12,26 +12,28 @@ function initializeFirebase() {
       return admin.apps[0];
     }
 
-    // For development without emulators
-    if (process.env.NODE_ENV !== 'production') {
-      try {
-        const serviceAccount = require('../service-account.json');
-        // Check if it's a placeholder file
-        if (serviceAccount.private_key_id === 'placeholder') {
-          log('Using placeholder Firebase Admin SDK - some features may not work');
-          // Return a mock app for development
-          return null;
-        }
-        return admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
-          projectId: process.env.FIREBASE_PROJECT_ID || 'workwise-sa-project',
-          storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'workwise-sa-project.appspot.com'
-        });
-      } catch (error) {
-        log('Service account file not found or invalid, using development mode without Firebase Admin');
-        return null;
-      }
+    import { secretManager } from './services/secretManager';
+
+// For development without emulators
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    const serviceAccount = require('../service-account.json');
+    // Check if it's a placeholder file
+    if (serviceAccount.private_key_id === 'placeholder') {
+      log('Using placeholder Firebase Admin SDK - some features may not work');
+      // Return a mock app for development
+      return null;
     }
+    return admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      projectId: await secretManager.getSecret('FIREBASE_PROJECT_ID') || 'workwise-sa-project',
+      storageBucket: await secretManager.getSecret('FIREBASE_STORAGE_BUCKET') || 'workwise-sa-project.appspot.com'
+    });
+  } catch (error) {
+    log('Service account file not found or invalid, using development mode without Firebase Admin');
+    return null;
+  }
+}
 
     // For production
     return admin.initializeApp();

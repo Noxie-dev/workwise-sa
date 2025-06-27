@@ -1,8 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
+import { secretManager } from './services/secretManager';
+
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+  apiKey: await secretManager.getSecret('ANTHROPIC_API_KEY'),
 });
 
 // Helper function to safely extract text from Claude's response
