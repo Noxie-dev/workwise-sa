@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import {
   getJobRecommendations,
   isEligibleForEarlyNotifications,
@@ -13,6 +13,7 @@ import {
 import { db } from './db';
 import { users, userJobPreferences } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+import { ApiError, Errors } from './middleware/errorHandler';
 
 // Create a new router instance
 const router = Router();
@@ -21,14 +22,14 @@ const router = Router();
  * Get personalized job recommendations for authenticated user
  * GET /api/recommendations/jobs
  */
-router.get('/jobs', async (req: Request, res: Response) => {
+router.get('/jobs', async (req: Request, res: Response, next: NextFunction) => {
   try {
     // In a real application, we would get the authenticated user ID
     // For example sake, we're expecting it as a query parameter
     const userId = parseInt(req.query.userId as string);
     
     if (isNaN(userId)) {
-      return res.status(400).json({ error: 'Valid userId is required' });
+      throw Errors.validation('Valid userId is required');
     }
     
     // Parse optional parameters
@@ -46,8 +47,7 @@ router.get('/jobs', async (req: Request, res: Response) => {
     
     res.json(recommendations);
   } catch (error) {
-    console.error('Error getting job recommendations:', error);
-    res.status(500).json({ error: 'Failed to get job recommendations' });
+    next(error);
   }
 });
 
@@ -55,13 +55,13 @@ router.get('/jobs', async (req: Request, res: Response) => {
  * Search jobs with personalized ranking
  * GET /api/recommendations/search
  */
-router.get('/search', async (req: Request, res: Response) => {
+router.get('/search', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = parseInt(req.query.userId as string);
     const query = req.query.q as string;
     
     if (isNaN(userId) || !query) {
-      return res.status(400).json({ error: 'Valid userId and query are required' });
+      throw Errors.validation('Valid userId and query are required');
     }
     
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
@@ -70,8 +70,7 @@ router.get('/search', async (req: Request, res: Response) => {
     
     res.json(results);
   } catch (error) {
-    console.error('Error searching jobs:', error);
-    res.status(500).json({ error: 'Failed to search jobs' });
+    next(error);
   }
 });
 
@@ -79,12 +78,12 @@ router.get('/search', async (req: Request, res: Response) => {
  * Track user interaction (view, apply, etc.)
  * POST /api/recommendations/track
  */
-router.post('/track', async (req: Request, res: Response) => {
+router.post('/track', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId, interactionType, jobId, videoId, categoryId, duration, metadata } = req.body;
     
     if (!userId || !interactionType) {
-      return res.status(400).json({ error: 'userId and interactionType are required' });
+      throw Errors.validation('userId and interactionType are required');
     }
     
     await trackUserInteraction(userId, interactionType, {
@@ -97,8 +96,7 @@ router.post('/track', async (req: Request, res: Response) => {
     
     res.json({ success: true });
   } catch (error) {
-    console.error('Error tracking user interaction:', error);
-    res.status(500).json({ error: 'Failed to track user interaction' });
+    next(error);
   }
 });
 
@@ -106,20 +104,19 @@ router.post('/track', async (req: Request, res: Response) => {
  * Start a new user session
  * POST /api/recommendations/session/start
  */
-router.post('/session/start', async (req: Request, res: Response) => {
+router.post('/session/start', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId, device, ipAddress } = req.body;
     
     if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
+      throw Errors.validation('userId is required');
     }
     
     const sessionId = await startUserSession(userId, { device, ipAddress });
     
     res.json({ sessionId });
   } catch (error) {
-    console.error('Error starting user session:', error);
-    res.status(500).json({ error: 'Failed to start user session' });
+    next(error);
   }
 });
 
@@ -127,20 +124,19 @@ router.post('/session/start', async (req: Request, res: Response) => {
  * End a user session
  * POST /api/recommendations/session/end
  */
-router.post('/session/end', async (req: Request, res: Response) => {
+router.post('/session/end', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { sessionId } = req.body;
     
     if (!sessionId) {
-      return res.status(400).json({ error: 'sessionId is required' });
+      throw Errors.validation('sessionId is required');
     }
     
     await endUserSession(sessionId);
     
     res.json({ success: true });
   } catch (error) {
-    console.error('Error ending user session:', error);
-    res.status(500).json({ error: 'Failed to end user session' });
+    next(error);
   }
 });
 
@@ -148,19 +144,19 @@ router.post('/session/end', async (req: Request, res: Response) => {
  * Get user engagement score and tier
  * GET /api/recommendations/engagement
  */
-router.get('/engagement', async (req: Request, res: Response) => {
+router.get('/engagement', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = parseInt(req.query.userId as string);
     
     if (isNaN(userId)) {
-      return res.status(400).json({ error: 'Valid userId is required' });
+      throw Errors.validation('Valid userId is required');
     }
     
     // First check if user exists
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      throw Errors.notFound('User not found');
     }
     
     // Get or calculate engagement score
@@ -185,8 +181,7 @@ router.get('/engagement', async (req: Request, res: Response) => {
       nextTierThreshold: getNextTierThreshold(engagementScore)
     });
   } catch (error) {
-    console.error('Error getting user engagement:', error);
-    res.status(500).json({ error: 'Failed to get user engagement information' });
+    next(error);
   }
 });
 
@@ -194,12 +189,12 @@ router.get('/engagement', async (req: Request, res: Response) => {
  * Update user job preferences
  * PUT /api/recommendations/preferences
  */
-router.put('/preferences', async (req: Request, res: Response) => {
+router.put('/preferences', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId, preferredCategories, preferredLocations, preferredJobTypes, willingToRelocate, minSalary } = req.body;
     
     if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
+      throw Errors.validation('userId is required');
     }
     
     // Check if preference exists
@@ -242,8 +237,7 @@ router.put('/preferences', async (req: Request, res: Response) => {
     
     res.json({ success: true });
   } catch (error) {
-    console.error('Error updating user job preferences:', error);
-    res.status(500).json({ error: 'Failed to update user job preferences' });
+    next(error);
   }
 });
 

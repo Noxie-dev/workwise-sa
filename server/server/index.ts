@@ -78,3 +78,18 @@ async function startServer() {
 }
 
 startServer().catch(console.error);
+
+// Global unhandled promise rejection handler
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Application specific logging, cleanup, or crash reporting
+  // In a real application, you might want to gracefully shut down or restart
+});
+
+// Global uncaught exception handler
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // Application specific logging, cleanup, or crash reporting
+  // In a real application, you might want to gracefully shut down or restart
+  process.exit(1); // Exit the process to avoid undefined state
+});
