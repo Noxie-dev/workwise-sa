@@ -141,29 +141,61 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
     return res.status(err.statusCode).json(err.toResponse());
   }
   
-  // Handle unknown errors
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal server error';
-  
+  // Handle unknown errors by attempting to infer type and wrapping in ApiError
+  let inferredStatusCode = err.statusCode || err.status || 500;
+  let inferredErrorType: ErrorType = ErrorType.INTERNAL;
+  let inferredMessage = err.message || 'Internal server error';
+  let inferredDetails = err.details;
+
+  // Attempt to infer error type based on status code or common error names
+  if (inferredStatusCode === 400) {
+    inferredErrorType = ErrorType.VALIDATION;
+  } else if (inferredStatusCode === 401) {
+    inferredErrorType = ErrorType.AUTHENTICATION;
+  } else if (inferredStatusCode === 403) {
+    inferredErrorType = ErrorType.AUTHORIZATION;
+  } else if (inferredStatusCode === 404) {
+    inferredErrorType = ErrorType.NOT_FOUND;
+  } else if (inferredStatusCode === 409) {
+    inferredErrorType = ErrorType.CONFLICT;
+  } else if (inferredStatusCode === 502) {
+    inferredErrorType = ErrorType.EXTERNAL_SERVICE;
+  } else if (err.name === 'UnauthorizedError' || err.name === 'JsonWebTokenError') {
+    inferredStatusCode = 401;
+    inferredErrorType = ErrorType.AUTHENTICATION;
+    inferredMessage = 'Authentication failed';
+  } else if (err.name === 'ForbiddenError') {
+    inferredStatusCode = 403;
+    inferredErrorType = ErrorType.AUTHORIZATION;
+    inferredMessage = 'Permission denied';
+  }
+  // Add more specific checks here if other common error types are known (e.g., database errors by name/code)
+
+  const apiError = new ApiError(
+    inferredMessage,
+    inferredStatusCode,
+    inferredErrorType,
+    inferredDetails || (process.env.NODE_ENV !== 'production' ? { originalError: err.message, stack: err.stack } : undefined)
+  );
+
   logger.error({
-    message: 'Unhandled error',
+    message: 'Unhandled error caught by generic handler',
     requestId,
     path: req.path,
     method: req.method,
-    error: message,
-    stack: err.stack,
+    type: apiError.type,
+    statusCode: apiError.statusCode,
+    error: err.message, // Original error message for logging
+    stack: err.stack,   // Original stack for logging
+    ...(apiError.details ? { details: apiError.details } : {}),
   });
-  
-  // In production, don't expose error details
+
   const isProduction = process.env.NODE_ENV === 'production';
-  
-  return res.status(statusCode).json({
-    error: {
-      type: ErrorType.INTERNAL,
-      message: isProduction ? 'Internal server error' : message,
-      requestId,
-    }
-  });
+  const responseError = isProduction && apiError.statusCode >= 500
+    ? Errors.internal('Internal server error') // Generic message for 5xx in production
+    : apiError; // Use the inferred or original ApiError for response
+
+  return res.status(responseError.statusCode).json(responseError.toResponse());
 };
 
 /**

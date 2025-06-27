@@ -12,6 +12,20 @@ import {
 } from "./anthropic";
 import recommendationRoutes from "./recommendationRoutes";
 
+import { validate } from "./middleware/validation";
+
+// Schemas for validation
+const getCategorySchema = z.object({ params: z.object({ slug: z.string() }) });
+const getCompanySchema = z.object({ params: z.object({ slug: z.string() }) });
+const searchJobsSchema = z.object({ query: z.object({ q: z.string() }) });
+const getJobsByCompanySchema = z.object({ params: z.object({ id: z.string().regex(/^\d+$/) }) });
+const getJobsByCategorySchema = z.object({ params: z.object({ id: z.string().regex(/^\d+$/) }) });
+const getJobSchema = z.object({ params: z.object({ id: z.string().regex(/^\d+$/) }) });
+const generateSummarySchema = z.object({ body: z.object({ name: z.string(), skills: z.array(z.string()), experience: z.array(z.any()), education: z.array(z.any()), language: z.string().optional() }) });
+const generateJobDescriptionSchema = z.object({ body: z.object({ jobInfo: z.any(), language: z.string().optional() }) });
+const translateSchema = z.object({ body: z.object({ text: z.string(), targetLanguage: z.string() }) });
+const analyzeImageSchema = z.object({ body: z.object({ image: z.string() }) });
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Categories routes
   app.get("/api/categories", async (req, res) => {
@@ -24,7 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/categories/:slug", async (req, res) => {
+  app.get("/api/categories/:slug", validate(getCategorySchema), async (req, res) => {
     try {
       const category = await storage.getCategoryBySlug(req.params.slug);
       if (!category) {
@@ -48,7 +62,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/companies/:slug", async (req, res) => {
+  app.get("/api/companies/:slug", validate(getCompanySchema), async (req, res) => {
     try {
       const company = await storage.getCompanyBySlug(req.params.slug);
       if (!company) {
@@ -82,7 +96,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/jobs/search", async (req, res) => {
+  app.get("/api/jobs/search", validate(searchJobsSchema), async (req, res) => {
     try {
       const query = req.query.q as string || '';
       const results = await storage.searchJobs(query);
@@ -93,13 +107,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/jobs/company/:id", async (req, res) => {
+  app.get("/api/jobs/company/:id", validate(getJobsByCompanySchema), async (req, res) => {
     try {
       const companyId = parseInt(req.params.id);
-      if (isNaN(companyId)) {
-        return res.status(400).json({ message: "Invalid company ID" });
-      }
-      
       const jobs = await storage.getJobsByCompany(companyId);
       res.json(jobs);
     } catch (error) {
@@ -108,13 +118,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/jobs/category/:id", async (req, res) => {
+  app.get("/api/jobs/category/:id", validate(getJobsByCategorySchema), async (req, res) => {
     try {
       const categoryId = parseInt(req.params.id);
-      if (isNaN(categoryId)) {
-        return res.status(400).json({ message: "Invalid category ID" });
-      }
-      
       const jobs = await storage.getJobsByCategory(categoryId);
       res.json(jobs);
     } catch (error) {
@@ -123,13 +129,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/jobs/:id", async (req, res) => {
+  app.get("/api/jobs/:id", validate(getJobSchema), async (req, res) => {
     try {
       const jobId = parseInt(req.params.id);
-      if (isNaN(jobId)) {
-        return res.status(400).json({ message: "Invalid job ID" });
-      }
-      
       const job = await storage.getJob(jobId);
       if (!job) {
         return res.status(404).json({ message: "Job not found" });
@@ -148,9 +150,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User routes
-  app.post("/api/users/register", async (req, res) => {
+  app.post("/api/users/register", validate(z.object({ body: insertUserSchema })), async (req, res) => {
     try {
-      const userData = insertUserSchema.parse(req.body);
+      const userData = req.body;
       
       // Check if username already exists
       const existingUser = await storage.getUserByUsername(userData.username);
@@ -177,15 +179,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI-powered CV generation routes
-  app.post("/api/cv/generate-summary", async (req, res) => {
+  app.post("/api/cv/generate-summary", validate(generateSummarySchema), async (req, res) => {
     try {
-      const { name, skills, experience, education, language = 'English' } = req.body;
-      
-      if (!name || !skills || !experience || !education) {
-        return res.status(400).json({ 
-          message: "Missing required fields for generating a professional summary" 
-        });
-      }
+      const { name, skills, experience, education, language } = req.body;
       
       const summary = await generateProfessionalSummary({
         name,
@@ -205,15 +201,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/cv/generate-job-description", async (req, res) => {
+  app.post("/api/cv/generate-job-description", validate(generateJobDescriptionSchema), async (req, res) => {
     try {
-      const { jobInfo, language = 'English' } = req.body;
-      
-      if (!jobInfo || !jobInfo.jobTitle || !jobInfo.employer) {
-        return res.status(400).json({ 
-          message: "Missing required job information" 
-        });
-      }
+      const { jobInfo, language } = req.body;
       
       const description = await generateJobDescription(jobInfo, language);
       
@@ -227,15 +217,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/cv/translate", async (req, res) => {
+  app.post("/api/cv/translate", validate(translateSchema), async (req, res) => {
     try {
       const { text, targetLanguage } = req.body;
-      
-      if (!text || !targetLanguage) {
-        return res.status(400).json({ 
-          message: "Missing text or target language" 
-        });
-      }
       
       const translatedText = await translateText(text, targetLanguage);
       
@@ -250,21 +234,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Anthropic Claude-powered CV generation routes
-  app.post("/api/cv/claude/generate-summary", async (req, res) => {
+  app.post("/api/cv/claude/generate-summary", validate(generateSummarySchema), async (req, res) => {
     try {
-      if (!process.env.ANTHROPIC_API_KEY) {
+      if (!await secretManager.getSecret('ANTHROPIC_API_KEY')) {
         return res.status(500).json({ 
           message: "Anthropic API key is not configured"
         });
       }
 
-      const { name, skills, experience, education, language = 'English' } = req.body;
-      
-      if (!name || !skills || !experience || !education) {
-        return res.status(400).json({ 
-          message: "Missing required fields for generating a professional summary" 
-        });
-      }
+      const { name, skills, experience, education, language } = req.body;
       
       const summary = await generateProfessionalSummaryWithClaude({
         name,
@@ -284,21 +262,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/cv/claude/generate-job-description", async (req, res) => {
+  app.post("/api/cv/claude/generate-job-description", validate(generateJobDescriptionSchema), async (req, res) => {
     try {
-      if (!process.env.ANTHROPIC_API_KEY) {
+      if (!await secretManager.getSecret('ANTHROPIC_API_KEY')) {
         return res.status(500).json({ 
           message: "Anthropic API key is not configured"
         });
       }
 
-      const { jobInfo, language = 'English' } = req.body;
-      
-      if (!jobInfo || !jobInfo.jobTitle || !jobInfo.employer) {
-        return res.status(400).json({ 
-          message: "Missing required job information" 
-        });
-      }
+      const { jobInfo, language } = req.body;
       
       const description = await generateJobDescriptionWithClaude(jobInfo, language);
       
@@ -312,21 +284,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/cv/claude/translate", async (req, res) => {
+  app.post("/api/cv/claude/translate", validate(translateSchema), async (req, res) => {
     try {
-      if (!process.env.ANTHROPIC_API_KEY) {
+      if (!await secretManager.getSecret('ANTHROPIC_API_KEY')) {
         return res.status(500).json({ 
           message: "Anthropic API key is not configured"
         });
       }
 
       const { text, targetLanguage } = req.body;
-      
-      if (!text || !targetLanguage) {
-        return res.status(400).json({ 
-          message: "Missing text or target language" 
-        });
-      }
       
       const translatedText = await translateTextWithClaude(text, targetLanguage);
       
@@ -340,21 +306,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/cv/claude/analyze-image", async (req, res) => {
+  app.post("/api/cv/claude/analyze-image", validate(analyzeImageSchema), async (req, res) => {
     try {
-      if (!process.env.ANTHROPIC_API_KEY) {
+      if (!await secretManager.getSecret('ANTHROPIC_API_KEY')) {
         return res.status(500).json({ 
           message: "Anthropic API key is not configured"
         });
       }
 
       const { image } = req.body;
-      
-      if (!image) {
-        return res.status(400).json({ 
-          message: "Missing image data" 
-        });
-      }
       
       const analysis = await analyzeImage(image);
       
