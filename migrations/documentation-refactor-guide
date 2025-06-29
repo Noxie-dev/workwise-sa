@@ -1,0 +1,205 @@
+WorkWise SA Component Refactoring Documentation
+This document provides a detailed explanation of the refactoring process applied to the WorkWise SA components, highlighting the improvements made and providing guidance for future development.
+
+Table of Contents
+Introduction
+Refactoring Goals
+Refactoring Strategies Applied
+Component Directory Structure
+Key Improvements by Component
+Custom Hooks Overview
+Testing Strategy
+Migration Guide
+Introduction
+The WorkWise SA application consists of multiple React components that were initially developed with varying levels of optimization, type safety, and code organization. This refactoring effort aims to standardize these components, improve performance, enhance type safety, and make the codebase more maintainable.
+
+Refactoring Goals
+The primary goals of this refactoring effort were:
+
+Improve Type Safety: Enhance TypeScript usage with proper interfaces and type definitions
+Optimize Performance: Reduce unnecessary re-renders, memoize expensive calculations, and optimize data fetching
+Enhance Maintainability: Follow consistent patterns, extract reusable logic to custom hooks, improve readability
+Improve Accessibility: Add proper ARIA attributes, support keyboard navigation, and enhance screen reader compatibility
+Enhance Error Handling: Implement robust error boundaries and graceful fallbacks
+Support Testing: Make components more testable with proper prop interfaces and isolated business logic
+Refactoring Strategies Applied
+1. Component Logic Extraction
+We extracted complex logic from components into custom hooks, following the principle of separation of concerns. This made the components more focused on rendering UI, while the hooks managed state and side effects.
+
+Example: The FAQWheelPreview component's wheel rotation, item positioning, and animation logic was moved to a useFAQWheel hook.
+
+2. Consistent Prop Interfaces
+We defined clear, consistent prop interfaces for all components using TypeScript, making it easier to understand what each component expects and providing better type safety.
+
+Example: The JobCard component now has a clearly defined JobCardProps interface that documents all available props and their types.
+
+3. Performance Optimizations
+We applied various performance optimizations, including:
+
+Using React.memo to prevent unnecessary re-renders
+Implementing useCallback for event handlers
+Using useMemo for expensive calculations
+Applying debouncing for search inputs and other frequently changing state
+Using React Query for efficient data fetching and caching
+Example: The JobCard component is now wrapped in React.memo and uses useCallback for all event handlers.
+
+4. Accessibility Enhancements
+We improved accessibility by:
+
+Adding proper ARIA attributes
+Supporting keyboard navigation
+Using appropriate HTML semantics
+Enhancing screen reader compatibility
+Using responsive design patterns
+Example: The FAQWheelPreview component now supports keyboard navigation and has proper ARIA labels for screen readers.
+
+5. Error Handling
+We improved error handling by:
+
+Implementing error boundaries
+Adding graceful fallbacks
+Using proper error types
+Providing meaningful error messages
+Implementing retry mechanisms
+Example: The JobsSection component now has a proper error state and can recover from API failures.
+
+Component Directory Structure
+The refactored components follow a consistent directory structure:
+
+text
+
+refactored/
+├── components/           # UI components
+├── hooks/                # Custom hooks
+├── types/                # TypeScript interfaces and types
+├── utils/                # Utility functions
+└── tests/                # Component tests
+Key Improvements by Component
+JobCard
+Performance: Used React.memo to prevent unnecessary re-renders
+Type Safety: Added proper TypeScript interfaces for props and data
+Accessibility: Added proper ARIA attributes and keyboard navigation
+Functionality: Added support for initial favorite state and custom styling
+UI Enhancements: Improved time formatting, badge styling, and responsive design
+JobsSection
+Data Fetching: Implemented React Query for efficient data fetching and caching
+State Management: Moved complex state logic to custom hooks
+Error Handling: Added proper error states and loading skeletons
+Performance: Optimized rendering with memoization
+Accessibility: Enhanced ARIA roles and keyboard navigation
+UserMenu
+State Management: Extracted authentication logic to a custom hook
+Performance: Applied memo to prevent unnecessary re-renders
+Accessibility: Added proper ARIA attributes and focus management
+UI Enhancements: Improved mobile responsive design
+Keyboard Support: Enhanced keyboard navigation for dropdown menu
+LazyVideo
+Loading Optimization: Improved lazy loading with IntersectionObserver
+Error Handling: Added proper error states and fallbacks
+Performance: Added support for different quality levels based on device
+Accessibility: Added proper controls and ARIA attributes
+Functionality: Added support for autoplay on visibility
+FAQWheelPreview
+Animation: Improved spring physics for smoother animations
+State Management: Extracted complex wheel logic to a custom hook
+Accessibility: Added keyboard navigation and ARIA attributes
+Performance: Optimized rendering with memoization
+Mobile Support: Enhanced touch interactions for mobile devices
+AdminButton
+Authorization: Extracted admin check logic to a custom hook
+Configurability: Added support for custom menu items and button styling
+Security: Added permission-based rendering of menu items
+Accessibility: Enhanced keyboard navigation and ARIA attributes
+UI Consistency: Standardized icon usage and interaction patterns
+Custom Hooks Overview
+useJobFavorites
+Manages job favorites with local storage syncing and optional API persistence.
+
+typescript
+
+const { favorites, isLoading, toggleFavorite, isFavorite } = useJobFavorites();
+useAdminAuth
+Checks if the current user has admin privileges and provides permission utilities.
+
+typescript
+
+const { isAdmin, hasPermission } = useAdminAuth();
+useJobSearch
+Handles job search parameters, API fetching, and result pagination.
+
+typescript
+
+const { jobs, totalJobs, searchParams, updateSearchParams } = useJobSearch();
+useFAQWheel
+Manages the interactive FAQ wheel with animations, rotation, and item positioning.
+
+typescript
+
+const { rotation, faqItems, handleRotate, getItemPosition } = useFAQWheel();
+useUserMenu
+Handles user menu logic including authentication state and user information.
+
+typescript
+
+const { isAuthenticated, handleLogout, userDisplayName } = useUserMenu();
+Testing Strategy
+We implemented a comprehensive testing strategy with:
+
+Unit Tests: Testing individual components in isolation
+Integration Tests: Testing component interactions
+Snapshot Tests: Ensuring UI consistency
+Accessibility Tests: Verifying ARIA attributes and keyboard navigation
+Example test improvements:
+
+Added tests for new component props and behaviors
+Added error state testing
+Added accessibility testing
+Added performance testing for expensive calculations
+Added responsive design testing
+Migration Guide
+To migrate from the original components to the refactored versions:
+
+Update Imports: Change import paths to point to the refactored components
+
+jsx
+
+// Before
+import JobCard from '@/components/JobCard';
+
+// After
+import JobCard from '@/refactored/components/JobCard';
+Update Props: Some components may have slightly different prop interfaces
+
+jsx
+
+// Before
+<JobCard job={job} onFavoriteToggle={handleToggle} />
+
+// After
+<JobCard 
+  job={job} 
+  onFavoriteToggle={handleToggle} 
+  initialFavoriteState={isFavorite(job.id)} 
+/>
+Use Custom Hooks: Consider using the custom hooks directly for more control
+
+jsx
+
+// Before
+const [favorites, setFavorites] = useState([]);
+const toggleFavorite = (jobId) => {/*...*/};
+
+// After
+const { favorites, toggleFavorite } = useJobFavorites();
+Update Tests: Adapt tests to match the new components and hooks
+
+jsx
+
+// Add tests for new functionality
+it('respects initialFavoriteState prop', () => {/*...*/});
+By following these guidelines, you can successfully migrate to the refactored components while maintaining application functionality and taking advantage of the new improvements.
+
+refactored/DOCUMENTATION.md
+
+Download all
+
