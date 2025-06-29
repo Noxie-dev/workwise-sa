@@ -1,0 +1,11 @@
+{
+  "name": "workwise-netlify-functions",
+  "version": "1.0.0",
+  "description": "Netlify Functions for WorkWise SA",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "firebase-admin": "^13.2.0",
+    "serverless-http": "^3.2.0"
+  }
+}

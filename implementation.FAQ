@@ -1,0 +1,331 @@
+# Frequently Asked Questions: Integrating Refactored Code
+
+This document addresses common questions and concerns that may arise when integrating the refactored code into your WorkWise SA project.
+
+## General Questions
+
+### Q: Why should I integrate the refactored code?
+
+**A:** The refactored code provides several benefits:
+- Better performance through optimized components and React Query
+- Improved type safety with comprehensive TypeScript interfaces
+- Enhanced maintainability with custom hooks and separation of concerns
+- Better accessibility features
+- Consistent code patterns that make future development easier
+- Proper error handling that improves the user experience
+
+### Q: Do I need to integrate all the refactored code at once?
+
+**A:** No, you can integrate the code incrementally. Start with the styles and utility functions, then integrate individual components one by one. This approach minimizes risk and makes it easier to identify and fix any issues that arise.
+
+### Q: Will the refactored code break my existing functionality?
+
+**A:** The refactored components are designed to be drop-in replacements for the existing components. However, there may be minor differences in behavior or appearance. Always test thoroughly after integrating each component.
+
+## Setup and Installation
+
+### Q: What dependencies do I need to install?
+
+**A:** The refactored code may use additional dependencies that aren't in your current project. Common ones include:
+- `@tanstack/react-query` (if not already using it)
+- `@tanstack/react-query-devtools` (for development)
+- `lodash.debounce` (for search functionality)
+
+Check for import errors after integration and install any missing packages.
+
+### Q: Do I need to update my TypeScript configuration?
+
+**A:** You might need to update your `tsconfig.json` to include path aliases used in the refactored code. Add the following to your `compilerOptions`:
+
+```json
+"paths": {
+  "@/*": ["./src/*"],
+  "@/refactored/*": ["./src/refactored/*"]
+}
+```
+
+### Q: How do I handle merge conflicts if I'm using Git?
+
+**A:** Working on a separate branch (`integrate-refactored-code`) helps avoid direct conflicts with the main branch. If conflicts occur when merging:
+
+1. Use a visual diff tool to understand the differences
+2. Generally prefer the refactored version, but be careful not to lose custom modifications
+3. For complex conflicts, keep both versions temporarily and migrate functionality piece by piece
+
+## Component Integration
+
+### Q: Some refactored components look different from my originals. Is this expected?
+
+**A:** Yes, some visual differences are expected as the refactored components may use improved styling or layout techniques. If the differences are significant:
+
+1. Check if your theme variables in the CSS files match your brand
+2. Adjust component-specific styles as needed
+3. Consider whether the new design is actually an improvement
+
+### Q: How do I handle components that have been customized in my project?
+
+**A:** For heavily customized components:
+
+1. First, identify what customizations you've made to the original
+2. Examine if the refactored version already includes similar improvements
+3. If not, carefully apply your customizations to the refactored version
+4. Consider whether your customizations should be contributed back to the shared codebase
+
+### Q: What if the refactored component has different props than my original?
+
+**A:** You may need to adapt how you use the component:
+
+1. Check the props interface definition at the top of the refactored component
+2. Update your component usage to match the new props
+3. If major changes are needed, consider creating an adapter component:
+
+```jsx
+// Example adapter for backwards compatibility
+const JobCardAdapter = (oldProps) => {
+  // Transform old props to new format
+  const newProps = {
+    job: oldProps.jobData,
+    onFavoriteToggle: oldProps.handleFavorite,
+    initialFavoriteState: oldProps.isFavorite
+  };
+  
+  return <JobCard {...newProps} />;
+};
+```
+
+## Hooks and State Management
+
+### Q: How do I use the new custom hooks in my existing components?
+
+**A:** To use a custom hook like `useJobFavorites` in an existing component:
+
+```jsx
+// Before
+function MyComponent() {
+  const [favorites, setFavorites] = useState([]);
+  
+  const addFavorite = (jobId) => {
+    setFavorites([...favorites, jobId]);
+  };
+  
+  // ... rest of component
+}
+
+// After
+function MyComponent() {
+  const { favorites, addFavorite, removeFavorite } = useJobFavorites();
+  
+  // ... rest of component, now using the hook's methods
+}
+```
+
+### Q: Will React Query conflict with my existing state management?
+
+**A:** React Query is designed to work alongside other state management solutions. It specifically handles server state (data fetching), so it complements local state management rather than replacing it. Simply:
+
+1. Keep existing state management for UI state
+2. Use React Query for API calls and data fetching
+3. Gradually migrate more fetching logic to React Query as appropriate
+
+## Styling and CSS
+
+### Q: How do I integrate the new styles without breaking existing styling?
+
+**A:** The safest approach is:
+
+1. First add the new style files alongside your existing ones
+2. Then update your `index.css` to import both sets:
+
+```css
+/* Original imports */
+@import "./original-theme.css";
+
+/* New refactored imports */
+@import "./colors.css";
+@import "./theme.css";
+@import "./animations.css";
+```
+
+3. Test thoroughly to identify and resolve any conflicts
+4. Gradually transition to using only the refactored styles
+
+### Q: Will the new CSS classes conflict with my existing ones?
+
+**A:** The refactored styles use Tailwind CSS which has a low risk of conflicts due to its utility-first approach. However:
+
+1. Watch for conflicting custom class names (e.g., `.card`, `.button`)
+2. Use browser dev tools to identify which CSS rules are being applied
+3. Add more specific selectors to resolve conflicts if needed
+
+## Testing
+
+### Q: How do I test the refactored components?
+
+**A:** The refactored code includes test files that demonstrate how to test each component. Generally:
+
+1. Use the provided test files as examples
+2. Run tests with: `npm test -- --testPathPattern=refactored`
+3. Adapt your existing tests to work with the refactored components
+4. Consider adding new tests for edge cases that weren't previously covered
+
+### Q: Do I need to update my test setup?
+
+**A:** You might need to update your test setup to handle new patterns in the refactored code:
+
+1. Check `setupTests.ts` in the refactored code for new mocks and configurations
+2. Add any missing mocks to your existing setup
+3. Update test utilities to work with React Query if needed
+
+```js
+// Helper for testing components that use React Query
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+export function renderWithQueryClient(ui) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+  
+  return render(
+    <QueryClientProvider client={queryClient}>
+      {ui}
+    </QueryClientProvider>
+  );
+}
+```
+
+## Troubleshooting
+
+### Q: I'm getting import errors. How do I fix them?
+
+**A:** Import errors are common during integration:
+
+1. Check if the path in the import statement is correct
+2. Verify that the file exists at the specified location
+3. Update your path aliases in `tsconfig.json` if needed
+4. Check if you need to install additional dependencies
+
+### Q: Some components are giving TypeScript errors. What should I do?
+
+**A:** TypeScript errors usually indicate type mismatches:
+
+1. Read the error message carefully to understand what's missing or mismatched
+2. Check the component's props interface
+3. Make sure you're providing all required props
+4. Update your component usage to match the expected types
+
+### Q: The refactored components aren't working with my API data. Why?
+
+**A:** This could be due to different data shape expectations:
+
+1. Compare the data structure expected by the refactored component (check interface definitions)
+2. Compare with the structure of your API responses
+3. Create a data transformation function to convert between formats:
+
+```jsx
+function transformApiDataToComponentFormat(apiData) {
+  return {
+    id: apiData.id,
+    title: apiData.job_title, // Different field name
+    // Transform other fields as needed
+    company: {
+      id: apiData.company_id,
+      name: apiData.company_name,
+      // Other company fields
+    }
+  };
+}
+
+// Usage
+const transformedData = apiData.map(transformApiDataToComponentFormat);
+```
+
+## Next Steps After Integration
+
+### Q: How do I contribute improvements back to the shared codebase?
+
+**A:** If you make improvements to the refactored components:
+
+1. Keep your changes isolated in separate commits
+2. Document what you changed and why
+3. Follow the same patterns and coding standards
+4. Consider submitting a pull request to the original repository
+
+### Q: Should I completely replace all original components?
+
+**A:** The long-term goal should be to fully adopt the refactored patterns, but take a measured approach:
+
+1. Start with lower-risk, self-contained components
+2. Move to more complex components once comfortable
+3. Finally, replace core application files like App.tsx
+4. Set a timeline for complete migration based on your team's capacity and project needs
+
+### Q: How do I stay up-to-date with future updates to the refactored code?
+
+**A:** Establish a process for incorporating future updates:
+
+1. Keep track of the source repository for updated components
+2. Document which components you've customized vs. using as-is
+3. Use Git to compare changes in new versions
+4. Consider automation for non-customized components
+
+## Performance Concerns
+
+### Q: Will the refactored code improve performance?
+
+**A:** Yes, the refactored code includes several performance improvements:
+
+1. React.memo to prevent unnecessary re-renders
+2. React Query for efficient data fetching and caching
+3. Code splitting through lazy loading
+4. Optimized rendering with useCallback and useMemo
+5. Throttling and debouncing for expensive operations
+
+### Q: How can I measure performance improvements?
+
+**A:** To measure performance improvements:
+
+1. Use React DevTools Profiler to compare render times
+2. Use Lighthouse to measure overall page performance
+3. Add performance monitoring with tools like [web-vitals](https://www.npmjs.com/package/web-vitals)
+4. Check bundle size with [source-map-explorer](https://www.npmjs.com/package/source-map-explorer)
+
+```jsx
+// Example performance tracking
+import {getCLS, getFID, getLCP} from 'web-vitals';
+
+function sendToAnalytics({name, delta, id}) {
+  console.log(`Metric: ${name} - ${delta}ms (ID: ${id})`);
+  // In production, send to your analytics service
+}
+
+getCLS(sendToAnalytics);
+getFID(sendToAnalytics);
+getLCP(sendToAnalytics);
+```
+
+## Accessibility Improvements
+
+### Q: What accessibility improvements are in the refactored code?
+
+**A:** The refactored components include several accessibility enhancements:
+
+1. Proper ARIA attributes on interactive elements
+2. Keyboard navigation support
+3. Focus management for modals and dropdowns
+4. Color contrast compliance
+5. Screen reader announcements for dynamic content
+
+### Q: How do I test the accessibility of the refactored components?
+
+**A:** To verify accessibility improvements:
+
+1. Use keyboard-only navigation to test tab order and focus
+2. Run an audit with tools like axe-core or Lighthouse
+3. Test with a screen reader (NVDA, VoiceOver, etc.)
+4. Check color contrast with the WebAIM contrast checker
+
+These FAQs should help address common questions and concerns that arise during the integration process. If you encounter issues not covered here, refer to the detailed documentation included with the refactored code.

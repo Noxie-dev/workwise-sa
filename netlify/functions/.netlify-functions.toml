@@ -1,0 +1,5 @@
+# Configuration for Netlify Functions
+# This file specifies external dependencies that should not be bundled
+
+[build]
+  external = ["cors", "express", "serverless-http", "firebase-admin"]
