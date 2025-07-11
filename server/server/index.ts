@@ -22,8 +22,18 @@ async function preloadSecrets() {
     'PORT'
   ];
 
+  console.log('⚙️  Preloading secrets...');
   for (const key of secretKeys) {
-    await secretManager.getSecret(key);
+    try {
+      const secret = await secretManager.getSecret(key);
+      if (secret) {
+        console.log(`✅ ${key}: loaded`);
+      } else {
+        console.log(`⚠️  ${key}: not found (using default or null)`);
+      }
+    } catch (error) {
+      console.error(`❌ ${key}: error loading - ${error}`);
+    }
   }
 }
 
@@ -33,6 +43,14 @@ import helmet from 'helmet';
 
 async function startServer() {
   await preloadSecrets();
+
+  // Initialize database connection first
+  const { initializeDatabase } = await import('../db');
+  await initializeDatabase();
+
+  // Initialize Firebase services
+  const { initializeFirebaseServices } = await import('../firebase');
+  await initializeFirebaseServices();
 
   const app = express();
 
@@ -44,17 +62,21 @@ async function startServer() {
 
   // Set up Swagger documentation
   setupSwagger(app);
-  // Initialize database with sample data
-  try {
-    await storage.initializeData();
-    console.log("Database initialized with sample data");
+  // Initialize database with sample data (skip in development with SQLite)
+  if (process.env.NODE_ENV === 'production') {
+    try {
+      await storage.initializeData();
+      console.log("✅ Database initialized with sample data");
 
-    // Initialize WiseUp service with sample data
-    const wiseUpService = new WiseUpService();
-    await wiseUpService.initializeData();
-    console.log("WiseUp service initialized with sample data");
-  } catch (error) {
-    console.error("Error initializing data:", error);
+      // Initialize WiseUp service with sample data
+      const wiseUpService = new WiseUpService();
+      await wiseUpService.initializeData();
+      console.log("✅ WiseUp service initialized with sample data");
+    } catch (error) {
+      console.error("❌ Error initializing data:", error);
+    }
+  } else {
+    console.log("⚠️  Skipping data initialization in development mode");
   }
 
   // Mount versioned API routes
@@ -68,10 +90,10 @@ async function startServer() {
   app.use(notFoundHandler);
   app.use(errorHandler);
 
-  const PORT = await secretManager.getSecret('PORT') || 5000;
+  const PORT = parseInt(await secretManager.getSecret('PORT') || '5000');
   httpServer.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`API documentation available at http://localhost:${PORT}/api-docs`);
+    console.log(`✅ Server running on port ${PORT}`);
+    console.log(`📚 API documentation available at http://localhost:${PORT}/api-docs`);
   });
 
   return httpServer;

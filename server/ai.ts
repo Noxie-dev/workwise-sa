@@ -2,11 +2,23 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import { secretManager } from './services/secretManager';
 
-// Initialize the Google Generative AI with the API key
-const genAI = new GoogleGenerativeAI(await secretManager.getSecret('GOOGLE_GENAI_API_KEY') || '');
+// Lazy initialization variables
+let genAI: GoogleGenerativeAI | null = null;
+let model: any = null;
 
-// Use the Gemini Pro model
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+// Initialize the Google Generative AI with the API key
+async function initializeAI() {
+  if (!genAI) {
+    const apiKey = await secretManager.getSecret('GOOGLE_GENAI_API_KEY');
+    if (!apiKey) {
+      throw new Error('Google Generative AI API key not found');
+    }
+    genAI = new GoogleGenerativeAI(apiKey);
+    model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    console.log('✅ Google Generative AI initialized');
+  }
+  return model;
+}
 
 /**
  * Generate a professional summary for a CV/resume
@@ -14,6 +26,9 @@ const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 export async function generateProfessionalSummary(data: any): Promise<string> {
   try {
     const { name, skills, experience, education, language = 'English' } = data;
+    
+    // Initialize AI if not already done
+    const aiModel = await initializeAI();
     
     // Create a prompt for the AI to generate a professional summary
     let prompt = `Generate a professional and concise CV summary for ${name} in ${language} language. 
@@ -29,7 +44,7 @@ Keep it between 100-150 words and focus on their strengths and potential contrib
 Write in first person ("I am...").`;
 
     // Generate content using the Gemini model
-    const result = await model.generateContent(prompt);
+    const result = await aiModel.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
     
@@ -47,6 +62,9 @@ export async function generateJobDescription(jobInfo: any, language: string = 'E
   try {
     const { jobTitle, employer, description } = jobInfo;
     
+    // Initialize AI if not already done
+    const aiModel = await initializeAI();
+    
     // Create a prompt for the AI to generate a job description
     const prompt = `Generate a professional and concise job description for a CV/resume in ${language} language, for the position of ${jobTitle} at ${employer}.
     
@@ -61,7 +79,7 @@ The description should:
 - Focus on skills and experiences that would be valuable to future employers`;
 
     // Generate content using the Gemini model
-    const result = await model.generateContent(prompt);
+    const result = await aiModel.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
     
@@ -81,6 +99,9 @@ export async function translateText(text: string, targetLanguage: string): Promi
       return '';
     }
     
+    // Initialize AI if not already done
+    const aiModel = await initializeAI();
+    
     // Create a prompt for translation
     const prompt = `Translate the following text into ${targetLanguage} language. Maintain the professional tone and meaning:
     
@@ -89,7 +110,7 @@ ${text}
 The translation should sound natural and professional in ${targetLanguage}.`;
 
     // Generate content using the Gemini model
-    const result = await model.generateContent(prompt);
+    const result = await aiModel.generateContent(prompt);
     const response = await result.response;
     const translatedText = response.text();
     
