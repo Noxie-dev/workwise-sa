@@ -3,9 +3,21 @@ import Anthropic from '@anthropic-ai/sdk';
 // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
 import { secretManager } from './services/secretManager';
 
-const anthropic = new Anthropic({
-  apiKey: await secretManager.getSecret('ANTHROPIC_API_KEY'),
-});
+// Lazy initialization variable
+let anthropic: Anthropic | null = null;
+
+// Initialize Anthropic SDK
+async function initializeAnthropic() {
+  if (!anthropic) {
+    const apiKey = await secretManager.getSecret('ANTHROPIC_API_KEY');
+    if (!apiKey) {
+      throw new Error('Anthropic API key not found');
+    }
+    anthropic = new Anthropic({ apiKey });
+    console.log('✅ Anthropic SDK initialized');
+  }
+  return anthropic;
+}
 
 // Helper function to safely extract text from Claude's response
 function extractTextFromClaudeResponse(content: any[]): string {
@@ -31,6 +43,9 @@ export async function generateProfessionalSummaryWithClaude(data: any): Promise<
   try {
     const { name, skills, experience, education, language = 'English' } = data;
     
+    // Initialize Anthropic if not already done
+    const anthropicClient = await initializeAnthropic();
+    
     // Create a prompt for Claude to generate a professional summary
     const prompt = `Generate a professional and concise CV summary for ${name} in ${language} language. 
     
@@ -44,7 +59,7 @@ The summary should be professional, highlight their skills and experience, and b
 Keep it between 100-150 words and focus on their strengths and potential contribution to employers.
 Write in first person ("I am...").`;
 
-    const message = await anthropic.messages.create({
+    const message = await anthropicClient.messages.create({
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
       model: 'claude-3-7-sonnet-20250219',
@@ -64,6 +79,9 @@ export async function generateJobDescriptionWithClaude(jobInfo: any, language: s
   try {
     const { jobTitle, employer, description } = jobInfo;
     
+    // Initialize Anthropic if not already done
+    const anthropicClient = await initializeAnthropic();
+    
     // Create a prompt for Claude to generate a job description
     const prompt = `Generate a professional and concise job description for a CV/resume in ${language} language, for the position of ${jobTitle} at ${employer}.
     
@@ -77,7 +95,7 @@ The description should:
 - Be professional and appropriate for a CV
 - Focus on skills and experiences that would be valuable to future employers`;
 
-    const message = await anthropic.messages.create({
+    const message = await anthropicClient.messages.create({
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
       model: 'claude-3-7-sonnet-20250219',
@@ -99,6 +117,9 @@ export async function translateTextWithClaude(text: string, targetLanguage: stri
       return '';
     }
     
+    // Initialize Anthropic if not already done
+    const anthropicClient = await initializeAnthropic();
+    
     // Create a prompt for translation with Claude
     const prompt = `Translate the following text into ${targetLanguage} language. Maintain the professional tone and meaning:
     
@@ -106,7 +127,7 @@ ${text}
 
 The translation should sound natural and professional in ${targetLanguage}.`;
 
-    const message = await anthropic.messages.create({
+    const message = await anthropicClient.messages.create({
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
       model: 'claude-3-7-sonnet-20250219',
@@ -124,7 +145,10 @@ The translation should sound natural and professional in ${targetLanguage}.`;
  */
 export async function analyzeImage(base64Image: string): Promise<string> {
   try {
-    const response = await anthropic.messages.create({
+    // Initialize Anthropic if not already done
+    const anthropicClient = await initializeAnthropic();
+    
+    const response = await anthropicClient.messages.create({
       model: "claude-3-7-sonnet-20250219",
       max_tokens: 1000,
       messages: [{

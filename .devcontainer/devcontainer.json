@@ -9,8 +9,8 @@
     "ghcr.io/devcontainers/features/git:1": {}
   },
   "forwardPorts": [5000, 5001, 8080, 9099, 9199],
-  "postCreateCommand": "npm install -g firebase-tools@latest && cd functions && npm install",
-  "postStartCommand": "firebase login",
+  "postCreateCommand": "cd functions && npm install",
+  "postStartCommand": "echo 'Firebase CLI is ready. Run: firebase login'",
   "remoteUser": "node",
   "customizations": {
     "vscode": {
