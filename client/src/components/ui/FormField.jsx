@@ -1,30 +1,28 @@
-import React from "react";
-import { Label } from "./Label";
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "./Tooltip";
-import { Info } from "lucide-react";
+import React from 'react';
 
-const FormField = ({ id, label, children, error, required = false, hint, className = "" }) => (
-  <div className={`space-y-1.5 ${className}`}>
-    <div className="flex items-center gap-1.5">
-      <Label htmlFor={id} className="text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </Label>
-      {hint && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info className="h-4 w-4 text-gray-400 cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs bg-black text-white p-2 rounded shadow-lg text-xs">
-              <p>{hint}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+const FormField = ({ id, label, error, required, hint, children, className = '' }) => {
+  return (
+    <div className={`space-y-1 ${className}`}>
+      {label && (
+        <label
+          htmlFor={id}
+          className={`block text-sm font-medium ${
+            error ? 'text-red-600' : 'text-gray-700'
+          }`}
+        >
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
+      )}
+      {children}
+      {hint && !error && (
+        <p className="text-xs text-gray-500">{hint}</p>
+      )}
+      {error && (
+        <p className="text-xs text-red-600">{error}</p>
       )}
     </div>
-    {children}
-    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-  </div>
-);
+  );
+};
 
 export default FormField;
