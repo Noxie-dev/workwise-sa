@@ -4,10 +4,13 @@ import {
   companies, type Company, type InsertCompany,
   jobs, type Job, type InsertJob,
   files, type File, type InsertFile,
+  jobApplications, type JobApplication, type InsertJobApplication,
+  userInteractions, type UserInteraction, type InsertUserInteraction,
+  userNotifications, type UserNotification, type InsertUserNotification,
   type JobWithCompany
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, like, or, desc } from "drizzle-orm";
+import { eq, like, or, desc, and, count } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -43,6 +46,34 @@ export interface IStorage {
   getFilesByType(fileType: string): Promise<File[]>;
   createFile(file: InsertFile): Promise<File>;
   deleteFile(id: number): Promise<boolean>;
+
+  // Job Application methods
+  createJobApplication(application: Omit<InsertJobApplication, 'id' | 'appliedAt' | 'updatedAt'>): Promise<JobApplication>;
+  getJobApplication(id: number): Promise<JobApplication | undefined>;
+  getJobApplicationByUserAndJob(userId: number, jobId: number): Promise<JobApplication | undefined>;
+  getJobApplicationsByUser(userId: number, options: {
+    page: number;
+    limit: number;
+    status?: string;
+    jobId?: number;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ applications: JobApplication[]; total: number }>;
+  getJobApplicationsByJob(jobId: number, options: {
+    page: number;
+    limit: number;
+    status?: string;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ applications: JobApplication[]; total: number }>;
+  updateJobApplication(id: number, updates: Partial<Omit<JobApplication, 'id' | 'userId' | 'jobId' | 'appliedAt'>>): Promise<JobApplication>;
+  deleteJobApplication(id: number): Promise<boolean>;
+
+  // User Interaction methods
+  createUserInteraction(interaction: Omit<InsertUserInteraction, 'id'>): Promise<UserInteraction>;
+  
+  // User Notification methods
+  createUserNotification(notification: Omit<InsertUserNotification, 'id' | 'createdAt'>): Promise<UserNotification>;
 
   // Initialize database with sample data (optional)
   initializeData(): Promise<void>;
@@ -300,6 +331,173 @@ export class DatabaseStorage implements IStorage {
       return result.count > 0;
     } catch (error: any) {
       throw Errors.database(`Failed to delete file: ${error.message}`, error);
+    }
+  }
+
+  // Job Application methods
+  async createJobApplication(application: Omit<InsertJobApplication, 'id' | 'appliedAt' | 'updatedAt'>): Promise<JobApplication> {
+    try {
+      const [jobApplication] = await db.insert(jobApplications).values({
+        ...application,
+        appliedAt: new Date(),
+        updatedAt: new Date(),
+      }).returning();
+      return jobApplication;
+    } catch (error: any) {
+      throw Errors.database(`Failed to create job application: ${error.message}`, error);
+    }
+  }
+
+  async getJobApplication(id: number): Promise<JobApplication | undefined> {
+    try {
+      const [application] = await db.select().from(jobApplications).where(eq(jobApplications.id, id));
+      return application;
+    } catch (error: any) {
+      throw Errors.database(`Failed to get job application by ID: ${error.message}`, error);
+    }
+  }
+
+  async getJobApplicationByUserAndJob(userId: number, jobId: number): Promise<JobApplication | undefined> {
+    try {
+      const [application] = await db.select().from(jobApplications)
+        .where(and(eq(jobApplications.userId, userId), eq(jobApplications.jobId, jobId)));
+      return application;
+    } catch (error: any) {
+      throw Errors.database(`Failed to get job application by user and job: ${error.message}`, error);
+    }
+  }
+
+  async getJobApplicationsByUser(userId: number, options: {
+    page: number;
+    limit: number;
+    status?: string;
+    jobId?: number;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ applications: JobApplication[]; total: number }> {
+    try {
+      const { page, limit, status, jobId, sortBy, sortOrder } = options;
+      const offset = (page - 1) * limit;
+
+      // Build where conditions
+      const conditions = [eq(jobApplications.userId, userId)];
+      if (status) {
+        conditions.push(eq(jobApplications.status, status));
+      }
+      if (jobId) {
+        conditions.push(eq(jobApplications.jobId, jobId));
+      }
+
+      const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];
+
+      // Get total count
+      const [totalResult] = await db.select({ count: count() })
+        .from(jobApplications)
+        .where(whereClause);
+      const total = totalResult.count;
+
+      // Get applications with sorting
+      const orderByClause = sortOrder === 'desc' 
+        ? desc(jobApplications[sortBy as keyof typeof jobApplications]) 
+        : jobApplications[sortBy as keyof typeof jobApplications];
+
+      const applications = await db.select()
+        .from(jobApplications)
+        .where(whereClause)
+        .orderBy(orderByClause)
+        .limit(limit)
+        .offset(offset);
+
+      return { applications, total };
+    } catch (error: any) {
+      throw Errors.database(`Failed to get job applications by user: ${error.message}`, error);
+    }
+  }
+
+  async getJobApplicationsByJob(jobId: number, options: {
+    page: number;
+    limit: number;
+    status?: string;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ applications: JobApplication[]; total: number }> {
+    try {
+      const { page, limit, status, sortBy, sortOrder } = options;
+      const offset = (page - 1) * limit;
+
+      // Build where conditions
+      const conditions = [eq(jobApplications.jobId, jobId)];
+      if (status) {
+        conditions.push(eq(jobApplications.status, status));
+      }
+
+      const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];
+
+      // Get total count
+      const [totalResult] = await db.select({ count: count() })
+        .from(jobApplications)
+        .where(whereClause);
+      const total = totalResult.count;
+
+      // Get applications with sorting
+      const orderByClause = sortOrder === 'desc' 
+        ? desc(jobApplications[sortBy as keyof typeof jobApplications]) 
+        : jobApplications[sortBy as keyof typeof jobApplications];
+
+      const applications = await db.select()
+        .from(jobApplications)
+        .where(whereClause)
+        .orderBy(orderByClause)
+        .limit(limit)
+        .offset(offset);
+
+      return { applications, total };
+    } catch (error: any) {
+      throw Errors.database(`Failed to get job applications by job: ${error.message}`, error);
+    }
+  }
+
+  async updateJobApplication(id: number, updates: Partial<Omit<JobApplication, 'id' | 'userId' | 'jobId' | 'appliedAt'>>): Promise<JobApplication> {
+    try {
+      const [updatedApplication] = await db.update(jobApplications)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(jobApplications.id, id))
+        .returning();
+      return updatedApplication;
+    } catch (error: any) {
+      throw Errors.database(`Failed to update job application: ${error.message}`, error);
+    }
+  }
+
+  async deleteJobApplication(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(jobApplications).where(eq(jobApplications.id, id));
+      return result.count > 0;
+    } catch (error: any) {
+      throw Errors.database(`Failed to delete job application: ${error.message}`, error);
+    }
+  }
+
+  // User Interaction methods
+  async createUserInteraction(interaction: Omit<InsertUserInteraction, 'id'>): Promise<UserInteraction> {
+    try {
+      const [userInteraction] = await db.insert(userInteractions).values(interaction).returning();
+      return userInteraction;
+    } catch (error: any) {
+      throw Errors.database(`Failed to create user interaction: ${error.message}`, error);
+    }
+  }
+
+  // User Notification methods
+  async createUserNotification(notification: Omit<InsertUserNotification, 'id' | 'createdAt'>): Promise<UserNotification> {
+    try {
+      const [userNotification] = await db.insert(userNotifications).values({
+        ...notification,
+        createdAt: new Date(),
+      }).returning();
+      return userNotification;
+    } catch (error: any) {
+      throw Errors.database(`Failed to create user notification: ${error.message}`, error);
     }
   }
 

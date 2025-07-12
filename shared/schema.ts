@@ -227,11 +227,41 @@ export const insertFileSchema = createInsertSchema(files).pick({
   metadata: true,
 });
 
+export const insertJobApplicationSchema = createInsertSchema(jobApplications).pick({
+  userId: true,
+  jobId: true,
+  status: true,
+  resumeUrl: true,
+  coverLetter: true,
+  notes: true,
+});
+
+export const insertUserInteractionSchema = createInsertSchema(userInteractions).pick({
+  userId: true,
+  interactionType: true,
+  jobId: true,
+  videoId: true,
+  categoryId: true,
+  duration: true,
+  metadata: true,
+});
+
+export const insertUserNotificationSchema = createInsertSchema(userNotifications).pick({
+  userId: true,
+  type: true,
+  content: true,
+  jobId: true,
+  isRead: true,
+});
+
 // Export additional types for the new tables
 export type UserSession = typeof userSessions.$inferSelect;
 export type UserInteraction = typeof userInteractions.$inferSelect;
+export type InsertUserInteraction = z.infer<typeof insertUserInteractionSchema>;
 export type JobApplication = typeof jobApplications.$inferSelect;
+export type InsertJobApplication = z.infer<typeof insertJobApplicationSchema>;
 export type UserNotification = typeof userNotifications.$inferSelect;
+export type InsertUserNotification = z.infer<typeof insertUserNotificationSchema>;
 export type UserJobPreference = typeof userJobPreferences.$inferSelect;
 export type InsertFile = z.infer<typeof insertFileSchema>;
 export type File = typeof files.$inferSelect;
