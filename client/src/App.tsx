@@ -41,6 +41,7 @@ import BrowseCandidates from "@/pages/employers/BrowseCandidates";
 import Solutions from "@/pages/employers/Solutions";
 import Pricing from "@/pages/employers/Pricing";
 import SuccessStories from "@/pages/employers/SuccessStories";
+import EmployerDashboard from "@/pages/employers/EmployerDashboard";
 
 // About pages
 import About from "@/pages/About";
@@ -48,6 +49,7 @@ import Contact from "@/pages/Contact";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import Terms from "@/pages/Terms";
 import FAQ from "@/pages/FAQ";
+import JobDetails from "@/pages/JobDetails";
 
 function Router() {
   return (
@@ -57,6 +59,7 @@ function Router() {
         <Route path="/" component={HomeSimple} />
         <Route path="/home-original" component={Home} />
         <Route path="/jobs" component={Jobs} />
+        <Route path="/jobs/:id" component={JobDetails} />
         <Route path="/resources" component={Resources} />
 
         {/* Resource sub-pages */}
@@ -66,6 +69,7 @@ function Router() {
         <Route path="/resources/cv-builder-help" component={CVBuilderHelp} />
 
         {/* Employer pages */}
+        <Route path="/employers/dashboard" component={EmployerDashboard} />
         <Route path="/employers/post-job" component={PostJob} />
         <Route path="/employers/browse-candidates" component={BrowseCandidates} />
         <Route path="/employers/solutions" component={Solutions} />
