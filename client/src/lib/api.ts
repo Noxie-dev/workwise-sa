@@ -66,6 +66,16 @@ export const endpoints = {
     search: '/api/jobs/search',
   },
   
+  // Job Application endpoints
+  applications: {
+    create: (jobId: string) => `/api/jobs/${jobId}/apply`,
+    list: '/api/job-applications',
+    detail: (id: string) => `/api/job-applications/${id}`,
+    update: (id: string) => `/api/job-applications/${id}`,
+    delete: (id: string) => `/api/job-applications/${id}`,
+    byJob: (jobId: string) => `/api/job-applications/job/${jobId}`,
+  },
+  
   // Category endpoints
   categories: {
     list: '/categories',

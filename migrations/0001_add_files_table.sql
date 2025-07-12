@@ -1,16 +1,17 @@
 -- Create files table
 CREATE TABLE IF NOT EXISTS files (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id),
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
   original_name TEXT NOT NULL,
   storage_path TEXT NOT NULL,
   file_url TEXT NOT NULL,
   mime_type TEXT NOT NULL,
   size INTEGER NOT NULL,
   file_type TEXT NOT NULL,
-  metadata JSONB,
-  created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-  updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+  metadata TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 -- Create index on user_id for faster lookups

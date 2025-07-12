@@ -197,7 +197,7 @@ const Jobs: React.FC = () => {
           {searchQuery && (
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-2">
-                Search Results {jobs && `(${jobs.length})`}
+                Search Results {data?.jobs && `(${data.jobs.length})`}
               </h2>
               {searchQuery && (
                 <p className="text-muted">
