@@ -50,6 +50,8 @@ import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import Terms from "@/pages/Terms";
 import FAQ from "@/pages/FAQ";
 import JobDetails from "@/pages/JobDetails";
+import Companies from "@/pages/Companies";
+import CompanyProfile from "@/pages/CompanyProfile";
 
 function Router() {
   return (
@@ -60,6 +62,8 @@ function Router() {
         <Route path="/home-original" component={Home} />
         <Route path="/jobs" component={Jobs} />
         <Route path="/jobs/:id" component={JobDetails} />
+        <Route path="/companies" component={Companies} />
+        <Route path="/companies/:slug" component={CompanyProfile} />
         <Route path="/resources" component={Resources} />
 
         {/* Resource sub-pages */}
