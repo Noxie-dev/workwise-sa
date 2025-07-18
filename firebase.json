@@ -41,7 +41,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
-    "public": "public",
+    "public": "dist/public",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -61,14 +61,6 @@
     {
       "source": "functions",
       "codebase": "default"
-    },
-    {
-      "source": "workwise-sa",
-      "codebase": "workwise-sa",
-      "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint",
-        "npm --prefix \"$RESOURCE_DIR\" run build"
-      ]
     }
   ]
 }
