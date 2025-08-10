@@ -14,6 +14,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { insertUserSchema } from '@shared/schema';
 import { signUpWithEmail, signInWithGoogle } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
+import { createTestUser } from '@/utils/test-user';
 
 const formSchema = insertUserSchema.extend({
   confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
@@ -87,17 +88,24 @@ const Register = () => {
   };
 
   const onSubmit = async (data: FormValues) => {
+    console.log("Form submitted with data:", { ...data, password: "***", confirmPassword: "***" });
     setIsLoading(true);
 
     try {
+      console.log("Validating form data...");
       // Remove confirmPassword and agreeTerms before sending to API
       const { confirmPassword, agreeTerms, ...userData } = data;
 
+      console.log("Attempting to create user with Firebase...");
+      console.log("Firebase config available:", !!import.meta.env.VITE_FIREBASE_API_KEY);
+      
       // Create user with Firebase
       const user = await signUpWithEmail(userData.email, userData.password, userData.name);
+      console.log("User created successfully:", user?.uid);
 
       // Store additional user data in your database if needed
       // This could be implemented later to save other user details
+      console.log("Registration successful, showing toast notification");
 
       toast({
         title: "Registration Successful",
@@ -105,13 +113,22 @@ const Register = () => {
       });
 
       // Add a small delay to ensure state is updated before redirect
+      console.log("Redirecting to profile setup page in 500ms...");
       setTimeout(() => {
+        console.log("Executing redirect now");
         // Force redirect to profile setup page
         window.location.href = '/profile-setup';
       }, 500);
     } catch (error: any) {
       let errorMessage = "Failed to create account. Please try again.";
       let actionLink = null;
+
+      console.error("Registration error details:", {
+        code: error.code,
+        message: error.message,
+        stack: error.stack,
+        fullError: error
+      });
 
       // Handle specific Firebase error codes
       if (error.code === 'auth/email-already-in-use') {
@@ -125,6 +142,9 @@ const Register = () => {
         errorMessage = "Network error. Please check your internet connection.";
       } else if (error.code === 'auth/operation-not-allowed') {
         errorMessage = "This sign-up method is not enabled. Please try another method.";
+      } else if (error.code === 'auth/internal-error') {
+        errorMessage = "An internal error occurred. This could be due to Firebase emulator issues.";
+        console.error("Firebase internal error. Check if emulators are running correctly.");
       }
 
       console.error("Registration error:", error.code, error.message);
@@ -146,6 +166,7 @@ const Register = () => {
         ),
       });
     } finally {
+      console.log("Form submission process completed");
       setIsLoading(false);
     }
   };
@@ -347,6 +368,80 @@ const Register = () => {
                 Log in
               </Link>
             </p>
+            
+            {/* Debug button - only visible in development */}
+            {import.meta.env.DEV && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-xs text-gray-500 mb-2">Development Tools</p>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => {
+                      console.log('Firebase config:', {
+                        apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? '✅ Set' : '❌ Missing',
+                        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ? '✅ Set' : '❌ Missing',
+                        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ? '✅ Set' : '❌ Missing',
+                        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ? '✅ Set' : '❌ Missing',
+                        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ? '✅ Set' : '❌ Missing',
+                        appId: import.meta.env.VITE_FIREBASE_APP_ID ? '✅ Set' : '❌ Missing',
+                        useEmulators: import.meta.env.VITE_USE_FIREBASE_EMULATORS
+                      });
+                      
+                      toast({
+                        title: "Firebase Config Check",
+                        description: `Emulators: ${import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true' ? 'Enabled' : 'Disabled'}. Check console for details.`,
+                      });
+                    }}
+                  >
+                    Check Firebase Config
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => {
+                      window.location.href = '/firebase-diagnostics';
+                    }}
+                  >
+                    Firebase Diagnostics
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-xs"
+                    onClick={async () => {
+                      try {
+                        const result = await createTestUser();
+                        if (result.success) {
+                          toast({
+                            title: "Test User Created",
+                            description: `Email: ${result.credentials.email}, Password: ${result.credentials.password}`,
+                          });
+                          console.log('Test user credentials:', result.credentials);
+                        } else {
+                          toast({
+                            variant: "destructive",
+                            title: "Test User Creation Failed",
+                            description: result.error?.message || "Unknown error",
+                          });
+                        }
+                      } catch (error) {
+                        console.error('Error creating test user:', error);
+                        toast({
+                          variant: "destructive",
+                          title: "Error",
+                          description: "Failed to create test user. See console for details.",
+                        });
+                      }
+                    }}
+                  >
+                    Create Test User
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardFooter>
         </Card>
       </main>

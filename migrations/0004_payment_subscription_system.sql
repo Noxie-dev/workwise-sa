@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS billing_addresses (
 -- Add payment-related columns to users table
 ALTER TABLE users ADD COLUMN user_type TEXT DEFAULT 'candidate' CHECK (user_type IN ('candidate', 'employer', 'admin'));
 ALTER TABLE users ADD COLUMN subscription_status TEXT DEFAULT 'free' CHECK (subscription_status IN ('free', 'trial', 'active', 'canceled', 'past_due'));
-ALTER TABLE users ADD COLUMN stripe_customer_id TEXT UNIQUE;
+ALTER TABLE users ADD COLUMN stripe_customer_id TEXT;
 ALTER TABLE users ADD COLUMN trial_ends_at DATETIME;
 ALTER TABLE users ADD COLUMN billing_cycle_anchor DATETIME;
 
