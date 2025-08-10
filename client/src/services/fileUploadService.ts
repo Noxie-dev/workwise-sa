@@ -5,6 +5,36 @@ import { API_URL } from '@/lib/env';
  */
 export const fileUploadService = {
   /**
+   * Upload a professional image to PostgreSQL storage
+   * @param file The image file to upload
+   * @param userId The user ID to associate with the image
+   * @returns The download URL of the uploaded image
+   */
+  async uploadProfessionalImage(file: File, userId: string): Promise<string> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('userId', userId);
+
+      const response = await fetch(`${API_URL}/api/files/upload-professional-image`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to upload professional image');
+      }
+
+      const data = await response.json();
+      return data.data.fileUrl;
+    } catch (error) {
+      console.error('Error uploading professional image:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Upload a profile image to PostgreSQL storage
    * @param file The image file to upload
    * @param userId The user ID to associate with the image
