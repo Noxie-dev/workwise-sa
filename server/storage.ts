@@ -15,8 +15,12 @@ import { eq, like, or, desc, and, count } from "drizzle-orm";
 export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
+  getUserById(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
+  deleteUser(id: number): Promise<boolean>;
 
   // Categories methods
   getCategories(): Promise<Category[]>;
@@ -29,6 +33,9 @@ export interface IStorage {
   getCompany(id: number): Promise<Company | undefined>;
   getCompanyBySlug(slug: string): Promise<Company | undefined>;
   createCompany(company: InsertCompany): Promise<Company>;
+  getCompaniesWithHiringMetrics(): Promise<any[]>;
+  updateCompanyHiringMetrics(companyId: number, metrics: any): Promise<boolean>;
+  getHiringTrends(): Promise<any>;
 
   // Jobs methods
   getJobs(): Promise<Job[]>;
@@ -100,6 +107,23 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getUserById(id: number): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      return user;
+    } catch (error: any) {
+      throw Errors.database(`Failed to get user by ID: ${error.message}`, error);
+    }
+  }
+
+  async getUsers(): Promise<User[]> {
+    try {
+      return await db.select().from(users);
+    } catch (error: any) {
+      throw Errors.database(`Failed to get users: ${error.message}`, error);
+    }
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     try {
       const [user] = await db.insert(users).values(insertUser).returning();
@@ -109,6 +133,30 @@ export class DatabaseStorage implements IStorage {
         throw Errors.conflict(`User with username '${insertUser.username}' already exists.`, error);
       }
       throw Errors.database(`Failed to create user: ${error.message}`, error);
+    }
+  }
+
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
+    try {
+      const [updatedUser] = await db.update(users)
+        .set(updates)
+        .where(eq(users.id, id))
+        .returning();
+      return updatedUser;
+    } catch (error: any) {
+      if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === '23505') {
+        throw Errors.conflict(`User with username '${updates.username}' already exists.`, error);
+      }
+      throw Errors.database(`Failed to update user: ${error.message}`, error);
+    }
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(users).where(eq(users.id, id));
+      return result.count > 0;
+    } catch (error: any) {
+      throw Errors.database(`Failed to delete user: ${error.message}`, error);
     }
   }
 

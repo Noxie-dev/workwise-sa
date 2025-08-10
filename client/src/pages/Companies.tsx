@@ -38,6 +38,7 @@ import { mockCompanies, createMockResponse } from '@/services/mockData';
 import { type Company } from '@shared/schema';
 import CompanySearchAssistant from '@/components/CompanySearchAssistant';
 import FeaturedCompaniesWidget from '@/components/FeaturedCompaniesWidget';
+import TopHiringCompaniesSlideshow from '@/components/TopHiringCompaniesSlideshow';
 
 // Extended company interface for the enhanced page
 interface ExtendedCompany extends Company {
@@ -321,40 +322,29 @@ const Companies: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Entry-Level Employers - Start Your Career | WorkWise SA</title>
-        <meta name="description" content="Find companies hiring for entry-level positions in South Africa. No experience required - discover employers who provide training and career growth opportunities." />
-        <meta name="keywords" content="entry level jobs, no experience required, general worker, retail jobs, security jobs, South Africa employers, training provided" />
+        <title>Companies | WorkWise SA</title>
+        <meta name="description" content="Browse and search companies in South Africa. Find top hiring companies and job opportunities." />
+        <meta name="keywords" content="companies, employers, South Africa, hiring, jobs" />
       </Helmet>
 
       <div className="min-h-screen bg-background">
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-gradient-to-br from-[#1a365d] via-[#2a4365] to-[#2d3748] text-white">
           <div className="absolute inset-0 bg-black/20" />
-          <div className="relative container mx-auto px-4 py-16 md:py-24">
+          <div className="relative container mx-auto px-4 py-12 md:py-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-center max-w-4xl mx-auto"
-            >
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <Sparkles className="h-6 w-6 text-yellow-400" />
-                <span className="text-yellow-400 font-medium">Entry-Level Opportunities</span>
-              </div>
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
-                Start Your Career with Top South African Employers
-              </h1>
-              <p className="text-xl md:text-2xl mb-8 text-white/80">
-                Find companies hiring for entry-level positions. No experience required - just your willingness to learn and grow your career.
-              </p>
-              
+              className="text-center max-w-3xl mx-auto"
+            >              
               {/* Smart Search Bar */}
-              <div className="relative max-w-2xl mx-auto mb-8">
+              <div className="relative mx-auto">
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
                     type="text"
-                    placeholder="Search for entry-level jobs, companies, or locations..."
+                    placeholder="Search for companies..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-12 pr-4 py-4 text-lg bg-white/95 backdrop-blur-sm border-0 rounded-2xl shadow-lg focus:ring-2 focus:ring-yellow-400/50"
@@ -380,21 +370,6 @@ const Companies: React.FC = () => {
                   ))}
                 </div>
               </div>
-
-              {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
-                {[
-                  { label: 'Employers', value: '1,200+', color: 'text-yellow-400' },
-                  { label: 'Entry-Level Jobs', value: '3,500+', color: 'text-orange-400' },
-                  { label: 'No Experience Required', value: '85%', color: 'text-green-400' },
-                  { label: 'Training Provided', value: '92%', color: 'text-blue-400' }
-                ].map((stat) => (
-                  <div key={stat.label} className="text-center">
-                    <div className={`text-2xl md:text-3xl font-bold ${stat.color}`}>{stat.value}</div>
-                    <div className="text-sm text-white/70">{stat.label}</div>
-                  </div>
-                ))}
-              </div>
             </motion.div>
           </div>
         </section>
@@ -404,7 +379,21 @@ const Companies: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Main Content Area */}
             <div className="lg:col-span-3 space-y-8">
-                  {/* Filters and Controls */}
+              {/* Top Hiring Companies Slideshow */}
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Award className="h-5 w-5 text-yellow-400" />
+                  Top Hiring Companies This Month
+                </h2>
+                <TopHiringCompaniesSlideshow 
+                  companies={companies} 
+                  autoPlay={true} 
+                  interval={6000}
+                  limit={3}
+                />
+              </div>
+              
+              {/* Filters and Controls */}
               <Card className="border-0 shadow-lg bg-card">
             <CardContent className="p-6">
               <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">

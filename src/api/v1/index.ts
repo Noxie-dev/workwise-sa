@@ -4,6 +4,7 @@ import { registerCategoryRoutes } from './routes/categories';
 import { registerCompanyRoutes } from './routes/companies';
 import { registerJobRoutes } from './routes/jobs';
 import { registerUserRoutes } from './routes/users';
+import { registerTopHiringRoutes } from './routes/top-hiring';
 import { registerCVRoutes } from './routes/cv';
 import { registerWiseUpRoutes } from './routes/wiseup';
 import recommendationRoutes from '../../../server/recommendationRoutes';
@@ -19,6 +20,7 @@ v1Router.use(rateLimiters.general);
 registerCategoryRoutes(v1Router);
 registerCompanyRoutes(v1Router);
 registerJobRoutes(v1Router);
+registerTopHiringRoutes(v1Router);
 
 // Protected routes - require authentication
 const protectedRouter = Router();
