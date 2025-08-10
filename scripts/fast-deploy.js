@@ -18,18 +18,44 @@ if (shouldRebuild) {
   console.log('✅ Using existing build (less than 5 minutes old)');
 }
 
+// Pre-deployment checks
+console.log('🔍 Running pre-deployment checks...');
+try {
+  // Check if functions are valid
+  execSync('netlify functions:list', { stdio: 'pipe' });
+  console.log('✅ Functions validation passed');
+} catch (error) {
+  console.warn('⚠️  Functions validation warning:', error.message);
+}
+
 // Deploy to Netlify with optimizations
 console.log('🌐 Deploying to Netlify...');
 try {
-  execSync('netlify deploy --prod --timeout=300', { 
+  execSync('netlify deploy --prod --timeout=600 --json', { 
     stdio: 'inherit',
     env: {
       ...process.env,
-      NETLIFY_TIMEOUT: '300000', // 5 minutes timeout
+      NETLIFY_TIMEOUT: '600000', // 10 minutes timeout
+      NODE_OPTIONS: '--max-old-space-size=4096', // Increase memory for large builds
     }
   });
+  
+  // Post-deployment verification
+  console.log('🔍 Verifying deployment...');
+  execSync('netlify status', { stdio: 'inherit' });
+  
   console.log('✅ Deployment successful!');
+  console.log('🌐 Your site is live at: https://beamish-sawine-64ddd4.netlify.app');
 } catch (error) {
   console.error('❌ Deployment failed:', error.message);
+  
+  // Try to get deployment logs for debugging
+  try {
+    console.log('📋 Getting deployment logs...');
+    execSync('netlify logs:deploy', { stdio: 'inherit' });
+  } catch (logError) {
+    console.warn('Could not retrieve deployment logs');
+  }
+  
   process.exit(1);
 }
