@@ -1,24 +1,30 @@
+// vitest.config.ts
 import { defineConfig } from 'vitest/config';
 import path from 'path';
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './client/src'),
-    },
-  },
   test: {
     globals: true,
-    environment: 'jsdom',
-    include: ['server/tests/**/*.test.ts', 'src/**/*.test.ts', 'client/src/**/*.test.ts*'],
+    environment: 'node',
+    setupFiles: ['./vitest.setup.ts'],
+    include: ['**/*.test.{ts,js}'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/client/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       exclude: [
         'node_modules/',
-        'server/tests/',
+        'dist/',
+        'client/',
         '**/*.d.ts',
+        '**/*.test.{ts,js}',
+        '**/types/**',
       ],
+    },
+    alias: {
+      '@shared': path.resolve(__dirname, './shared'),
+      '@server': path.resolve(__dirname, './server'),
+      '@src': path.resolve(__dirname, './src'),
     },
   },
 });
