@@ -24,11 +24,16 @@ import {
   Heart,
   Eye,
   Clock,
+  X,
+  Briefcase,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { profileService } from '@/services/profileService';
 import { fileUploadService } from '@/services/fileUploadService';
 import { updateProfile as firebaseUpdateProfile } from 'firebase/auth';
+import ProfileImageUpload from '@/components/ProfileImageUpload';
+import ProfessionalImageUpload from '@/components/ProfessionalImageUpload';
+import ProfessionalImageViewer from '@/components/ProfessionalImageViewer';
 
 // Calculate level based on engagement score
 const getUserLevel = (score: number) => {
@@ -48,6 +53,10 @@ const UserProfile = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [uploading, setUploading] = useState(false);
   const [profileImages, setProfileImages] = useState<string[]>([]);
+  const [showImageUpload, setShowImageUpload] = useState(false);
+  const [professionalImage, setProfessionalImage] = useState<string | null>(null);
+  const [showProfessionalUpload, setShowProfessionalUpload] = useState(false);
+  const [showProfessionalViewer, setShowProfessionalViewer] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -61,6 +70,8 @@ const UserProfile = () => {
           currentUser.photoURL || data?.personal?.profilePicture || '/images/default-avatar.png',
         ];
         setProfileImages(images);
+        // Set professional image if available
+        setProfessionalImage(data?.personal?.professionalImage || null);
       } catch (e) {
         setProfile(null);
       } finally {
@@ -80,31 +91,7 @@ const UserProfile = () => {
     setActiveImageIndex(prev => (prev - 1 + profileImages.length) % profileImages.length);
   };
 
-  const handleProfileImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!currentUser || !e.target.files || !e.target.files[0]) return;
-    setUploading(true);
-    try {
-      const file = e.target.files[0];
-      // Upload to storage
-      const url = await fileUploadService.uploadProfileImage(file, currentUser.uid);
-      // Update profile in backend (merge with existing personal data)
-      await profileService.updateProfile(currentUser.uid, {
-        personal: { ...profile.personal, profilePicture: url },
-      });
-      // Update Firebase Auth photoURL
-      await firebaseUpdateProfile(currentUser, { photoURL: url });
-      // Update UI
-      setProfile((prev: any) => ({
-        ...prev,
-        personal: { ...prev.personal, profilePicture: url },
-      }));
-      setProfileImages(prev => [url, ...prev.slice(1)]);
-    } catch (err) {
-      // Handle error (show toast, etc.)
-    } finally {
-      setUploading(false);
-    }
-  };
+
 
   if (loading) {
     return <div className="flex items-center justify-center h-64">Loading...</div>;
@@ -145,54 +132,59 @@ const UserProfile = () => {
                     alt={profile.personal?.fullName || 'Profile'}
                     className="w-full h-full object-cover"
                   />
-                  <input
-                    id="profile-image-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleProfileImageChange}
-                    disabled={uploading}
-                  />
                   <Button
                     size="sm"
                     variant="outline"
                     className="absolute bottom-2 right-2 z-10"
-                    onClick={() => document.getElementById('profile-image-upload')?.click()}
+                    onClick={() => setShowImageUpload(true)}
                     disabled={uploading}
                   >
-                    {uploading ? 'Uploading...' : 'Change'}
+                    <Edit className="h-3 w-3 mr-1" />
+                    Edit
                   </Button>
                 </div>
-                <div className="absolute -right-2 bottom-0">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-8 w-8 rounded-full bg-white"
-                    onClick={nextImage}
-                  >
-                    <ChevronRight className="h-5 w-5 text-blue-500" />
-                  </Button>
-                </div>
-                <div className="absolute -left-2 bottom-0">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-8 w-8 rounded-full bg-white"
-                    onClick={prevImage}
-                  >
-                    <ChevronLeft className="h-5 w-5 text-blue-500" />
-                  </Button>
-                </div>
+                {profileImages.length > 1 && (
+                  <>
+                    <div className="absolute -right-2 bottom-0">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 rounded-full bg-white"
+                        onClick={nextImage}
+                      >
+                        <ChevronRight className="h-5 w-5 text-blue-500" />
+                      </Button>
+                    </div>
+                    <div className="absolute -left-2 bottom-0">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 rounded-full bg-white"
+                        onClick={prevImage}
+                      >
+                        <ChevronLeft className="h-5 w-5 text-blue-500" />
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
               <p className="text-white text-sm mt-2">{profile.personal?.caption || ''}</p>
             </div>
             {/* Rating in top right */}
-            <div className="absolute top-4 right-4 md:right-8 bg-white/20 backdrop-blur-sm rounded-lg p-2 flex items-center space-x-1">
-              <Star className="h-5 w-5 text-yellow-300 fill-yellow-300" />
-              <span className="text-white font-medium">{profile.ratings?.overall || '-'}</span>
-              <Badge variant="outline" className="text-xs text-white border-white ml-1">
-                Level {userLevel.level}
-              </Badge>
+            <div className="absolute top-4 right-4 md:right-8 space-y-2">
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2 flex items-center space-x-1">
+                <Star className="h-5 w-5 text-yellow-300 fill-yellow-300" />
+                <span className="text-white font-medium">{profile.ratings?.overall || '-'}</span>
+                <Badge variant="outline" className="text-xs text-white border-white ml-1">
+                  Level {userLevel.level}
+                </Badge>
+              </div>
+              {professionalImage && (
+                <div className="bg-blue-500/80 backdrop-blur-sm rounded-lg p-2 flex items-center space-x-1">
+                  <Briefcase className="h-4 w-4 text-white" />
+                  <span className="text-white text-xs font-medium">Professional Image</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -242,8 +234,41 @@ const UserProfile = () => {
                 {/* Bio and Skills */}
                 <Card className="md:col-span-2">
                   <CardContent className="p-6">
-                    <h3 className="text-lg font-semibold mb-2">About Me</h3>
+                    <div className="flex items-start justify-between mb-4">
+                      <h3 className="text-lg font-semibold">About Me</h3>
+                      <div className="flex gap-2">
+                        {professionalImage && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowProfessionalViewer(true)}
+                            className="flex items-center gap-2"
+                          >
+                            <Eye className="h-4 w-4" />
+                            View Professional Image
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowProfessionalUpload(true)}
+                          className="flex items-center gap-2"
+                        >
+                          <Briefcase className="h-4 w-4" />
+                          {professionalImage ? 'Update' : 'Add'} Professional Image
+                        </Button>
+                      </div>
+                    </div>
                     <p className="text-gray-700 mb-6">{profile.personal?.bio}</p>
+                    
+                    {professionalImage && (
+                      <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center gap-2 text-sm text-blue-700">
+                          <Briefcase className="h-4 w-4" />
+                          <span className="font-medium">Professional image available for recruiters</span>
+                        </div>
+                      </div>
+                    )}
                     <h3 className="text-lg font-semibold mb-2">Skills</h3>
                     <div className="flex flex-wrap gap-2">
                       {(profile.skills?.skills || []).map((skill: string, index: number) => (
@@ -300,6 +325,29 @@ const UserProfile = () => {
                       </div>
                     </CardContent>
                   </Card>
+                  
+                  {/* Professional Image Quick Access */}
+                  {professionalImage && (
+                    <Card>
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-semibold mb-4">For Recruiters</h3>
+                        <div className="space-y-3">
+                          <Button
+                            onClick={() => setShowProfessionalViewer(true)}
+                            className="w-full flex items-center gap-2"
+                            variant="outline"
+                          >
+                            <Eye className="h-4 w-4" />
+                            View Professional Image
+                          </Button>
+                          <p className="text-xs text-gray-500 text-center">
+                            Professional image available for detailed review
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex justify-between items-center mb-4">
@@ -424,6 +472,46 @@ const UserProfile = () => {
                       </div>
                     </div>
                   </div>
+                  <div className="mt-6 pt-6 border-t">
+                    <h4 className="font-medium mb-4">Professional Presentation</h4>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-100 rounded-full">
+                            <Briefcase className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">Professional Image</p>
+                            <p className="text-sm text-gray-600">
+                              {professionalImage 
+                                ? 'Available for recruiters to view' 
+                                : 'Add a professional image for recruiters'
+                              }
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          {professionalImage && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setShowProfessionalViewer(true)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowProfessionalUpload(true)}
+                          >
+                            {professionalImage ? 'Update' : 'Add'}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div className="mt-6">
                     <Button>Update Preferences</Button>
                   </div>
@@ -432,6 +520,70 @@ const UserProfile = () => {
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Profile Image Upload Modal */}
+        {showImageUpload && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-4 border-b flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Update Profile Image</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowImageUpload(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="p-4">
+                <ProfileImageUpload
+                  currentImageUrl={profileImages[activeImageIndex]}
+                  onImageUpdate={(newImageUrl) => {
+                    setProfileImages(prev => [newImageUrl, ...prev.slice(1)]);
+                    setShowImageUpload(false);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Professional Image Upload Modal */}
+        {showProfessionalUpload && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-4 border-b flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Professional Image</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowProfessionalUpload(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="p-4">
+                <ProfessionalImageUpload
+                  currentImageUrl={professionalImage || undefined}
+                  onImageUpdate={(newImageUrl) => {
+                    setProfessionalImage(newImageUrl);
+                    setShowProfessionalUpload(false);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Professional Image Viewer Modal */}
+        {showProfessionalViewer && professionalImage && (
+          <ProfessionalImageViewer
+            imageUrl={professionalImage}
+            candidateName={profile.personal?.fullName || 'User'}
+            onClose={() => setShowProfessionalViewer(false)}
+            isOpen={showProfessionalViewer}
+          />
+        )}
       </main>
     </>
   );

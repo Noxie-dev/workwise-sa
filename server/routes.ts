@@ -13,6 +13,7 @@ import {
 import { aiServiceManager } from "./services/aiServiceManager";
 import { mlJobMatchingService } from "./services/mlJobMatching";
 import recommendationRoutes from "./recommendationRoutes";
+import fileRoutes from "./routes/files";
 import { ApiError, Errors } from './middleware/errorHandler';
 import { secretManager } from './services/secretManager';
 
@@ -388,6 +389,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register job recommendation routes
   app.use('/api/recommendations', recommendationRoutes);
+  
+  // Register file upload routes
+  app.use('/api/files', fileRoutes);
   
   const httpServer = createServer(app);
   return httpServer;
