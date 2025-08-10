@@ -14,6 +14,7 @@ import { aiServiceManager } from "./services/aiServiceManager";
 import { mlJobMatchingService } from "./services/mlJobMatching";
 import recommendationRoutes from "./recommendationRoutes";
 import fileRoutes from "./routes/files";
+import profileRoutes from "./routes/profile";
 import { ApiError, Errors } from './middleware/errorHandler';
 import { secretManager } from './services/secretManager';
 
@@ -392,6 +393,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register file upload routes
   app.use('/api/files', fileRoutes);
+  
+  // Register profile routes
+  app.use('/api/profile', profileRoutes);
   
   const httpServer = createServer(app);
   return httpServer;
