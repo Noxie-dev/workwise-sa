@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { storage } from './storage';
 import { InsertFile } from '@shared/schema';
+import { secretManager } from './services/secretManager';
 
 /**
  * Service for handling file operations on the server

@@ -14,6 +14,7 @@ export interface ProfileData {
     gender?: string;
     bio?: string;
     profilePicture?: string;
+    professionalImage?: string;
   };
   education: {
     highestEducation: string;
