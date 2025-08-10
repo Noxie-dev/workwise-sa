@@ -34,6 +34,9 @@ import { updateProfile as firebaseUpdateProfile } from 'firebase/auth';
 import ProfileImageUpload from '@/components/ProfileImageUpload';
 import ProfessionalImageUpload from '@/components/ProfessionalImageUpload';
 import ProfessionalImageViewer from '@/components/ProfessionalImageViewer';
+import ProfileCompletionTracker from '@/components/ProfileCompletionTracker';
+import ProfileAnalytics from '@/components/ProfileAnalytics';
+import ProfileEditModal from '@/components/ProfileEditModal';
 
 // Calculate level based on engagement score
 const getUserLevel = (score: number) => {
@@ -57,6 +60,7 @@ const UserProfile = () => {
   const [professionalImage, setProfessionalImage] = useState<string | null>(null);
   const [showProfessionalUpload, setShowProfessionalUpload] = useState(false);
   const [showProfessionalViewer, setShowProfessionalViewer] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -73,7 +77,52 @@ const UserProfile = () => {
         // Set professional image if available
         setProfessionalImage(data?.personal?.professionalImage || null);
       } catch (e) {
-        setProfile(null);
+        console.error('Failed to fetch profile:', e);
+        // Create a default profile structure if fetch fails
+        setProfile({
+          personal: {
+            fullName: currentUser.displayName || 'User',
+            phoneNumber: '',
+            location: 'Not specified',
+            bio: 'Welcome to WorkWise SA! Complete your profile to get better job matches.',
+            profilePicture: currentUser.photoURL,
+          },
+          education: {
+            highestEducation: 'Not specified',
+            schoolName: 'Not specified',
+          },
+          experience: {
+            hasExperience: false,
+            jobTitle: 'Not specified',
+            employer: 'Not specified',
+          },
+          skills: {
+            skills: [],
+            languages: ['English'],
+            hasDriversLicense: false,
+            hasTransport: false,
+          },
+          preferences: {
+            jobTypes: [],
+            locations: [],
+            minSalary: 0,
+            willingToRelocate: false,
+          },
+          memberSince: new Date().toISOString().split('T')[0],
+          engagementScore: 10,
+          applications: {
+            current: 0,
+            total: 0,
+            successRate: 0,
+          },
+          ratings: {
+            overall: 0,
+          },
+          notifications: 0,
+          recentActivity: [],
+        });
+        const images = [currentUser.photoURL || '/images/default-avatar.png'];
+        setProfileImages(images);
       } finally {
         setLoading(false);
       }
@@ -231,12 +280,32 @@ const UserProfile = () => {
             </TabsList>
             <TabsContent value="overview">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Profile Completion Tracker */}
+                <div className="md:col-span-3">
+                  <ProfileCompletionTracker 
+                    profile={profile}
+                    onSectionClick={(sectionId) => {
+                      // Navigate to profile setup with specific section
+                      console.log('Navigate to section:', sectionId);
+                    }}
+                  />
+                </div>
+
                 {/* Bio and Skills */}
                 <Card className="md:col-span-2">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <h3 className="text-lg font-semibold">About Me</h3>
                       <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowEditModal(true)}
+                          className="flex items-center gap-2"
+                        >
+                          <Edit className="h-4 w-4" />
+                          Edit Profile
+                        </Button>
                         {professionalImage && (
                           <Button
                             variant="outline"
@@ -395,26 +464,43 @@ const UserProfile = () => {
               </Card>
             </TabsContent>
             <TabsContent value="activity">
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-6">Activity History</h3>
-                  <div className="space-y-4">
-                    {(profile.recentActivity || []).map((activity: any, index: number) => (
-                      <div key={index} className="flex items-start border-b pb-4 last:border-0">
-                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-4 flex-shrink-0">
-                          {activity.icon ? (
-                            <activity.icon className="h-5 w-5 text-blue-600" />
-                          ) : null}
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-gray-700">{activity.content}</p>
-                          <p className="text-sm text-gray-500">{activity.timestamp}</p>
-                        </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <Card>
+                    <CardContent className="p-6">
+                      <h3 className="text-xl font-semibold mb-6">Activity History</h3>
+                      <div className="space-y-4">
+                        {(profile.recentActivity || []).length > 0 ? (
+                          (profile.recentActivity || []).map((activity: any, index: number) => (
+                            <div key={index} className="flex items-start border-b pb-4 last:border-0">
+                              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-4 flex-shrink-0">
+                                {activity.icon ? (
+                                  <activity.icon className="h-5 w-5 text-blue-600" />
+                                ) : (
+                                  <Clock className="h-5 w-5 text-blue-600" />
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-gray-700">{activity.content}</p>
+                                <p className="text-sm text-gray-500">{activity.timestamp}</p>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-8">
+                            <Clock className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                            <p className="text-gray-500">No recent activity</p>
+                            <p className="text-sm text-gray-400">Start applying for jobs to see your activity here</p>
+                          </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                </div>
+                <div>
+                  <ProfileAnalytics profile={profile} />
+                </div>
+              </div>
             </TabsContent>
             <TabsContent value="preferences">
               <Card>
@@ -582,6 +668,19 @@ const UserProfile = () => {
             candidateName={profile.personal?.fullName || 'User'}
             onClose={() => setShowProfessionalViewer(false)}
             isOpen={showProfessionalViewer}
+          />
+        )}
+
+        {/* Profile Edit Modal */}
+        {showEditModal && (
+          <ProfileEditModal
+            profile={profile}
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            onSave={(updatedProfile) => {
+              setProfile(updatedProfile);
+            }}
+            userId={currentUser?.uid || ''}
           />
         )}
       </main>

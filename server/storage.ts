@@ -82,6 +82,11 @@ export interface IStorage {
   // User Notification methods
   createUserNotification(notification: Omit<InsertUserNotification, 'id' | 'createdAt'>): Promise<UserNotification>;
 
+  // Profile methods
+  getUserProfile(userId: number): Promise<any>;
+  updateUserProfile(userId: number, profileData: any): Promise<any>;
+  createUserProfile(userId: number, profileData: any): Promise<any>;
+
   // Initialize database with sample data (optional)
   initializeData(): Promise<void>;
 }
@@ -546,6 +551,117 @@ export class DatabaseStorage implements IStorage {
       return userNotification;
     } catch (error: any) {
       throw Errors.database(`Failed to create user notification: ${error.message}`, error);
+    }
+  }
+
+  // Profile methods
+  async getUserProfile(userId: number): Promise<any> {
+    try {
+      const user = await this.getUser(userId);
+      if (!user) {
+        return null;
+      }
+
+      // Get user files
+      const userFiles = await this.getFilesByUser(userId);
+      const profileImage = userFiles.find(f => f.fileType === 'profile_image');
+      const professionalImage = userFiles.find(f => f.fileType === 'professional_image');
+      const cvFile = userFiles.find(f => f.fileType === 'cv');
+
+      // Mock profile data structure - in real implementation, this would come from a profiles table
+      return {
+        personal: {
+          fullName: user.username, // Using username as placeholder
+          phoneNumber: user.email, // Using email as placeholder
+          location: "Not specified",
+          bio: "Professional seeking opportunities",
+          profilePicture: profileImage?.fileUrl,
+          professionalImage: professionalImage?.fileUrl,
+        },
+        education: {
+          highestEducation: "Not specified",
+          schoolName: "Not specified",
+        },
+        experience: {
+          hasExperience: false,
+          jobTitle: "Not specified",
+          employer: "Not specified",
+        },
+        skills: {
+          skills: [],
+          languages: ["English"],
+          hasDriversLicense: false,
+          hasTransport: false,
+          cvUpload: cvFile?.fileUrl,
+        },
+        preferences: {
+          jobTypes: [],
+          locations: [],
+          minSalary: 0,
+          willingToRelocate: false,
+        },
+        // Additional profile metadata
+        memberSince: user.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+        engagementScore: 25,
+        applications: {
+          current: 0,
+          total: 0,
+          successRate: 0,
+        },
+        ratings: {
+          overall: 0,
+        },
+        notifications: 0,
+        recentActivity: [],
+      };
+    } catch (error: any) {
+      throw Errors.database(`Failed to get user profile: ${error.message}`, error);
+    }
+  }
+
+  async updateUserProfile(userId: number, profileData: any): Promise<any> {
+    try {
+      // In a real implementation, this would update a profiles table
+      // For now, we'll just return the updated data
+      const currentProfile = await this.getUserProfile(userId);
+      
+      const updatedProfile = {
+        ...currentProfile,
+        ...profileData,
+        personal: {
+          ...currentProfile.personal,
+          ...profileData.personal,
+        },
+        education: {
+          ...currentProfile.education,
+          ...profileData.education,
+        },
+        experience: {
+          ...currentProfile.experience,
+          ...profileData.experience,
+        },
+        skills: {
+          ...currentProfile.skills,
+          ...profileData.skills,
+        },
+        preferences: {
+          ...currentProfile.preferences,
+          ...profileData.preferences,
+        },
+      };
+
+      return updatedProfile;
+    } catch (error: any) {
+      throw Errors.database(`Failed to update user profile: ${error.message}`, error);
+    }
+  }
+
+  async createUserProfile(userId: number, profileData: any): Promise<any> {
+    try {
+      // In a real implementation, this would create a new profile record
+      return await this.updateUserProfile(userId, profileData);
+    } catch (error: any) {
+      throw Errors.database(`Failed to create user profile: ${error.message}`, error);
     }
   }
 
