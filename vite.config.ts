@@ -220,5 +220,12 @@ export default defineConfig(({ mode }) => ({
     },
     // Force Vite to resolve these dependencies from node_modules
     dedupe: ['react', 'react-dom', 'react-helmet-async', '@tanstack/react-query', '@tanstack/react-query-devtools']
+  },
+  define: {
+    // Ensure React is available globally for libraries that expect it
+    global: 'globalThis',
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-smooth', 'recharts']
   }
 }));

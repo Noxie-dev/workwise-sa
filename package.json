@@ -85,6 +85,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "0.51.0",
     "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
+    "@fortawesome/fontawesome-free": "^7.0.0",
     "@google-cloud/secret-manager": "6.1.0",
     "@google/generative-ai": "0.24.1",
     "@hookform/resolvers": "^3.9.1",
