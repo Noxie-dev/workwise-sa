@@ -23,7 +23,7 @@ export const professionalIndustryAverages = {
   "Hospitality": { entry: 14000, mid: 22000, senior: 40000 },
 };
 
-// Low-level job categories and salary data in South Africa (monthly)
+// Entry-level job categories and salary data in South Africa (monthly)
 export const lowLevelJobAverages = {
   "General Worker": { entry: 4800, mid: 5500, senior: 7000 },
   "Domestic Worker": { entry: 4800, mid: 5800, senior: 8500 },

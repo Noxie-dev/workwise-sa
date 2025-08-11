@@ -73,7 +73,7 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
     fs.unlinkSync(file.path); // Clean up temp file
 
     // Generate file URL
-    const baseUrl = process.env.FILE_SERVE_URL || 'http://localhost:5000';
+    const baseUrl = process.env.FILE_SERVE_URL || 'http://localhost:3001';
     const relativePath = path.relative(path.join(process.cwd(), 'uploads'), finalPath);
     const fileUrl = `${baseUrl}/uploads/${relativePath.replace(/\\/g, '/')}`;
 
@@ -151,7 +151,7 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
     fs.unlinkSync(file.path); // Clean up temp file
 
     // Generate file URL
-    const baseUrl = process.env.FILE_SERVE_URL || 'http://localhost:5000';
+    const baseUrl = process.env.FILE_SERVE_URL || 'http://localhost:3001';
     const relativePath = path.relative(path.join(process.cwd(), 'uploads'), finalPath);
     const fileUrl = `${baseUrl}/uploads/${relativePath.replace(/\\/g, '/')}`;
 
@@ -229,7 +229,7 @@ router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
     fs.unlinkSync(file.path); // Clean up temp file
 
     // Generate file URL
-    const baseUrl = process.env.FILE_SERVE_URL || 'http://localhost:5000';
+    const baseUrl = process.env.FILE_SERVE_URL || 'http://localhost:3001';
     const relativePath = path.relative(path.join(process.cwd(), 'uploads'), finalPath);
     const fileUrl = `${baseUrl}/uploads/${relativePath.replace(/\\/g, '/')}`;
 
@@ -301,7 +301,7 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
     fs.unlinkSync(file.path); // Clean up temp file
 
     // Generate file URL
-    const baseUrl = process.env.FILE_SERVE_URL || 'http://localhost:5000';
+    const baseUrl = process.env.FILE_SERVE_URL || 'http://localhost:3001';
     const relativePath = path.relative(path.join(process.cwd(), 'uploads'), finalPath);
     const fileUrl = `${baseUrl}/uploads/${relativePath.replace(/\\/g, '/')}`;
 
