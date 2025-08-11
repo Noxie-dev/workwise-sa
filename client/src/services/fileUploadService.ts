@@ -16,17 +16,34 @@ export const fileUploadService = {
       formData.append('file', file);
       formData.append('userId', userId);
 
-      const response = await fetch(`${API_URL}/api/files/upload-professional-image`, {
+      const uploadUrl = `${API_URL}/api/files/upload-professional-image`;
+      console.log('Uploading professional image to:', uploadUrl);
+      console.log('API_URL:', API_URL);
+      console.log('File:', file.name, file.size, file.type);
+      console.log('User ID:', userId);
+
+      const response = await fetch(uploadUrl, {
         method: 'POST',
         body: formData,
       });
 
+      console.log('Upload response status:', response.status);
+      console.log('Upload response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to upload professional image');
+        const errorText = await response.text();
+        console.error('Upload error response:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText };
+        }
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to upload professional image`);
       }
 
       const data = await response.json();
+      console.log('Upload success:', data);
       return data.data.fileUrl;
     } catch (error) {
       console.error('Error uploading professional image:', error);
@@ -46,17 +63,34 @@ export const fileUploadService = {
       formData.append('file', file);
       formData.append('userId', userId);
 
-      const response = await fetch(`${API_URL}/api/files/upload-profile-image`, {
+      const uploadUrl = `${API_URL}/api/files/upload-profile-image`;
+      console.log('Uploading profile image to:', uploadUrl);
+      console.log('API_URL:', API_URL);
+      console.log('File:', file.name, file.size, file.type);
+      console.log('User ID:', userId);
+
+      const response = await fetch(uploadUrl, {
         method: 'POST',
         body: formData,
       });
 
+      console.log('Upload response status:', response.status);
+      console.log('Upload response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to upload profile image');
+        const errorText = await response.text();
+        console.error('Upload error response:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText };
+        }
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to upload profile image`);
       }
 
       const data = await response.json();
+      console.log('Upload success:', data);
       return data.data.fileUrl;
     } catch (error) {
       console.error('Error uploading profile image:', error);

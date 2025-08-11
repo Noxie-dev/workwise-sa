@@ -106,7 +106,7 @@ async function startServer() {
     app.use(notFoundHandler);
     app.use(errorHandler);
 
-    const PORT = parseInt(await secretManager.getSecret('PORT') || '5000');
+    const PORT = parseInt(await secretManager.getSecret('PORT') || '3001');
     httpServer.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`, { port: PORT });
       logger.info(`API documentation available at http://localhost:${PORT}/api-docs`);

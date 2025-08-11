@@ -53,7 +53,7 @@ WorkWise SA is a comprehensive job search platform designed to connect job seeke
    npm run dev
    ```
    - Client runs on: http://localhost:5173 (or next available port)
-   - Server runs on: http://localhost:5000
+   - Server runs on: http://localhost:3001
 
 ## Project Structure
 

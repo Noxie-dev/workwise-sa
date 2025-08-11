@@ -24,7 +24,7 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:5000',
+        url: 'http://localhost:3001',
         description: 'Development server',
       },
       {
@@ -260,7 +260,7 @@ const options: swaggerJsdoc.Options = {
             },
             fileUrl: {
               type: 'string',
-              example: 'http://localhost:5000/uploads/1234567890-resume.pdf',
+              example: 'http://localhost:3001/uploads/1234567890-resume.pdf',
             },
             mimeType: {
               type: 'string',

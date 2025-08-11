@@ -1,0 +1,50 @@
+# Scrapy Job Scraping Requirements
+scrapy==2.13.3
+itemloaders==1.3.2
+itemadapter==0.12.1
+
+# Database drivers
+psycopg2-binary==2.9.9  # PostgreSQL
+sqlite3  # SQLite (built-in)
+
+# Data processing
+pandas==2.2.2
+numpy==1.26.4
+python-dateutil==2.9.0
+
+# HTTP and networking
+requests==2.31.0
+urllib3==2.4.0
+
+# Text processing and NLP
+nltk==3.8.1
+scikit-learn==1.4.2
+textblob==0.17.1
+
+# Configuration and environment
+python-dotenv==1.0.1
+pyyaml==6.0.1
+
+# Logging and monitoring
+structlog==24.1.0
+
+# Image processing (for company logos)
+Pillow==10.3.0
+
+# Async support
+asyncio
+aiofiles==23.2.1
+
+# Testing
+pytest==8.2.0
+pytest-asyncio==0.23.6
+
+# Development tools
+black==24.4.0
+flake8==7.0.0
+mypy==1.10.0
+
+# Optional: ML libraries for advanced job classification
+# tensorflow==2.16.1
+# torch==2.3.0
+# transformers==4.40.1

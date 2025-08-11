@@ -25,7 +25,6 @@ import {
   Eye,
   Clock,
   X,
-  Briefcase,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { profileService } from '@/services/profileService';

@@ -10,7 +10,7 @@ const storage = new DatabaseStorage();
 
 // Test file data
 const testFilePath = path.join(process.cwd(), 'uploads/test-file.txt');
-const testFileUrl = 'http://localhost:5000/uploads/test-file.txt';
+const testFileUrl = 'http://localhost:3001/uploads/test-file.txt';
 
 describe('File Storage', () => {
   // Create test file
