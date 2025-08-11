@@ -36,7 +36,7 @@ const IndustryComparisonTabContent: React.FC<IndustryComparisonTabContentProps> 
   formatCurrency,
   jobLevel = 'professional'
 }) => {
-  // Always use low-level job data for industry dropdown
+  // Always use entry-level job data for industry dropdown
   const industryData = lowLevelJobAverages;
   const CustomBarTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -59,7 +59,7 @@ const IndustryComparisonTabContent: React.FC<IndustryComparisonTabContentProps> 
     return Math.min(100, Math.max(0, progress));
   }, [industry, calculatedAmounts.monthly, industryData]);
 
-  // Calculate percentage relative to minimum wage (for low-level jobs)
+  // Calculate percentage relative to minimum wage (for entry-level jobs)
   const minimumWagePercentage = useMemo(() => {
     if (!calculatedAmounts.monthly) return 0;
     return (calculatedAmounts.monthly / MINIMUM_WAGE.monthly) * 100;
@@ -83,7 +83,7 @@ const IndustryComparisonTabContent: React.FC<IndustryComparisonTabContentProps> 
         <CardHeader>
           <CardTitle className="flex items-center">
             <TrendingUp className="mr-2 h-5 w-5" />
-            Low-Level Salary Comparison: {industry}
+            Entry-Level Salary Comparison: {industry}
           </CardTitle>
           <CardDescription>
             Compare your GROSS monthly salary ({formatCurrency(calculatedAmounts.monthly)}) with {industry} averages.
@@ -176,7 +176,7 @@ const IndustryComparisonTabContent: React.FC<IndustryComparisonTabContentProps> 
                       </div>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
-                      <p>Salaries for low-level jobs can vary significantly by province:</p>
+                      <p>Salaries for entry-level jobs can vary significantly by province:</p>
                       <ul className="list-disc pl-4 mt-1">
                         {Object.entries(regionalVariations).map(([region, multiplier]) => (
                           <li key={region}>{region}: {(multiplier * 100).toFixed(0)}% of Gauteng rates</li>

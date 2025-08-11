@@ -42,6 +42,14 @@
   [functions.auth]
     external_node_modules = ["cors", "express", "serverless-http", "firebase-admin"]
 
+  [functions.files]
+    external_node_modules = ["cors", "express", "serverless-http", "firebase-admin", "multer"]
+
+[[redirects]]
+  from = "/api/files/*"
+  to = "/.netlify/functions/files/:splat"
+  status = 200
+
 [[redirects]]
   from = "/api"
   to = "/.netlify/functions/api"

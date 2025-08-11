@@ -180,14 +180,14 @@ export default defineConfig(({ mode }) => ({
     },
   },
   server: {
-    port: 5174, // Preferred port, but will try others if unavailable
+    port: 5173, // Standard Vite port to match other configurations
     host: true, // To ensure proper network connections
-    strictPort: true, // Force the specified port
+    strictPort: false, // Allow fallback to other ports if 5173 is busy
     hmr: {
       protocol: 'ws',
       host: 'localhost',
-      port: 24678, // Dedicated port for HMR
-      clientPort: 24678, // Ensure client connects to same port
+      port: 24679, // Different HMR port to avoid conflicts
+      clientPort: 24679, // Ensure client connects to same port
       timeout: 120000, // Increase timeout for slower connections
       overlay: true, // Show errors as overlay
       reconnect: 10, // Retry connection 10 times
@@ -198,14 +198,14 @@ export default defineConfig(({ mode }) => ({
     },
     proxy: {
       "/api": {
-        target: "http://localhost:5000",
+        target: "http://localhost:3001", // Match the PORT in .env
         changeOrigin: true,
         secure: false,
         ws: true, // Support websocket proxying
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
       "/ws": {
-        target: "http://localhost:5000",
+        target: "http://localhost:3001", // Match the PORT in .env
         changeOrigin: true,
         secure: false,
         ws: true, // Support websocket proxying
