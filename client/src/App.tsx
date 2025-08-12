@@ -5,8 +5,10 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import "@/styles/accessibility.css";
 
 // Core pages that should load immediately
 import NotFound from "@/pages/not-found";
@@ -146,8 +148,10 @@ function App() {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <Router />
-          <Toaster />
+          <AccessibilityProvider>
+            <Router />
+            <Toaster />
+          </AccessibilityProvider>
         </AuthProvider>
       </QueryClientProvider>
     </HelmetProvider>
