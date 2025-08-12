@@ -72,6 +72,21 @@
   status = 200
 
 [[redirects]]
+  from = "/api/job-previews"
+  to = "/.netlify/functions/jobPreviews"
+  status = 200
+
+[[redirects]]
+  from = "/api/job-details/*"
+  to = "/.netlify/functions/jobDetails/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/job-applications"
+  to = "/.netlify/functions/jobApplications"
+  status = 200
+
+[[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200

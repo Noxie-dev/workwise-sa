@@ -2,6 +2,114 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             request.auth.token.admin == true;
+    }
+    
+    // WiseUp Content - Public read, admin write
+    match /wiseup_content/{contentId} {
+      allow read: if true; // Public content
+      allow write: if isAdmin();
+    }
+    
+    // WiseUp Ads - Public read, admin write
+    match /wiseup_ads/{adId} {
+      allow read: if true; // Public ads
+      allow write: if isAdmin();
+    }
+    
+    // Videos - Public read, authenticated write
+    match /videos/{videoId} {
+      allow read: if true; // Public videos
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && 
+                            (resource.data.createdBy == request.auth.uid || isAdmin());
+    }
+    
+    // User Bookmarks - User can only access their own
+    match /user_bookmarks/{bookmarkId} {
+      allow read, write: if isAuthenticated() && 
+                         resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && 
+                    request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Comments - Public read, authenticated write, owner/admin delete
+    match /wiseup_comments/{commentId} {
+      allow read: if true; // Public comments
+      allow create: if isAuthenticated() && 
+                    request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && 
+                           (resource.data.userId == request.auth.uid || isAdmin());
+    }
+    
+    // Likes - Users can only manage their own likes
+    match /likes/{likeId} {
+      allow read, write: if isAuthenticated() && 
+                         resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && 
+                    request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Ad Impressions - Write only for tracking
+    match /ad_impressions/{impressionId} {
+      allow create: if true; // Allow anonymous tracking
+      allow read: if isAdmin(); // Only admins can read analytics
+    }
+    
+    // User Profiles - Users can read all, but only edit their own
+    match /users/{userId} {
+      allow read: if true; // Public profiles for job matching
+      allow write: if isOwner(userId) || isAdmin();
+    }
+    
+
+    
+    // Jobs - Tiered access based on authentication
+    match /jobs/{jobId} {
+      // Anonymous users can only read basic job info (preview)
+      allow read: if true;
+      allow write: if isAdmin(); // Only admins can manage jobs for now
+    }
+    
+    // Job Details - Full job specifications (authenticated only)
+    match /job_details/{jobId} {
+      allow read: if isAuthenticated(); // Full details require authentication
+      allow write: if isAdmin();
+    }
+    
+    // Job Applications - Authenticated users only
+    match /job_applications/{applicationId} {
+      allow read, write: if isAuthenticated() && 
+                         resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && 
+                    request.resource.data.userId == request.auth.uid;
+      allow read: if isAdmin(); // Admins can see all applications
+    }
+    
+    // Companies - Public read, admin write
+    match /companies/{companyId} {
+      allow read: if true; // Public company profiles
+      allow write: if isAdmin();
+    }
+    
+    // Admin-only collections
+    match /admin/{document=**} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Deny all other access
     match /{document=**} {
       allow read, write: if false;
     }
