@@ -25,6 +25,7 @@ import {
   Eye,
   Clock,
   X,
+  Accessibility,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { profileService } from '@/services/profileService';
@@ -36,6 +37,8 @@ import ProfessionalImageViewer from '@/components/ProfessionalImageViewer';
 import ProfileCompletionTracker from '@/components/ProfileCompletionTracker';
 import ProfileAnalytics from '@/components/ProfileAnalytics';
 import ProfileEditModal from '@/components/ProfileEditModal';
+import AccessibilitySettingsModal from '@/components/accessibility/AccessibilitySettingsModal';
+import MobileAccessibilityFab from '@/components/accessibility/MobileAccessibilityFab';
 
 // Calculate level based on engagement score
 const getUserLevel = (score: number) => {
@@ -60,6 +63,7 @@ const UserProfile = () => {
   const [showProfessionalUpload, setShowProfessionalUpload] = useState(false);
   const [showProfessionalViewer, setShowProfessionalViewer] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showAccessibilitySettings, setShowAccessibilitySettings] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -262,7 +266,12 @@ const UserProfile = () => {
                   </span>
                 )}
               </Button>
-              <Button size="sm" variant="outline">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => setShowAccessibilitySettings(true)}
+                aria-label="Open accessibility and user settings"
+              >
                 <Settings className="h-4 w-4" />
               </Button>
             </div>
@@ -682,6 +691,17 @@ const UserProfile = () => {
             userId={currentUser?.uid || ''}
           />
         )}
+
+        {/* Accessibility Settings Modal */}
+        <AccessibilitySettingsModal
+          open={showAccessibilitySettings}
+          onOpenChange={setShowAccessibilitySettings}
+        />
+
+        {/* Mobile Accessibility FAB */}
+        <MobileAccessibilityFab
+          onOpenSettings={() => setShowAccessibilitySettings(true)}
+        />
       </main>
     </>
   );
