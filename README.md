@@ -119,4 +119,5 @@ The WiseUp feature includes a comprehensive bookmark system that allows users to
 ## Acknowledgments
 
 - [shadcn/ui](https://ui.shadcn.com/) for the UI components
+
 - [Firebase](https://firebase.google.com/) for authentication services
