@@ -180,17 +180,12 @@ export default defineConfig(({ mode }) => ({
     },
   },
   server: {
-    port: 5173, // Standard Vite port to match other configurations
-    host: true, // To ensure proper network connections
-    strictPort: false, // Allow fallback to other ports if 5173 is busy
+    host: 'localhost',
+    port: 5173,
+    strictPort: true,
     hmr: {
-      protocol: 'ws',
       host: 'localhost',
-      port: 24679, // Different HMR port to avoid conflicts
-      clientPort: 24679, // Ensure client connects to same port
-      timeout: 120000, // Increase timeout for slower connections
-      overlay: true, // Show errors as overlay
-      reconnect: 10, // Retry connection 10 times
+      protocol: 'ws',
     },
     watch: {
       usePolling: true, // More reliable file watching
@@ -226,6 +221,6 @@ export default defineConfig(({ mode }) => ({
     global: 'globalThis',
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-smooth', 'recharts']
+    include: ['react', 'react-dom', 'recharts']
   }
 }));
