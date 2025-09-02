@@ -1,11 +1,11 @@
-const { db } = require('./utils/db');
-const { verifyFirebaseToken } = require('./utils/auth');
+import { db } from './utils/db.js';
+import { verifyFirebaseToken } from './utils/auth.js';
 
 /**
  * Job applications endpoint - authenticated users only
  * Handles creating and retrieving job applications
  */
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
   // Set CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',

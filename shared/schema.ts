@@ -88,6 +88,10 @@ export const jobs = pgTable("jobs", {
   categoryId: integer("category_id").notNull().references(() => categories.id),
   isFeatured: boolean("is_featured").default(false),
   createdAt: timestamp("created_at").defaultNow(),
+  // Ingestion fields
+  externalId: text("external_id").unique(), // For deduplication from external sources
+  source: text("source"), // Source of the job (e.g., 'indeed', 'linkedin', 'manual')
+  ingestedAt: timestamp("ingested_at").defaultNow(), // When the job was ingested
 });
 
 export const insertJobSchema = createInsertSchema(jobs).pick({
@@ -100,6 +104,8 @@ export const insertJobSchema = createInsertSchema(jobs).pick({
   companyId: true,
   categoryId: true,
   isFeatured: true,
+  externalId: true,
+  source: true,
 });
 
 // Export types

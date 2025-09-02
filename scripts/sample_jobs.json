@@ -1,0 +1,102 @@
+[
+  {
+    "title": "Senior Frontend Developer",
+    "company": "TechCorp South Africa",
+    "location": "Cape Town",
+    "description": "We are looking for an experienced Frontend Developer to join our team in Cape Town. You will be responsible for building modern, responsive web applications using React, TypeScript, and modern CSS frameworks. The ideal candidate should have at least 5 years of experience in frontend development and a strong understanding of web technologies.",
+    "salary": "R65,000 - R85,000 per month",
+    "jobType": "Full-time",
+    "workMode": "Hybrid",
+    "isFeatured": true
+  },
+  {
+    "title": "Data Scientist",
+    "company": "DataFlow Analytics",
+    "location": "Johannesburg",
+    "description": "Join our data science team to work on cutting-edge machine learning projects. You will be responsible for developing predictive models, analyzing large datasets, and creating data-driven insights. Experience with Python, R, and machine learning frameworks is required.",
+    "salary": "R70,000 - R90,000 per annum",
+    "jobType": "Full-time",
+    "workMode": "Remote",
+    "isFeatured": false
+  },
+  {
+    "title": "DevOps Engineer",
+    "company": "CloudTech Solutions",
+    "location": "Durban",
+    "description": "We are seeking a DevOps Engineer to help us build and maintain our cloud infrastructure. You will work with AWS, Docker, Kubernetes, and CI/CD pipelines. Experience with infrastructure as code and automation is essential.",
+    "salary": "R55,000 - R75,000 per month",
+    "jobType": "Full-time",
+    "workMode": "On-site",
+    "isFeatured": false
+  },
+  {
+    "title": "Product Manager",
+    "company": "InnovateSA",
+    "location": "Pretoria",
+    "description": "Lead product development initiatives for our SaaS platform. You will work closely with development teams, stakeholders, and customers to define product requirements and roadmap. Experience in agile methodologies and product management tools is required.",
+    "salary": "R80,000 - R100,000 per annum",
+    "jobType": "Full-time",
+    "workMode": "Hybrid",
+    "isFeatured": true
+  },
+  {
+    "title": "UI/UX Designer",
+    "company": "Creative Digital",
+    "location": "Cape Town",
+    "description": "Create beautiful and intuitive user experiences for our digital products. You will work on wireframes, prototypes, and visual designs. Proficiency in Figma, Adobe Creative Suite, and design principles is required.",
+    "salary": "R45,000 - R65,000 per month",
+    "jobType": "Full-time",
+    "workMode": "Remote",
+    "isFeatured": false
+  },
+  {
+    "title": "Backend Developer",
+    "company": "ServerTech",
+    "location": "Johannesburg",
+    "description": "Build robust backend services using Node.js, Python, or Java. You will work on APIs, databases, and server infrastructure. Experience with microservices architecture and cloud platforms is preferred.",
+    "salary": "R60,000 - R80,000 per month",
+    "jobType": "Full-time",
+    "workMode": "On-site",
+    "isFeatured": false
+  },
+  {
+    "title": "Full Stack Developer",
+    "company": "WebWorks",
+    "location": "Durban",
+    "description": "Join our development team to build end-to-end web applications. You will work on both frontend and backend, using modern technologies like React, Node.js, and PostgreSQL. Experience with full-stack development is required.",
+    "salary": "R50,000 - R70,000 per month",
+    "jobType": "Full-time",
+    "workMode": "Hybrid",
+    "isFeatured": false
+  },
+  {
+    "title": "QA Engineer",
+    "company": "Quality Assurance Pro",
+    "location": "Cape Town",
+    "description": "Ensure the quality of our software products through comprehensive testing. You will develop test plans, write automated tests, and perform manual testing. Experience with testing frameworks and tools is required.",
+    "salary": "R40,000 - R60,000 per month",
+    "jobType": "Full-time",
+    "workMode": "On-site",
+    "isFeatured": false
+  },
+  {
+    "title": "Business Analyst",
+    "company": "Business Insights",
+    "location": "Pretoria",
+    "description": "Analyze business processes and requirements to improve efficiency and effectiveness. You will work with stakeholders to gather requirements and translate them into technical specifications. Experience in business analysis and process improvement is required.",
+    "salary": "R55,000 - R75,000 per annum",
+    "jobType": "Full-time",
+    "workMode": "Hybrid",
+    "isFeatured": false
+  },
+  {
+    "title": "Marketing Manager",
+    "company": "Digital Marketing Pro",
+    "location": "Johannesburg",
+    "description": "Lead our digital marketing initiatives and campaigns. You will develop marketing strategies, manage social media presence, and analyze campaign performance. Experience in digital marketing and analytics is required.",
+    "salary": "R65,000 - R85,000 per annum",
+    "jobType": "Full-time",
+    "workMode": "Remote",
+    "isFeatured": true
+  }
+]

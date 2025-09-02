@@ -18,3 +18,6 @@ export async function verifyFirebaseAuth(token) {
     email: data.users[0].email 
   };
 }
+
+// Alias for the function that job functions are expecting
+export const verifyFirebaseToken = verifyFirebaseAuth;
