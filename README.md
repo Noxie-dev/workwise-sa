@@ -1,58 +1,16 @@
-# WorkWise SA: Your Intelligent Career Partner
+# WorkWise SA
 
-**WorkWise SA** is a cutting-edge, AI-powered job search and career development platform meticulously crafted for the South African market. It goes beyond a simple job board, offering a comprehensive suite of tools to empower job seekers, from building the perfect CV to landing their dream job and advancing their skills. Our intelligent algorithms connect the right talent with the right opportunities, making the job hunt smarter, not harder.
+WorkWise SA is a comprehensive job search platform designed to connect job seekers with employers in South Africa, offering career resources and CV building tools.
 
-## Core Features
+## Features
 
-WorkWise SA is packed with features designed to support you at every stage of your career journey.
-
-*   **Advanced User Authentication:** Secure and flexible sign-in options, including:
-    *   Email & Password
-    *   Passwordless Email Link
-    *   Google Sign-In (OAuth 2.0)
-
-*   **Intelligent Job Search:**
-    *   Dynamic search and filtering based on keywords, location, and job type.
-    *   AI-powered job recommendations that match your skills and experience.
-
-*   **In-Depth Company Listings:**
-    *   Browse company profiles, view available positions, and gain insights into potential employers.
-
-*   **AI-Powered CV Builder:**
-    *   Create a professional, polished CV from scratch with our step-by-step builder.
-    *   Receive an AI-driven score on your CV'''s completeness and keyword optimization.
-    *   Upload an existing CV for analysis and improvement suggestions.
-
-*   **WiseUp Learning Platform:**
-    *   Access a curated library of career resources, articles, and tips.
-    *   Bookmark valuable content to create a personalized learning path.
-    *   Content is organized and easily accessible, allowing you to learn at your own pace.
-
-*   **Personalized User Profiles:**
-    *   Manage your personal information, work experience, skills, and education.
-    *   Your profile data is used to power our job recommendation engine.
-
-## Key Algorithms and Logic
-
-Our platform leverages several key algorithms to provide a personalized and effective experience.
-
-*   **Job Recommendation Algorithm (Content-Based Filtering):**
-    *   **Objective:** To suggest the most relevant jobs to users based on their profile and the job descriptions.
-    *   **Process:**
-        1.  **Keyword Extraction:** We use Natural Language Processing (NLP) techniques to extract key skills, technologies, and qualifications from both the user'''s profile (CV, skills section) and the job listings.
-        2.  **Vector Representation:** The extracted keywords are converted into numerical vectors.
-        3.  **Cosine Similarity:** The algorithm calculates the cosine similarity between the user'''s profile vector and the vectors of all available jobs.
-        4.  **Ranking:** Jobs are ranked by their similarity score, and the top matches are presented to the user as recommendations.
-
-*   **CV Scoring Algorithm:**
-    *   **Objective:** To provide users with actionable feedback on their CV'''s quality and completeness.
-    *   **Process:**
-        1.  **Section Analysis:** The algorithm checks for the presence and completeness of critical CV sections (e.g., Contact Information, Work Experience, Education, Skills).
-        2.  **Keyword Matching:** When applying for a specific job, the CV is scanned for keywords present in the job description.
-        3.  **Scoring:** A score is calculated based on the percentage of completed sections and the density of relevant keywords. This score helps users understand where they can improve their CV for better visibility.
-
-*   **WiseUp Content Management:**
-    *   **Bookmark Sorting:** The bookmarking feature in the WiseUp platform uses a simple but effective chronological sorting algorithm. Bookmarked items are displayed in a "last-in, first-out" (LIFO) order, ensuring that the most recently saved content is always the easiest to access.
+- User authentication (Email/Password, Email Link, and Google Sign-In)
+- Job search and filtering
+- Company listings
+- CV builder
+- Career resources
+- User profiles
+- WiseUp learning platform with bookmark functionality
 
 ## Tech Stack
 
@@ -68,34 +26,41 @@ Our platform leverages several key algorithms to provide a personalized and effe
 
 - Node.js (v16 or newer)
 - npm or yarn
+- Git with SSH authentication configured (recommended)
 
 ### Installation
 
-1.  Download and extract the project files:
-    ```
-    cd workwisesa
-    ```
+1. Download and extract the project files:
+   ```
+   cd workwisesa
+   ```
 
-2.  Install dependencies:
-    ```
-    npm install
-    ```
+2. Install dependencies:
+   ```
+   npm install
+   ```
 
-3.  Setup environment variables:
-    -   Copy the `.env.example` file to create your own `.env` files:
-    ```bash
-    cp .env.example .env
-    cp .env.example client/.env
-    ```
-    -   Fill in the actual values for each environment variable
-    -   See [ENV_SETUP.md](ENV_SETUP.md) for detailed instructions and explanations of all environment variables
+3. Setup environment variables:
+   - Copy the `.env.example` file to create your own `.env` files:
+   ```bash
+   cp .env.example .env
+   cp .env.example client/.env
+   ```
+   - Fill in the actual values for each environment variable
+   - See [ENV_SETUP.md](ENV_SETUP.md) for detailed instructions and explanations of all environment variables
 
-4.  Start the development server:
-    ```
-    npm run dev
-    ```
-    -   Client runs on: http://localhost:5173 (or next available port)
-    -   Server runs on: http://localhost:5000
+4. (Optional) Set up SSH authentication for GitHub:
+   ```bash
+   npm run setup:ssh
+   ```
+   See [GitHub SSH Setup Guide](docs/GITHUB_SSH_SETUP.md) for detailed instructions.
+
+5. Start the development server:
+   ```
+   npm run dev
+   ```
+   - Client runs on: http://localhost:5173 (or next available port)
+   - Server runs on: http://localhost:3001
 
 ## Project Structure
 
@@ -124,11 +89,64 @@ workwisesa/
 - **Testing**: Jest and React Testing Library with ≥80% coverage requirement
 - **Security**: Snyk for static analysis and dependency scanning
 
+### Quick Commands
+
+```bash
+# Setup
+npm run setup:ssh          # Configure SSH for GitHub
+npm run verify:ssh         # Test SSH connection
+
+# Development
+npm run dev                 # Start development servers
+npm run build              # Build for production
+npm run test               # Run tests
+
+# Environment
+npm run env:check          # Check environment files
+npm run env:sanitize       # Sanitize environment variables
+
+# Deployment
+npm run deploy:fast        # Fast deployment to Netlify
+npm run deploy:prod        # Production deployment
+npm run deploy:firebase    # Deploy to Firebase
+```
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## WiseUp Bookmark Functionality
+
+The WiseUp feature includes a comprehensive bookmark system that allows users to save and organize content for later viewing.
+
+### How to Use the Bookmark Functionality
+
+1. **Saving Content**:
+   - When viewing content in the WiseUp feature, click the "Bookmark" button to save items for later
+   - The button will toggle between "Bookmark" and "Bookmarked" states
+   - Both educational content and sponsored content (ads) can be bookmarked
+
+2. **Accessing Bookmarks**:
+   - Click the bookmark icon in the WiseUp header to navigate to your bookmarks page
+   - The bookmarks page displays all saved items in a responsive grid layout
+   - Items are sorted with the most recently bookmarked items appearing first
+
+3. **Managing Bookmarks**:
+   - On the bookmarks page, you can:
+     - Click on a bookmark card to view the content
+     - Click the remove button (X) to remove a bookmark
+     - Load more bookmarks if there are more than the initial page size (pagination)
+
+4. **Direct Navigation**:
+   - When clicking on a bookmark card, you are taken directly to the WiseUp page with that specific item loaded
+   - This allows for quick access to your saved content without having to search for it again
+
+5. **Authentication**:
+   - You must be logged in to use the bookmark functionality
+   - If you try to bookmark content while not logged in, you'll be prompted to sign in
+
 ## Acknowledgments
 
 - [shadcn/ui](https://ui.shadcn.com/) for the UI components
+
 - [Firebase](https://firebase.google.com/) for authentication services

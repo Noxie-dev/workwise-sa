@@ -1,11 +1,28 @@
 [build]
-  base = "."
-  command = "npm install && npm run build:client"
   publish = "dist/public"
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF ./client/ ./public/"
+  command = "npm run netlify:build"
 
 [build.environment]
   NODE_VERSION = "20"
+  NPM_FLAGS = "--production=false"
+  # Enable faster builds with caching
+  NETLIFY_CACHE_NEXTJS = "true"
+  # Optimize build performance
+  NODE_OPTIONS = "--max-old-space-size=4096"
+  
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
 
 [functions]
   directory = "netlify/functions"
@@ -13,6 +30,8 @@
 
 [functions.esbuild]
   version = "0.25.0"
+  # Enable source maps for better debugging
+  sourcemap = true
 
   [functions.api]
     external_node_modules = ["cors", "express", "serverless-http", "firebase-admin"]
@@ -22,6 +41,14 @@
 
   [functions.auth]
     external_node_modules = ["cors", "express", "serverless-http", "firebase-admin"]
+
+  [functions.files]
+    external_node_modules = ["cors", "express", "serverless-http", "firebase-admin", "multer"]
+
+[[redirects]]
+  from = "/api/files/*"
+  to = "/.netlify/functions/files/:splat"
+  status = 200
 
 [[redirects]]
   from = "/api"
@@ -45,6 +72,21 @@
   status = 200
 
 [[redirects]]
+  from = "/api/job-previews"
+  to = "/.netlify/functions/jobPreviews"
+  status = 200
+
+[[redirects]]
+  from = "/api/job-details/*"
+  to = "/.netlify/functions/jobDetails/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/job-applications"
+  to = "/.netlify/functions/jobApplications"
+  status = 200
+
+[[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
@@ -53,3 +95,58 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Security headers for all pages - applied first
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://api.openai.com https://api.anthropic.com https://*.googleapis.com https://*.firebaseapp.com https://*.cloudfunctions.net wss://*.firebaseio.com; frame-ancestors 'self'"
+
+# Static assets with long cache
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    X-Content-Type-Options = "nosniff"
+
+# JavaScript files
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    X-Content-Type-Options = "nosniff"
+
+# CSS files
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    X-Content-Type-Options = "nosniff"
+
+# API endpoints - no cache, enhanced security
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+
+# Netlify functions
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"

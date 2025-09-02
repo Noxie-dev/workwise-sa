@@ -7,9 +7,11 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  password: text("password"),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
+  firebaseUid: text("firebase_uid").unique(),
+  role: text("role").default("user"),
   location: text("location"),
   bio: text("bio"),
   phoneNumber: text("phone_number"),
@@ -30,6 +32,8 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
   email: true,
   name: true,
+  firebaseUid: true,
+  role: true,
   location: true,
   bio: true,
   phoneNumber: true,
@@ -227,11 +231,41 @@ export const insertFileSchema = createInsertSchema(files).pick({
   metadata: true,
 });
 
+export const insertJobApplicationSchema = createInsertSchema(jobApplications).pick({
+  userId: true,
+  jobId: true,
+  status: true,
+  resumeUrl: true,
+  coverLetter: true,
+  notes: true,
+});
+
+export const insertUserInteractionSchema = createInsertSchema(userInteractions).pick({
+  userId: true,
+  interactionType: true,
+  jobId: true,
+  videoId: true,
+  categoryId: true,
+  duration: true,
+  metadata: true,
+});
+
+export const insertUserNotificationSchema = createInsertSchema(userNotifications).pick({
+  userId: true,
+  type: true,
+  content: true,
+  jobId: true,
+  isRead: true,
+});
+
 // Export additional types for the new tables
 export type UserSession = typeof userSessions.$inferSelect;
 export type UserInteraction = typeof userInteractions.$inferSelect;
+export type InsertUserInteraction = z.infer<typeof insertUserInteractionSchema>;
 export type JobApplication = typeof jobApplications.$inferSelect;
+export type InsertJobApplication = z.infer<typeof insertJobApplicationSchema>;
 export type UserNotification = typeof userNotifications.$inferSelect;
+export type InsertUserNotification = z.infer<typeof insertUserNotificationSchema>;
 export type UserJobPreference = typeof userJobPreferences.$inferSelect;
 export type InsertFile = z.infer<typeof insertFileSchema>;
 export type File = typeof files.$inferSelect;

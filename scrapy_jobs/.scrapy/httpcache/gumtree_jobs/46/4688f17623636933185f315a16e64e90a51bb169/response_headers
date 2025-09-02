@@ -1,0 +1,24 @@
+Date: Mon, 11 Aug 2025 00:23:51 GMT
+Content-Type: text/html; charset=utf-8
+X-Dns-Prefetch-Control: off
+X-Frame-Options: SAMEORIGIN
+Strict-Transport-Security: max-age=31536000000; includeSubDomains; preload
+X-Download-Options: noopen
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Content-Security-Policy: connect-src * 'self'
+X-Content-Security-Policy: connect-src * 'self'
+X-Webkit-Csp: connect-src * 'self'
+X-Powered-By: Bolt 2.0
+Vary: User-Agent, Accept-Encoding
+Cache-Control: no-cache
+Set-Cookie: galleryView=false; Max-Age=31536000; Path=/; Expires=Tue, 11 Aug 2026 00:23:50 GMT
+Set-Cookie: dc=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT
+Set-Cookie: StatusMessage=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT
+Set-Cookie: searchLocId=201; Max-Age=31536000; Path=/; Expires=Tue, 11 Aug 2026 00:23:51 GMT
+Set-Cookie: searchLocName=South%20Africa; Max-Age=31536000; Path=/; Expires=Tue, 11 Aug 2026 00:23:51 GMT
+Content-Encoding: gzip
+X-Request-Id: 04aad6dd0473c0997bb665208586ba6e
+X-Cluster: fe
+X-Azure-Ref: 20250811T002350Z-r1c4f86c4f5zhm9whC1CPTesw00000000ak0000000001q73
+X-Cache: CONFIG_NOCACHE

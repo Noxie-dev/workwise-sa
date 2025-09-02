@@ -4,16 +4,23 @@ import {
   companies, type Company, type InsertCompany,
   jobs, type Job, type InsertJob,
   files, type File, type InsertFile,
+  jobApplications, type JobApplication, type InsertJobApplication,
+  userInteractions, type UserInteraction, type InsertUserInteraction,
+  userNotifications, type UserNotification, type InsertUserNotification,
   type JobWithCompany
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, like, or, desc } from "drizzle-orm";
+import { eq, like, or, desc, and, count } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
+  getUserById(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
+  deleteUser(id: number): Promise<boolean>;
 
   // Categories methods
   getCategories(): Promise<Category[]>;
@@ -26,6 +33,9 @@ export interface IStorage {
   getCompany(id: number): Promise<Company | undefined>;
   getCompanyBySlug(slug: string): Promise<Company | undefined>;
   createCompany(company: InsertCompany): Promise<Company>;
+  getCompaniesWithHiringMetrics(): Promise<any[]>;
+  updateCompanyHiringMetrics(companyId: number, metrics: any): Promise<boolean>;
+  getHiringTrends(): Promise<any>;
 
   // Jobs methods
   getJobs(): Promise<Job[]>;
@@ -43,6 +53,39 @@ export interface IStorage {
   getFilesByType(fileType: string): Promise<File[]>;
   createFile(file: InsertFile): Promise<File>;
   deleteFile(id: number): Promise<boolean>;
+
+  // Job Application methods
+  createJobApplication(application: Omit<InsertJobApplication, 'id' | 'appliedAt' | 'updatedAt'>): Promise<JobApplication>;
+  getJobApplication(id: number): Promise<JobApplication | undefined>;
+  getJobApplicationByUserAndJob(userId: number, jobId: number): Promise<JobApplication | undefined>;
+  getJobApplicationsByUser(userId: number, options: {
+    page: number;
+    limit: number;
+    status?: string;
+    jobId?: number;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ applications: JobApplication[]; total: number }>;
+  getJobApplicationsByJob(jobId: number, options: {
+    page: number;
+    limit: number;
+    status?: string;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ applications: JobApplication[]; total: number }>;
+  updateJobApplication(id: number, updates: Partial<Omit<JobApplication, 'id' | 'userId' | 'jobId' | 'appliedAt'>>): Promise<JobApplication>;
+  deleteJobApplication(id: number): Promise<boolean>;
+
+  // User Interaction methods
+  createUserInteraction(interaction: Omit<InsertUserInteraction, 'id'>): Promise<UserInteraction>;
+  
+  // User Notification methods
+  createUserNotification(notification: Omit<InsertUserNotification, 'id' | 'createdAt'>): Promise<UserNotification>;
+
+  // Profile methods
+  getUserProfile(userId: number): Promise<any>;
+  updateUserProfile(userId: number, profileData: any): Promise<any>;
+  createUserProfile(userId: number, profileData: any): Promise<any>;
 
   // Initialize database with sample data (optional)
   initializeData(): Promise<void>;
@@ -69,6 +112,23 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getUserById(id: number): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      return user;
+    } catch (error: any) {
+      throw Errors.database(`Failed to get user by ID: ${error.message}`, error);
+    }
+  }
+
+  async getUsers(): Promise<User[]> {
+    try {
+      return await db.select().from(users);
+    } catch (error: any) {
+      throw Errors.database(`Failed to get users: ${error.message}`, error);
+    }
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     try {
       const [user] = await db.insert(users).values(insertUser).returning();
@@ -78,6 +138,30 @@ export class DatabaseStorage implements IStorage {
         throw Errors.conflict(`User with username '${insertUser.username}' already exists.`, error);
       }
       throw Errors.database(`Failed to create user: ${error.message}`, error);
+    }
+  }
+
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
+    try {
+      const [updatedUser] = await db.update(users)
+        .set(updates)
+        .where(eq(users.id, id))
+        .returning();
+      return updatedUser;
+    } catch (error: any) {
+      if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === '23505') {
+        throw Errors.conflict(`User with username '${updates.username}' already exists.`, error);
+      }
+      throw Errors.database(`Failed to update user: ${error.message}`, error);
+    }
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(users).where(eq(users.id, id));
+      return result.count > 0;
+    } catch (error: any) {
+      throw Errors.database(`Failed to delete user: ${error.message}`, error);
     }
   }
 
@@ -303,6 +387,284 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Job Application methods
+  async createJobApplication(application: Omit<InsertJobApplication, 'id' | 'appliedAt' | 'updatedAt'>): Promise<JobApplication> {
+    try {
+      const [jobApplication] = await db.insert(jobApplications).values({
+        ...application,
+        appliedAt: new Date(),
+        updatedAt: new Date(),
+      }).returning();
+      return jobApplication;
+    } catch (error: any) {
+      throw Errors.database(`Failed to create job application: ${error.message}`, error);
+    }
+  }
+
+  async getJobApplication(id: number): Promise<JobApplication | undefined> {
+    try {
+      const [application] = await db.select().from(jobApplications).where(eq(jobApplications.id, id));
+      return application;
+    } catch (error: any) {
+      throw Errors.database(`Failed to get job application by ID: ${error.message}`, error);
+    }
+  }
+
+  async getJobApplicationByUserAndJob(userId: number, jobId: number): Promise<JobApplication | undefined> {
+    try {
+      const [application] = await db.select().from(jobApplications)
+        .where(and(eq(jobApplications.userId, userId), eq(jobApplications.jobId, jobId)));
+      return application;
+    } catch (error: any) {
+      throw Errors.database(`Failed to get job application by user and job: ${error.message}`, error);
+    }
+  }
+
+  async getJobApplicationsByUser(userId: number, options: {
+    page: number;
+    limit: number;
+    status?: string;
+    jobId?: number;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ applications: JobApplication[]; total: number }> {
+    try {
+      const { page, limit, status, jobId, sortBy, sortOrder } = options;
+      const offset = (page - 1) * limit;
+
+      // Build where conditions
+      const conditions = [eq(jobApplications.userId, userId)];
+      if (status) {
+        conditions.push(eq(jobApplications.status, status));
+      }
+      if (jobId) {
+        conditions.push(eq(jobApplications.jobId, jobId));
+      }
+
+      const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];
+
+      // Get total count
+      const [totalResult] = await db.select({ count: count() })
+        .from(jobApplications)
+        .where(whereClause);
+      const total = totalResult.count;
+
+      // Get applications with sorting
+      const orderByClause = sortOrder === 'desc' 
+        ? desc(jobApplications[sortBy as keyof typeof jobApplications]) 
+        : jobApplications[sortBy as keyof typeof jobApplications];
+
+      const applications = await db.select()
+        .from(jobApplications)
+        .where(whereClause)
+        .orderBy(orderByClause)
+        .limit(limit)
+        .offset(offset);
+
+      return { applications, total };
+    } catch (error: any) {
+      throw Errors.database(`Failed to get job applications by user: ${error.message}`, error);
+    }
+  }
+
+  async getJobApplicationsByJob(jobId: number, options: {
+    page: number;
+    limit: number;
+    status?: string;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ applications: JobApplication[]; total: number }> {
+    try {
+      const { page, limit, status, sortBy, sortOrder } = options;
+      const offset = (page - 1) * limit;
+
+      // Build where conditions
+      const conditions = [eq(jobApplications.jobId, jobId)];
+      if (status) {
+        conditions.push(eq(jobApplications.status, status));
+      }
+
+      const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];
+
+      // Get total count
+      const [totalResult] = await db.select({ count: count() })
+        .from(jobApplications)
+        .where(whereClause);
+      const total = totalResult.count;
+
+      // Get applications with sorting
+      const orderByClause = sortOrder === 'desc' 
+        ? desc(jobApplications[sortBy as keyof typeof jobApplications]) 
+        : jobApplications[sortBy as keyof typeof jobApplications];
+
+      const applications = await db.select()
+        .from(jobApplications)
+        .where(whereClause)
+        .orderBy(orderByClause)
+        .limit(limit)
+        .offset(offset);
+
+      return { applications, total };
+    } catch (error: any) {
+      throw Errors.database(`Failed to get job applications by job: ${error.message}`, error);
+    }
+  }
+
+  async updateJobApplication(id: number, updates: Partial<Omit<JobApplication, 'id' | 'userId' | 'jobId' | 'appliedAt'>>): Promise<JobApplication> {
+    try {
+      const [updatedApplication] = await db.update(jobApplications)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(jobApplications.id, id))
+        .returning();
+      return updatedApplication;
+    } catch (error: any) {
+      throw Errors.database(`Failed to update job application: ${error.message}`, error);
+    }
+  }
+
+  async deleteJobApplication(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(jobApplications).where(eq(jobApplications.id, id));
+      return result.count > 0;
+    } catch (error: any) {
+      throw Errors.database(`Failed to delete job application: ${error.message}`, error);
+    }
+  }
+
+  // User Interaction methods
+  async createUserInteraction(interaction: Omit<InsertUserInteraction, 'id'>): Promise<UserInteraction> {
+    try {
+      const [userInteraction] = await db.insert(userInteractions).values(interaction).returning();
+      return userInteraction;
+    } catch (error: any) {
+      throw Errors.database(`Failed to create user interaction: ${error.message}`, error);
+    }
+  }
+
+  // User Notification methods
+  async createUserNotification(notification: Omit<InsertUserNotification, 'id' | 'createdAt'>): Promise<UserNotification> {
+    try {
+      const [userNotification] = await db.insert(userNotifications).values({
+        ...notification,
+        createdAt: new Date(),
+      }).returning();
+      return userNotification;
+    } catch (error: any) {
+      throw Errors.database(`Failed to create user notification: ${error.message}`, error);
+    }
+  }
+
+  // Profile methods
+  async getUserProfile(userId: number): Promise<any> {
+    try {
+      const user = await this.getUser(userId);
+      if (!user) {
+        return null;
+      }
+
+      // Get user files
+      const userFiles = await this.getFilesByUser(userId);
+      const profileImage = userFiles.find(f => f.fileType === 'profile_image');
+      const professionalImage = userFiles.find(f => f.fileType === 'professional_image');
+      const cvFile = userFiles.find(f => f.fileType === 'cv');
+
+      // Mock profile data structure - in real implementation, this would come from a profiles table
+      return {
+        personal: {
+          fullName: user.username, // Using username as placeholder
+          phoneNumber: user.email, // Using email as placeholder
+          location: "Not specified",
+          bio: "Professional seeking opportunities",
+          profilePicture: profileImage?.fileUrl,
+          professionalImage: professionalImage?.fileUrl,
+        },
+        education: {
+          highestEducation: "Not specified",
+          schoolName: "Not specified",
+        },
+        experience: {
+          hasExperience: false,
+          jobTitle: "Not specified",
+          employer: "Not specified",
+        },
+        skills: {
+          skills: [],
+          languages: ["English"],
+          hasDriversLicense: false,
+          hasTransport: false,
+          cvUpload: cvFile?.fileUrl,
+        },
+        preferences: {
+          jobTypes: [],
+          locations: [],
+          minSalary: 0,
+          willingToRelocate: false,
+        },
+        // Additional profile metadata
+        memberSince: user.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+        engagementScore: 25,
+        applications: {
+          current: 0,
+          total: 0,
+          successRate: 0,
+        },
+        ratings: {
+          overall: 0,
+        },
+        notifications: 0,
+        recentActivity: [],
+      };
+    } catch (error: any) {
+      throw Errors.database(`Failed to get user profile: ${error.message}`, error);
+    }
+  }
+
+  async updateUserProfile(userId: number, profileData: any): Promise<any> {
+    try {
+      // In a real implementation, this would update a profiles table
+      // For now, we'll just return the updated data
+      const currentProfile = await this.getUserProfile(userId);
+      
+      const updatedProfile = {
+        ...currentProfile,
+        ...profileData,
+        personal: {
+          ...currentProfile.personal,
+          ...profileData.personal,
+        },
+        education: {
+          ...currentProfile.education,
+          ...profileData.education,
+        },
+        experience: {
+          ...currentProfile.experience,
+          ...profileData.experience,
+        },
+        skills: {
+          ...currentProfile.skills,
+          ...profileData.skills,
+        },
+        preferences: {
+          ...currentProfile.preferences,
+          ...profileData.preferences,
+        },
+      };
+
+      return updatedProfile;
+    } catch (error: any) {
+      throw Errors.database(`Failed to update user profile: ${error.message}`, error);
+    }
+  }
+
+  async createUserProfile(userId: number, profileData: any): Promise<any> {
+    try {
+      // In a real implementation, this would create a new profile record
+      return await this.updateUserProfile(userId, profileData);
+    } catch (error: any) {
+      throw Errors.database(`Failed to create user profile: ${error.message}`, error);
+    }
+  }
+
   // Initialize with sample data
   async initializeData(): Promise<void> {
     try {
@@ -312,7 +674,7 @@ export class DatabaseStorage implements IStorage {
         return; // Database already has data
       }
 
-      // Add categories for low-level jobs
+      // Add categories for entry-level jobs
       const categoryIcons = ['shopping-cart', 'user', 'shield', 'gas-pump', 'baby', 'broom', 'seedling'];
       const categoryNames = ['Retail', 'General Worker', 'Security', 'Petrol Attendant', 'Childcare', 'Cleaning', 'Landscaping'];
       const categorySlugs = ['retail', 'general-worker', 'security', 'petrol-attendant', 'childcare', 'cleaning', 'landscaping'];
@@ -330,7 +692,7 @@ export class DatabaseStorage implements IStorage {
         createdCategories.push(category);
       }
 
-      // Add companies hiring for low-level jobs
+      // Add companies hiring for entry-level jobs
       const companyNames = ['Shoprite', 'Pick n Pay', 'Securitas', 'Engen', 'Sasol', 'Checkers', 'Spar'];
       const companyLocations = ['Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Soweto', 'Port Elizabeth', 'Bloemfontein'];
       const companySlugs = ['shoprite', 'pick-n-pay', 'securitas', 'engen', 'sasol', 'checkers', 'spar'];
@@ -350,7 +712,7 @@ export class DatabaseStorage implements IStorage {
         createdCompanies.push(company);
       }
 
-      // Add featured jobs focused on low-level positions
+      // Add featured jobs focused on entry-level positions
       const jobTitles = [
         'Cashier',
         'General Worker',

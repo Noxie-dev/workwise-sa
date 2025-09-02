@@ -358,7 +358,7 @@ export class FirestoreStorage implements IStorage {
 
       log('Initializing database with sample data...');
 
-      // Add categories for low-level jobs
+      // Add categories for entry-level jobs
       const categoryIcons = ['shopping-cart', 'user', 'shield', 'gas-pump', 'baby', 'broom', 'seedling'];
       const categoryNames = ['Retail', 'General Worker', 'Security', 'Petrol Attendant', 'Childcare', 'Cleaning', 'Landscaping'];
       const categorySlugs = ['retail', 'general-worker', 'security', 'petrol-attendant', 'childcare', 'cleaning', 'landscaping'];
@@ -376,7 +376,7 @@ export class FirestoreStorage implements IStorage {
         createdCategories.push(category);
       }
 
-      // Add companies hiring for low-level jobs
+      // Add companies hiring for entry-level jobs
       const companyNames = ['Shoprite', 'Pick n Pay', 'Securitas', 'Engen', 'Sasol', 'Spar', 'Checkers'];
       const companyLocations = ['Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Soweto', 'Port Elizabeth', 'Bloemfontein'];
       const companySlugs = ['shoprite', 'pick-n-pay', 'securitas', 'engen', 'sasol', 'spar', 'checkers'];
@@ -396,7 +396,7 @@ export class FirestoreStorage implements IStorage {
         createdCompanies.push(company);
       }
 
-      // Add featured jobs focused on low-level positions
+      // Add featured jobs focused on entry-level positions
       const jobTitles = [
         'Cashier',
         'General Worker',

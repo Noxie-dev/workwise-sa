@@ -13,7 +13,7 @@ import{b as n}from"./vendor-react-BLR_YkO_.js";/**
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const u=n.forwardRef(({color:t="currentColor",size:e=24,strokeWidth:c=2,absoluteStrokeWidth:o,className:y="",children:h,iconNode:i,...d},r)=>n.createElement("svg",{ref:r,...x,width:e,height:e,stroke:t,strokeWidth:o?Number(c)*24/Number(e):c,className:k("lucide",y),...!h&&!v(d)&&{"aria-hidden":"true"},...d},[...i.map(([p,l])=>n.createElement(p,l)),...Array.isArray(h)?h:[h]]));/**
+ */const u=n.forwardRef(({color:t="currentColor",size:e=24,strokeWidth:c=2,absoluteStrokeWidth:o,className:y="",children:h,iconNode:i,...d},r)=>n.createElement("svg",{ref:r,...x,width:e,height:e,stroke:t,strokeWidth:o?Number(c)*24/Number(e):c,className:k("lucide",y),...(!h&&!v(d) && {"aria-hidden":"true"}),...d},[...i.map(([p,l])=>n.createElement(p,l)),...(Array.isArray(h) ? h : [h])]));/**
  * @license lucide-react v0.514.0 - ISC
  *
  * This source code is licensed under the ISC license.

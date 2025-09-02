@@ -63,7 +63,7 @@ const SalaryInputCard: React.FC<SalaryInputCardProps> = ({
   const daysId = useId();
   const weeksId = useId();
 
-  // Always use low-level job data for industry dropdown
+  // Always use entry-level job data for industry dropdown
   const industryData = lowLevelJobAverages;
 
   const [inputErrors, setInputErrors] = useState<Record<string, string | null>>({});
@@ -211,7 +211,7 @@ const SalaryInputCard: React.FC<SalaryInputCardProps> = ({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
-                  <p>Professional jobs include corporate and skilled positions. Low-level jobs include entry-level, general worker, and service positions.</p>
+                  <p>Professional jobs include corporate and skilled positions. Entry-level jobs include entry-level, general worker, and service positions.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -220,7 +220,7 @@ const SalaryInputCard: React.FC<SalaryInputCardProps> = ({
             <SelectTrigger id="job-level"><SelectValue placeholder="Select job level" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="professional">Professional Jobs</SelectItem>
-              <SelectItem value="low-level">Low-Level Jobs</SelectItem>
+              <SelectItem value="entry-level">Entry-Level Jobs</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -228,7 +228,7 @@ const SalaryInputCard: React.FC<SalaryInputCardProps> = ({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label>Industry Benchmark</Label>
-            {jobLevel === 'low-level' && (
+            {jobLevel === 'entry-level' && (
               <div className="text-xs text-muted-foreground">
                 Minimum Wage: {formatCurrency(MINIMUM_WAGE.monthly)} monthly
               </div>

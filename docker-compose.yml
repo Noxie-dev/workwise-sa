@@ -1,0 +1,46 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    container_name: workwise-dev
+    volumes:
+      - .:/workspace
+      - /workspace/node_modules
+      - /workspace/client/node_modules
+      - /workspace/server/node_modules
+      - /workspace/functions/node_modules
+    ports:
+      - "3000:3000"
+      - "5173:5173"
+      - "8080:8080"
+      - "5001:5000"
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    working_dir: /workspace
+    command: sleep infinity
+    networks:
+      - workwise-network
+
+  # Optional: Add a database service if needed
+  # db:
+  #   image: postgres:15
+  #   container_name: workwise-db
+  #   environment:
+  #     POSTGRES_DB: workwise
+  #     POSTGRES_USER: workwise
+  #     POSTGRES_PASSWORD: workwise123
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - workwise-network
+
+networks:
+  workwise-network:
+    driver: bridge
+
+# volumes:
+#   postgres_data:

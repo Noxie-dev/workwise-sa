@@ -1,20 +1,22 @@
-import { useEffect, useReducer, useCallback } from 'react';
+import { useEffect, useReducer, useCallback, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Helmet } from 'react-helmet-async';
 import JobSearch from '@/components/JobSearch';
-import JobCard from '@/components/JobCard';
+import JobPreviewCard from '@/components/JobPreviewCard';
+import AuthPromptModal from '@/components/AuthPromptModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { JobWithCompany } from '@shared/schema';
-import { jobsService, JobSearchParams } from '@/services/jobsService';
+import { JobPreview, JobSearchParams } from '../../../shared/job-types';
+import { tieredJobsService } from '@/services/tieredJobsService';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 // Action types for the reducer
 enum JobsActionType {
   SET_SEARCH_PARAMS = 'SET_SEARCH_PARAMS',
   SET_SEARCH_QUERY = 'SET_SEARCH_QUERY',
-  TOGGLE_FAVORITE = 'TOGGLE_FAVORITE',
+  SET_AUTH_MODAL = 'SET_AUTH_MODAL',
 }
 
 // Action interfaces
@@ -28,26 +30,32 @@ interface SetSearchQueryAction {
   payload: string;
 }
 
-interface ToggleFavoriteAction {
-  type: JobsActionType.TOGGLE_FAVORITE;
-  payload: { jobId: number; isFavorite: boolean };
+interface SetAuthModalAction {
+  type: JobsActionType.SET_AUTH_MODAL;
+  payload: { isOpen: boolean; job?: JobPreview };
 }
 
 // Union type for all actions
-type JobsAction = SetSearchParamsAction | SetSearchQueryAction | ToggleFavoriteAction;
+type JobsAction = SetSearchParamsAction | SetSearchQueryAction | SetAuthModalAction;
 
 // State interface
 interface JobsState {
   searchParams: URLSearchParams;
   searchQuery: string;
-  favorites: Set<number>;
+  authModal: {
+    isOpen: boolean;
+    job?: JobPreview;
+  };
 }
 
 // Initial state
 const initialState: JobsState = {
   searchParams: new URLSearchParams(),
   searchQuery: '',
-  favorites: new Set<number>(),
+  authModal: {
+    isOpen: false,
+    job: undefined,
+  },
 };
 
 // Reducer function
@@ -63,33 +71,27 @@ const jobsReducer = (state: JobsState, action: JobsAction): JobsState => {
         ...state,
         searchQuery: action.payload,
       };
-    case JobsActionType.TOGGLE_FAVORITE: {
-      const newFavorites = new Set(state.favorites);
-      if (action.payload.isFavorite) {
-        newFavorites.add(action.payload.jobId);
-      } else {
-        newFavorites.delete(action.payload.jobId);
-      }
+    case JobsActionType.SET_AUTH_MODAL:
       return {
         ...state,
-        favorites: newFavorites,
+        authModal: action.payload,
       };
-    }
     default:
       return state;
   }
 };
 
 /**
- * Jobs page component that displays job listings with search functionality
+ * Jobs page component that displays job listings with tiered access
  */
 const Jobs: React.FC = () => {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [state, dispatch] = useReducer(jobsReducer, initialState);
+  const { user } = useAuth();
   const { toast } = useToast();
 
   // Extract state variables for easier access
-  const { searchParams, searchQuery, favorites } = state;
+  const { searchParams, searchQuery, authModal } = state;
 
   // Update search params and query when location changes
   useEffect(() => {
@@ -98,52 +100,55 @@ const Jobs: React.FC = () => {
     dispatch({ type: JobsActionType.SET_SEARCH_QUERY, payload: params.get('q') || '' });
   }, [location]);
 
-  // Handle favorite toggle
-  const handleFavoriteToggle = useCallback(async (jobId: number, isFavorite: boolean) => {
-    try {
-      // Optimistically update UI
+  // Handle job card click
+  const handleJobClick = useCallback((job: JobPreview) => {
+    if (!user) {
+      // Show authentication modal for anonymous users
       dispatch({
-        type: JobsActionType.TOGGLE_FAVORITE,
-        payload: { jobId, isFavorite },
+        type: JobsActionType.SET_AUTH_MODAL,
+        payload: { isOpen: true, job },
       });
-
-      // Call API to update favorite status
-      await jobsService.toggleFavorite(jobId, isFavorite);
-
-      // Show success message
-      toast({
-        title: isFavorite ? 'Job added to favorites' : 'Job removed from favorites',
-        description: isFavorite
-          ? 'You can view your favorites in your profile'
-          : 'The job has been removed from your favorites',
-      });
-    } catch (error) {
-      // Revert UI change on error
-      dispatch({
-        type: JobsActionType.TOGGLE_FAVORITE,
-        payload: { jobId, isFavorite: !isFavorite },
-      });
-
-      // Show error message
-      toast({
-        variant: 'destructive',
-        title: 'Failed to update favorites',
-        description: 'Please try again later',
-      });
+    } else {
+      // Navigate directly to job details for authenticated users
+      navigate(`/jobs/${job.id}`);
     }
-  }, [toast]);
+  }, [user, navigate]);
+
+  // Handle auth modal close
+  const handleAuthModalClose = useCallback(() => {
+    dispatch({
+      type: JobsActionType.SET_AUTH_MODAL,
+      payload: { isOpen: false, job: undefined },
+    });
+  }, []);
+
+  // Handle sign up from modal
+  const handleSignUp = useCallback(() => {
+    handleAuthModalClose();
+    navigate('/register');
+  }, [navigate, handleAuthModalClose]);
+
+  // Handle sign in from modal
+  const handleSignIn = useCallback(() => {
+    handleAuthModalClose();
+    navigate('/login');
+  }, [navigate, handleAuthModalClose]);
 
   // Prepare search parameters
   const searchParamsObj: JobSearchParams = {
     query: searchQuery,
-    page: 1,
+    page: parseInt(searchParams.get('page') || '1'),
     limit: 20,
+    categoryId: searchParams.get('categoryId') ? parseInt(searchParams.get('categoryId')!) : undefined,
+    location: searchParams.get('location') || undefined,
+    jobType: searchParams.get('jobType') || undefined,
+    workMode: searchParams.get('workMode') || undefined,
   };
 
-  // Fetch jobs with search query if provided
+  // Fetch job previews (public access)
   const { data, isLoading, error } = useQuery({
-    queryKey: ['jobs', 'search', searchParamsObj],
-    queryFn: () => jobsService.searchJobs(searchParamsObj),
+    queryKey: ['job-previews', searchParamsObj],
+    queryFn: () => tieredJobsService.getJobPreviews(searchParamsObj),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -197,7 +202,7 @@ const Jobs: React.FC = () => {
           {searchQuery && (
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-2">
-                Search Results {jobs && `(${jobs.length})`}
+                Search Results {data?.jobs && `(${data.jobs.length})`}
               </h2>
               {searchQuery && (
                 <p className="text-muted">
@@ -217,10 +222,11 @@ const Jobs: React.FC = () => {
               {isLoading ? renderJobSkeleton() : (
                 data?.jobs?.length ? (
                   data.jobs.map((job) => (
-                    <JobCard
+                    <JobPreviewCard
                       key={job.id}
                       job={job}
-                      onFavoriteToggle={handleFavoriteToggle}
+                      onClick={() => handleJobClick(job)}
+                      showAuthPrompt={!user}
                     />
                   ))
                 ) : (
@@ -243,6 +249,15 @@ const Jobs: React.FC = () => {
               )}
             </div>
           )}
+
+          {/* Authentication Modal */}
+          <AuthPromptModal
+            isOpen={authModal.isOpen}
+            onClose={handleAuthModalClose}
+            job={authModal.job}
+            onSignUp={handleSignUp}
+            onSignIn={handleSignIn}
+          />
 
           {/* Pagination */}
           {data && data.totalPages > 1 && (
