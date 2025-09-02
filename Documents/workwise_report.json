@@ -1,0 +1,109 @@
+{
+  "comprehensive_report": {
+    "title": "WorkWise SA Application Report",
+    "overview": "WorkWise SA is a comprehensive job search platform designed specifically for the South African market. The platform connects job seekers with employers, focusing on entry-level positions such as cashier, general worker, security, petrol attendant, domestic worker, cleaner, and landscaping jobs.",
+    "technical_architecture": {
+      "tech_stack": {
+        "frontend": "React with Vite, TailwindCSS, shadcn/ui components, React Query",
+        "backend": "Node.js, Express",
+        "authentication": "Firebase Authentication",
+        "database": "PostgreSQL (production), SQLite (development)",
+        "orm": "Drizzle ORM",
+        "ai_integration": "Google Gemini Pro, Anthropic Claude"
+      },
+      "project_structure": "The application follows a client-server architecture with client/, server/, and public/ directories"
+    },
+    "key_features": {
+      "user_authentication": [
+        "Email/Password",
+        "Email Link (passwordless)",
+        "Google Sign-In"
+      ],
+      "job_search_platform": [
+        "Job listings with filtering capabilities",
+        "Company profiles",
+        "Featured job listings",
+        "Job categories"
+      ],
+      "cv_tools": [
+        "CV builder",
+        "AI-powered CV enhancement",
+        "Professional summary generation",
+        "Job description generation",
+        "Text translation",
+        "Document scanning and analysis"
+      ],
+      "wiseup_learning_platform": [
+        "Video-based learning content",
+        "Downloadable resources",
+        "Social features (likes, comments)",
+        "Bookmarking functionality",
+        "Targeted advertisements"
+      ],
+      "marketing_rules_system": [
+        "Rule creation and management",
+        "Performance analytics",
+        "Job distribution workflow"
+      ]
+    },
+    "api_endpoints": [
+      "/api/enhance-image",
+      "/api/scan-cv",
+      "/api/cv/generate-summary",
+      "/api/cv/generate-job-description",
+      "/api/cv/translate",
+      "/api/cv/claude/analyze-image",
+      "/api/recommendations",
+      "/api/categories",
+      "/api/jobs/featured",
+      "/api/companies",
+      "/api/users"
+    ],
+    "development_environment": {
+      "tools": [
+        "Docker",
+        "Firebase CLI",
+        "Git",
+        "VS Code with extensions"
+      ]
+    },
+    "current_status": "Active development with core functionality implemented",
+    "recommendations": [
+      "Complete placeholder pages",
+      "Finalize refactoring",
+      "Enhance testing",
+      "Optimize performance",
+      "Expand AI integration",
+      "Mobile optimization",
+      "Documentation"
+    ]
+  },
+  "job_categories": {
+    "entry_level": [
+      "General Worker",
+      "Construction Worker",
+      "Picker/Packer",
+      "Warehouse Assistant",
+      "Cashier",
+      "Cleaner",
+      "Security Guard",
+      "Retail Assistant",
+      "Call Center Agent",
+      "Domestic Worker",
+      "Petrol Attendant",
+      "Childcare Worker",
+      "Landscaping/Gardener",
+      "Driver",
+      "Admin Clerk",
+      "Hospitality Staff"
+    ],
+    "professional": [
+      "IT/Technology",
+      "Healthcare",
+      "Education",
+      "Finance",
+      "Manufacturing",
+      "Transport/Logistics"
+    ]
+  }
+}

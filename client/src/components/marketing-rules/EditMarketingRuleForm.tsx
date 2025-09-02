@@ -40,15 +40,25 @@ const MOCK_DEMOGRAPHICS = [
 
 // Define Zod Schema for validation
 const ruleSchema = z.object({
-  ruleName: z.string().min(3, { message: "Rule name must be at least 3 characters." }),
+  ruleName: z.string().min(3, {
+      error: "Rule name must be at least 3 characters."
+}),
   status: z.enum(['Active', 'Inactive']),
-  targetLocation: z.string().min(1, { message: "Target location is required." }),
-  targetJobType: z.string().min(1, { message: "Target job type is required." }),
+  targetLocation: z.string().min(1, {
+      error: "Target location is required."
+}),
+  targetJobType: z.string().min(1, {
+      error: "Target job type is required."
+}),
   // Make demographics optional in schema, handle array logic separately if needed
   targetDemographics: z.string().optional(),
   demographicTags: z.array(z.string()).optional(), // For multi-select/tag input simulation
-  messageTemplate: z.string().min(10, { message: "Message template must be at least 10 characters." }),
-  ctaLink: z.string().url({ message: "Please enter a valid URL." }),
+  messageTemplate: z.string().min(10, {
+      error: "Message template must be at least 10 characters."
+}),
+  ctaLink: z.url({
+        error: "Please enter a valid URL."
+  }),
 });
 
 type RuleFormData = z.infer<typeof ruleSchema>;

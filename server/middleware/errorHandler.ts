@@ -111,8 +111,7 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   if (err instanceof ZodError) {
     const apiError = Errors.validation('Validation error', err.errors);
     
-    logger.warn({
-      message: 'Validation error',
+    logger.warn('Validation error', {
       requestId,
       path: req.path,
       method: req.method,
@@ -124,19 +123,28 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   
   // Handle API errors
   if (err instanceof ApiError) {
-    // Log based on severity
-    const logMethod = err.statusCode >= 500 ? logger.error : logger.warn;
-    
-    logMethod({
-      message: err.message,
-      requestId,
-      path: req.path,
-      method: req.method,
-      type: err.type,
-      statusCode: err.statusCode,
-      ...(err.details ? { details: err.details } : {}),
-      ...(err.stack ? { stack: err.stack } : {}),
-    });
+    // Log based on severity - use bound methods to preserve context
+    if (err.statusCode >= 500) {
+      logger.error(err.message, {
+        requestId,
+        path: req.path,
+        method: req.method,
+        type: err.type,
+        statusCode: err.statusCode,
+        ...(err.details ? { details: err.details } : {}),
+        ...(err.stack ? { stack: err.stack } : {}),
+      });
+    } else {
+      logger.warn(err.message, {
+        requestId,
+        path: req.path,
+        method: req.method,
+        type: err.type,
+        statusCode: err.statusCode,
+        ...(err.details ? { details: err.details } : {}),
+        ...(err.stack ? { stack: err.stack } : {}),
+      });
+    }
     
     return res.status(err.statusCode).json(err.toResponse());
   }
@@ -178,8 +186,7 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
     inferredDetails || (process.env.NODE_ENV !== 'production' ? { originalError: err.message, stack: err.stack } : undefined)
   );
 
-  logger.error({
-    message: 'Unhandled error caught by generic handler',
+  logger.error('Unhandled error caught by generic handler', {
     requestId,
     path: req.path,
     method: req.method,

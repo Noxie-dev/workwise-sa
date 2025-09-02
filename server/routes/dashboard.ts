@@ -3,20 +3,20 @@ import { z } from 'zod';
 
 // Pagination schema for validation
 const paginationSchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(100).default(10)
+  page: z.coerce.number().int().positive().prefault(1),
+  limit: z.coerce.number().int().positive().max(100).prefault(10)
 });
 
 // Query parameters schema for job distribution
 const jobDistributionQuerySchema = z.object({
-  categoryFilter: z.string().optional().default('all'),
-  dateRange: z.string().optional().default('30d'),
+  categoryFilter: z.string().optional().prefault('all'),
+  dateRange: z.string().optional().prefault('30d'),
   ...paginationSchema.shape
 });
 
 // Query parameters schema for job recommendations
 const jobRecommendationsQuerySchema = z.object({
-  limit: z.coerce.number().int().positive().max(20).default(3),
+  limit: z.coerce.number().int().positive().max(20).prefault(3),
   userId: z.string().optional(),
   ...paginationSchema.shape
 });

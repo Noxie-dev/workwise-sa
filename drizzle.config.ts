@@ -1,14 +1,21 @@
-import { defineConfig } from "drizzle-kit";
+// drizzle.config.ts
+import type { Config } from 'drizzle-kit';
+import * as dotenv from 'dotenv';
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL, ensure the database is provisioned");
-}
+// Load environment variables
+dotenv.config();
 
-export default defineConfig({
-  out: "./migrations",
-  schema: "./shared/schema.ts",
-  dialect: "sqlite",
+// Default to SQLite for development if no DATABASE_URL is provided
+const connectionString = process.env.DATABASE_URL || 'sqlite:./test.db';
+
+export default {
+  schema: './shared/schema.ts',
+  out: './migrations',
+  driver: connectionString.startsWith('sqlite') ? 'better-sqlite' : 'pg',
   dbCredentials: {
-    url: "test.db",
+    connectionString,
   },
-});
+  // Customize naming of migration files
+  verbose: true,
+  strict: true,
+} satisfies Config;

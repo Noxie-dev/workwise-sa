@@ -3,7 +3,7 @@
  */
 
 // API URL - defaults to localhost in development
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+export const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000' : '');
 
 // Firebase config
 export const FIREBASE_CONFIG = {

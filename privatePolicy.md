@@ -1,6 +1,6 @@
 <img src="https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png" class="logo" width="120"/>
 
-# improve my privacy policy for my South African low level and entry level job posting platform, tailor it for the South African market and please make sure the privacy policy does not  open up for valnerability. Privacy Policy
+# improve my privacy policy for my South African entry level job posting platform, tailor it for the South African market and please make sure the privacy policy does not  open up for valnerability. Privacy Policy
 
 Effective Date: [Insert Date]
 
@@ -53,7 +53,7 @@ Withdraw consent where applicable
 7. Contact Information
 For privacy concerns, contact us at: privacy@workwisesa.co.za
 
-Certainly! Here’s an improved, robust, and South Africa-tailored privacy policy for your low-level and entry-level job posting platform. This version is compliant with the Protection of Personal Information Act (POPIA) and addresses local market expectations, while minimising legal vulnerabilities.
+Certainly! Here’s an improved, robust, and South Africa-tailored privacy policy for your entry-level job posting platform. This version is compliant with the Protection of Personal Information Act (POPIA) and addresses local market expectations, while minimising legal vulnerabilities.
 
 ---
 

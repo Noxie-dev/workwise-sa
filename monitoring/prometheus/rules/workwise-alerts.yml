@@ -1,0 +1,225 @@
+# WorkWise SA Alerting Rules
+groups:
+  - name: workwise-performance
+    rules:
+      # High response time alert
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s for the last 5 minutes"
+
+      # Critical response time alert
+      - alert: CriticalResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 5
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical response time detected"
+          description: "95th percentile response time is {{ $value }}s for the last 5 minutes"
+
+      # High error rate alert
+      - alert: HighErrorRate
+        expr: rate(http_requests_failed_total[5m]) / rate(http_requests_total[5m]) * 100 > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }}% for the last 5 minutes"
+
+      # Critical error rate alert
+      - alert: CriticalErrorRate
+        expr: rate(http_requests_failed_total[5m]) / rate(http_requests_total[5m]) * 100 > 20
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical error rate detected"
+          description: "Error rate is {{ $value }}% for the last 5 minutes"
+
+  - name: workwise-database
+    rules:
+      # Database connection issues
+      - alert: DatabaseConnectionIssues
+        expr: rate(database_operations_failed_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database connection issues detected"
+          description: "Database operation failure rate is {{ $value }} failures/sec"
+
+      # Slow database operations
+      - alert: SlowDatabaseOperations
+        expr: histogram_quantile(0.95, rate(database_operation_duration_seconds_bucket[5m])) > 1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow database operations detected"
+          description: "95th percentile database operation time is {{ $value }}s"
+
+  - name: workwise-cache
+    rules:
+      # Low cache hit rate
+      - alert: LowCacheHitRate
+        expr: rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m])) * 100 < 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low cache hit rate detected"
+          description: "Cache hit rate is {{ $value }}% for the last 5 minutes"
+
+      # Critical cache hit rate
+      - alert: CriticalCacheHitRate
+        expr: rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m])) * 100 < 50
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical cache hit rate detected"
+          description: "Cache hit rate is {{ $value }}% for the last 5 minutes"
+
+  - name: workwise-authentication
+    rules:
+      # High authentication failure rate
+      - alert: HighAuthFailureRate
+        expr: rate(auth_logins_failed_total[5m]) / rate(auth_logins_total[5m]) * 100 > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High authentication failure rate detected"
+          description: "Authentication failure rate is {{ $value }}% for the last 5 minutes"
+
+      # Suspicious authentication activity
+      - alert: SuspiciousAuthActivity
+        expr: rate(auth_logins_failed_total[5m]) > 10
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Suspicious authentication activity detected"
+          description: "{{ $value }} failed login attempts per second"
+
+      # Token refresh issues
+      - alert: TokenRefreshIssues
+        expr: rate(auth_token_refreshes_failed_total[5m]) / rate(auth_token_refreshes_total[5m]) * 100 > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Token refresh issues detected"
+          description: "Token refresh failure rate is {{ $value }}% for the last 5 minutes"
+
+  - name: workwise-batch-processing
+    rules:
+      # Batch processing failures
+      - alert: BatchProcessingFailures
+        expr: rate(batch_operations_failed_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Batch processing failures detected"
+          description: "Batch operation failure rate is {{ $value }} failures/sec"
+
+      # Large batch queue
+      - alert: LargeBatchQueue
+        expr: batch_queue_size > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Large batch queue detected"
+          description: "Batch queue size is {{ $value }} operations"
+
+      # Critical batch queue
+      - alert: CriticalBatchQueue
+        expr: batch_queue_size > 5000
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical batch queue size detected"
+          description: "Batch queue size is {{ $value }} operations"
+
+  - name: workwise-system
+    rules:
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: system_memory_usage_bytes > 1073741824  # 1GB
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value | humanize1024 }}B"
+
+      # Critical memory usage
+      - alert: CriticalMemoryUsage
+        expr: system_memory_usage_bytes > 2147483648  # 2GB
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical memory usage detected"
+          description: "Memory usage is {{ $value | humanize1024 }}B"
+
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: system_cpu_usage_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}%"
+
+      # Critical CPU usage
+      - alert: CriticalCPUUsage
+        expr: system_cpu_usage_percent > 95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical CPU usage detected"
+          description: "CPU usage is {{ $value }}%"
+
+      # Application down
+      - alert: ApplicationDown
+        expr: up{job="workwise-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "WorkWise SA application is down"
+          description: "The WorkWise SA application has been down for more than 1 minute"
+
+  - name: workwise-business
+    rules:
+      # Low user activity
+      - alert: LowUserActivity
+        expr: auth_active_sessions < 10
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low user activity detected"
+          description: "Only {{ $value }} active user sessions"
+
+      # High user activity (potential load issue)
+      - alert: HighUserActivity
+        expr: auth_active_sessions > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High user activity detected"
+          description: "{{ $value }} active user sessions - monitor for performance issues"

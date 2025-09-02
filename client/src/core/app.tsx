@@ -25,6 +25,8 @@ const EmailLinkLogin = lazy(() => import("@/pages/EmailLinkLogin"));
 const EmailSignInComplete = lazy(() => import("@/pages/EmailSignInComplete"));
 const MarketingRulesPage = lazy(() => import("@/pages/MarketingRulesPage"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
+const AdminAnalytics = lazy(() => import("@/pages/admin/Analytics"));
+const AdminSettings = lazy(() => import("@/pages/admin/SettingsPage"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const UITest = lazy(() => import("@/components/ui-test"));
 const TestPage = lazy(() => import("@/pages/TestPage"));
@@ -121,6 +123,8 @@ function Router() {
             <Route path="/color-test" component={ColorTest} />
             <Route path="/simple-test" component={SimpleTest} />
             <Route path="/admin" component={AdminDashboard} />
+            <Route path="/admin/analytics" component={AdminAnalytics} />
+            <Route path="/admin/settings" component={AdminSettings} />
             <Route path="/marketing-rules" component={MarketingRulesPage} />
             <Route path="/dashboard" component={Dashboard} />
             <Route component={NotFound} />

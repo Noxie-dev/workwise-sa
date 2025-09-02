@@ -46,8 +46,7 @@ export class WebSocketServer {
       };
 
       this.clients.set(clientId, client);
-      logger.info({
-        message: `WebSocket client connected`,
+      logger.info(`WebSocket client connected`, {
         clientId,
         totalClients: this.clients.size
       });

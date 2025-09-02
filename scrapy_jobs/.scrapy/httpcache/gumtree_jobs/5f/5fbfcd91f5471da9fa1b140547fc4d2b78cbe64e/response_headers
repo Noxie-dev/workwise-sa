@@ -1,0 +1,23 @@
+Content-Length: 98
+Date: Mon, 11 Aug 2025 00:23:29 GMT
+Content-Type: text/html; charset=utf-8
+X-Dns-Prefetch-Control: off
+X-Frame-Options: SAMEORIGIN
+Strict-Transport-Security: max-age=31536000000; includeSubDomains; preload
+X-Download-Options: noopen
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Content-Security-Policy: connect-src * 'self'
+X-Content-Security-Policy: connect-src * 'self'
+X-Webkit-Csp: connect-src * 'self'
+X-Powered-By: Bolt 2.0
+Vary: User-Agent, Accept, Accept-Encoding
+Cache-Control: no-cache
+Set-Cookie: _csrf=yWf3oLch_y02xWaumOBfcQOc; Path=/; HttpOnly; Secure
+Set-Cookie: galleryView=false; Max-Age=31536000; Path=/; Expires=Tue, 11 Aug 2026 00:23:29 GMT
+Set-Cookie: dc=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT
+Location: /s-all-the-ads/v1b0p1
+X-Request-Id: aae48bc78bc2bfb25103a620428dbc28
+X-Cluster: fe
+X-Azure-Ref: 20250811T002329Z-r1c4f86c4f5zhm9whC1CPTesw00000000ak0000000001q5p
+X-Cache: CONFIG_NOCACHE

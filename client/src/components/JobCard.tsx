@@ -81,7 +81,9 @@ const JobCard: React.FC<JobCardProps> = ({
               </span>
             </div>
             <div>
-              <h3 className="font-semibold text-lg">{job.title}</h3>
+              <Link href={`/jobs/${job.id}`}>
+                <h3 className="font-semibold text-lg hover:text-primary cursor-pointer transition-colors">{job.title}</h3>
+              </Link>
               <p className="text-sm text-muted">
                 {job.company?.name ? `${job.company.name} - ` : ''}{job.location}
               </p>

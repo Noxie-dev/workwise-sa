@@ -1,8 +1,18 @@
 import React, { useRef, useEffect, useState, MouseEvent, FormEvent } from 'react';
+import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 import CustomHelmet from '@/components/CustomHelmet';
 import CategoriesSection from '@/components/CategoriesSection';
 import CompaniesSection from '@/components/CompaniesSection';
 import CtaSection from '@/components/CtaSection';
+import JobPreviewCard from '@/components/JobPreviewCard';
+import AuthPromptModal from '@/components/AuthPromptModal';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ArrowRight, Briefcase } from 'lucide-react';
+import { JobPreview } from '../../../shared/job-types';
+import { tieredJobsService } from '@/services/tieredJobsService';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Particle {
   x: number;
@@ -46,10 +56,28 @@ const SearchIcon: React.FC<SearchIconProps> = props => (
 
 const HomeSimple: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [, navigate] = useLocation();
+  const { user } = useAuth();
   const mousePositionRef = useRef<Mouse>({ x: null, y: null });
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationFrameId = useRef<number | null>(null);
   const particlesRef = useRef<Particle[]>([]);
+  
+  // Auth modal state
+  const [authModal, setAuthModal] = useState<{
+    isOpen: boolean;
+    job?: JobPreview;
+  }>({
+    isOpen: false,
+    job: undefined,
+  });
+
+  // Fetch featured jobs
+  const { data: featuredJobs, isLoading: jobsLoading } = useQuery({
+    queryKey: ['featured-jobs'],
+    queryFn: () => tieredJobsService.getJobPreviews({ featured: true, limit: 6 }),
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -222,8 +250,34 @@ const HomeSimple: React.FC = () => {
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      console.log('Searching for:', searchTerm);
+      navigate(`/jobs?q=${encodeURIComponent(searchTerm.trim())}`);
+    } else {
+      navigate('/jobs');
     }
+  };
+
+  // Handle job card click
+  const handleJobClick = (job: JobPreview) => {
+    if (!user) {
+      setAuthModal({ isOpen: true, job });
+    } else {
+      navigate(`/jobs/${job.id}`);
+    }
+  };
+
+  // Handle auth modal actions
+  const handleAuthModalClose = () => {
+    setAuthModal({ isOpen: false, job: undefined });
+  };
+
+  const handleSignUp = () => {
+    handleAuthModalClose();
+    navigate('/register');
+  };
+
+  const handleSignIn = () => {
+    handleAuthModalClose();
+    navigate('/login');
   };
 
   return (
@@ -323,9 +377,105 @@ const HomeSimple: React.FC = () => {
             </div>
           </div>
         </section>
+
+        {/* Featured Jobs Section */}
+        <section className="py-16 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center mb-4">
+                <Briefcase className="w-8 h-8 text-primary mr-3" />
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+                  Featured Opportunities
+                </h2>
+              </div>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Discover hand-picked job opportunities from top employers across South Africa
+              </p>
+            </div>
+
+            {jobsLoading ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {Array(6).fill(0).map((_, i) => (
+                  <div key={i} className="bg-white rounded-lg shadow-card overflow-hidden">
+                    <div className="p-4 border-b border-border">
+                      <div className="flex items-center">
+                        <Skeleton className="w-12 h-12 rounded-md mr-3" />
+                        <div className="flex-1">
+                          <Skeleton className="h-5 w-3/4 mb-2" />
+                          <Skeleton className="h-4 w-1/2" />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <Skeleton className="h-4 w-full mb-2" />
+                      <Skeleton className="h-4 w-2/3 mb-3" />
+                      <div className="flex gap-2 mb-3">
+                        <Skeleton className="h-5 w-16 rounded-full" />
+                        <Skeleton className="h-5 w-16 rounded-full" />
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : featuredJobs?.jobs?.length ? (
+              <>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                  {featuredJobs.jobs.map((job) => (
+                    <JobPreviewCard
+                      key={job.id}
+                      job={job}
+                      onClick={() => handleJobClick(job)}
+                      showAuthPrompt={!user}
+                    />
+                  ))}
+                </div>
+                <div className="text-center">
+                  <Button 
+                    size="lg" 
+                    onClick={() => navigate('/jobs')}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    View All Jobs
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <Briefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                  No Featured Jobs Available
+                </h3>
+                <p className="text-gray-500 mb-6">
+                  Check back soon for new opportunities
+                </p>
+                <Button 
+                  onClick={() => navigate('/jobs')}
+                  variant="outline"
+                >
+                  Browse All Jobs
+                </Button>
+              </div>
+            )}
+          </div>
+        </section>
+
         <CategoriesSection />
         <CompaniesSection />
         <CtaSection />
+
+        {/* Authentication Modal */}
+        <AuthPromptModal
+          isOpen={authModal.isOpen}
+          onClose={handleAuthModalClose}
+          job={authModal.job}
+          onSignUp={handleSignUp}
+          onSignIn={handleSignIn}
+        />
       </main>
     </>
   );
