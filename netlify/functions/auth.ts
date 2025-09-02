@@ -1,18 +1,62 @@
 import express from 'express';
 import serverless from 'serverless-http';
 import cors from 'cors';
-import helmet from 'helmet';
 import firebaseApp, { db } from './utils/firebase-admin.js';
 import * as admin from 'firebase-admin';
-import { verifyFirebaseToken, isAdmin } from '../../server/middleware/auth';
 
 // Create Express app
 const app = express();
 
 // Middleware
-app.use(helmet());
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://beamish-sawine-64ddd4.netlify.app', 'https://workwise-sa.netlify.app']
+    : ['http://localhost:5174', 'http://localhost:3000'],
+  credentials: true
+}));
+app.use(express.json({ limit: '10mb' }));
+
+// Simple auth middleware for Netlify functions
+const verifyFirebaseToken = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No valid authorization header' });
+    }
+
+    const token = authHeader.split('Bearer ')[1];
+    
+    if (!firebaseApp) {
+      // Mock authentication for development
+      req.user = { uid: 'mock-user', email: 'mock@example.com' };
+      return next();
+    }
+
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    req.user = decodedToken;
+    
+    // Get user data from Firestore
+    const userDoc = await db.collection('users').doc(decodedToken.uid).get();
+    req.userData = userDoc.exists ? userDoc.data() : null;
+    
+    next();
+  } catch (error) {
+    console.error('Token verification error:', error);
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
+const isAdmin = async (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  if (req.userData?.role === 'admin' || req.user.email === 'admin@workwise-sa.com') {
+    return next();
+  }
+  
+  res.status(403).json({ error: 'Admin access required' });
+};
 
 // Create a new user
 app.post('/create', isAdmin, async (req, res) => {

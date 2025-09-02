@@ -10,7 +10,11 @@ import {
   translateTextWithClaude,
   analyzeImage
 } from "./anthropic";
+import { aiServiceManager } from "./services/aiServiceManager";
+import { mlJobMatchingService } from "./services/mlJobMatching";
 import recommendationRoutes from "./recommendationRoutes";
+import fileRoutes from "./routes/files";
+import profileRoutes from "./routes/profile";
 import { ApiError, Errors } from './middleware/errorHandler';
 import { secretManager } from './services/secretManager';
 
@@ -145,6 +149,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.json({ ...job, company });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Job Application endpoints
+  
+  // Apply for a job
+  app.post("/api/jobs/:id/apply", validate(z.object({ 
+    params: z.object({ id: z.string().regex(/^\d+$/) }),
+    body: z.object({
+      coverLetter: z.string().optional(),
+      resumeUrl: z.url().optional(),
+      notes: z.string().optional(),
+    })
+  })), async (req, res, next) => {
+    try {
+      // This would need authentication middleware to get userId
+      // For now, we'll assume user authentication is handled elsewhere
+      const jobId = parseInt(req.params.id);
+      const { coverLetter, resumeUrl, notes } = req.body;
+      
+      if (isNaN(jobId)) {
+        throw Errors.validation("Invalid job ID");
+      }
+      
+      // Check if job exists
+      const job = await storage.getJob(jobId);
+      if (!job) {
+        throw Errors.notFound("Job not found");
+      }
+      
+      // TODO: Get userId from authentication
+      // const userId = req.user.id;
+      const userId = 1; // Placeholder for testing
+      
+      // Check if user has already applied
+      const existingApplication = await storage.getJobApplicationByUserAndJob(userId, jobId);
+      if (existingApplication) {
+        throw Errors.conflict("You have already applied for this job");
+      }
+      
+      // Create job application
+      const application = await storage.createJobApplication({
+        userId,
+        jobId,
+        coverLetter,
+        resumeUrl,
+        notes,
+        status: 'applied',
+      });
+      
+      // Log user interaction
+      await storage.createUserInteraction({
+        userId,
+        interactionType: 'apply',
+        jobId,
+        interactionTime: new Date(),
+        metadata: { applicationId: application.id },
+      });
+      
+      res.status(201).json({
+        success: true,
+        message: 'Job application submitted successfully',
+        application,
+      });
     } catch (error) {
       next(error);
     }
@@ -320,6 +390,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register job recommendation routes
   app.use('/api/recommendations', recommendationRoutes);
+  
+  // Register file upload routes
+  app.use('/api/files', fileRoutes);
+  
+  // Register profile routes
+  app.use('/api/profile', profileRoutes);
   
   const httpServer = createServer(app);
   return httpServer;

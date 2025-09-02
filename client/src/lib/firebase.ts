@@ -31,6 +31,16 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+// Check for missing configuration
+const missingConfig = Object.entries(firebaseConfig)
+  .filter(([key, value]) => !value && key !== 'messagingSenderId') // messagingSenderId is optional
+  .map(([key]) => key);
+
+if (missingConfig.length > 0) {
+  console.error('⚠️ Missing Firebase configuration:', missingConfig.join(', '));
+  console.error('Please check your .env file and ensure all Firebase variables are set correctly.');
+}
+
 console.log('Firebase config:', { ...firebaseConfig, apiKey: '[REDACTED]' });
 
 // Initialize Firebase
@@ -42,7 +52,7 @@ console.log('Firebase initialized successfully');
 
 // Connect to emulators in development mode
 if (import.meta.env.DEV) {
-  const useEmulators = import.meta.env.VITE_USE_FIREBASE_EMULATORS !== 'false';
+  const useEmulators = import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true';
   console.log('Development mode detected, useEmulators:', useEmulators);
 
   if (useEmulators) {
@@ -63,13 +73,15 @@ if (import.meta.env.DEV) {
       console.log('Connecting to Storage emulator on 127.0.0.1:9199');
       connectStorageEmulator(getStorage(app), '127.0.0.1', 9199);
     });
+  } else {
+    console.log('Using production Firebase services (emulators disabled)');
   }
 }
 
 // Email link authentication settings
 const actionCodeSettings: ActionCodeSettings = {
   // URL to redirect to after email link is clicked
-  url: `${window.location.origin}/auth/email-signin-complete`,
+  url: import.meta.env.VITE_AUTH_EMAIL_LINK_SIGN_IN_URL || `${window.location.origin}/auth/email-signin-complete`,
   // Handle the link in the app instead of browser
   handleCodeInApp: true,
   // Only include iOS and Android settings if they are defined
@@ -91,13 +103,38 @@ const actionCodeSettings: ActionCodeSettings = {
 };
 
 // Log the current configuration for debugging
-console.log('Email link authentication URL:', `${window.location.origin}/auth/email-signin-complete`);
+console.log('Email link authentication URL:', import.meta.env.VITE_AUTH_EMAIL_LINK_SIGN_IN_URL || `${window.location.origin}/auth/email-signin-complete`);
 console.log('Current origin:', window.location.origin);
 
 // Sign up with email and password
 export const signUpWithEmail = async (email: string, password: string, displayName: string) => {
   try {
     console.log(`Attempting to sign up user with email: ${email}`);
+    console.log('Firebase auth initialized:', !!auth);
+    console.log('Using Firebase emulators:', import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true' ? 'Yes' : 'No');
+    
+    // Check Firebase configuration
+    if (!firebaseConfig.apiKey) {
+      throw new Error('Firebase API key is missing. Check your environment variables.');
+    }
+    
+    // Check if we're connected to emulators in development
+    if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true') {
+      console.log('Using Firebase Auth emulator at http://127.0.0.1:9099');
+      
+      // Try to check if emulator is actually running
+      try {
+        const response = await fetch('http://127.0.0.1:9099', { method: 'GET' });
+        if (!response.ok) {
+          console.warn('⚠️ Firebase Auth emulator might not be running. Registration might fail.');
+        }
+      } catch (e) {
+        console.error('❌ Cannot connect to Firebase Auth emulator. Registration will likely fail.');
+        console.error('Please start Firebase emulators or set VITE_USE_FIREBASE_EMULATORS=false');
+      }
+    }
+    
+    console.log('Creating user with Firebase Authentication...');
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     console.log('User created successfully:', userCredential.user.uid);
     
@@ -112,6 +149,22 @@ export const signUpWithEmail = async (email: string, password: string, displayNa
     return userCredential.user;
   } catch (error: any) {
     console.error("Error signing up:", error.code, error.message);
+    console.error("Full error details:", error);
+    
+    // Additional debugging for specific error cases
+    if (error.code === 'auth/network-request-failed') {
+      console.error("Network request failed. This could indicate that:");
+      console.error("1. You're not connected to the internet");
+      console.error("2. Firebase emulators are not running (if using emulators)");
+      console.error("3. Firebase project is not properly configured");
+      
+      // Check if we're trying to use emulators
+      if (import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true') {
+        console.error("IMPORTANT: You're configured to use Firebase emulators, but they might not be running.");
+        console.error("Either start the emulators with 'firebase emulators:start' or set VITE_USE_FIREBASE_EMULATORS=false");
+      }
+    }
+    
     throw error;
   }
 };

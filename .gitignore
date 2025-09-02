@@ -55,17 +55,3 @@ lerna-debug.log*
 
 # Local Netlify folder
 .netlify
-
-# Build output
-dist
-client/dist
-
-# Service Account Keys & sensitive config
-# NOTE: Ignores all .json files but re-includes specific safe ones.
-*.json
-!firebase.json
-!firestore.indexes.json
-!package.json
-!package-lock.json
-!tsconfig.json
-!service-account.json

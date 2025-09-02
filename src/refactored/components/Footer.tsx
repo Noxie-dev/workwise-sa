@@ -76,7 +76,7 @@ const Footer: React.FC<FooterProps> = ({ className = '' }) => {
               <span className="text-xl font-bold text-primary">WorkWise<span className="text-accent">.SA</span></span>
             </div>
             <p className="text-primary mb-4">
-              The Low Level Jobs Directory is an online platform specifically designed to connect young South Africans 
+              The Entry Level Jobs Directory is an online platform specifically designed to connect young South Africans 
               with entry-level employment opportunities that require minimal experience or qualifications.
             </p>
             

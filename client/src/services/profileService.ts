@@ -14,6 +14,7 @@ export interface ProfileData {
     gender?: string;
     bio?: string;
     profilePicture?: string;
+    professionalImage?: string;
   };
   education: {
     highestEducation: string;
@@ -120,8 +121,8 @@ export const profileService = {
    * Get user profile data
    */
   async getProfile(userId: string): Promise<ProfileData> {
-    const response = await apiClient.get<ProfileData>(`/profile/${userId}`);
-    return response.data;
+    const response = await apiClient.get<{success: boolean; data: ProfileData}>(`/profile/${userId}`);
+    return response.data.data;
   },
 
   /**

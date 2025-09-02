@@ -17,7 +17,7 @@ const Footer = () => {
                 <span className="text-xl font-bold text-primary">WORK<span className="text-accent">WISE.SA</span></span>
               </div>
             </div>
-            <p className="text-primary mb-4">The Low Level Jobs Directory is an online platform specifically designed to connect young South Africans with entry-level employment opportunities that require minimal experience or qualifications.</p>
+            <p className="text-primary mb-4">The Entry Level Jobs Directory is an online platform specifically designed to connect young South Africans with entry-level employment opportunities that require minimal experience or qualifications.</p>
             <div className="flex space-x-4">              <a href="https://www.facebook.com/profile.php?id=61575790149796" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-accent" aria-label="Facebook">
                 <i className="fab fa-facebook-f"></i>
               </a>              <a href="https://x.com/WorkWise_SA" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-accent" aria-label="X (formerly Twitter)">

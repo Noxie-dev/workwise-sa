@@ -1,12 +1,14 @@
 /**
- * Authentication Service
- * Handles all API calls related to authentication
+ * Legacy Authentication Service
+ * @deprecated This service is being replaced by the enhanced auth system
+ * Use the new auth context and hooks instead
  */
 
 import { API_URL } from '@/lib/env';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile } from 'firebase/auth';
+import { AuthResult } from '@shared/auth-types';
 
-// Type for login response
+// Legacy type for backward compatibility
 interface AuthResponse {
   success: boolean;
   message?: string;
@@ -14,10 +16,8 @@ interface AuthResponse {
 }
 
 /**
+ * @deprecated Use the enhanced auth context instead
  * Logs in a user with email and password
- * @param email User's email
- * @param password User's password
- * @returns Promise with the login response
  */
 export async function loginWithEmailPassword(email: string, password: string): Promise<AuthResponse> {
   try {
@@ -38,11 +38,8 @@ export async function loginWithEmailPassword(email: string, password: string): P
 }
 
 /**
+ * @deprecated Use the enhanced auth context instead
  * Registers a new user with email and password
- * @param email User's email
- * @param password User's password
- * @param displayName User's display name
- * @returns Promise with the registration response
  */
 export async function registerWithEmailPassword(email: string, password: string, displayName: string): Promise<AuthResponse> {
   try {
@@ -68,8 +65,8 @@ export async function registerWithEmailPassword(email: string, password: string,
 }
 
 /**
+ * @deprecated Use the enhanced auth context instead
  * Logs out the current user
- * @returns Promise with the logout response
  */
 export async function logout(): Promise<AuthResponse> {
   try {
@@ -89,9 +86,8 @@ export async function logout(): Promise<AuthResponse> {
 }
 
 /**
+ * @deprecated Use the enhanced auth context instead
  * Sends a password reset email
- * @param email User's email
- * @returns Promise with the reset response
  */
 export async function resetPassword(email: string): Promise<AuthResponse> {
   try {

@@ -22,6 +22,7 @@ import ProfileSetupRefactored from "@/pages/ProfileSetup_Refactored";
 import MarketingRulesPage from "@/pages/MarketingRulesPage";
 import EmailLinkLogin from "@/pages/EmailLinkLogin";
 import EmailSignInComplete from "@/pages/EmailSignInComplete";
+import FirebaseDiagnostics from "@/pages/FirebaseDiagnostics";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -85,6 +86,7 @@ function Router() {
         <Route path="/email-link-login" component={EmailLinkLogin} />
         <Route path="/auth/email-signin-complete" component={EmailSignInComplete} />
         <Route path="/marketing-rules" component={MarketingRulesPage} />
+        <Route path="/firebase-diagnostics" component={FirebaseDiagnostics} />
         <Route component={NotFound} />
       </Switch>
       <Footer />

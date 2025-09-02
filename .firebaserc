@@ -1,5 +1,9 @@
 {
   "projects": {
-    "default": "workwise-sa-project"
-  }
+    "default": "workwise-sa-project",
+    "development": "workwisesa-dev",
+    "production": "workwise-sa-project"
+  },
+  "targets": {},
+  "etags": {}
 }
