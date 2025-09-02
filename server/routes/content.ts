@@ -37,26 +37,26 @@ const createJobSchema = z.object({
     skills: z.array(z.string()).optional(),
     experienceLevel: z.enum(['entry', 'mid', 'senior', 'executive']),
     employmentType: z.enum(['full-time', 'part-time', 'contract', 'internship']),
-    remote: z.boolean().default(false),
+    remote: z.boolean().prefault(false),
     location: z.string().optional(),
     salaryMin: z.number().min(0).optional(),
     salaryMax: z.number().min(0).optional(),
     salaryType: z.enum(['hourly', 'monthly', 'annually']).optional(),
     category: z.string().min(1).max(100),
     tags: z.array(z.string()).optional(),
-    applicationDeadline: z.string().datetime().optional(),
-    startDate: z.string().datetime().optional(),
-    isActive: z.boolean().default(true),
-    isFeatured: z.boolean().default(false),
-    applicationUrl: z.string().url().optional(),
-    applicationEmail: z.string().email().optional(),
+    applicationDeadline: z.iso.datetime().optional(),
+    startDate: z.iso.datetime().optional(),
+    isActive: z.boolean().prefault(true),
+    isFeatured: z.boolean().prefault(false),
+    applicationUrl: z.url().optional(),
+    applicationEmail: z.email().optional(),
     applicationInstructions: z.string().optional(),
   })
 });
 
 const updateJobSchema = z.object({
   params: z.object({
-    jobId: z.string().uuid(),
+    jobId: z.uuid(),
   }),
   body: z.object({
     title: z.string().min(1).max(200).optional(),
@@ -74,12 +74,12 @@ const updateJobSchema = z.object({
     salaryType: z.enum(['hourly', 'monthly', 'annually']).optional(),
     category: z.string().min(1).max(100).optional(),
     tags: z.array(z.string()).optional(),
-    applicationDeadline: z.string().datetime().optional(),
-    startDate: z.string().datetime().optional(),
+    applicationDeadline: z.iso.datetime().optional(),
+    startDate: z.iso.datetime().optional(),
     isActive: z.boolean().optional(),
     isFeatured: z.boolean().optional(),
-    applicationUrl: z.string().url().optional(),
-    applicationEmail: z.string().email().optional(),
+    applicationUrl: z.url().optional(),
+    applicationEmail: z.email().optional(),
     applicationInstructions: z.string().optional(),
   })
 });
@@ -91,7 +91,7 @@ const createCompanySchema = z.object({
     industry: z.string().min(1).max(100),
     size: z.enum(['1-10', '11-50', '51-200', '201-500', '501-1000', '1000+']),
     founded: z.number().min(1800).max(new Date().getFullYear()),
-    website: z.string().url().optional(),
+    website: z.url().optional(),
     location: z.string().optional(),
     headquarters: z.string().optional(),
     benefits: z.array(z.string()).optional(),
@@ -100,20 +100,20 @@ const createCompanySchema = z.object({
     vision: z.string().optional(),
     values: z.array(z.string()).optional(),
     socialMedia: z.object({
-      linkedin: z.string().url().optional(),
-      twitter: z.string().url().optional(),
-      facebook: z.string().url().optional(),
-      instagram: z.string().url().optional(),
+      linkedin: z.url().optional(),
+      twitter: z.url().optional(),
+      facebook: z.url().optional(),
+      instagram: z.url().optional(),
     }).optional(),
-    isVerified: z.boolean().default(false),
-    isActive: z.boolean().default(true),
-    isPremium: z.boolean().default(false),
+    isVerified: z.boolean().prefault(false),
+    isActive: z.boolean().prefault(true),
+    isPremium: z.boolean().prefault(false),
   })
 });
 
 const updateCompanySchema = z.object({
   params: z.object({
-    companyId: z.string().uuid(),
+    companyId: z.uuid(),
   }),
   body: z.object({
     name: z.string().min(1).max(200).optional(),
@@ -121,7 +121,7 @@ const updateCompanySchema = z.object({
     industry: z.string().min(1).max(100).optional(),
     size: z.enum(['1-10', '11-50', '51-200', '201-500', '501-1000', '1000+']).optional(),
     founded: z.number().min(1800).max(new Date().getFullYear()).optional(),
-    website: z.string().url().optional(),
+    website: z.url().optional(),
     location: z.string().optional(),
     headquarters: z.string().optional(),
     benefits: z.array(z.string()).optional(),
@@ -130,10 +130,10 @@ const updateCompanySchema = z.object({
     vision: z.string().optional(),
     values: z.array(z.string()).optional(),
     socialMedia: z.object({
-      linkedin: z.string().url().optional(),
-      twitter: z.string().url().optional(),
-      facebook: z.string().url().optional(),
-      instagram: z.string().url().optional(),
+      linkedin: z.url().optional(),
+      twitter: z.url().optional(),
+      facebook: z.url().optional(),
+      instagram: z.url().optional(),
     }).optional(),
     isVerified: z.boolean().optional(),
     isActive: z.boolean().optional(),
@@ -144,16 +144,16 @@ const updateCompanySchema = z.object({
 const bulkOperationSchema = z.object({
   body: z.object({
     action: z.enum(['activate', 'deactivate', 'delete', 'feature', 'unfeature']),
-    ids: z.array(z.string().uuid()).min(1).max(100),
+    ids: z.array(z.uuid()).min(1).max(100),
   })
 });
 
 const searchSchema = z.object({
   query: z.object({
     q: z.string().min(1).max(200),
-    type: z.enum(['jobs', 'companies', 'all']).default('all'),
-    page: z.coerce.number().min(1).default(1),
-    limit: z.coerce.number().min(1).max(50).default(20),
+    type: z.enum(['jobs', 'companies', 'all']).prefault('all'),
+    page: z.coerce.number().min(1).prefault(1),
+    limit: z.coerce.number().min(1).max(50).prefault(20),
   })
 });
 

@@ -26,6 +26,7 @@ WorkWise SA is a comprehensive job search platform designed to connect job seeke
 
 - Node.js (v16 or newer)
 - npm or yarn
+- Git with SSH authentication configured (recommended)
 
 ### Installation
 
@@ -48,7 +49,13 @@ WorkWise SA is a comprehensive job search platform designed to connect job seeke
    - Fill in the actual values for each environment variable
    - See [ENV_SETUP.md](ENV_SETUP.md) for detailed instructions and explanations of all environment variables
 
-4. Start the development server:
+4. (Optional) Set up SSH authentication for GitHub:
+   ```bash
+   npm run setup:ssh
+   ```
+   See [GitHub SSH Setup Guide](docs/GITHUB_SSH_SETUP.md) for detailed instructions.
+
+5. Start the development server:
    ```
    npm run dev
    ```
@@ -81,6 +88,28 @@ workwisesa/
 - **Style Guide**: ESLint with Airbnb config and Prettier for consistent formatting
 - **Testing**: Jest and React Testing Library with ≥80% coverage requirement
 - **Security**: Snyk for static analysis and dependency scanning
+
+### Quick Commands
+
+```bash
+# Setup
+npm run setup:ssh          # Configure SSH for GitHub
+npm run verify:ssh         # Test SSH connection
+
+# Development
+npm run dev                 # Start development servers
+npm run build              # Build for production
+npm run test               # Run tests
+
+# Environment
+npm run env:check          # Check environment files
+npm run env:sanitize       # Sanitize environment variables
+
+# Deployment
+npm run deploy:fast        # Fast deployment to Netlify
+npm run deploy:prod        # Production deployment
+npm run deploy:firebase    # Deploy to Firebase
+```
 
 ## License
 

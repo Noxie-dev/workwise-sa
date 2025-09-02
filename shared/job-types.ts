@@ -110,8 +110,8 @@ export interface JobSearchResponse {
 export const jobApplicationSchema = z.object({
   jobId: z.number(),
   coverLetter: z.string().optional(),
-  resumeUrl: z.string().url().optional(),
-  customAnswers: z.record(z.string()).optional(),
+  resumeUrl: z.url().optional(),
+  customAnswers: z.record(z.string(), z.string()).optional(),
 });
 
 export const jobSearchParamsSchema = z.object({
@@ -121,8 +121,8 @@ export const jobSearchParamsSchema = z.object({
   jobType: z.string().optional(),
   workMode: z.string().optional(),
   experienceLevel: z.enum(['entry', 'mid', 'senior']).optional(),
-  page: z.number().min(1).default(1),
-  limit: z.number().min(1).max(100).default(20),
+  page: z.number().min(1).prefault(1),
+  limit: z.number().min(1).max(100).prefault(20),
   featured: z.boolean().optional(),
 });
 

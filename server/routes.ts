@@ -161,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     params: z.object({ id: z.string().regex(/^\d+$/) }),
     body: z.object({
       coverLetter: z.string().optional(),
-      resumeUrl: z.string().url().optional(),
+      resumeUrl: z.url().optional(),
       notes: z.string().optional(),
     })
   })), async (req, res, next) => {
