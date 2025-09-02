@@ -49,7 +49,7 @@ const educationSchema = z.object({
 type EducationValues = z.infer<typeof educationSchema>;
 
 const experienceSchema = z.object({
-  hasExperience: z.boolean().default(false),
+  hasExperience: z.boolean().prefault(false),
   currentlyEmployed: z.boolean().optional(),
   jobTitle: z.string().optional(),
   employer: z.string().optional(),

@@ -13,16 +13,16 @@ const getNotificationsSchema = z.object({
   query: z.object({
     type: z.enum(['all', 'job_alerts', 'applications', 'messages', 'system']).optional(),
     read: z.enum(['true', 'false']).optional(),
-    page: z.coerce.number().min(1).default(1),
-    limit: z.coerce.number().min(1).max(50).default(20),
-    sortBy: z.enum(['createdAt', 'priority']).default('createdAt'),
-    sortOrder: z.enum(['asc', 'desc']).default('desc'),
+    page: z.coerce.number().min(1).prefault(1),
+    limit: z.coerce.number().min(1).max(50).prefault(20),
+    sortBy: z.enum(['createdAt', 'priority']).prefault('createdAt'),
+    sortOrder: z.enum(['asc', 'desc']).prefault('desc'),
   })
 });
 
 const markNotificationReadSchema = z.object({
   params: z.object({
-    notificationId: z.string().uuid(),
+    notificationId: z.uuid(),
   })
 });
 
@@ -36,14 +36,14 @@ const createJobAlertSchema = z.object({
     salaryMin: z.number().optional(),
     salaryMax: z.number().optional(),
     remote: z.boolean().optional(),
-    frequency: z.enum(['daily', 'weekly', 'monthly']).default('weekly'),
-    isActive: z.boolean().default(true),
+    frequency: z.enum(['daily', 'weekly', 'monthly']).prefault('weekly'),
+    isActive: z.boolean().prefault(true),
   })
 });
 
 const updateJobAlertSchema = z.object({
   params: z.object({
-    alertId: z.string().uuid(),
+    alertId: z.uuid(),
   }),
   body: z.object({
     name: z.string().min(1).max(100).optional(),
@@ -61,23 +61,23 @@ const updateJobAlertSchema = z.object({
 
 const sendEmailSchema = z.object({
   body: z.object({
-    to: z.string().email(),
+    to: z.email(),
     subject: z.string().min(1).max(200),
     template: z.string().optional(),
     content: z.string().optional(),
-    data: z.record(z.any()).optional(),
-    priority: z.enum(['low', 'normal', 'high']).default('normal'),
+    data: z.record(z.string(), z.any()).optional(),
+    priority: z.enum(['low', 'normal', 'high']).prefault('normal'),
   })
 });
 
 const createMessageSchema = z.object({
   body: z.object({
-    recipientId: z.string().uuid(),
+    recipientId: z.uuid(),
     subject: z.string().min(1).max(200),
     message: z.string().min(1).max(2000),
-    jobId: z.string().uuid().optional(),
-    applicationId: z.string().uuid().optional(),
-    priority: z.enum(['low', 'normal', 'high']).default('normal'),
+    jobId: z.uuid().optional(),
+    applicationId: z.uuid().optional(),
+    priority: z.enum(['low', 'normal', 'high']).prefault('normal'),
   })
 });
 

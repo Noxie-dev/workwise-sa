@@ -13,7 +13,7 @@ import{r as et,g as tt,a as m,j as i}from"./vendor-BOJOR_z2.js";var Re=et();cons
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const yt=m.forwardRef(({color:e="currentColor",size:t=24,strokeWidth:o=2,absoluteStrokeWidth:a,className:r="",children:n,iconNode:l,...h},p)=>m.createElement("svg",{ref:p,...ut,width:t,height:t,stroke:e,strokeWidth:a?Number(o)*24/Number(t):o,className:Ie("lucide",r),...!n&&!mt(h)&&{"aria-hidden":"true"},...h},[...l.map(([y,k])=>m.createElement(y,k)),...Array.isArray(n)?n:[n]]));/**
+ */const yt=m.forwardRef(({color:e="currentColor",size:t=24,strokeWidth:o=2,absoluteStrokeWidth:a,className:r="",children:n,iconNode:l,...h},p)=>m.createElement("svg",{ref:p,...ut,width:t,height:t,stroke:e,strokeWidth:a?Number(o)*24/Number(t):o,className:Ie("lucide",r),...(!n&&!mt(h) && {"aria-hidden":"true"}),...h},[...l.map(([y,k])=>m.createElement(y,k)),...(Array.isArray(n) ? n : [n])]));/**
  * @license lucide-react v0.514.0 - ISC
  *
  * This source code is licensed under the ISC license.

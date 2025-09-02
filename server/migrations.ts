@@ -15,7 +15,7 @@ import { secretManager } from './services/secretManager';
  */
 export async function runMigrations(): Promise<void> {
   try {
-    const connectionString = await secretManager.getSecret('DATABASE_URL') || 'sqlite:./test.db';
+    const connectionString = (await secretManager.getSecret('DATABASE_URL')) || 'sqlite:./test.db';
     const migrationsFolder = path.join(process.cwd(), 'migrations');
 
     // Ensure migrations folder exists

@@ -20,22 +20,22 @@ const searchCandidatesSchema = z.object({
     salaryMax: z.coerce.number().optional(),
     educationLevel: z.enum(['none', 'matric', 'certificate', 'diploma', 'degree', 'postgraduate']).optional(),
     remote: z.enum(['true', 'false']).optional(),
-    page: z.coerce.number().min(1).default(1),
-    limit: z.coerce.number().min(1).max(50).default(20),
-    sortBy: z.enum(['relevance', 'updated', 'created', 'name']).default('relevance'),
-    sortOrder: z.enum(['asc', 'desc']).default('desc'),
+    page: z.coerce.number().min(1).prefault(1),
+    limit: z.coerce.number().min(1).max(50).prefault(20),
+    sortBy: z.enum(['relevance', 'updated', 'created', 'name']).prefault('relevance'),
+    sortOrder: z.enum(['asc', 'desc']).prefault('desc'),
   })
 });
 
 const getCandidateSchema = z.object({
   params: z.object({
-    candidateId: z.string().uuid(),
+    candidateId: z.uuid(),
   })
 });
 
 const saveCandidateSchema = z.object({
   params: z.object({
-    candidateId: z.string().uuid(),
+    candidateId: z.uuid(),
   }),
   body: z.object({
     notes: z.string().optional(),
@@ -46,18 +46,18 @@ const saveCandidateSchema = z.object({
 
 const contactCandidateSchema = z.object({
   params: z.object({
-    candidateId: z.string().uuid(),
+    candidateId: z.uuid(),
   }),
   body: z.object({
     subject: z.string().min(1).max(200),
     message: z.string().min(10).max(2000),
-    jobId: z.string().uuid().optional(),
+    jobId: z.uuid().optional(),
   })
 });
 
 const reportCandidateSchema = z.object({
   params: z.object({
-    candidateId: z.string().uuid(),
+    candidateId: z.uuid(),
   }),
   body: z.object({
     reason: z.enum(['spam', 'inappropriate', 'fake', 'other']),
@@ -67,9 +67,9 @@ const reportCandidateSchema = z.object({
 
 const getCandidateRecommendationsSchema = z.object({
   query: z.object({
-    jobId: z.string().uuid().optional(),
+    jobId: z.uuid().optional(),
     skills: z.array(z.string()).optional(),
-    limit: z.coerce.number().min(1).max(20).default(10),
+    limit: z.coerce.number().min(1).max(20).prefault(10),
   })
 });
 

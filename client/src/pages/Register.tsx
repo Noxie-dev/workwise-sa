@@ -18,9 +18,9 @@ import { createTestUser } from '@/utils/test-user';
 
 const formSchema = insertUserSchema.extend({
   confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
-  willingToRelocate: z.boolean().default(false),
+  willingToRelocate: z.boolean().prefault(false),
   agreeTerms: z.literal(true, {
-    errorMap: () => ({ message: 'You must agree to the terms and conditions' }),
+    error: () => 'You must agree to the terms and conditions',
   }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",

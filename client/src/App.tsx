@@ -4,7 +4,7 @@ import { Suspense, lazy } from 'react';
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { EnhancedAuthProvider } from "@/contexts/EnhancedAuthContext";
 import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -49,12 +49,10 @@ const Pricing = lazy(() => import("@/pages/employers/Pricing"));
 const SuccessStories = lazy(() => import("@/pages/employers/SuccessStories"));
 const EmployerDashboard = lazy(() => import("@/pages/employers/EmployerDashboard"));
 
-// Lazy load about pages
-const About = lazy(() => import("@/pages/About"));
-const Contact = lazy(() => import("@/pages/Contact"));
+// Lazy load legal pages
+const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
 const Terms = lazy(() => import("@/pages/Terms"));
-const FAQ = lazy(() => import("@/pages/FAQ"));
 
 // Lazy load test pages
 const UITest = lazy(() => import("@/components/ui-test").then(module => ({ default: module.UITest })));
@@ -91,46 +89,40 @@ function Router() {
           <Route path="/resources/cv-builder-help" component={CVBuilderHelp} />
 
           {/* Employer pages */}
-          <Route path="/employers/dashboard" component={EmployerDashboard} />
-          <Route path="/employers/post-job" component={PostJob} />
-          <Route path="/employers/browse-candidates" component={BrowseCandidates} />
+          <Route path="/employers" component={Solutions} />
           <Route path="/employers/solutions" component={Solutions} />
           <Route path="/employers/pricing" component={Pricing} />
           <Route path="/employers/success-stories" component={SuccessStories} />
+          <Route path="/employers/post-job" component={PostJob} />
+          <Route path="/employers/browse-candidates" component={BrowseCandidates} />
+          <Route path="/employers/dashboard" component={EmployerDashboard} />
 
-          {/* About pages */}
-          <Route path="/about" component={About} />
-          <Route path="/contact" component={Contact} />
-          <Route path="/privacy-policy" component={PrivacyPolicy} />
-          <Route path="/terms" component={Terms} />
-          <Route path="/faq" component={FAQ} />
-          <Route path="/faq-wheel" component={FAQWheelPage} />
-
-          <Route path="/wise-up" component={WiseUpPage} />
-          <Route path="/cv-builder" component={CVBuilder} />
+          {/* Authentication pages */}
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
-          <Route path="/profile" component={UserProfile} />
-          <Route path="/profile/:username" component={UserProfile} />
-          <Route path="/profile-setup">
-            {() => {
-              console.log("Rendering ProfileSetup route");
-              return <ProfileSetup />;
-            }}
-          </Route>
-          <Route path="/upload-cv">
-            {() => {
-              console.log("Redirecting to profile setup");
-              return <Redirect to="/profile-setup" />;
-            }}
-          </Route>
           <Route path="/email-link-login" component={EmailLinkLogin} />
           <Route path="/auth/email-signin-complete" component={EmailSignInComplete} />
-          <Route path="/ui-test" component={UITest} />
-          <Route path="/test" component={TestPage} />
-          <Route path="/footer-test" component={FooterTest} />
-          <Route path="/color-test" component={ColorTest} />
-          <Route path="/simple-test" component={SimpleTest} />
+
+          {/* User pages */}
+          <Route path="/profile" component={UserProfile} />
+          <Route path="/profile-setup" component={ProfileSetup} />
+          <Route path="/dashboard" component={Dashboard} />
+
+          {/* WiseUp pages */}
+          <Route path="/wise-up" component={WiseUpPage} />
+
+          {/* CV Builder */}
+          <Route path="/cv-builder" component={CVBuilder} />
+
+          {/* FAQ */}
+          <Route path="/faq" component={FAQWheelPage} />
+
+          {/* Legal pages */}
+          <Route path="/terms" component={Terms} />
+          <Route path="/terms-of-service" component={TermsOfService} />
+          <Route path="/privacy-policy" component={PrivacyPolicy} />
+
+          {/* Admin pages */}
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/settings" component={AdminSettings} />
           <Route path="/marketing-rules" component={MarketingRulesPage} />
@@ -147,12 +139,12 @@ function App() {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
+        <EnhancedAuthProvider>
           <AccessibilityProvider>
             <Router />
             <Toaster />
           </AccessibilityProvider>
-        </AuthProvider>
+        </EnhancedAuthProvider>
       </QueryClientProvider>
     </HelmetProvider>
   );
