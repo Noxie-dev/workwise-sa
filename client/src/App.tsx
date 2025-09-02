@@ -33,6 +33,7 @@ const MarketingRulesPage = lazy(() => import("@/pages/MarketingRulesPage"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const AdminSettings = lazy(() => import("@/pages/admin/SettingsPage"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const ApplicationHistory = lazy(() => import("@/pages/ApplicationHistory"));
 const FAQWheelPage = lazy(() => import("@/pages/FAQWheelPage"));
 
 // Lazy load resource pages
@@ -107,6 +108,7 @@ function Router() {
           <Route path="/profile" component={UserProfile} />
           <Route path="/profile-setup" component={ProfileSetup} />
           <Route path="/dashboard" component={Dashboard} />
+          <Route path="/applications" component={ApplicationHistory} />
 
           {/* WiseUp pages */}
           <Route path="/wise-up" component={WiseUpPage} />

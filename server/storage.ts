@@ -17,6 +17,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserById(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByFirebaseId(firebaseId: string): Promise<User | undefined>;
   getUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
@@ -44,8 +45,11 @@ export interface IStorage {
   getJob(id: number): Promise<Job | undefined>;
   getJobsByCompany(companyId: number): Promise<Job[]>;
   getJobsByCategory(categoryId: number): Promise<Job[]>;
+  getJobsByEmployer(employerId: number): Promise<Job[]>;
   searchJobs(query: string): Promise<JobWithCompany[]>;
   createJob(job: InsertJob): Promise<Job>;
+  updateJob(id: number, updates: Partial<InsertJob>): Promise<Job | undefined>;
+  deleteJob(id: number): Promise<boolean>;
 
   // Files methods
   getFile(id: number): Promise<File | undefined>;
@@ -73,6 +77,14 @@ export interface IStorage {
     sortBy: string;
     sortOrder: 'asc' | 'desc';
   }): Promise<{ applications: JobApplication[]; total: number }>;
+  getJobApplications(options: {
+    page: number;
+    limit: number;
+    status?: string;
+    jobIds?: number[];
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ data: JobApplication[]; pagination: any }>;
   updateJobApplication(id: number, updates: Partial<Omit<JobApplication, 'id' | 'userId' | 'jobId' | 'appliedAt'>>): Promise<JobApplication>;
   deleteJobApplication(id: number): Promise<boolean>;
 
@@ -81,6 +93,31 @@ export interface IStorage {
   
   // User Notification methods
   createUserNotification(notification: Omit<InsertUserNotification, 'id' | 'createdAt'>): Promise<UserNotification>;
+  getUserNotifications(userId: number, options: {
+    page: number;
+    limit: number;
+    type?: string;
+    isRead?: boolean;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ data: UserNotification[]; pagination: any }>;
+  markNotificationAsRead(notificationId: number, userId: number): Promise<UserNotification | undefined>;
+  markAllNotificationsAsRead(userId: number, type?: string): Promise<number>;
+  getNotificationSettings(userId: number): Promise<any>;
+  updateNotificationSettings(userId: number, settings: any): Promise<any>;
+  deleteNotification(notificationId: number, userId: number): Promise<boolean>;
+  getUnreadNotificationCount(userId: number): Promise<number>;
+
+  // Job Favorites methods
+  addJobFavorite(userId: number, jobId: number): Promise<any>;
+  removeJobFavorite(userId: number, jobId: number): Promise<boolean>;
+  getJobFavorite(userId: number, jobId: number): Promise<any>;
+  getUserJobFavorites(userId: number, options: {
+    page: number;
+    limit: number;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ data: any[]; pagination: any }>;
 
   // Profile methods
   getUserProfile(userId: number): Promise<any>;
@@ -761,6 +798,282 @@ export class DatabaseStorage implements IStorage {
       }
     } catch (error: any) {
       throw Errors.database(`Failed to initialize data: ${error.message}`, error);
+    }
+  }
+
+  // Additional methods for new API endpoints
+
+  async getUserByFirebaseId(firebaseId: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.firebaseId, firebaseId));
+      return user;
+    } catch (error: any) {
+      throw Errors.database(`Failed to get user by Firebase ID: ${error.message}`, error);
+    }
+  }
+
+  async getJobsByEmployer(employerId: number): Promise<Job[]> {
+    try {
+      return await db.select().from(jobs).where(eq(jobs.postedBy, employerId));
+    } catch (error: any) {
+      throw Errors.database(`Failed to get jobs by employer: ${error.message}`, error);
+    }
+  }
+
+  async updateJob(id: number, updates: Partial<InsertJob>): Promise<Job | undefined> {
+    try {
+      const [updatedJob] = await db.update(jobs)
+        .set({ ...updates, updatedAt: new Date().toISOString() })
+        .where(eq(jobs.id, id))
+        .returning();
+      return updatedJob;
+    } catch (error: any) {
+      throw Errors.database(`Failed to update job: ${error.message}`, error);
+    }
+  }
+
+  async deleteJob(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(jobs).where(eq(jobs.id, id));
+      return result.rowCount > 0;
+    } catch (error: any) {
+      throw Errors.database(`Failed to delete job: ${error.message}`, error);
+    }
+  }
+
+  async getJobApplications(options: {
+    page: number;
+    limit: number;
+    status?: string;
+    jobIds?: number[];
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ data: JobApplication[]; pagination: any }> {
+    try {
+      const { page, limit, status, jobIds, sortBy, sortOrder } = options;
+      const offset = (page - 1) * limit;
+
+      let query = db.select().from(jobApplications);
+
+      // Apply filters
+      const conditions = [];
+      if (status) {
+        conditions.push(eq(jobApplications.status, status as any));
+      }
+      if (jobIds && jobIds.length > 0) {
+        conditions.push(or(...jobIds.map(id => eq(jobApplications.jobId, id))));
+      }
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+
+      // Apply sorting
+      const sortColumn = jobApplications[sortBy as keyof typeof jobApplications];
+      if (sortColumn) {
+        query = query.orderBy(sortOrder === 'asc' ? sortColumn : desc(sortColumn));
+      }
+
+      // Apply pagination
+      const applications = await query.limit(limit).offset(offset);
+      const [totalResult] = await db.select({ count: count() }).from(jobApplications);
+      const total = totalResult.count;
+
+      return {
+        data: applications,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    } catch (error: any) {
+      throw Errors.database(`Failed to get job applications: ${error.message}`, error);
+    }
+  }
+
+  // Job Favorites methods (mock implementation - would need a favorites table)
+  async addJobFavorite(userId: number, jobId: number): Promise<any> {
+    try {
+      // This would require a job_favorites table in the schema
+      // For now, return a mock response
+      return {
+        id: Date.now(),
+        userId,
+        jobId,
+        addedAt: new Date().toISOString(),
+      };
+    } catch (error: any) {
+      throw Errors.database(`Failed to add job favorite: ${error.message}`, error);
+    }
+  }
+
+  async removeJobFavorite(userId: number, jobId: number): Promise<boolean> {
+    try {
+      // This would require a job_favorites table in the schema
+      // For now, return true
+      return true;
+    } catch (error: any) {
+      throw Errors.database(`Failed to remove job favorite: ${error.message}`, error);
+    }
+  }
+
+  async getJobFavorite(userId: number, jobId: number): Promise<any> {
+    try {
+      // This would require a job_favorites table in the schema
+      // For now, return null
+      return null;
+    } catch (error: any) {
+      throw Errors.database(`Failed to get job favorite: ${error.message}`, error);
+    }
+  }
+
+  async getUserJobFavorites(userId: number, options: {
+    page: number;
+    limit: number;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ data: any[]; pagination: any }> {
+    try {
+      // This would require a job_favorites table in the schema
+      // For now, return empty data
+      return {
+        data: [],
+        pagination: {
+          page: options.page,
+          limit: options.limit,
+          total: 0,
+          totalPages: 0,
+        },
+      };
+    } catch (error: any) {
+      throw Errors.database(`Failed to get user job favorites: ${error.message}`, error);
+    }
+  }
+
+  // User Notification methods
+  async getUserNotifications(userId: number, options: {
+    page: number;
+    limit: number;
+    type?: string;
+    isRead?: boolean;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ data: UserNotification[]; pagination: any }> {
+    try {
+      const { page, limit, type, isRead, sortBy, sortOrder } = options;
+      const offset = (page - 1) * limit;
+
+      let query = db.select().from(userNotifications).where(eq(userNotifications.userId, userId));
+
+      // Apply filters
+      if (type) {
+        query = query.where(and(eq(userNotifications.userId, userId), eq(userNotifications.type, type as any)));
+      }
+      if (isRead !== undefined) {
+        query = query.where(and(eq(userNotifications.userId, userId), eq(userNotifications.isRead, isRead)));
+      }
+
+      // Apply sorting
+      const sortColumn = userNotifications[sortBy as keyof typeof userNotifications];
+      if (sortColumn) {
+        query = query.orderBy(sortOrder === 'asc' ? sortColumn : desc(sortColumn));
+      }
+
+      // Apply pagination
+      const notifications = await query.limit(limit).offset(offset);
+      const [totalResult] = await db.select({ count: count() }).from(userNotifications).where(eq(userNotifications.userId, userId));
+      const total = totalResult.count;
+
+      return {
+        data: notifications,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    } catch (error: any) {
+      throw Errors.database(`Failed to get user notifications: ${error.message}`, error);
+    }
+  }
+
+  async markNotificationAsRead(notificationId: number, userId: number): Promise<UserNotification | undefined> {
+    try {
+      const [notification] = await db.update(userNotifications)
+        .set({ isRead: true, readAt: new Date().toISOString() })
+        .where(and(eq(userNotifications.id, notificationId), eq(userNotifications.userId, userId)))
+        .returning();
+      return notification;
+    } catch (error: any) {
+      throw Errors.database(`Failed to mark notification as read: ${error.message}`, error);
+    }
+  }
+
+  async markAllNotificationsAsRead(userId: number, type?: string): Promise<number> {
+    try {
+      let query = db.update(userNotifications)
+        .set({ isRead: true, readAt: new Date().toISOString() })
+        .where(eq(userNotifications.userId, userId));
+
+      if (type) {
+        query = query.where(and(eq(userNotifications.userId, userId), eq(userNotifications.type, type as any)));
+      }
+
+      const result = await query.returning();
+      return result.length;
+    } catch (error: any) {
+      throw Errors.database(`Failed to mark all notifications as read: ${error.message}`, error);
+    }
+  }
+
+  async getNotificationSettings(userId: number): Promise<any> {
+    try {
+      // This would require a user_settings table in the schema
+      // For now, return default settings
+      return {
+        emailNotifications: true,
+        pushNotifications: true,
+        applicationUpdates: true,
+        jobRecommendations: true,
+        systemAnnouncements: true,
+        reminderNotifications: true,
+      };
+    } catch (error: any) {
+      throw Errors.database(`Failed to get notification settings: ${error.message}`, error);
+    }
+  }
+
+  async updateNotificationSettings(userId: number, settings: any): Promise<any> {
+    try {
+      // This would require a user_settings table in the schema
+      // For now, return the settings as-is
+      return settings;
+    } catch (error: any) {
+      throw Errors.database(`Failed to update notification settings: ${error.message}`, error);
+    }
+  }
+
+  async deleteNotification(notificationId: number, userId: number): Promise<boolean> {
+    try {
+      const result = await db.delete(userNotifications)
+        .where(and(eq(userNotifications.id, notificationId), eq(userNotifications.userId, userId)));
+      return result.rowCount > 0;
+    } catch (error: any) {
+      throw Errors.database(`Failed to delete notification: ${error.message}`, error);
+    }
+  }
+
+  async getUnreadNotificationCount(userId: number): Promise<number> {
+    try {
+      const [result] = await db.select({ count: count() })
+        .from(userNotifications)
+        .where(and(eq(userNotifications.userId, userId), eq(userNotifications.isRead, false)));
+      return result.count;
+    } catch (error: any) {
+      throw Errors.database(`Failed to get unread notification count: ${error.message}`, error);
     }
   }
 }

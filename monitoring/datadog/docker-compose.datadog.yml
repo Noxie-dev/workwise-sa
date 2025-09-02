@@ -1,0 +1,69 @@
+# Datadog Agent Docker Compose Configuration
+# Provides comprehensive monitoring with APM, logs, and metrics
+
+version: '3.8'
+
+services:
+  # Datadog Agent
+  datadog-agent:
+    image: datadog/agent:latest
+    container_name: workwise-datadog-agent
+    restart: unless-stopped
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_SITE=datadoghq.com
+      - DD_ENV=${DD_ENV:-development}
+      - DD_VERSION=${DD_VERSION:-1.0.0}
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_APM_ENABLED=true
+      - DD_APM_NON_LOCAL_TRAFFIC=true
+      - DD_PROCESS_AGENT_ENABLED=true
+      - DD_RUNTIME_METRICS_ENABLED=true
+      - DD_PROFILING_ENABLED=true
+      - DD_APPSEC_ENABLED=true
+      - DD_DOCKER_LABELS_AS_TAGS={"*":"%%label%%"}
+      - DD_DOCKER_ENV_AS_TAGS={"*":"%%env%%"}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./datadog.yaml:/etc/datadog-agent/datadog.yaml:ro
+      - ./conf.d:/etc/datadog-agent/conf.d:ro
+    ports:
+      - "8126:8126"  # APM trace agent
+      - "8125:8125/udp"  # DogStatsD
+    networks:
+      - workwise-network
+    healthcheck:
+      test: ["CMD", "datadog-agent", "health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Datadog Log Agent (if needed separately)
+  datadog-log-agent:
+    image: datadog/agent:latest
+    container_name: workwise-datadog-logs
+    restart: unless-stopped
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_SITE=datadoghq.com
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_APM_ENABLED=false
+      - DD_PROCESS_AGENT_ENABLED=false
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./datadog.yaml:/etc/datadog-agent/datadog.yaml:ro
+    networks:
+      - workwise-network
+    depends_on:
+      - datadog-agent
+
+networks:
+  workwise-network:
+    external: true

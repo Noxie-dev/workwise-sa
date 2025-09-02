@@ -1,9 +1,9 @@
 import React from "react";
 import { marked } from "marked";
 import { Edit3 } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card";
-import Button from "../ui/Button";
-import { Label } from "../ui/Label";
+import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
 
 const ReviewStep = ({ formState, onEditStep, categories }) => {
   const { values } = formState;

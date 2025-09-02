@@ -132,43 +132,97 @@ export class MultiTierCacheService {
 
   private async initializeRedis(): Promise<void> {
     try {
-      const redisUrl = await secretManager.getSecret('REDIS_URL');
-      
-      if (redisUrl) {
-        this.redisClient = createClient({
-          url: redisUrl as string,
-          retry_delay_on_failover: this.config.redis.retryDelayOnFailover,
-          max_attempts: this.config.redis.maxRetriesPerRequest,
-          socket: {
-            reconnectStrategy: (retries) => {
-              if (retries > 10) {
-                logger.warn('Redis connection failed after 10 retries, giving up');
-                return new Error('Redis connection failed');
+      // Skip Redis in development mode if no Redis server is running
+      if (process.env.NODE_ENV === 'development') {
+        const redisUrl = await secretManager.getSecret('REDIS_URL');
+        
+        if (redisUrl) {
+          // Try to connect with a timeout
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Redis connection timeout')), 2000);
+          });
+          
+          this.redisClient = createClient({
+            url: redisUrl as string,
+            retry_delay_on_failover: this.config.redis.retryDelayOnFailover,
+            max_attempts: this.config.redis.maxRetriesPerRequest,
+            socket: {
+              connect_timeout: 2000,
+              reconnectStrategy: (retries) => {
+                if (retries > 3) {
+                  logger.warn('Redis connection failed after 3 retries, giving up');
+                  return new Error('Redis connection failed');
+                }
+                return Math.min(retries * 50, 1000);
               }
-              return Math.min(retries * 50, 1000);
             }
-          }
-        });
+          });
 
-        this.redisClient.on('error', (err) => {
-          logger.error('Redis client error:', err);
-        });
+          this.redisClient.on('error', (err) => {
+            logger.error('Redis client error:', err);
+          });
 
-        this.redisClient.on('connect', () => {
-          logger.info('✅ Redis client connected');
-        });
+          this.redisClient.on('connect', () => {
+            logger.info('✅ Redis client connected');
+          });
 
-        this.redisClient.on('disconnect', () => {
-          logger.warn('Redis client disconnected');
-        });
+          this.redisClient.on('disconnect', () => {
+            logger.warn('Redis client disconnected');
+          });
 
-        await this.redisClient.connect();
+          // Try to connect with timeout
+          await Promise.race([
+            this.redisClient.connect(),
+            timeoutPromise
+          ]);
+        } else {
+          logger.warn('No Redis URL provided, running without Redis cache');
+        }
       } else {
-        logger.warn('No Redis URL provided, running without Redis cache');
+        // Production mode - require Redis
+        const redisUrl = await secretManager.getSecret('REDIS_URL');
+        
+        if (redisUrl) {
+          this.redisClient = createClient({
+            url: redisUrl as string,
+            retry_delay_on_failover: this.config.redis.retryDelayOnFailover,
+            max_attempts: this.config.redis.maxRetriesPerRequest,
+            socket: {
+              reconnectStrategy: (retries) => {
+                if (retries > 10) {
+                  logger.warn('Redis connection failed after 10 retries, giving up');
+                  return new Error('Redis connection failed');
+                }
+                return Math.min(retries * 50, 1000);
+              }
+            }
+          });
+
+          this.redisClient.on('error', (err) => {
+            logger.error('Redis client error:', err);
+          });
+
+          this.redisClient.on('connect', () => {
+            logger.info('✅ Redis client connected');
+          });
+
+          this.redisClient.on('disconnect', () => {
+            logger.warn('Redis client disconnected');
+          });
+
+          await this.redisClient.connect();
+        } else {
+          throw new Error('Redis URL required in production mode');
+        }
       }
     } catch (error) {
       logger.error('Failed to initialize Redis:', error);
-      this.redisClient = null;
+      if (process.env.NODE_ENV === 'development') {
+        logger.warn('Continuing without Redis in development mode');
+        this.redisClient = null;
+      } else {
+        throw error; // Re-throw in production
+      }
     }
   }
 
