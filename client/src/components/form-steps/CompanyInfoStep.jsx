@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { marked } from "marked";
 import { Sparkles, LinkIcon, ImageIcon, X, Phone } from "lucide-react";
-import FormField from "../ui/FormField";
-import Input from "../ui/Input";
-import Textarea from "../ui/Textarea";
-import Button from "../ui/Button";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/Select";
+import { FormField } from "../ui/form";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { Button } from "../ui/button";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
 
 const CompanyInfoStep = ({ formState, onInitiateAIAssist }) => {
   const { values, errors, touched, handleChange, handleBlur } = formState;
