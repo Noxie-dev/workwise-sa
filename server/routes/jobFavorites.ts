@@ -11,17 +11,17 @@ const router = Router();
 const toggleFavoriteSchema = z.object({
   params: z.object({
     jobId: z.string().transform(val => parseInt(val)).refine(val => !isNaN(val), {
-      message: 'Job ID must be a valid number'
+        error: 'Job ID must be a valid number'
     }),
   })
 });
 
 const getFavoritesSchema = z.object({
   query: z.object({
-    page: z.coerce.number().min(1).default(1),
-    limit: z.coerce.number().min(1).max(50).default(20),
-    sortBy: z.enum(['createdAt', 'jobTitle', 'company', 'salary']).default('createdAt'),
-    sortOrder: z.enum(['asc', 'desc']).default('desc'),
+    page: z.coerce.number().min(1).prefault(1),
+    limit: z.coerce.number().min(1).max(50).prefault(20),
+    sortBy: z.enum(['createdAt', 'jobTitle', 'company', 'salary']).prefault('createdAt'),
+    sortOrder: z.enum(['asc', 'desc']).prefault('desc'),
   })
 });
 

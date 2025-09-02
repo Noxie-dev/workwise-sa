@@ -18,9 +18,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 const createPaymentIntentSchema = z.object({
   body: z.object({
     amount: z.number().min(100), // Minimum R1.00
-    currency: z.enum(['ZAR', 'USD', 'EUR']).default('ZAR'),
+    currency: z.enum(['ZAR', 'USD', 'EUR']).prefault('ZAR'),
     description: z.string().optional(),
-    metadata: z.record(z.string()).optional(),
+    metadata: z.record(z.string(), z.string()).optional(),
   })
 });
 
@@ -28,7 +28,7 @@ const createSubscriptionSchema = z.object({
   body: z.object({
     planId: z.string(),
     paymentMethodId: z.string(),
-    billingCycle: z.enum(['monthly', 'yearly']).default('monthly'),
+    billingCycle: z.enum(['monthly', 'yearly']).prefault('monthly'),
   })
 });
 
@@ -42,7 +42,7 @@ const updateSubscriptionSchema = z.object({
 const addPaymentMethodSchema = z.object({
   body: z.object({
     paymentMethodId: z.string(),
-    setAsDefault: z.boolean().default(false),
+    setAsDefault: z.boolean().prefault(false),
   })
 });
 
@@ -53,8 +53,8 @@ const createBillingAddressSchema = z.object({
     city: z.string().min(1),
     state: z.string().optional(),
     postalCode: z.string().min(1),
-    country: z.string().length(2).default('ZA'),
-    isDefault: z.boolean().default(false),
+    country: z.string().length(2).prefault('ZA'),
+    isDefault: z.boolean().prefault(false),
   })
 });
 

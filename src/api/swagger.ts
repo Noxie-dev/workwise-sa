@@ -210,7 +210,7 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 export function setupSwagger(app: Express) {
-  // Serve swagger docs
+  // Serve swagger docs (standard setup - redirect from /api-docs to /api-docs/ is normal)
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   // Serve swagger spec as JSON

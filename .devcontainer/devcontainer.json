@@ -1,41 +1,57 @@
 {
-  "name": "WorkWise SA Firebase Development",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": "."
-  },
+  "name": "WorkWise Development Environment",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:18",
   "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    },
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/devcontainers/features/git:1": {}
   },
-  "forwardPorts": [5000, 5001, 8080, 9099, 9199],
-  "postCreateCommand": "cd functions && npm install",
-  "postStartCommand": "echo 'Firebase CLI is ready. Run: firebase login'",
-  "remoteUser": "node",
   "customizations": {
     "vscode": {
-      "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash",
-        "editor.formatOnSave": true,
-        "editor.codeActionsOnSave": { "source.fixAll": "explicit" },
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "terminal.integrated.profiles.linux": {
-          "bash": {
-            "path": "/bin/bash"
-          }
-        }
-      },
       "extensions": [
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
         "ms-vscode.vscode-typescript-next",
-        "ms-azuretools.vscode-docker",
-        "toba.vsfire",
-        "github.copilot",
-        "github.copilot-chat",
-        "ms-vscode.vscode-typescript-tslint-plugin",
-        "bradlc.vscode-tailwindcss"
-      ]
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-eslint",
+        "ms-vscode.vscode-json",
+        "ms-vscode.vscode-css",
+        "ms-vscode.vscode-html",
+        "ms-vscode.vscode-js-debug",
+        "ms-vscode.vscode-js-debug-companion",
+        "ms-vscode.vscode-js-debug-nightly",
+        "ms-vscode.vscode-js-debug-nightly-companion"
+      ],
+      "settings": {
+        "typescript.preferences.includePackageJsonAutoImports": "on",
+        "typescript.suggest.autoImports": true,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      }
     }
-  }
+  },
+  "forwardPorts": [3000, 5173, 8080, 5001],
+  "portsAttributes": {
+    "3000": {
+      "label": "Client Dev Server",
+      "onAutoForward": "notify"
+    },
+    "5173": {
+      "label": "Vite Dev Server",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "Backend Server",
+      "onAutoForward": "notify"
+    },
+    "5001": {
+      "label": "Firebase Functions",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "npm install",
+  "remoteUser": "node",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "workspaceFolder": "/workspace"
 }
