@@ -1,0 +1,160 @@
+# Development Docker Compose for WorkWise SA
+# Optimized for development with hot reloading and debugging
+
+version: '3.8'
+
+services:
+  # Development Application Container
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.development
+    container_name: workwise-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+      - "5173:5173"
+      - "8080:8080"
+      - "5001:5000"
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://workwise:workwise123@postgres:5432/workwise_dev
+    volumes:
+      - .:/workspace
+      - /workspace/node_modules
+      - /workspace/client/node_modules
+      - /workspace/server/node_modules
+      - /workspace/functions/node_modules
+      - app_uploads:/workspace/uploads
+      - app_logs:/workspace/logs
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - workwise-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # PostgreSQL Database for Development
+  postgres:
+    image: postgres:15-alpine
+    container_name: workwise-postgres-dev
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=workwise_dev
+      - POSTGRES_USER=workwise
+      - POSTGRES_PASSWORD=workwise123
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5433:5432"
+    networks:
+      - workwise-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U workwise -d workwise_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache for Development
+  redis:
+    image: redis:7-alpine
+    container_name: workwise-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_dev_data:/data
+    ports:
+      - "6380:6379"
+    networks:
+      - workwise-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Development Tools - Mailhog for email testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: workwise-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - workwise-network
+
+  # Development Tools - Adminer for database management
+  adminer:
+    image: adminer:latest
+    container_name: workwise-adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+    depends_on:
+      - postgres
+    networks:
+      - workwise-network
+
+  # Development Monitoring - Prometheus (lightweight)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: workwise-prometheus-dev
+    restart: unless-stopped
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_dev_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+      - '--web.enable-lifecycle'
+    networks:
+      - workwise-network
+
+  # Development Monitoring - Grafana (lightweight)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: workwise-grafana-dev
+    restart: unless-stopped
+    ports:
+      - "3003:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=dev123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_dev_data:/var/lib/grafana
+    networks:
+      - workwise-network
+
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+  app_uploads:
+    driver: local
+  app_logs:
+    driver: local
+  prometheus_dev_data:
+    driver: local
+  grafana_dev_data:
+    driver: local
+
+networks:
+  workwise-network:
+    driver: bridge
