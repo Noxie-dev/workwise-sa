@@ -1,0 +1,59 @@
+# Development Dockerfile for WorkWise SA
+# Optimized for development with hot reloading and debugging
+
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /workspace
+
+# Install system dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git \
+    curl \
+    vim \
+    nano \
+    htop \
+    && rm -rf /var/cache/apk/*
+
+# Install global npm packages for development
+RUN npm install -g \
+    typescript \
+    ts-node \
+    nodemon \
+    firebase-tools \
+    @types/node \
+    eslint \
+    prettier
+
+# Copy package files for faster builds
+COPY package*.json ./
+COPY client/package*.json ./client/
+COPY server/package*.json ./server/
+COPY functions/package*.json ./functions/
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Set environment variables
+ENV NODE_ENV=development
+ENV PATH="/workspace/node_modules/.bin:$PATH"
+ENV CHOKIDAR_USEPOLLING=true
+
+# Create necessary directories
+RUN mkdir -p /workspace/uploads /workspace/logs
+
+# Expose development ports
+EXPOSE 3000 3001 5173 8080 5000
+
+# Health check for development
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:3001/health || exit 1
+
+# Default command - keep container running for development
+CMD ["tail", "-f", "/dev/null"]

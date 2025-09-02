@@ -1,0 +1,81 @@
+# Production Dockerfile for WorkWise SA
+# Multi-stage build for optimal image size and security
+
+# ============================================================================
+# BUILD STAGE
+# ============================================================================
+FROM node:20-alpine AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git
+
+# Copy package files
+COPY package*.json ./
+COPY client/package*.json ./client/
+COPY server/package*.json ./server/
+COPY functions/package*.json ./functions/
+
+# Install dependencies
+RUN npm ci --only=production --silent
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# ============================================================================
+# PRODUCTION STAGE
+# ============================================================================
+FROM node:20-alpine AS production
+
+# Create app user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S workwise -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Copy built application from builder stage
+COPY --from=builder --chown=workwise:nodejs /app/dist ./dist
+COPY --from=builder --chown=workwise:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=workwise:nodejs /app/package*.json ./
+
+# Copy necessary runtime files
+COPY --chown=workwise:nodejs server/server/index.ts ./server/server/
+COPY --chown=workwise:nodejs server/package*.json ./server/
+COPY --chown=workwise:nodejs shared ./shared
+COPY --chown=workwise:nodejs public ./public
+
+# Create necessary directories
+RUN mkdir -p /app/uploads /app/logs && \
+    chown -R workwise:nodejs /app/uploads /app/logs
+
+# Switch to non-root user
+USER workwise
+
+# Expose ports
+EXPOSE 3001 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3001/health || exit 1
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["node", "dist/index.js"]
