@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { marked } from "marked";
 import { Sparkles } from "lucide-react";
-import FormField from "../ui/FormField";
-import Textarea from "../ui/Textarea";
-import Button from "../ui/Button";
-import { Card, CardContent } from "../ui/Card";
+import { FormField } from "../ui/form";
+import { Textarea } from "../ui/textarea";
+import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
 
 const JobDescriptionStep = ({ formState, onInitiateAIAssist }) => {
   const { values, errors, touched, handleChange, handleBlur } = formState;

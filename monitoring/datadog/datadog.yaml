@@ -1,0 +1,87 @@
+# Datadog Agent Configuration for WorkWise SA
+# Comprehensive monitoring setup with APM, logs, and metrics
+
+## Basic Configuration
+dd_url: https://app.datadoghq.com
+api_key: ${DD_API_KEY}
+site: datadoghq.com
+
+## Logging Configuration
+logs_enabled: true
+logs_config:
+  container_collect_all: true
+  container_include:
+    - "workwise-*"
+  container_exclude:
+    - "workwise-redis"
+    - "workwise-postgres"
+
+## APM Configuration
+apm_config:
+  enabled: true
+  env: ${DD_ENV:-development}
+  service: workwise-sa
+  version: ${DD_VERSION:-1.0.0}
+  log_injection: true
+  runtime_metrics_enabled: true
+  profiling_enabled: true
+  appsec_enabled: true
+
+## Process Monitoring
+process_config:
+  enabled: true
+  container_collection:
+    enabled: true
+
+## Network Monitoring
+network_config:
+  enabled: true
+
+## Container Monitoring
+container_config:
+  enabled: true
+  collect_container_metrics: true
+  collect_container_logs: true
+
+## Custom Metrics
+custom_metrics:
+  - name: workwise.auth.login_success_rate
+    type: gauge
+    description: "Authentication login success rate"
+  - name: workwise.cache.hit_rate
+    type: gauge
+    description: "Cache hit rate percentage"
+  - name: workwise.batch.queue_size
+    type: gauge
+    description: "Current batch queue size"
+  - name: workwise.performance.response_time
+    type: histogram
+    description: "HTTP response time distribution"
+
+## Log Processing Rules
+log_processing_rules:
+  - type: exclude_at_match
+    name: exclude_health_checks
+    pattern: "GET /health"
+  - type: multi_line
+    name: stack_traces
+    pattern: "^\s+at\s+"
+
+## Tags
+tags:
+  - env:${DD_ENV:-development}
+  - service:workwise-sa
+  - version:${DD_VERSION:-1.0.0}
+  - team:backend
+  - component:api
+
+## Integrations
+integrations:
+  redis:
+    enabled: true
+  postgres:
+    enabled: true
+  nginx:
+    enabled: true
+  docker:
+    enabled: true

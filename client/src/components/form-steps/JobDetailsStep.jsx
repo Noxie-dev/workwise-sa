@@ -2,15 +2,15 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, Calendar, Sparkles, Loader2 } from "lucide-react";
 import { fetchCategories, fetchLocationSuggestions } from "../../services/jobService";
-import FormField from "../ui/FormField";
-import Input from "../ui/Input";
-import Button from "../ui/Button";
-import Checkbox from "../ui/Checkbox";
-import { Label } from "../ui/Label";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/Select";
-import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "../ui/Dialog";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/Tabs";
-import Textarea from "../ui/Textarea";
+import { FormField } from "../ui/form";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
+import { Label } from "../ui/label";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
+import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
+import { Textarea } from "../ui/textarea";
 
 
 const JobDetailsStep = ({ formState, onInitiateAIAssist }) => {
