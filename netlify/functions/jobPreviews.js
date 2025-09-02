@@ -1,10 +1,10 @@
-const { db } = require('./utils/db');
+import { db } from './utils/db.js';
 
 /**
  * Public API endpoint for job previews (no authentication required)
  * Returns basic job information for browsing
  */
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
   // Set CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',
