@@ -39,47 +39,91 @@ import { AiGenerationTips, SamplePrompts } from '@/components/AiHelpTips';
 // Define CV form schema
 const cvFormSchema = z.object({
   personalInfo: z.object({
-    fullName: z.string().min(2, { message: 'Name must be at least 2 characters' }),
-    email: z.string().email({ message: 'Please enter a valid email address' }),
-    phone: z.string().min(10, { message: 'Please enter a valid phone number' }),
-    address: z.string().min(5, { message: 'Please enter your address' }),
+    fullName: z.string().min(2, {
+        error: 'Name must be at least 2 characters'
+    }),
+    email: z.email({
+            error: 'Please enter a valid email address'
+        }),
+    phone: z.string().min(10, {
+        error: 'Please enter a valid phone number'
+    }),
+    address: z.string().min(5, {
+        error: 'Please enter your address'
+    }),
   }),
-  professionalSummary: z.string().min(50, { message: 'Please provide a summary of at least 50 characters' }),
+  professionalSummary: z.string().min(50, {
+      error: 'Please provide a summary of at least 50 characters'
+}),
   experience: z.array(
     z.object({
-      jobTitle: z.string().min(2, { message: 'Job title is required' }),
-      employer: z.string().min(2, { message: 'Employer name is required' }),
+      jobTitle: z.string().min(2, {
+          error: 'Job title is required'
+    }),
+      employer: z.string().min(2, {
+          error: 'Employer name is required'
+    }),
       location: z.string().optional(),
-      startDate: z.string().min(1, { message: 'Start date is required' }),
+      startDate: z.string().min(1, {
+          error: 'Start date is required'
+    }),
       endDate: z.string().optional(),
-      isCurrentJob: z.boolean().default(false),
-      description: z.string().min(20, { message: 'Please provide job description of at least 20 characters' }),
+      isCurrentJob: z.boolean().prefault(false),
+      description: z.string().min(20, {
+          error: 'Please provide job description of at least 20 characters'
+    }),
     })
-  ).min(1, { message: 'Add at least one work experience' }),
+  ).min(1, {
+      error: 'Add at least one work experience'
+}),
   education: z.array(
     z.object({
-      degree: z.string().min(2, { message: 'Degree/Certificate name is required' }),
-      school: z.string().min(2, { message: 'School name is required' }),
+      degree: z.string().min(2, {
+          error: 'Degree/Certificate name is required'
+    }),
+      school: z.string().min(2, {
+          error: 'School name is required'
+    }),
       location: z.string().optional(),
-      graduationDate: z.string().min(1, { message: 'Graduation date is required' }),
+      graduationDate: z.string().min(1, {
+          error: 'Graduation date is required'
+    }),
     })
-  ).min(1, { message: 'Add at least one education item' }),
+  ).min(1, {
+      error: 'Add at least one education item'
+}),
   skills: z.array(
-    z.string().min(1, { message: 'Skill cannot be empty' })
-  ).min(1, { message: 'Add at least one skill' }),
+    z.string().min(1, {
+        error: 'Skill cannot be empty'
+    })
+  ).min(1, {
+      error: 'Add at least one skill'
+}),
   languages: z.array(
     z.object({
-      language: z.string().min(1, { message: 'Language name is required' }),
+      language: z.string().min(1, {
+          error: 'Language name is required'
+    }),
       proficiency: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Fluent', 'Native']),
     })
   ).optional(),
   references: z.array(
     z.object({
-      name: z.string().min(2, { message: 'Reference name is required' }),
-      position: z.string().min(2, { message: 'Reference position is required' }),
-      company: z.string().min(2, { message: 'Company name is required' }),
-      email: z.string().email({ message: 'Please enter a valid email' }),
-      phone: z.string().min(10, { message: 'Please enter a valid phone number' }),
+      name: z.string().min(2, {
+          error: 'Reference name is required'
+    }),
+      position: z.string().min(2, {
+          error: 'Reference position is required'
+    }),
+      company: z.string().min(2, {
+          error: 'Company name is required'
+    }),
+      email: z.email({
+                error: 'Please enter a valid email'
+          }),
+      phone: z.string().min(10, {
+          error: 'Please enter a valid phone number'
+    }),
     })
   ).optional(),
 });

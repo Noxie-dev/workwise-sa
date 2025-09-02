@@ -5,15 +5,21 @@ import { MarketingRule, MarketingRuleStats, MarketingRuleAnalyticsData } from '@
 // Define the schema for marketing rules validation
 export const MarketingRuleSchema = z.object({
   id: z.string().optional(),
-  ruleName: z.string().min(3, { message: "Rule name must be at least 3 characters" }),
+  ruleName: z.string().min(3, {
+      error: "Rule name must be at least 3 characters"
+}),
   status: z.enum(["Active", "Inactive"]),
   targetLocation: z.string(),
   targetJobType: z.string(),
   targetDemographics: z.string().optional(),
   demographicTags: z.array(z.string()).optional(),
   ctaPreview: z.string().optional(),
-  messageTemplate: z.string().min(5, { message: "Message template must be at least 5 characters" }),
-  ctaLink: z.string().url({ message: "Must be a valid URL" }),
+  messageTemplate: z.string().min(5, {
+      error: "Message template must be at least 5 characters"
+}),
+  ctaLink: z.url({
+        error: "Must be a valid URL"
+  }),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
 });

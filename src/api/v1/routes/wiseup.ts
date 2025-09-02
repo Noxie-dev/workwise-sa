@@ -12,11 +12,11 @@ const contentItemSchema = z.object({
     name: z.string(),
     avatar: z.string().optional(),
   }),
-  video: z.string().url(),
+  video: z.url(),
   description: z.string().min(10),
   resources: z.array(z.object({
     title: z.string(),
-    url: z.string().url(),
+    url: z.url(),
   })).optional(),
   tags: z.array(z.string()).optional(),
 });
@@ -25,12 +25,12 @@ const contentItemSchema = z.object({
 const adItemSchema = z.object({
   advertiser: z.string().min(3).max(100),
   title: z.string().min(3).max(100),
-  video: z.string().url(),
+  video: z.url(),
   cta: z.string().min(3).max(50),
   description: z.string().min(10),
   notes: z.string().optional(),
   targetInterests: z.array(z.string()).optional(),
-  active: z.boolean().default(true),
+  active: z.boolean().prefault(true),
 });
 
 // Schema for bookmarks

@@ -12,9 +12,9 @@ const router = Router();
 // Validation schemas
 const createJobApplicationSchema = z.object({
   body: z.object({
-    jobId: z.number().int().positive(),
+    jobId: z.int().positive(),
     coverLetter: z.string().optional(),
-    resumeUrl: z.string().url().optional(),
+    resumeUrl: z.url().optional(),
     notes: z.string().optional(),
   }),
 });
@@ -22,7 +22,7 @@ const createJobApplicationSchema = z.object({
 const updateJobApplicationSchema = z.object({
   params: z.object({
     applicationId: z.string().transform(val => parseInt(val)).refine(val => !isNaN(val), {
-      message: 'Application ID must be a valid number'
+        error: 'Application ID must be a valid number'
     }),
   }),
   body: z.object({
@@ -33,19 +33,19 @@ const updateJobApplicationSchema = z.object({
 
 const getJobApplicationsSchema = z.object({
   query: z.object({
-    page: z.coerce.number().min(1).default(1),
-    limit: z.coerce.number().min(1).max(50).default(20),
+    page: z.coerce.number().min(1).prefault(1),
+    limit: z.coerce.number().min(1).max(50).prefault(20),
     status: z.enum(['applied', 'reviewed', 'interview', 'rejected', 'hired']).optional(),
     jobId: z.coerce.number().int().positive().optional(),
-    sortBy: z.enum(['appliedAt', 'updatedAt', 'status']).default('appliedAt'),
-    sortOrder: z.enum(['asc', 'desc']).default('desc'),
+    sortBy: z.enum(['appliedAt', 'updatedAt', 'status']).prefault('appliedAt'),
+    sortOrder: z.enum(['asc', 'desc']).prefault('desc'),
   }),
 });
 
 const getJobApplicationSchema = z.object({
   params: z.object({
     applicationId: z.string().transform(val => parseInt(val)).refine(val => !isNaN(val), {
-      message: 'Application ID must be a valid number'
+        error: 'Application ID must be a valid number'
     }),
   }),
 });
@@ -53,15 +53,15 @@ const getJobApplicationSchema = z.object({
 const getJobApplicationsByJobSchema = z.object({
   params: z.object({
     jobId: z.string().transform(val => parseInt(val)).refine(val => !isNaN(val), {
-      message: 'Job ID must be a valid number'
+        error: 'Job ID must be a valid number'
     }),
   }),
   query: z.object({
-    page: z.coerce.number().min(1).default(1),
-    limit: z.coerce.number().min(1).max(50).default(20),
+    page: z.coerce.number().min(1).prefault(1),
+    limit: z.coerce.number().min(1).max(50).prefault(20),
     status: z.enum(['applied', 'reviewed', 'interview', 'rejected', 'hired']).optional(),
-    sortBy: z.enum(['appliedAt', 'updatedAt', 'status']).default('appliedAt'),
-    sortOrder: z.enum(['asc', 'desc']).default('desc'),
+    sortBy: z.enum(['appliedAt', 'updatedAt', 'status']).prefault('appliedAt'),
+    sortOrder: z.enum(['asc', 'desc']).prefault('desc'),
   }),
 });
 
