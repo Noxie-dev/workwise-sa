@@ -3,10 +3,123 @@
  * Uses fetch (no axios), smart cache keys, retries, and type safety
  */
 
+import { ApiEndpoints, ApiResponse } from './constants';
+import { enhancedApiClient } from './apiClient';
+import type { SuitabilityAnalysis, CoverLetterRequest, CoverLetterResponse } from '../../../shared/job-types';
+
 const API_BASE =
   import.meta.env.VITE_API_BASE ??
   // Netlify local dev proxy or production functions
   '/.netlify/functions';
+
+/**
+ * API Endpoints Configuration (using constants)
+ */
+export const endpoints = ApiEndpoints;
+  // Notifications
+  notifications: {
+    list: '/api/notifications',
+    markRead: (id: string) => `/api/notifications/${id}/read`,
+    settings: '/api/notifications/settings',
+  },
+};
+
+/**
+ * API Client with authentication support
+ */
+class ApiClient {
+  private async getAuthHeaders(): Promise<HeadersInit> {
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add Firebase auth token if available
+    if (typeof window !== 'undefined' && window.firebase?.auth) {
+      const user = window.firebase.auth().currentUser;
+      if (user) {
+        try {
+          const token = await user.getIdToken();
+          headers['Authorization'] = `Bearer ${token}`;
+        } catch (error) {
+          console.warn('Failed to get auth token:', error);
+        }
+      }
+    }
+
+    return headers;
+  }
+
+  async get<T>(path: string, options?: RequestInit): Promise<T> {
+    const headers = await this.getAuthHeaders();
+    return get<T>(path, {
+      ...options,
+      headers: { ...headers, ...options?.headers },
+    });
+  }
+
+  async post<T, B = unknown>(path: string, body: B, options?: RequestInit): Promise<T> {
+    const headers = await this.getAuthHeaders();
+    return post<T, B>(path, body, {
+      ...options,
+      headers: { ...headers, ...options?.headers },
+    });
+  }
+
+  async put<T, B = unknown>(path: string, body: B, options?: RequestInit): Promise<T> {
+    const headers = await this.getAuthHeaders();
+    return put<T, B>(path, body, {
+      ...options,
+      headers: { ...headers, ...options?.headers },
+    });
+  }
+
+  async delete<T>(path: string, options?: RequestInit): Promise<T> {
+    const headers = await this.getAuthHeaders();
+    return del<T>(path, {
+      ...options,
+      headers: { ...headers, ...options?.headers },
+    });
+  }
+
+  async patch<T, B = unknown>(path: string, body: B, options?: RequestInit): Promise<T> {
+    const headers = await this.getAuthHeaders();
+    return patch<T, B>(path, body, {
+      ...options,
+      headers: { ...headers, ...options?.headers },
+    });
+  }
+}
+
+export const api = new ApiClient();
+
+/**
+ * Enhanced Cover Letter API endpoints with centralized error handling
+ */
+export const coverLetterApi = {
+  /**
+   * Analyzes the suitability of a user's profile for a specific job.
+   * @param request - The cover letter request containing job and user profile data.
+   * @returns A promise that resolves to a tuple of [data, error] for consistent error handling.
+   */
+  analyzeSuitability: async (request: CoverLetterRequest): Promise<ApiResponse<SuitabilityAnalysis>> => {
+    return enhancedApiClient.post<SuitabilityAnalysis>(
+      ApiEndpoints.AI.ANALYZE_SUITABILITY,
+      request
+    );
+  },
+
+  /**
+   * Generates a cover letter based on a user's profile and job details.
+   * @param request - The cover letter request, optionally including a pre-computed suitability analysis.
+   * @returns A promise that resolves to a tuple of [data, error] for consistent error handling.
+   */
+  generateCoverLetter: async (request: CoverLetterRequest): Promise<ApiResponse<CoverLetterResponse>> => {
+    return enhancedApiClient.post<CoverLetterResponse>(
+      ApiEndpoints.AI.GENERATE_COVER_LETTER,
+      request
+    );
+  },
+};
 
 /**
  * Enhanced JSON response handler with better error messages

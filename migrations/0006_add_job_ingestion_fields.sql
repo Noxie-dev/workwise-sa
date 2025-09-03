@@ -27,3 +27,4 @@ UPDATE jobs SET source = 'manual' WHERE source IS NULL;
 
 -- Make source column NOT NULL after setting default values
 ALTER TABLE jobs ALTER COLUMN source SET NOT NULL;
+

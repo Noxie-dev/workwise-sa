@@ -13,6 +13,7 @@ import { sendSignInLink, signInWithGoogle } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import FacebookLoginButton from '@/components/FacebookLoginButton';
 
 const formSchema = z.object({
   email: z.email('Please enter a valid email address'),
@@ -182,6 +183,7 @@ const EmailLinkLogin = () => {
               >
                 <i className="fab fa-google mr-2"></i> Google
               </Button>
+              <FacebookLoginButton />
             </div>
             <p className="text-center text-sm text-muted mt-4">
               Want to use a password instead?{' '}
