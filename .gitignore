@@ -26,8 +26,8 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 *.suo
-*.ntvs*
-*.njsproj
+*.ntrs*
+*.csproj
 *.sln
 *.sw?
 
@@ -38,7 +38,7 @@ firebase-debug.log*
 firebase-debug.*.log*
 ui-debug.log*
 .runtimeconfig.json
-workwisesa-dev-firebase-adminsdk*.json
+workwise-dev-firebase-admins*.json
 
 # Uploads
 uploads/*

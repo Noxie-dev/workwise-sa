@@ -128,3 +128,80 @@ export const jobSearchParamsSchema = z.object({
 
 export type JobApplicationInput = z.infer<typeof jobApplicationSchema>;
 export type JobSearchParamsInput = z.infer<typeof jobSearchParamsSchema>;
+
+/**
+ * Suitability Analysis for job applications
+ */
+export interface SuitabilityAnalysis {
+  overallScore: number; // 0-100
+  breakdown: {
+    skillsMatch: number; // 0-100
+    experienceMatch: number; // 0-100
+    educationMatch: number; // 0-100
+    locationMatch: number; // 0-100
+  };
+  strengths: string[];
+  gaps: string[];
+  recommendations: string[];
+  competitionLevel: 'low' | 'medium' | 'high';
+  estimatedChances: number; // 0-100 percentage
+}
+
+/**
+ * Experience duration in a structured format
+ */
+export interface ExperienceDuration {
+  years: number;
+  months: number;
+}
+
+/**
+ * User Profile for AI analysis
+ */
+export interface UserProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  skills: string[];
+  experience: Array<{
+    title: string;
+    company: string;
+    duration?: ExperienceDuration; // Structured duration (optional for backward compatibility)
+    description: string;
+    startDate?: string; // ISO date string
+    endDate?: string; // ISO date string
+    current?: boolean;
+  }>;
+  education: Array<{
+    degree: string;
+    institution: string;
+    year: string;
+    field?: string;
+    gpa?: string;
+  }>;
+  summary?: string;
+  location?: string;
+  phone?: string;
+  linkedin?: string;
+  website?: string;
+}
+
+/**
+ * Cover Letter Request
+ */
+export interface CoverLetterRequest {
+  jobId: string;
+  userProfile: UserProfile;
+  suitabilityAnalysis?: SuitabilityAnalysis;
+}
+
+/**
+ * Cover Letter Response
+ */
+export interface CoverLetterResponse {
+  coverLetter: string;
+  generatedAt: string;
+  jobId: string;
+  userId: string;
+}

@@ -183,3 +183,4 @@ config = Config()
 def get_config() -> Config:
     """Get the global configuration instance"""
     return config
+

@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { signInWithEmail, signInWithGoogle } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
+import FacebookLoginButton from '@/components/FacebookLoginButton';
 
 const formSchema = z.object({
   email: z.email('Please enter a valid email address'),
@@ -207,6 +208,7 @@ const Login = () => {
               >
                 <i className="fab fa-google mr-2"></i> Google
               </Button>
+              <FacebookLoginButton />
             </div>
             <p className="text-center text-sm text-muted mt-4">
               Don't have an account?{' '}

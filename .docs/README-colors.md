@@ -10,12 +10,7 @@ This project uses a custom color palette defined in `src/styles/colors.css` and 
 - `--secondary-foreground`: #1A202C
 - `--accent`: #ECC94B (yellow/gold)
 - `--accent-foreground`: #1A202C
-- `--destructive`: #E53E3E (red)
-- `--destructive-foreground`: #ffffff
-- `--muted`: #F7FAFC
-- `--muted-foreground`: #718096
-- `--card`, `--popover`, `--background`, `--foreground`, `--border`, `--input`, `--ring`, `--radius`: see `colors.css`
-
+- `--destructive`: #E53E3E (red)a
 ## How to Use Colors in Components
 
 ### Tailwind Classes

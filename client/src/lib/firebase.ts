@@ -12,7 +12,9 @@ import {
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
   signInWithEmailLink,
-  ActionCodeSettings
+  ActionCodeSettings,
+  signInWithCredential,
+  FacebookAuthProvider
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -201,6 +203,92 @@ export const signOutUser = async () => {
     console.error("Error signing out:", error);
     throw error;
   }
+};
+
+// Sign in with Facebook
+export const signInWithFacebook = async () => {
+  try {
+    // First check if Facebook SDK is available
+    if (typeof FB === 'undefined') {
+      throw new Error('Facebook SDK not loaded. Please refresh the page and try again.');
+    }
+
+    // Check current login status
+    return new Promise((resolve, reject) => {
+      FB.getLoginStatus(async function(response) {
+        console.log('Facebook login status check:', response);
+        
+        if (response.status === 'connected') {
+          // User is already logged in to Facebook and the app
+          console.log('User already connected to Facebook');
+          try {
+            // Use the existing access token to sign in with Firebase
+            const credential = FacebookAuthProvider.credential(response.authResponse.accessToken);
+            const result = await signInWithCredential(auth, credential);
+            resolve(result.user);
+          } catch (error) {
+            console.error('Error signing in with existing Facebook token:', error);
+            reject(error);
+          }
+        } else {
+          // User needs to log in to Facebook
+          console.log('User not connected to Facebook, initiating login...');
+          FB.login(async function(loginResponse) {
+            console.log('Facebook login response:', loginResponse);
+            
+            if (loginResponse.status === 'connected') {
+              try {
+                // Use the new access token to sign in with Firebase
+                const credential = FacebookAuthProvider.credential(loginResponse.authResponse.accessToken);
+                const result = await signInWithCredential(auth, credential);
+                resolve(result.user);
+              } catch (error) {
+                console.error('Error signing in with Facebook credential:', error);
+                reject(error);
+              }
+            } else {
+              reject(new Error('Facebook login was cancelled or failed'));
+            }
+          }, {
+            scope: 'public_profile,email',
+            return_scopes: true
+          });
+        }
+      });
+    });
+  } catch (error) {
+    console.error("Error signing in with Facebook:", error);
+    throw error;
+  }
+};
+
+// Check Facebook login status
+export const checkFacebookLoginStatus = (): Promise<any> => {
+  return new Promise((resolve) => {
+    if (typeof FB === 'undefined') {
+      resolve({ status: 'unknown', authResponse: null });
+      return;
+    }
+    
+    FB.getLoginStatus(function(response) {
+      resolve(response);
+    });
+  });
+};
+
+// Facebook logout
+export const facebookLogout = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if (typeof FB === 'undefined') {
+      resolve();
+      return;
+    }
+    
+    FB.logout(function(response) {
+      console.log('Facebook logout response:', response);
+      resolve();
+    });
+  });
 };
 
 // Get current user
