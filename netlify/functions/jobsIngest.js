@@ -1,6 +1,6 @@
 // netlify/functions/jobsIngest.js
 import { db } from "./utils/db.js";
-import { jobs } from "../../../shared/schema.js";
+import { jobs } from "../../shared/schema.js";
 import { sql } from "drizzle-orm";
 
 export const handler = async (event) => {
