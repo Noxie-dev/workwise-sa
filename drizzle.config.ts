@@ -12,7 +12,8 @@ const isPostgres = connectionString.startsWith('postgres');
 export default {
   schema: './shared/schema.ts',
   out: './migrations',
-  driver: isPostgres ? 'pg' : 'better-sqlite',
+  dialect: isPostgres ? 'postgresql' : 'sqlite',
+  driver: isPostgres ? 'pg' : 'durable-sqlite',
   dbCredentials: {
     connectionString,
   },
@@ -50,9 +51,4 @@ export default {
   },
   // Better error reporting
   debug: process.env.NODE_ENV === 'development',
-  // Custom migration templates
-  custom: {
-    // Custom migration file template
-    template: './scripts/migration-template.sql',
-  },
 } satisfies Config;

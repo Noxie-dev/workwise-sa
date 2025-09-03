@@ -19,7 +19,7 @@ const WiseUpPage = lazy(() => import("@/pages/WiseUp/WiseUpPage"));
 const Login = lazy(() => import("@/pages/Login"));
 const Register = lazy(() => import("@/pages/Register"));
 const CVBuilder = lazy(() => import("@/pages/CVBuilder"));
-const UserProfile = lazy(() => import("@/pages/UserProfile"));
+// const UserProfile = lazy(() => import("@/pages/UserProfile"));
 const ProfileSetup = lazy(() => import("@/pages/ProfileSetup"));
 const EmailLinkLogin = lazy(() => import("@/pages/EmailLinkLogin"));
 const EmailSignInComplete = lazy(() => import("@/pages/EmailSignInComplete"));
@@ -101,13 +101,9 @@ function Router() {
             <Route path="/privacy-policy" component={PrivacyPolicy} />
             <Route path="/terms" component={Terms} />
             <Route path="/faq" component={FAQ} />
-            <Route path="/faq-wheel" component={FAQWheelPage} />
-
             <Route path="/wise-up" component={WiseUpPage} />
-            <Route path="/cv-builder" component={CVBuilder} />
-            <Route path="/login" component={Login} />
-            <Route path="/register" component={Register} />
-            <Route path="/profile" component={UserProfile} />
+            {/* <Route path="/profile" component={UserProfile} />
+            <Route path="/profile/:username" component={UserProfile} /> */}
             <Route path="/profile/:username" component={UserProfile} />
             <Route path="/profile-setup">
               {() => <ProfileSetup />}

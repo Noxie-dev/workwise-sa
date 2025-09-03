@@ -22,12 +22,14 @@ import EmailSignInComplete from "@/pages/EmailSignInComplete";
 const Home = lazy(() => import("@/pages/Home"));
 const Jobs = lazy(() => import("@/pages/Jobs"));
 const JobDetails = lazy(() => import("@/pages/JobDetails"));
+const JobApplication = lazy(() => import("@/pages/JobApplication"));
 const Companies = lazy(() => import("@/pages/Companies"));
 const CompanyProfile = lazy(() => import("@/pages/CompanyProfile"));
 const Resources = lazy(() => import("@/pages/Resources"));
 const WiseUpPage = lazy(() => import("@/pages/WiseUp/WiseUpPage"));
 const CVBuilder = lazy(() => import("@/pages/CVBuilder"));
-const UserProfile = lazy(() => import("@/pages/UserProfile"));
+// const UserProfile = lazy(() => import("@/pages/UserProfile"));
+const ProfileManagement = lazy(() => import("@/pages/ProfileManagement"));
 const ProfileSetup = lazy(() => import("@/pages/ProfileSetup"));
 const MarketingRulesPage = lazy(() => import("@/pages/MarketingRulesPage"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
@@ -49,17 +51,23 @@ const Solutions = lazy(() => import("@/pages/employers/Solutions"));
 const Pricing = lazy(() => import("@/pages/employers/Pricing"));
 const SuccessStories = lazy(() => import("@/pages/employers/SuccessStories"));
 const EmployerDashboard = lazy(() => import("@/pages/employers/EmployerDashboard"));
+const ApplicationManagement = lazy(() => import("@/pages/employers/ApplicationManagement"));
 
 // Lazy load legal pages
 const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
 const Terms = lazy(() => import("@/pages/Terms"));
+const UserDataDeletion = lazy(() => import("@/pages/UserDataDeletion"));
 
 // Lazy load test pages
 const UITest = lazy(() => import("@/components/ui-test").then(module => ({ default: module.UITest })));
 const TestPage = lazy(() => import("@/pages/TestPage"));
 const FooterTest = lazy(() => import("@/pages/FooterTest"));
 const ColorTest = lazy(() => import("@/pages/ColorTest"));
+const ColorExamples = lazy(() => import("@/components/ColorExamples"));
+const PaymentPage = lazy(() => import("@/pages/PaymentPage"));
+const Pricing = lazy(() => import("@/pages/Pricing"));
+const EnhancedLogin = lazy(() => import("@/pages/EnhancedLogin"));
 const SimpleTest = lazy(() => import("@/pages/SimpleTest"));
 
 // Loading component
@@ -79,6 +87,7 @@ function Router() {
           <Route path="/home-original" component={Home} />
           <Route path="/jobs" component={Jobs} />
           <Route path="/jobs/:id" component={JobDetails} />
+          <Route path="/jobs/:id/apply" component={JobApplication} />
           <Route path="/companies" component={Companies} />
           <Route path="/companies/:slug" component={CompanyProfile} />
           <Route path="/resources" component={Resources} />
@@ -97,6 +106,8 @@ function Router() {
           <Route path="/employers/post-job" component={PostJob} />
           <Route path="/employers/browse-candidates" component={BrowseCandidates} />
           <Route path="/employers/dashboard" component={EmployerDashboard} />
+          <Route path="/employers/applications" component={ApplicationManagement} />
+          <Route path="/employers/applications/:jobId" component={ApplicationManagement} />
 
           {/* Authentication pages */}
           <Route path="/login" component={Login} />
@@ -105,7 +116,8 @@ function Router() {
           <Route path="/auth/email-signin-complete" component={EmailSignInComplete} />
 
           {/* User pages */}
-          <Route path="/profile" component={UserProfile} />
+          {/* <Route path="/profile" component={UserProfile} /> */}
+          <Route path="/profile/manage" component={ProfileManagement} />
           <Route path="/profile-setup" component={ProfileSetup} />
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/applications" component={ApplicationHistory} />
@@ -123,12 +135,22 @@ function Router() {
           <Route path="/terms" component={Terms} />
           <Route path="/terms-of-service" component={TermsOfService} />
           <Route path="/privacy-policy" component={PrivacyPolicy} />
+          <Route path="/user-data-deletion" component={UserDataDeletion} />
 
           {/* Admin pages */}
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/settings" component={AdminSettings} />
           <Route path="/marketing-rules" component={MarketingRulesPage} />
           <Route path="/dashboard" component={Dashboard} />
+
+          {/* Development/Design pages */}
+          <Route path="/color-examples" component={ColorExamples} />
+
+          {/* Payment pages */}
+          <Route path="/pricing" component={Pricing} />
+          <Route path="/payment" component={PaymentPage} />
+          <Route path="/checkout" component={PaymentPage} />
+          
           <Route component={NotFound} />
         </Switch>
       </Suspense>

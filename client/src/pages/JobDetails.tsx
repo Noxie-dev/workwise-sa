@@ -261,17 +261,31 @@ const JobDetails: React.FC = () => {
               <div className="space-y-6">
                 {/* Apply Button */}
                 <Card>
-                  <CardContent className="p-6">
+                  <CardContent className="p-6 space-y-4">
+                    <Button 
+                      className="w-full" 
+                      size="lg"
+                      onClick={() => navigate(`/jobs/${jobId}/apply`)}
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      Apply for this Job
+                    </Button>
+                    
+                    <div className="text-center">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setIsApplicationModalOpen(true)}
+                        className="text-sm"
+                      >
+                        Quick Apply (Modal)
+                      </Button>
+                    </div>
+                    
                     <Dialog open={isApplicationModalOpen} onOpenChange={setIsApplicationModalOpen}>
-                      <DialogTrigger asChild>
-                        <Button className="w-full" size="lg">
-                          <Send className="w-4 h-4 mr-2" />
-                          Apply for this Job
-                        </Button>
-                      </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Apply for {job.title}</DialogTitle>
+                          <DialogTitle>Quick Apply for {job.title}</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div>

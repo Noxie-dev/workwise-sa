@@ -60,9 +60,23 @@ jobs:
           
       - name: Set up environment
         run: |
-          echo "NETLIFY_URL=${{ secrets.NETLIFY_URL }}" >> $GITHUB_ENV
-          echo "API_KEY=${{ secrets.API_KEY }}" >> $GITHUB_ENV
-          echo "MANUAL_JOBS_FILE=${{ secrets.MANUAL_JOBS_FILE }}" >> $GITHUB_ENV
+          if [ -n "${{ secrets.NETLIFY_URL }}" ]; then
+            echo "NETLIFY_URL=${{ secrets.NETLIFY_URL }}" >> $GITHUB_ENV
+          else
+            echo "NETLIFY_URL=https://your-site.netlify.app" >> $GITHUB_ENV
+          fi
+          
+          if [ -n "${{ secrets.API_KEY }}" ]; then
+            echo "API_KEY=${{ secrets.API_KEY }}" >> $GITHUB_ENV
+          else
+            echo "API_KEY=" >> $GITHUB_ENV
+          fi
+          
+          if [ -n "${{ secrets.MANUAL_JOBS_FILE }}" ]; then
+            echo "MANUAL_JOBS_FILE=${{ secrets.MANUAL_JOBS_FILE }}" >> $GITHUB_ENV
+          else
+            echo "MANUAL_JOBS_FILE=" >> $GITHUB_ENV
+          fi
           
       - name: Run job ingestion pipeline
         run: |
@@ -89,7 +103,6 @@ jobs:
         with:
           status: ${{ job.status }}
           channel: '#workwise-sa'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
@@ -127,3 +140,4 @@ jobs:
             scripts/test-results.xml
             scripts/coverage.xml
           retention-days: 30
+

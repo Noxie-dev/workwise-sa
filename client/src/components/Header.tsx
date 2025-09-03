@@ -2,10 +2,11 @@ import { useState, useCallback, useMemo } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import UserMenu from '@/components/UserMenu';
 import AdminButton from '@/components/AdminButton';
+import '@/styles/header-mobile.css';
 
 // Navigation items configuration
 const navigationItems = [
@@ -34,7 +35,7 @@ const NavLink = ({ href, label, isActive, className, onClick }: NavLinkProps) =>
   <Link
     href={href}
     className={cn(
-      'font-medium text-sm transition-colors duration-200 hover:text-primary',
+      'font-medium text-sm transition-colors duration-200 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md',
       isActive ? 'text-primary' : 'text-muted-foreground',
       className
     )}
@@ -46,14 +47,14 @@ const NavLink = ({ href, label, isActive, className, onClick }: NavLinkProps) =>
 
 /**
  * Logo Component
- * Renders the WorkWise SA logo with proper accessibility
+ * Renders the WorkWise SA logo with responsive sizing
  */
 const Logo = () => (
   <Link href="/" className="flex items-center group">
     <img
       src="/images/logo.png"
       alt="WorkWise SA - Job Search Platform"
-      className="h-20 sm:h-24 mr-2 transition-transform duration-200 group-hover:scale-105"
+      className="h-16 sm:h-20 md:h-24 transition-transform duration-200 group-hover:scale-105 header-logo-mobile header-logo-xs header-logo-landscape header-high-dpi"
       loading="lazy"
     />
     <span className="sr-only">WorkWise SA Home</span>
@@ -62,7 +63,7 @@ const Logo = () => (
 
 /**
  * Mobile Navigation Component
- * Handles mobile navigation using Sheet component
+ * Enhanced mobile navigation with better UX and accessibility
  */
 interface MobileNavProps {
   navigationItems: readonly { href: string; label: string; id: string }[];
@@ -82,42 +83,54 @@ const MobileNav = ({ navigationItems, currentPath }: MobileNavProps) => {
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden"
+          className="md:hidden h-10 w-10 rounded-lg hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 mobile-nav-trigger"
           aria-label="Toggle navigation menu"
         >
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-72 sm:w-80">
-        <div className="flex flex-col space-y-6 pt-6">
-          <div className="flex items-center justify-between">
+      <SheetContent side="right" className="w-full max-w-sm sm:max-w-md p-0 mobile-sheet-content">
+        <div className="flex flex-col h-full">
+          {/* Header with Logo and Close Button */}
+          <div className="flex items-center justify-between p-4 border-b border-border">
             <Logo />
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsOpen(false)}
+              className="h-10 w-10 rounded-lg hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 mobile-nav-trigger"
               aria-label="Close navigation menu"
             >
               <X className="h-5 w-5" />
             </Button>
           </div>
           
-          <nav className="flex flex-col space-y-4">
-            {navigationItems.map((item) => (
-              <NavLink
-                key={item.id}
-                href={item.href}
-                label={item.label}
-                isActive={currentPath === item.href}
-                className="text-base py-2"
-                onClick={handleLinkClick}
-              />
-            ))}
+          {/* Navigation Links */}
+          <nav className="flex-1 px-4 py-6">
+            <div className="space-y-2">
+              {navigationItems.map((item) => (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className={cn(
+                    'block w-full text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 mobile-nav-link',
+                    'hover:bg-gray-50 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+                    currentPath === item.href 
+                      ? 'bg-primary/10 text-primary border-l-4 border-primary active' 
+                      : 'text-muted-foreground'
+                  )}
+                  onClick={handleLinkClick}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </nav>
           
-          <div className="border-t pt-4 space-y-4">
-            <AdminButton variant="outline" className="w-full" />
-            <UserMenu className="w-full" />
+          {/* Bottom Actions */}
+          <div className="border-t border-border p-4 space-y-3">
+            <AdminButton variant="outline" className="w-full h-11 text-base mobile-action-button" />
+            <UserMenu className="w-full mobile-action-button" />
           </div>
         </div>
       </SheetContent>
@@ -127,7 +140,7 @@ const MobileNav = ({ navigationItems, currentPath }: MobileNavProps) => {
 
 /**
  * Desktop Navigation Component
- * Handles desktop navigation layout
+ * Enhanced desktop navigation with better spacing and hover effects
  */
 interface DesktopNavProps {
   navigationItems: readonly { href: string; label: string; id: string }[];
@@ -135,7 +148,7 @@ interface DesktopNavProps {
 }
 
 const DesktopNav = ({ navigationItems, currentPath }: DesktopNavProps) => (
-  <nav className="hidden md:flex items-center space-x-8">
+  <nav className="hidden lg:flex items-center space-x-8">
     <ul className="flex items-center space-x-6">
       {navigationItems.map((item) => (
         <li key={item.id}>
@@ -143,6 +156,7 @@ const DesktopNav = ({ navigationItems, currentPath }: DesktopNavProps) => (
             href={item.href}
             label={item.label}
             isActive={currentPath === item.href}
+            className="px-3 py-2 rounded-md hover:bg-gray-50"
           />
         </li>
       ))}
@@ -156,8 +170,39 @@ const DesktopNav = ({ navigationItems, currentPath }: DesktopNavProps) => (
 );
 
 /**
+ * Tablet Navigation Component
+ * Intermediate navigation for tablet-sized screens
+ */
+interface TabletNavProps {
+  navigationItems: readonly { href: string; label: string; id: string }[];
+  currentPath: string;
+}
+
+const TabletNav = ({ navigationItems, currentPath }: TabletNavProps) => (
+  <nav className="hidden md:flex lg:hidden items-center space-x-4 header-tablet-optimized">
+    <ul className="flex items-center space-x-4">
+      {navigationItems.slice(0, 4).map((item) => (
+        <li key={item.id}>
+          <NavLink
+            href={item.href}
+            label={item.label}
+            isActive={currentPath === item.href}
+            className="px-2 py-2 text-sm rounded-md hover:bg-gray-50 tablet-nav-item"
+          />
+        </li>
+      ))}
+    </ul>
+    
+    <div className="flex items-center space-x-2 ml-4 border-l border-border pl-4">
+      <AdminButton variant="outline" size="sm" />
+      <UserMenu />
+    </div>
+  </nav>
+);
+
+/**
  * Header Component
- * Main header component with responsive navigation
+ * Enhanced header with better responsive design and mobile optimization
  */
 const Header = () => {
   const [location] = useLocation();
@@ -166,21 +211,27 @@ const Header = () => {
   const currentPath = useMemo(() => location, [location]);
   
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-border">
-      <div className="container mx-auto px-4 py-3">
+    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-border shadow-sm header-mobile-optimized header-landscape">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-3 header-xs-optimized">
         <div className="flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center">
+          {/* Logo - Responsive sizing */}
+          <div className="flex items-center flex-shrink-0">
             <Logo />
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Tablet Navigation - Shows fewer items */}
+          <TabletNav
+            navigationItems={navigationItems}
+            currentPath={currentPath}
+          />
+
+          {/* Desktop Navigation - Shows all items */}
           <DesktopNav
             navigationItems={navigationItems}
             currentPath={currentPath}
           />
 
-          {/* Mobile Navigation */}
+          {/* Mobile Navigation - Hamburger menu */}
           <MobileNav
             navigationItems={navigationItems}
             currentPath={currentPath}
