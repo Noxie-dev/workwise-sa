@@ -6,11 +6,20 @@ export function registerCategoryRoutes(router: Router) {
   // Categories routes
   router.get("/categories", async (req, res) => {
     try {
+      console.log("Fetching categories...");
       const categories = await storage.getCategories();
-      res.json(categories);
+      console.log(`Found ${categories.length} categories`);
+      res.json({
+        success: true,
+        data: categories
+      });
     } catch (error) {
       console.error("Error fetching categories:", error);
-      res.status(500).json({ message: "Failed to fetch categories" });
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch categories",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 

@@ -27,6 +27,9 @@ export default defineConfig(({ mode }) => ({
     // Split vendor chunks more aggressively
     splitVendorChunkPlugin: true,
     rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, './client/index.html')
+      },
       output: {
         // Ensure chunks are properly named and hashed
         entryFileNames: 'assets/[name]-[hash].js',
@@ -191,6 +194,14 @@ export default defineConfig(({ mode }) => ({
       usePolling: true, // More reliable file watching
       interval: 1000, // Check for changes every second
     },
+    fs: {
+      allow: [
+        // Allow serving files from the project root
+        '..',
+        // Allow serving Font Awesome webfonts
+        path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts')
+      ]
+    },
     proxy: {
       "/api": {
         target: "http://localhost:3001", // Match the PORT in .env
@@ -207,6 +218,8 @@ export default defineConfig(({ mode }) => ({
       }
     },
     cors: true, // Enable CORS for all origins
+    // SPA fallback - serve index.html for all routes
+    historyApiFallback: true,
   },
   resolve: {
     alias: {

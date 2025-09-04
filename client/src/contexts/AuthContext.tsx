@@ -90,7 +90,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Sign in with Facebook
+  // Sign in with Facebook - COMMENTED OUT FOR NOW
+  /*
   const signInWithFacebook = async (): Promise<void> => {
     try {
       const user = await authService.signInWithFacebook();
@@ -99,6 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       throw new Error(error.message || 'Facebook sign in failed');
     }
   };
+  */
 
   // Sign out
   const signOut = async (): Promise<void> => {
@@ -211,7 +213,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     signIn,
     signInWithGoogle,
-    signInWithFacebook,
+    // signInWithFacebook, // Commented out for now
     signOut,
     sendTwoFactorCode,
     verifyTwoFactorCode,

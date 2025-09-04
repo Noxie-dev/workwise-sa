@@ -1,19 +1,373 @@
-// src/firebase.ts
-// Re-export Firebase functionality from server/firebase.ts
-import firebaseApp, { db, storage } from '../server/firebase';
-import * as admin from 'firebase-admin';
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+  User,
+  GoogleAuthProvider,
+  signInWithPopup,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink,
+  ActionCodeSettings,
+  signInWithCredential,
+  // FacebookAuthProvider // Commented out for now
+} from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
-// Create mock auth service for development
-const mockAuth = {
-  verifyIdToken: async () => ({ uid: 'mock-uid', email: 'mock@example.com' }),
-  createUser: async () => ({ uid: 'mock-uid' }),
-  updateUser: async () => ({ uid: 'mock-uid' }),
-  deleteUser: async () => ({}),
-  getUser: async () => ({ uid: 'mock-uid', email: 'mock@example.com' }),
-  getUserByEmail: async () => ({ uid: 'mock-uid', email: 'mock@example.com' }),
-  listUsers: async () => ({ users: [] }),
+console.log('Starting Firebase initialization...');
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'workwise-sa-project.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'workwise-sa-project',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'workwise-sa-project.appspot.com',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-export const auth = firebaseApp ? admin.auth(firebaseApp) : mockAuth;
-export { db, storage };
-export default firebaseApp;
+// Check for missing configuration
+const missingConfig = Object.entries(firebaseConfig)
+  .filter(([key, value]) => !value && key !== 'messagingSenderId') // messagingSenderId is optional
+  .map(([key]) => key);
+
+if (missingConfig.length > 0) {
+  console.error('⚠️ Missing Firebase configuration:', missingConfig.join(', '));
+  console.error('Please check your .env file and ensure all Firebase variables are set correctly.');
+}
+
+console.log('Firebase config:', { ...firebaseConfig, apiKey: '[REDACTED]' });
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+
+console.log('Firebase initialized successfully');
+
+// Connect to emulators in development mode
+if (import.meta.env.DEV) {
+  const useEmulators = import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true';
+  console.log('Development mode detected, useEmulators:', useEmulators);
+
+  if (useEmulators) {
+    console.log('Connecting to Firebase emulators...');
+
+    // Import emulator connection functions
+    import('firebase/auth').then(({ connectAuthEmulator }) => {
+      console.log('Connecting to Auth emulator on http://127.0.0.1:9099');
+      connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+    });
+
+    import('firebase/firestore').then(({ connectFirestoreEmulator }) => {
+      console.log('Connecting to Firestore emulator on 127.0.0.1:8080');
+      connectFirestoreEmulator(getFirestore(app), '127.0.0.1', 8080);
+    });
+
+    import('firebase/storage').then(({ connectStorageEmulator }) => {
+      console.log('Connecting to Storage emulator on 127.0.0.1:9199');
+      connectStorageEmulator(getStorage(app), '127.0.0.1', 9199);
+    });
+  } else {
+    console.log('Using production Firebase services (emulators disabled)');
+  }
+}
+
+// Email link authentication settings
+const actionCodeSettings: ActionCodeSettings = {
+  // URL to redirect to after email link is clicked
+  url: import.meta.env.VITE_AUTH_EMAIL_LINK_SIGN_IN_URL || `${window.location.origin}/auth/email-signin-complete`,
+  // Handle the link in the app instead of browser
+  handleCodeInApp: true,
+  // Only include iOS and Android settings if they are defined
+  ...(import.meta.env.VITE_IOS_BUNDLE_ID ? {
+    iOS: {
+      bundleId: import.meta.env.VITE_IOS_BUNDLE_ID
+    }
+  } : {}),
+  ...(import.meta.env.VITE_ANDROID_PACKAGE_NAME ? {
+    android: {
+      packageName: import.meta.env.VITE_ANDROID_PACKAGE_NAME,
+      installApp: true,
+      minimumVersion: '12'
+    }
+  } : {}),
+  ...(import.meta.env.VITE_FIREBASE_DYNAMIC_LINK_DOMAIN ? {
+    dynamicLinkDomain: import.meta.env.VITE_FIREBASE_DYNAMIC_LINK_DOMAIN
+  } : {})
+};
+
+// Log the current configuration for debugging
+console.log('Email link authentication URL:', import.meta.env.VITE_AUTH_EMAIL_LINK_SIGN_IN_URL || `${window.location.origin}/auth/email-signin-complete`);
+console.log('Current origin:', window.location.origin);
+
+// Sign up with email and password
+export const signUpWithEmail = async (email: string, password: string, displayName: string) => {
+  try {
+    console.log(`Attempting to sign up user with email: ${email}`);
+    console.log('Firebase auth initialized:', !!auth);
+    console.log('Using Firebase emulators:', import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true' ? 'Yes' : 'No');
+    
+    // Check Firebase configuration
+    if (!firebaseConfig.apiKey) {
+      throw new Error('Firebase API key is missing. Check your environment variables.');
+    }
+    
+    // Check if we're connected to emulators in development
+    if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true') {
+      console.log('Using Firebase Auth emulator at http://127.0.0.1:9099');
+      
+      // Try to check if emulator is actually running
+      try {
+        const response = await fetch('http://127.0.0.1:9099', { method: 'GET' });
+        if (!response.ok) {
+          console.warn('⚠️ Firebase Auth emulator might not be running. Registration might fail.');
+        }
+      } catch (e) {
+        console.error('❌ Cannot connect to Firebase Auth emulator. Registration will likely fail.');
+        console.error('Please start Firebase emulators or set VITE_USE_FIREBASE_EMULATORS=false');
+      }
+    }
+    
+    console.log('Creating user with Firebase Authentication...');
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    console.log('User created successfully:', userCredential.user.uid);
+    
+    // Update user profile with display name
+    if (userCredential.user) {
+      console.log('Updating user profile with display name:', displayName);
+      await updateProfile(userCredential.user, {
+        displayName
+      });
+      console.log('User profile updated successfully');
+    }
+    return userCredential.user;
+  } catch (error: any) {
+    console.error("Error signing up:", error.code, error.message);
+    console.error("Full error details:", error);
+    
+    // Additional debugging for specific error cases
+    if (error.code === 'auth/network-request-failed') {
+      console.error("Network request failed. This could indicate that:");
+      console.error("1. You're not connected to the internet");
+      console.error("2. Firebase emulators are not running (if using emulators)");
+      console.error("3. Firebase project is not properly configured");
+      
+      // Check if we're trying to use emulators
+      if (import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true') {
+        console.error("IMPORTANT: You're configured to use Firebase emulators, but they might not be running.");
+        console.error("Either start the emulators with 'firebase emulators:start' or set VITE_USE_FIREBASE_EMULATORS=false");
+      }
+    }
+    
+    throw error;
+  }
+};
+
+// Sign in with email and password
+export const signInWithEmail = async (email: string, password: string) => {
+  try {
+    console.log(`Attempting to sign in user with email: ${email}`);
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    console.log('User signed in successfully:', userCredential.user.uid);
+    return userCredential.user;
+  } catch (error: any) {
+    console.error("Error signing in:", error.code, error.message);
+    throw error;
+  }
+};
+
+// Sign in with Google
+export const signInWithGoogle = async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
+  } catch (error) {
+    console.error("Error signing in with Google:", error);
+    throw error;
+  }
+};
+
+// Sign out
+export const signOutUser = async () => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error("Error signing out:", error);
+    throw error;
+  }
+};
+
+// Sign in with Facebook - COMMENTED OUT FOR NOW
+/*
+export const signInWithFacebook = async () => {
+  try {
+    // Check if we're in development mode (HTTP) - Facebook requires HTTPS
+    if (import.meta.env.DEV && window.location.protocol === 'http:') {
+      throw new Error('Facebook login requires HTTPS. Please use the production environment or enable HTTPS in development.');
+    }
+
+    // First check if Facebook SDK is available
+    if (typeof FB === 'undefined') {
+      throw new Error('Facebook SDK not loaded. Please refresh the page and try again.');
+    }
+
+    // Check current login status
+    return new Promise((resolve, reject) => {
+      FB.getLoginStatus(async function(response) {
+        console.log('Facebook login status check:', response);
+        
+        if (response.status === 'connected') {
+          // User is already logged in to Facebook and the app
+          console.log('User already connected to Facebook');
+          try {
+            // Use the existing access token to sign in with Firebase
+            const credential = FacebookAuthProvider.credential(response.authResponse.accessToken);
+            const result = await signInWithCredential(auth, credential);
+            resolve(result.user);
+          } catch (error) {
+            console.error('Error signing in with existing Facebook token:', error);
+            reject(error);
+          }
+        } else {
+          // User needs to log in to Facebook
+          console.log('User not connected to Facebook, initiating login...');
+          FB.login(async function(loginResponse) {
+            console.log('Facebook login response:', loginResponse);
+            
+            if (loginResponse.status === 'connected') {
+              try {
+                // Use the new access token to sign in with Firebase
+                const credential = FacebookAuthProvider.credential(loginResponse.authResponse.accessToken);
+                const result = await signInWithCredential(auth, credential);
+                resolve(result.user);
+              } catch (error) {
+                console.error('Error signing in with Facebook credential:', error);
+                reject(error);
+              }
+            } else {
+              reject(new Error('Facebook login was cancelled or failed'));
+            }
+          }, {
+            scope: 'public_profile,email',
+            return_scopes: true
+          });
+        }
+      });
+    });
+  } catch (error) {
+    console.error("Error signing in with Facebook:", error);
+    throw error;
+  }
+};
+*/
+
+// Check Facebook login status - COMMENTED OUT FOR NOW
+/*
+export const checkFacebookLoginStatus = (): Promise<any> => {
+  return new Promise((resolve) => {
+    if (typeof FB === 'undefined') {
+      resolve({ status: 'unknown', authResponse: null });
+      return;
+    }
+    
+    FB.getLoginStatus(function(response) {
+      resolve(response);
+    });
+  });
+};
+
+// Facebook logout
+export const facebookLogout = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if (typeof FB === 'undefined') {
+      resolve();
+      return;
+    }
+    
+    FB.logout(function(response) {
+      console.log('Facebook logout response:', response);
+      resolve();
+    });
+  });
+};
+*/
+
+// Get current user
+export const getCurrentUser = (): User | null => {
+  return auth.currentUser;
+};
+
+// Listen to auth state changes
+export const onAuthChange = (callback: (user: User | null) => void) => {
+  return onAuthStateChanged(auth, callback);
+};
+
+// Send email link for passwordless sign-in
+export const sendSignInLink = async (email: string) => {
+  try {
+    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+    // Save email locally to verify it when user clicks the link from email
+    window.localStorage.setItem('emailForSignIn', email);
+    return true;
+  } catch (error) {
+    console.error("Error sending sign-in link:", error);
+    throw error;
+  }
+};
+
+// Complete sign-in with email link
+export const completeSignInWithEmailLink = async (email: string, link: string) => {
+  try {
+    const result = await signInWithEmailLink(auth, email, link);
+    // Clear the stored email
+    window.localStorage.removeItem('emailForSignIn');
+    return result.user;
+  } catch (error) {
+    console.error("Error completing sign-in with email link:", error);
+    throw error;
+  }
+};
+
+// Check if the URL is a sign-in with email link
+export const checkIfSignInWithEmailLink = (link: string): boolean => {
+  return isSignInWithEmailLink(auth, link);
+};
+
+// Get email from storage (for use with email link auth)
+export const getEmailFromStorage = (): string | null => {
+  return window.localStorage.getItem('emailForSignIn');
+};
+
+// Initialize Firestore
+const db = getFirestore(app);
+
+// Initialize Storage
+const storage = getStorage(app);
+
+// Helper function for file uploads
+export const uploadFile = async (file: File, path: string): Promise<string> => {
+  try {
+    const storageRef = ref(storage, path);
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    return downloadURL;
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    throw error;
+  }
+};
+
+// AI Helper Functions
+export const generateContent = async (prompt: string): Promise<string> => {
+  // Temporary placeholder implementation
+  console.warn('Firebase AI not yet available. This is a placeholder response.');
+  return `AI Response to: "${prompt}"\n\nThis is a placeholder response. Firebase AI integration will be available when the firebase/ai package is released.`;
+};
+
+export { auth, db, storage };

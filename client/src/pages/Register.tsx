@@ -15,7 +15,7 @@ import { insertUserSchema } from '@shared/schema';
 import { signUpWithEmail, signInWithGoogle } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { createTestUser } from '@/utils/test-user';
-import FacebookLoginButton from '@/components/FacebookLoginButton';
+// import FacebookLoginButton from '@/components/FacebookLoginButton'; // Commented out for now
 
 const formSchema = insertUserSchema.extend({
   confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
@@ -363,7 +363,7 @@ const Register = () => {
             >
               <i className="fab fa-google mr-2"></i> Google
             </Button>
-            <FacebookLoginButton />
+            {/* <FacebookLoginButton /> */} {/* Commented out for now */}
             <p className="text-center text-sm text-muted mt-4">
               Already have an account?{' '}
               <Link href="/login" className="text-primary hover:underline">

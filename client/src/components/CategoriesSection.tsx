@@ -4,6 +4,7 @@ import CategoryCard from './CategoryCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { type Category } from '@shared/schema';
 import { mockCategories, createMockResponse } from '@/services/mockData';
+import { buildApiUrl, shouldUseMockData } from '@/config/api';
 
 interface CategoryResponse {
   success: boolean;
@@ -15,14 +16,14 @@ const CategoriesSection = () => {
     queryKey: ['/api/categories'],
     queryFn: async () => {
       // Always use mock data in production or if we're on Netlify
-      if (import.meta.env.PROD || window.location.hostname.includes('netlify.app')) {
+      if (shouldUseMockData()) {
         console.log('Using mock categories data in production or Netlify environment');
         return createMockResponse(mockCategories);
       }
 
       // In development, make the actual API call
       try {
-        const response = await fetch('/api/categories');
+        const response = await fetch(buildApiUrl('/api/categories'));
         if (!response.ok) {
           throw new Error('Failed to fetch categories');
         }

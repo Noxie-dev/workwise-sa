@@ -505,7 +505,7 @@ export default function CVBuilder() {
   const onSubmit = async (data: CVFormValues) => {
     try {
       // Call the CV template generation endpoint
-      const response = await fetch('/api/cv/generate-template', {
+      const response = await fetch('http://localhost:4000/api/cv/generate-template', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -11,6 +11,16 @@ export default defineConfig({
     hmr: {
       host: 'localhost',
     },
+    fs: {
+      allow: [
+        // Allow serving files from the project root
+        '..',
+        // Allow serving Font Awesome webfonts
+        path.resolve(__dirname, '../node_modules/@fortawesome/fontawesome-free/webfonts'),
+        // Allow serving from node_modules for Font Awesome
+        path.resolve(__dirname, '../node_modules')
+      ]
+    }
   },
   resolve: {
     alias: {

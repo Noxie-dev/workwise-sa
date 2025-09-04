@@ -135,3 +135,4 @@ export type JobDetailsResponse = ApiResponse<JobWithDetails>;
 export type JobApplicationSubmitResponse = ApiResponse<JobApplicationResponse>;
 export type UserApplicationsResponse = ApiResponse<UserApplicationsResponse>;
 
+
