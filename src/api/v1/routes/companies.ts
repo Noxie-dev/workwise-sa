@@ -6,11 +6,20 @@ export function registerCompanyRoutes(router: Router) {
   // Companies routes
   router.get("/companies", async (req, res) => {
     try {
+      console.log("Fetching companies...");
       const companies = await storage.getCompanies();
-      res.json(companies);
+      console.log(`Found ${companies.length} companies`);
+      res.json({
+        success: true,
+        data: companies
+      });
     } catch (error) {
       console.error("Error fetching companies:", error);
-      res.status(500).json({ message: "Failed to fetch companies" });
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch companies",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 

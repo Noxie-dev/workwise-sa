@@ -22,11 +22,16 @@ registerCompanyRoutes(v1Router);
 registerJobRoutes(v1Router);
 registerTopHiringRoutes(v1Router);
 
+// Auth routes - public for login/register
+const authRouter = Router();
+registerUserRoutes(authRouter);
+v1Router.use('/auth', authRouter);
+
 // Protected routes - require authentication
 const protectedRouter = Router();
 v1Router.use('/protected', authenticate, protectedRouter);
 
-// Register protected routes
+// Register protected user routes
 registerUserRoutes(protectedRouter);
 
 // CV routes with AI rate limiting

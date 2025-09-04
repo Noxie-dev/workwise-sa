@@ -1,7 +1,12 @@
 /**
  * Legacy Authentication Service
- * @deprecated This service is being replaced by the enhanced auth system
- * Use the new auth context and hooks instead
+ * @deprecated This service is being replaced by the unified auth system
+ * Use the new unified auth service instead: @shared/unified-auth-service
+ * 
+ * MIGRATION GUIDE:
+ * - Replace imports from this file with @shared/unified-auth-service
+ * - Use unifiedAuthService instead of individual functions
+ * - Update your components to use the new auth context
  */
 
 import { API_URL } from '@/lib/env';

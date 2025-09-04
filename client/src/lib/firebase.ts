@@ -14,12 +14,10 @@ import {
   signInWithEmailLink,
   ActionCodeSettings,
   signInWithCredential,
-  FacebookAuthProvider
+  // FacebookAuthProvider // Commented out for now
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-// TODO: Firebase AI is not yet available in the current Firebase SDK version
-// import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 
 console.log('Starting Firebase initialization...');
 
@@ -205,9 +203,15 @@ export const signOutUser = async () => {
   }
 };
 
-// Sign in with Facebook
+// Sign in with Facebook - COMMENTED OUT FOR NOW
+/*
 export const signInWithFacebook = async () => {
   try {
+    // Check if we're in development mode (HTTP) - Facebook requires HTTPS
+    if (import.meta.env.DEV && window.location.protocol === 'http:') {
+      throw new Error('Facebook login requires HTTPS. Please use the production environment or enable HTTPS in development.');
+    }
+
     // First check if Facebook SDK is available
     if (typeof FB === 'undefined') {
       throw new Error('Facebook SDK not loaded. Please refresh the page and try again.');
@@ -261,8 +265,10 @@ export const signInWithFacebook = async () => {
     throw error;
   }
 };
+*/
 
-// Check Facebook login status
+// Check Facebook login status - COMMENTED OUT FOR NOW
+/*
 export const checkFacebookLoginStatus = (): Promise<any> => {
   return new Promise((resolve) => {
     if (typeof FB === 'undefined') {
@@ -290,6 +296,7 @@ export const facebookLogout = (): Promise<void> => {
     });
   });
 };
+*/
 
 // Get current user
 export const getCurrentUser = (): User | null => {
@@ -357,8 +364,6 @@ export const uploadFile = async (file: File, path: string): Promise<string> => {
 };
 
 // AI Helper Functions
-
-// TODO: Implement generateContent when Firebase AI is available
 export const generateContent = async (prompt: string): Promise<string> => {
   // Temporary placeholder implementation
   console.warn('Firebase AI not yet available. This is a placeholder response.');
@@ -366,5 +371,3 @@ export const generateContent = async (prompt: string): Promise<string> => {
 };
 
 export { auth, db, storage };
-// TODO: Export ai and model when Firebase AI is available
-// export { auth, db, storage, ai, model };

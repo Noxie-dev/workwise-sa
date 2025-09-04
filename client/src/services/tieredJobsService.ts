@@ -1,6 +1,7 @@
 import apiClient from './apiClient';
 import { JobPreview, JobWithDetails, JobSearchParams, JobSearchResponse, JobApplication, JobApplicationInput } from '../../../shared/job-types';
 import { auth } from '@/lib/firebase';
+import { buildApiUrl, shouldUseMockData } from '@/config/api';
 
 /**
  * Service for tiered job access - handles both public previews and authenticated details
@@ -11,7 +12,11 @@ export const tieredJobsService = {
    */
   async getJobPreviews(params: JobSearchParams = {}): Promise<JobSearchResponse> {
     try {
-      const response = await fetch('/.netlify/functions/jobPreviews?' + new URLSearchParams({
+      // Use Netlify functions in production, local API in development
+      const baseUrl = shouldUseMockData() ? '' : 'http://localhost:4000';
+      const endpoint = shouldUseMockData() ? '/.netlify/functions/jobPreviews' : '/api/jobs/previews';
+      
+      const response = await fetch(baseUrl + endpoint + '?' + new URLSearchParams({
         ...Object.fromEntries(
           Object.entries(params).map(([key, value]) => [key, String(value)])
         )
@@ -39,7 +44,9 @@ export const tieredJobsService = {
       }
 
       const token = await user.getIdToken();
-      const response = await fetch(`/.netlify/functions/jobDetails/${jobId}`, {
+      const baseUrl = shouldUseMockData() ? '' : 'http://localhost:4000';
+      const endpoint = shouldUseMockData() ? `/.netlify/functions/jobDetails/${jobId}` : `/api/jobs/${jobId}`;
+      const response = await fetch(baseUrl + endpoint, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -71,7 +78,9 @@ export const tieredJobsService = {
       }
 
       const token = await user.getIdToken();
-      const response = await fetch('/.netlify/functions/jobApplications', {
+      const baseUrl = shouldUseMockData() ? '' : 'http://localhost:4000';
+      const endpoint = shouldUseMockData() ? '/.netlify/functions/jobApplications' : '/api/job-applications';
+      const response = await fetch(baseUrl + endpoint, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -103,7 +112,9 @@ export const tieredJobsService = {
       }
 
       const token = await user.getIdToken();
-      const response = await fetch('/.netlify/functions/jobApplications', {
+      const baseUrl = shouldUseMockData() ? '' : 'http://localhost:4000';
+      const endpoint = shouldUseMockData() ? '/.netlify/functions/jobApplications' : '/api/job-applications';
+      const response = await fetch(baseUrl + endpoint, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

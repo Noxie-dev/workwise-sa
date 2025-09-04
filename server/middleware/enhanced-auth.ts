@@ -5,7 +5,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { auth } from '../firebase';
+import * as admin from 'firebase-admin';
 import { Errors } from './errorHandler';
 import { db } from '../db';
 import { users } from '@shared/schema';
@@ -48,7 +48,7 @@ export const authenticate = async (
     }
     
     // Verify the token with Firebase Admin SDK
-    const decodedToken = await auth.verifyIdToken(token);
+    const decodedToken = await admin.auth().verifyIdToken(token);
     
     if (!decodedToken.uid) {
       return next(Errors.authentication('Invalid token: missing user ID'));

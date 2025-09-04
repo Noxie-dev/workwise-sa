@@ -11,6 +11,7 @@ import { logger } from '../utils/logger';
 import { secretManager } from '../services/secretManager';
 import { cacheService } from '../services/cacheService';
 import { authMonitoringService } from '../services/authMonitoringService';
+import { initializeDatabase } from '../db';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -34,6 +35,9 @@ async function preloadSecrets() {
 
 async function startServer() {
   await preloadSecrets();
+
+  // Initialize database
+  await initializeDatabase();
 
   // Initialize enhanced services
   await cacheService.initialize();

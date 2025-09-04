@@ -81,6 +81,8 @@
     "firebase:emulators": "firebase emulators:start",
     "env:sanitize": "node scripts/sanitize-env.js",
     "env:check": "node -e \"import('fs').then(fs => { if(fs.existsSync('.env') && fs.existsSync('client/.env')) { console.log('✅ Environment files exist'); process.exit(0); } else { console.error('❌ Missing .env files. Run: cp .env.example .env && cp .env.example client/.env'); process.exit(1); } })\"",
+    "setup:dev": "node scripts/setup-dev-environment.js",
+    "dev:clean": "npm run copy-assets && concurrently --kill-others-on-fail \"npm run dev:server\" \"npm run dev:client\"",
     "env:setup-prod": "node scripts/setup-production-env.js set",
     "env:check-prod": "node scripts/setup-production-env.js check",
     "setup:ssh": "./scripts/setup-github-ssh.sh",
@@ -92,7 +94,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "0.51.0",
     "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
-    "@fortawesome/fontawesome-free": "^7.0.0",
+    "@fortawesome/fontawesome-free": "^6.7.2",
     "@google-cloud/secret-manager": "6.1.0",
     "@google/generative-ai": "0.24.1",
     "@hookform/resolvers": "^3.9.1",
