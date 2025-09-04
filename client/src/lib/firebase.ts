@@ -217,8 +217,8 @@ export const onAuthChange = (callback: (user: User | null) => void) => {
 export const sendSignInLink = async (email: string) => {
   try {
     await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-    // Save email locally to verify it when user clicks the link from email
-    window.localStorage.setItem('emailForSignIn', email);
+    // Save email in session storage to verify it when user clicks the link from email
+    window.sessionStorage.setItem('emailForSignIn', email);
     return true;
   } catch (error) {
     console.error("Error sending sign-in link:", error);
@@ -231,7 +231,7 @@ export const completeSignInWithEmailLink = async (email: string, link: string) =
   try {
     const result = await signInWithEmailLink(auth, email, link);
     // Clear the stored email
-    window.localStorage.removeItem('emailForSignIn');
+    window.sessionStorage.removeItem('emailForSignIn');
     return result.user;
   } catch (error) {
     console.error("Error completing sign-in with email link:", error);
@@ -246,7 +246,7 @@ export const checkIfSignInWithEmailLink = (link: string): boolean => {
 
 // Get email from storage (for use with email link auth)
 export const getEmailFromStorage = (): string | null => {
-  return window.localStorage.getItem('emailForSignIn');
+  return window.sessionStorage.getItem('emailForSignIn');
 };
 
 // Initialize Firestore
