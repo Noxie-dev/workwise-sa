@@ -19,7 +19,7 @@ const WiseUpPage = lazy(() => import("@/pages/WiseUp/WiseUpPage"));
 const Login = lazy(() => import("@/pages/Login"));
 const Register = lazy(() => import("@/pages/Register"));
 const CVBuilder = lazy(() => import("@/pages/CVBuilder"));
-// const UserProfile = lazy(() => import("@/pages/UserProfile"));
+const UserProfile = lazy(() => import("@/pages/UserProfile"));
 const ProfileSetup = lazy(() => import("@/pages/ProfileSetup"));
 const EmailLinkLogin = lazy(() => import("@/pages/EmailLinkLogin"));
 const EmailSignInComplete = lazy(() => import("@/pages/EmailSignInComplete"));

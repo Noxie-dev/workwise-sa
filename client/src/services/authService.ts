@@ -1,6 +1,12 @@
 /**
- * Authentication Service for WorkWise SA
- * Handles 2FA, SSO, and authentication flows
+ * Legacy Authentication Service for WorkWise SA
+ * @deprecated This service is being replaced by the unified auth system
+ * Use the new unified auth service instead: @shared/unified-auth-service
+ * 
+ * MIGRATION GUIDE:
+ * - Replace imports from this file with @shared/unified-auth-service
+ * - Use unifiedAuthService instead of this class
+ * - Update your components to use the new auth context
  */
 
 import { 

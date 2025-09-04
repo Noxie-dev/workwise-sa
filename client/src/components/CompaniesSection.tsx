@@ -4,6 +4,7 @@ import CompanyCard from './CompanyCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { type Company } from '@shared/schema';
 import { mockCompanies, createMockResponse } from '@/services/mockData';
+import { buildApiUrl, shouldUseMockData } from '@/config/api';
 
 interface CompanyResponse {
   success: boolean;
@@ -15,14 +16,14 @@ const CompaniesSection = () => {
     queryKey: ['/api/companies'],
     queryFn: async () => {
       // Always use mock data in production or if we're on Netlify
-      if (import.meta.env.PROD || window.location.hostname.includes('netlify.app')) {
+      if (shouldUseMockData()) {
         console.log('Using mock companies data in production or Netlify environment');
         return createMockResponse(mockCompanies);
       }
 
       // In development, make the actual API call
       try {
-        const response = await fetch('/api/companies');
+        const response = await fetch(buildApiUrl('/api/companies'));
         if (!response.ok) {
           throw new Error('Failed to fetch companies');
         }

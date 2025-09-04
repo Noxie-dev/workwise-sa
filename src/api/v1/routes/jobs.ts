@@ -6,11 +6,20 @@ export function registerJobRoutes(router: Router) {
   // Jobs routes
   router.get("/jobs", async (req, res) => {
     try {
+      console.log("Fetching jobs...");
       const jobs = await storage.getJobsWithCompanies();
-      res.json(jobs);
+      console.log(`Found ${jobs.length} jobs`);
+      res.json({
+        success: true,
+        data: jobs
+      });
     } catch (error) {
       console.error("Error fetching jobs:", error);
-      res.status(500).json({ message: "Failed to fetch jobs" });
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch jobs",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
