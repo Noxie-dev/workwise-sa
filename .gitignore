@@ -19,7 +19,29 @@ dist-ssr
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
 *.log*
+
+# Security - Never commit these files
+service-account*.json
+*firebase-adminsdk*.json
+workwise-sa-project-firebase-adminsdk*.json
+
+# Reduce deployment file count - exclude large directories
+functions/node_modules/
+client/node_modules/
+node_modules/
+scrapy_jobs/.scrapy/
+public_backup_old/
+src_backup_20250904_212344/
+dataconnect-generated/
+.config/
+monitoring/
+migrations/
+seeds/
+tests/
+uploads/
+Documents/
 
 # Editor directories and files
 .vscode/*
