@@ -1,11 +1,10 @@
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { storage } from '../storage';
 import { validate } from '../middleware/validation';
-import { verifyFirebaseToken } from '../middleware/auth';
+import { authenticate } from '../middleware/enhanced-auth';
 import { Errors } from '../middleware/errorHandler';
-import { createInsertSchema } from 'drizzle-zod';
-import { jobApplications } from '@shared/schema';
+import { AuthenticatedRequest } from '@shared/auth-types';
 
 const router = Router();
 
@@ -33,12 +32,12 @@ const updateJobApplicationSchema = z.object({
 
 const getJobApplicationsSchema = z.object({
   query: z.object({
-    page: z.coerce.number().min(1).prefault(1),
-    limit: z.coerce.number().min(1).max(50).prefault(20),
+    page: z.coerce.number().min(1).default(1),
+    limit: z.coerce.number().min(1).max(50).default(20),
     status: z.enum(['applied', 'reviewed', 'interview', 'rejected', 'hired']).optional(),
     jobId: z.coerce.number().int().positive().optional(),
-    sortBy: z.enum(['appliedAt', 'updatedAt', 'status']).prefault('appliedAt'),
-    sortOrder: z.enum(['asc', 'desc']).prefault('desc'),
+    sortBy: z.enum(['appliedAt', 'updatedAt', 'status']).default('appliedAt'),
+    sortOrder: z.enum(['asc', 'desc']).default('desc'),
   }),
 });
 
@@ -57,29 +56,26 @@ const getJobApplicationsByJobSchema = z.object({
     }),
   }),
   query: z.object({
-    page: z.coerce.number().min(1).prefault(1),
-    limit: z.coerce.number().min(1).max(50).prefault(20),
+    page: z.coerce.number().min(1).default(1),
+    limit: z.coerce.number().min(1).max(50).default(20),
     status: z.enum(['applied', 'reviewed', 'interview', 'rejected', 'hired']).optional(),
-    sortBy: z.enum(['appliedAt', 'updatedAt', 'status']).prefault('appliedAt'),
-    sortOrder: z.enum(['asc', 'desc']).prefault('desc'),
+    sortBy: z.enum(['appliedAt', 'updatedAt', 'status']).default('appliedAt'),
+    sortOrder: z.enum(['asc', 'desc']).default('desc'),
   }),
 });
 
 // Apply for a job
 router.post('/',
-  verifyFirebaseToken,
+  authenticate,
   validate(createJobApplicationSchema),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const user = (req as any).user;
-      const { jobId, coverLetter, resumeUrl, notes } = req.body;
-
-      if (!user || !user.uid) {
-        throw Errors.authentication('User authentication required');
+      if (!req.user) {
+        return next(Errors.authentication('User authentication required'));
       }
 
-      // For now, use a placeholder userId since we need to map Firebase UID to database user ID
-      const userId = 1; // TODO: Implement proper user mapping
+      const { jobId, coverLetter, resumeUrl, notes } = req.body;
+      const userId = parseInt(req.user.id);
 
       // Check if job exists
       const job = await storage.getJob(jobId);
@@ -108,7 +104,6 @@ router.post('/',
         userId,
         interactionType: 'apply',
         jobId,
-        interactionTime: new Date(),
         metadata: { applicationId: application.id },
       });
 
@@ -125,27 +120,24 @@ router.post('/',
 
 // Get user's job applications
 router.get('/',
-  verifyFirebaseToken,
+  authenticate,
   validate(getJobApplicationsSchema),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const user = (req as any).user;
-      const { page, limit, status, jobId, sortBy, sortOrder } = req.query;
-
-      if (!user || !user.uid) {
-        throw Errors.authentication('User authentication required');
+      if (!req.user) {
+        return next(Errors.authentication('User authentication required'));
       }
 
-      // For now, use a placeholder userId since we need to map Firebase UID to database user ID
-      const userId = 1; // TODO: Implement proper user mapping
+      const { page, limit, status, jobId, sortBy, sortOrder } = req.query;
+      const userId = parseInt(req.user.id);
 
       const applications = await storage.getJobApplicationsByUser(userId, {
-        page,
-        limit,
-        status,
-        jobId,
-        sortBy,
-        sortOrder,
+        page: parseInt(String(page)) || 1,
+        limit: parseInt(String(limit)) || 20,
+        status: status as string | undefined,
+        jobId: jobId ? parseInt(jobId as string) : undefined,
+        sortBy: sortBy as string,
+        sortOrder: sortOrder as 'asc' | 'desc',
       });
 
       res.json({
@@ -154,7 +146,7 @@ router.get('/',
           page,
           limit,
           total: applications.total,
-          totalPages: Math.ceil(applications.total / limit),
+          totalPages: Math.ceil(applications.total / (limit as number)),
         },
       });
     } catch (error) {
@@ -165,21 +157,18 @@ router.get('/',
 
 // Get specific job application
 router.get('/:applicationId',
-  verifyFirebaseToken,
+  authenticate,
   validate(getJobApplicationSchema),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const user = (req as any).user;
-      const { applicationId } = req.params;
-
-      if (!user || !user.uid) {
-        throw Errors.authentication('User authentication required');
+      if (!req.user) {
+        return next(Errors.authentication('User authentication required'));
       }
 
-      // For now, use a placeholder userId since we need to map Firebase UID to database user ID
-      const userId = 1; // TODO: Implement proper user mapping
+      const { applicationId } = req.params;
+      const userId = parseInt(req.user.id);
 
-      const application = await storage.getJobApplication(applicationId);
+      const application = await storage.getJobApplication(parseInt(applicationId));
       if (!application) {
         throw Errors.notFound('Job application not found');
       }
@@ -199,22 +188,19 @@ router.get('/:applicationId',
 
 // Update job application (usually for employers to update status)
 router.put('/:applicationId',
-  verifyFirebaseToken,
+  authenticate,
   validate(updateJobApplicationSchema),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const user = (req as any).user;
-      const { applicationId } = req.params;
-      const { status, notes } = req.body;
-
-      if (!user || !user.uid) {
-        throw Errors.authentication('User authentication required');
+      if (!req.user) {
+        return next(Errors.authentication('User authentication required'));
       }
 
-      // For now, use a placeholder userId since we need to map Firebase UID to database user ID
-      const userId = 1; // TODO: Implement proper user mapping
+      const { applicationId } = req.params;
+      const { status, notes } = req.body;
+      const userId = parseInt(req.user.id);
 
-      const application = await storage.getJobApplication(applicationId);
+      const application = await storage.getJobApplication(parseInt(applicationId));
       if (!application) {
         throw Errors.notFound('Job application not found');
       }
@@ -225,7 +211,7 @@ router.put('/:applicationId',
         throw Errors.forbidden('You can only update your own job applications');
       }
 
-      const updatedApplication = await storage.updateJobApplication(applicationId, {
+      const updatedApplication = await storage.updateJobApplication(parseInt(applicationId), {
         status,
         notes,
         updatedAt: new Date(),
@@ -237,7 +223,6 @@ router.put('/:applicationId',
           userId: application.userId,
           interactionType: 'status_update',
           jobId: application.jobId,
-          interactionTime: new Date(),
           metadata: { 
             applicationId: application.id,
             oldStatus: application.status,
@@ -268,21 +253,18 @@ router.put('/:applicationId',
 
 // Delete job application (withdraw application)
 router.delete('/:applicationId',
-  verifyFirebaseToken,
+  authenticate,
   validate(getJobApplicationSchema),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const user = (req as any).user;
-      const { applicationId } = req.params;
-
-      if (!user || !user.uid) {
-        throw Errors.authentication('User authentication required');
+      if (!req.user) {
+        return next(Errors.authentication('User authentication required'));
       }
 
-      // For now, use a placeholder userId since we need to map Firebase UID to database user ID
-      const userId = 1; // TODO: Implement proper user mapping
+      const { applicationId } = req.params;
+      const userId = parseInt(req.user.id);
 
-      const application = await storage.getJobApplication(applicationId);
+      const application = await storage.getJobApplication(parseInt(applicationId));
       if (!application) {
         throw Errors.notFound('Job application not found');
       }
@@ -297,14 +279,13 @@ router.delete('/:applicationId',
         throw Errors.validation('Cannot withdraw application in current status');
       }
 
-      await storage.deleteJobApplication(applicationId);
+      await storage.deleteJobApplication(parseInt(applicationId));
 
       // Log withdrawal
       await storage.createUserInteraction({
         userId,
         interactionType: 'withdraw',
         jobId: application.jobId,
-        interactionTime: new Date(),
         metadata: { applicationId: application.id },
       });
 
@@ -320,20 +301,17 @@ router.delete('/:applicationId',
 
 // Get applications for a specific job (for employers)
 router.get('/job/:jobId',
-  verifyFirebaseToken,
+  authenticate,
   validate(getJobApplicationsByJobSchema),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const user = (req as any).user;
-      const { jobId } = req.params;
-      const { page, limit, status, sortBy, sortOrder } = req.query;
-
-      if (!user || !user.uid) {
-        throw Errors.authentication('User authentication required');
+      if (!req.user) {
+        return next(Errors.authentication('User authentication required'));
       }
 
-      // For now, use a placeholder userId since we need to map Firebase UID to database user ID
-      const userId = 1; // TODO: Implement proper user mapping
+      const { jobId } = req.params;
+      const { page, limit, status, sortBy, sortOrder } = req.query;
+      const userId = parseInt(req.user.id);
 
       // Check if job exists
       const job = await storage.getJob(jobId);
@@ -349,12 +327,12 @@ router.get('/job/:jobId',
       //   throw Errors.forbidden('You do not have permission to view job applications');
       // }
 
-      const applications = await storage.getJobApplicationsByJob(jobId, {
-        page,
-        limit,
-        status,
-        sortBy,
-        sortOrder,
+      const applications = await storage.getJobApplicationsByJob(parseInt(jobId), {
+        page: parseInt(String(page)) || 1,
+        limit: parseInt(String(limit)) || 20,
+        status: status as string | undefined,
+        sortBy: sortBy as string,
+        sortOrder: sortOrder as 'asc' | 'desc',
       });
 
       res.json({
@@ -363,7 +341,7 @@ router.get('/job/:jobId',
           page,
           limit,
           total: applications.total,
-          totalPages: Math.ceil(applications.total / limit),
+          totalPages: Math.ceil(applications.total / (limit as number)),
         },
       });
     } catch (error) {

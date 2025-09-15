@@ -1,10 +1,23 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { apiRequest } from '@/lib/queryClient';
+// API helper function
+const apiRequest = async (method: string, url: string, data?: unknown): Promise<Response> => {
+  const response = await fetch(url, {
+    method,
+    headers: data ? { 'Content-Type': 'application/json' } : {},
+    body: data ? JSON.stringify(data) : undefined,
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  return response;
+};
 
-import { Button } from '@/components/ui/button';
+import { Button } from '../components/ui/button';
 import {
   Form,
   FormControl,
@@ -12,20 +25,20 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+} from '../components/ui/form';
+import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Card } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
-import { TooltipHelper } from '@/components/ui/tooltip-helper';
+} from '../components/ui/select';
+import { Card } from '../components/ui/card';
+import { Separator } from '../components/ui/separator';
+import { useToast } from '../hooks/use-toast';
+import { TooltipHelper } from '../components/ui/tooltip-helper';
 import {
   AlertCircle,
   HelpCircle,
@@ -33,8 +46,8 @@ import {
   Sparkles,
   Info
 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AiGenerationTips, SamplePrompts } from '@/components/AiHelpTips';
+import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
+// AiHelpTips components not available in root src directory
 
 // Define CV form schema
 const cvFormSchema = z.object({
@@ -505,7 +518,7 @@ export default function CVBuilder() {
   const onSubmit = async (data: CVFormValues) => {
     try {
       // Call the CV template generation endpoint
-      const response = await fetch('/api/cv/generate-template', {
+      const response = await fetch('http://localhost:4000/api/cv/generate-template', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -995,6 +1008,7 @@ export default function CVBuilder() {
                               className="form-checkbox h-4 w-4 text-primary rounded border-gray-300"
                               checked={field.value}
                               onChange={field.onChange}
+                              aria-label="Current Job"
                             />
                           </FormControl>
                           <FormLabel className="m-0">Current Job</FormLabel>
@@ -1497,11 +1511,7 @@ export default function CVBuilder() {
                     {renderForm()}
                   </div>
 
-                  {/* AI Tips moved below the CV builder */}
-                  <div className="mt-6">
-                    <AiGenerationTips />
-                    <SamplePrompts />
-                  </div>
+                  {/* AI Tips components removed - not available in root src directory */}
                 </div>
               </div>
             </form>

@@ -81,6 +81,15 @@ export const Errors = {
     
   database: (message: string, details?: any) => 
     new ApiError(message, 500, ErrorType.DATABASE, details),
+    
+  forbidden: (message: string = 'Access forbidden') => 
+    new ApiError(message, 403, ErrorType.AUTHORIZATION),
+    
+  rateLimited: (message: string = 'Rate limit exceeded') => 
+    new ApiError(message, 429, ErrorType.VALIDATION),
+    
+  badRequest: (message: string = 'Bad request') => 
+    new ApiError(message, 400, ErrorType.VALIDATION),
 };
 
 /**
@@ -109,13 +118,13 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   
   // Handle Zod validation errors
   if (err instanceof ZodError) {
-    const apiError = Errors.validation('Validation error', err.errors);
+    const apiError = Errors.validation('Validation error', err.issues);
     
     logger.warn('Validation error', {
       requestId,
       path: req.path,
       method: req.method,
-      errors: err.errors,
+      errors: err.issues,
     });
     
     return res.status(apiError.statusCode).json(apiError.toResponse());

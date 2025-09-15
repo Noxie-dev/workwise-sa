@@ -37,5 +37,4 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
   // Create and return the server instance
   const server = new Server(app);
   return server;
-}er;
-} 
+}

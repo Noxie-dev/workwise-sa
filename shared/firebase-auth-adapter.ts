@@ -39,7 +39,10 @@ import {
 export class FirebaseAuthAdapter {
   private auth = getAuth();
   private googleProvider = new GoogleAuthProvider();
-  private actionCodeSettings: ActionCodeSettings;
+  private actionCodeSettings: ActionCodeSettings = {
+    url: 'http://localhost:3000/auth/verify',
+    handleCodeInApp: true
+  };
 
   constructor() {
     this.setupGoogleProvider();
@@ -60,19 +63,19 @@ export class FirebaseAuthAdapter {
       url: this.getEmailLinkUrl(),
       handleCodeInApp: true,
       iOS: {
-        bundleId: import.meta.env.VITE_IOS_BUNDLE_ID
+        bundleId: process.env.VITE_IOS_BUNDLE_ID || 'com.workwise.app'
       },
       android: {
-        packageName: import.meta.env.VITE_ANDROID_PACKAGE_NAME,
+        packageName: process.env.VITE_ANDROID_PACKAGE_NAME || 'com.workwise.app',
         installApp: true,
         minimumVersion: '12'
       },
-      dynamicLinkDomain: import.meta.env.VITE_FIREBASE_DYNAMIC_LINK_DOMAIN
+      dynamicLinkDomain: process.env.VITE_FIREBASE_DYNAMIC_LINK_DOMAIN || 'workwise.page.link'
     };
   }
 
   private getEmailLinkUrl(): string {
-    return import.meta.env.VITE_AUTH_EMAIL_LINK_SIGN_IN_URL || 
+    return process.env.VITE_AUTH_EMAIL_LINK_SIGN_IN_URL || 
            `${window.location.origin}/auth/email-signin-complete`;
   }
 
@@ -176,7 +179,7 @@ export class FirebaseAuthAdapter {
 
       // Create app user with additional data
       const appUser = await this.convertFirebaseUserToAppUser(userCredential.user, {
-        username: userData.username,
+        // username: userData.username,
         location: userData.location,
         bio: userData.bio,
         willingToRelocate: userData.willingToRelocate || false
@@ -342,6 +345,7 @@ export class FirebaseAuthAdapter {
 
     const appUser: AppUser = {
       uid: firebaseUser.uid,
+      id: firebaseUser.uid || '1',
       email: firebaseUser.email || '',
       emailVerified: firebaseUser.emailVerified,
       displayName: firebaseUser.displayName,
