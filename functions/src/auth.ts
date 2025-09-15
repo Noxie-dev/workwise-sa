@@ -7,7 +7,7 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { onCall } from 'firebase-functions/v2/https';
 import { defineSecret } from 'firebase-functions/params';
 import { initializeApp } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
+// import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Twilio } from 'twilio';
 
@@ -112,7 +112,7 @@ export const verifyTwoFactorCode = onCall(
   },
   async (request) => {
     try {
-      const { phoneNumber, code, verificationSid } = request.data;
+      const { phoneNumber, code } = request.data;
       
       if (!phoneNumber || !code) {
         throw new Error('Phone number and code are required');

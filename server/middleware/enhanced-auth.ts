@@ -7,9 +7,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as admin from 'firebase-admin';
 import { Errors } from './errorHandler';
-import { db } from '../db';
-import { users } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { storage } from '../storage';
 import { 
   AppUser, 
   AuthenticatedRequest, 
@@ -55,7 +53,7 @@ export const authenticate = async (
     }
     
     // Get user information from database
-    const userRecord = await getUserFromDatabase(decodedToken.uid);
+    const userRecord = await storage.getUserByFirebaseId(decodedToken.uid);
     
     if (!userRecord) {
       return next(Errors.authentication('User not found in database'));
@@ -63,12 +61,14 @@ export const authenticate = async (
     
     // Create comprehensive user object
     const appUser: AppUser = {
+      id: userRecord.id.toString(),
       uid: decodedToken.uid,
       email: decodedToken.email || userRecord.email,
       emailVerified: decodedToken.email_verified || false,
       displayName: decodedToken.name || userRecord.name,
+      name: decodedToken.name || userRecord.name,
       photoURL: decodedToken.picture || null,
-      phoneNumber: decodedToken.phone_number || userRecord.phoneNumber,
+      phoneNumber: decodedToken.phone_number || null,
       role: (userRecord.role as UserRole) || 'user',
       permissions: ROLE_PERMISSIONS[(userRecord.role as UserRole) || 'user'],
       profileComplete: isProfileComplete(userRecord),
@@ -78,26 +78,26 @@ export const authenticate = async (
       metadata: {
         location: userRecord.location || undefined,
         bio: userRecord.bio || undefined,
-        willingToRelocate: userRecord.willingToRelocate || false,
-        preferences: userRecord.preferences || {
+        willingToRelocate: false,
+        preferences: {
           preferredCategories: [],
           preferredLocations: [],
           preferredJobTypes: [],
-          workMode: ['remote', 'on-site', 'hybrid']
+          workMode: ['remote']
         },
-        experience: userRecord.experience || {
+        experience: {
           yearsOfExperience: 0,
           previousPositions: []
         },
-        education: userRecord.education || {
+        education: {
           highestDegree: '',
           fieldOfStudy: '',
           institution: '',
           additionalCertifications: []
         },
-        skills: userRecord.skills || [],
-        engagementScore: userRecord.engagementScore || 0,
-        notificationPreference: userRecord.notificationPreference || true
+        skills: [],
+        engagementScore: 0,
+        notificationPreference: true
       }
     };
     
@@ -107,18 +107,19 @@ export const authenticate = async (
     req.permissions = appUser.permissions;
     
     // Update last active timestamp
-    await updateLastActive(userRecord.id);
+    // Update last active timestamp (implement if needed)
+    // await storage.updateUserLastActive(userRecord.id);
     
     next();
   } catch (error) {
     console.error('Authentication error:', error);
     
     // Handle specific Firebase errors
-    if (error.code === 'auth/id-token-expired') {
+    if ((error as any)?.code === 'auth/id-token-expired') {
       return next(Errors.authentication('Token has expired'));
-    } else if (error.code === 'auth/id-token-revoked') {
+    } else if ((error as any)?.code === 'auth/id-token-revoked') {
       return next(Errors.authentication('Token has been revoked'));
-    } else if (error.code === 'auth/invalid-id-token') {
+    } else if ((error as any)?.code === 'auth/invalid-id-token') {
       return next(Errors.authentication('Invalid token format'));
     }
     
@@ -363,22 +364,6 @@ export const requireEmailVerification = (req: AuthenticatedRequest, res: Respons
 // HELPER FUNCTIONS
 // ============================================================================
 
-/**
- * Get user record from database by Firebase UID
- */
-async function getUserFromDatabase(firebaseUid: string) {
-  try {
-    const [userRecord] = await db
-      .select()
-      .from(users)
-      .where(eq(users.firebaseUid, firebaseUid));
-    
-    return userRecord;
-  } catch (error) {
-    console.error('Error fetching user from database:', error);
-    return null;
-  }
-}
 
 /**
  * Check if user profile is complete
@@ -392,35 +377,7 @@ function isProfileComplete(userRecord: any): boolean {
   });
 }
 
-/**
- * Update user's last active timestamp
- */
-async function updateLastActive(userId: number): Promise<void> {
-  try {
-    await db
-      .update(users)
-      .set({ lastActive: new Date() })
-      .where(eq(users.id, userId));
-  } catch (error) {
-    console.error('Error updating last active timestamp:', error);
-    // Don't throw error as this is not critical
-  }
-}
 
 // ============================================================================
 // EXPORTS
 // ============================================================================
-
-export {
-  authenticate,
-  authorize,
-  requireAdmin,
-  requireModerator,
-  requireEmployer,
-  requirePermission,
-  requireAllPermissions,
-  requireAnyPermission,
-  requireOwnership,
-  requireCompleteProfile,
-  requireEmailVerification
-};

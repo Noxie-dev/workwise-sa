@@ -11,7 +11,7 @@ const getApiBaseUrl = (): string => {
   }
   
   // Use local backend server in development
-  return 'http://localhost:4000';
+  return 'http://localhost:3001';
 };
 
 export const API_CONFIG = {

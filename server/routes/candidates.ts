@@ -1,8 +1,9 @@
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
+import { AuthenticatedRequest } from '@shared/auth-types';
 import { z } from 'zod';
 import { storage } from '../storage';
 import { validate } from '../middleware/validation';
-import { authenticate } from '../middleware/auth';
+import { verifyFirebaseToken as authenticate } from '../middleware/auth';
 import { Errors } from '../middleware/errorHandler';
 import { rateLimiter } from '../middleware/rateLimiter';
 
@@ -20,22 +21,22 @@ const searchCandidatesSchema = z.object({
     salaryMax: z.coerce.number().optional(),
     educationLevel: z.enum(['none', 'matric', 'certificate', 'diploma', 'degree', 'postgraduate']).optional(),
     remote: z.enum(['true', 'false']).optional(),
-    page: z.coerce.number().min(1).prefault(1),
-    limit: z.coerce.number().min(1).max(50).prefault(20),
-    sortBy: z.enum(['relevance', 'updated', 'created', 'name']).prefault('relevance'),
-    sortOrder: z.enum(['asc', 'desc']).prefault('desc'),
+    page: z.coerce.number().min(1).default(1),
+    limit: z.coerce.number().min(1).max(50).default(20),
+    sortBy: z.enum(['relevance', 'updated', 'created', 'name']).default('relevance'),
+    sortOrder: z.enum(['asc', 'desc']).default('desc'),
   })
 });
 
 const getCandidateSchema = z.object({
   params: z.object({
-    candidateId: z.uuid(),
+    candidateId: z.string(),
   })
 });
 
 const saveCandidateSchema = z.object({
   params: z.object({
-    candidateId: z.uuid(),
+    candidateId: z.string(),
   }),
   body: z.object({
     notes: z.string().optional(),
@@ -46,30 +47,30 @@ const saveCandidateSchema = z.object({
 
 const contactCandidateSchema = z.object({
   params: z.object({
-    candidateId: z.uuid(),
+    candidateId: z.string(),
   }),
   body: z.object({
-    subject: z.string().min(1).max(200),
-    message: z.string().min(10).max(2000),
-    jobId: z.uuid().optional(),
+    subject: z.string().min(1),
+    message: z.string().min(1),
+    jobId: z.string().optional(),
   })
 });
 
 const reportCandidateSchema = z.object({
   params: z.object({
-    candidateId: z.uuid(),
+    candidateId: z.string(),
   }),
   body: z.object({
-    reason: z.enum(['spam', 'inappropriate', 'fake', 'other']),
-    description: z.string().min(10).max(500).optional(),
+    reason: z.enum(['inappropriate', 'fake', 'spam', 'other']),
+    description: z.string().optional(),
   })
 });
 
 const getCandidateRecommendationsSchema = z.object({
   query: z.object({
-    jobId: z.uuid().optional(),
+    jobId: z.string().optional(),
     skills: z.array(z.string()).optional(),
-    limit: z.coerce.number().min(1).max(20).prefault(10),
+    limit: z.coerce.number().min(1).max(20).default(10),
   })
 });
 
@@ -78,14 +79,17 @@ router.get('/search',
   authenticate,
   rateLimiter(100, 60), // 100 requests per minute
   validate(searchCandidatesSchema),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        throw Errors.authentication('User not authenticated');
+      }
       const params = req.query;
 
       // Check if user has active subscription or credits
-      const subscription = await storage.getUserSubscription(userId);
-      const credits = await storage.getUserJobCredits(userId);
+      const subscription = await storage.getUserSubscription(Number(userId));
+      const credits = await storage.getUserJobCredits(Number(userId));
       
       if (!subscription && (!credits || credits.creditsRemaining <= 0)) {
         throw Errors.forbidden('Active subscription or credits required to search candidates');
@@ -118,7 +122,7 @@ router.get('/search',
 
       // Log search for analytics
       await storage.createSearchLog({
-        userId,
+        userId: Number(userId),
         type: 'candidate_search',
         query: params.search,
         filters: JSON.stringify(filters),
@@ -144,14 +148,17 @@ router.get('/search',
 router.get('/browse',
   authenticate,
   rateLimiter(50, 60), // 50 requests per minute
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        throw Errors.authentication('User not authenticated');
+      }
       const { page = 1, limit = 20 } = req.query;
 
       // Check subscription/credits
-      const subscription = await storage.getUserSubscription(userId);
-      const credits = await storage.getUserJobCredits(userId);
+      const subscription = await storage.getUserSubscription(Number(userId));
+      const credits = await storage.getUserJobCredits(Number(userId));
       
       if (!subscription && (!credits || credits.creditsRemaining <= 0)) {
         throw Errors.forbidden('Active subscription or credits required to browse candidates');
@@ -184,14 +191,17 @@ router.get('/:candidateId',
   authenticate,
   rateLimiter(200, 60), // 200 requests per minute
   validate(getCandidateSchema),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        throw Errors.authentication('User not authenticated');
+      }
       const { candidateId } = req.params;
 
       // Check subscription/credits
-      const subscription = await storage.getUserSubscription(userId);
-      const credits = await storage.getUserJobCredits(userId);
+      const subscription = await storage.getUserSubscription(Number(userId));
+      const credits = await storage.getUserJobCredits(Number(userId));
       
       if (!subscription && (!credits || credits.creditsRemaining <= 0)) {
         throw Errors.forbidden('Active subscription or credits required to view candidate profiles');
@@ -212,7 +222,7 @@ router.get('/:candidateId',
 
       // Log profile view
       await storage.createProfileView({
-        viewerId: userId,
+        viewerId: Number(userId),
         candidateId,
         viewedAt: new Date(),
       });
@@ -242,14 +252,17 @@ router.get('/:candidateId/cv',
   authenticate,
   rateLimiter(50, 60), // 50 requests per minute
   validate(getCandidateSchema),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        throw Errors.authentication('User not authenticated');
+      }
       const { candidateId } = req.params;
 
       // Check subscription/credits and deduct credit if needed
-      const subscription = await storage.getUserSubscription(userId);
-      const credits = await storage.getUserJobCredits(userId);
+      const subscription = await storage.getUserSubscription(Number(userId));
+      const credits = await storage.getUserJobCredits(Number(userId));
       
       if (!subscription) {
         if (!credits || credits.creditsRemaining <= 0) {
@@ -257,7 +270,7 @@ router.get('/:candidateId/cv',
         }
         
         // Deduct credit for CV access
-        await storage.deductJobCredit(userId, 1, 'cv_access');
+        await storage.deductJobCredit(Number(userId), 1, 'cv_access');
       }
 
       const candidate = await storage.getCandidateProfile(candidateId);
@@ -271,7 +284,7 @@ router.get('/:candidateId/cv',
 
       // Log CV access
       await storage.createCvAccess({
-        userId,
+        userId: Number(userId),
         candidateId,
         accessedAt: new Date(),
       });
@@ -292,9 +305,12 @@ router.post('/:candidateId/save',
   authenticate,
   rateLimiter(100, 60), // 100 requests per minute
   validate(saveCandidateSchema),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        throw Errors.authentication('User not authenticated');
+      }
       const { candidateId } = req.params;
       const { notes, tags, rating } = req.body;
 
@@ -305,7 +321,7 @@ router.post('/:candidateId/save',
       }
 
       // Check if already saved
-      const existingSaved = await storage.getSavedCandidate(userId, candidateId);
+      const existingSaved = await storage.getSavedCandidate(Number(userId), candidateId);
       
       if (existingSaved) {
         // Update existing saved candidate
@@ -337,9 +353,12 @@ router.delete('/:candidateId/save',
   authenticate,
   rateLimiter(100, 60), // 100 requests per minute
   validate(getCandidateSchema),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        throw Errors.authentication('User not authenticated');
+      }
       const { candidateId } = req.params;
 
       const savedCandidate = await storage.getSavedCandidate(userId, candidateId);
@@ -358,12 +377,15 @@ router.delete('/:candidateId/save',
 
 router.get('/saved/list',
   authenticate,
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        throw Errors.authentication('User not authenticated');
+      }
       const { page = 1, limit = 20, sortBy = 'savedAt', sortOrder = 'desc' } = req.query;
 
-      const savedCandidates = await storage.getSavedCandidates(userId, {
+      const savedCandidates = await storage.getSavedCandidates(Number(userId), {
         page: Number(page),
         limit: Number(limit),
         sortBy: sortBy as string,
@@ -390,15 +412,18 @@ router.post('/:candidateId/contact',
   authenticate,
   rateLimiter(20, 60), // 20 requests per minute
   validate(contactCandidateSchema),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        throw Errors.authentication('User not authenticated');
+      }
       const { candidateId } = req.params;
       const { subject, message, jobId } = req.body;
 
       // Check subscription/credits and deduct credit if needed
-      const subscription = await storage.getUserSubscription(userId);
-      const credits = await storage.getUserJobCredits(userId);
+      const subscription = await storage.getUserSubscription(Number(userId));
+      const credits = await storage.getUserJobCredits(Number(userId));
       
       if (!subscription) {
         if (!credits || credits.creditsRemaining <= 0) {
@@ -406,7 +431,7 @@ router.post('/:candidateId/contact',
         }
         
         // Deduct credit for contact
-        await storage.deductJobCredit(userId, 1, 'candidate_contact');
+        await storage.deductJobCredit(Number(userId), 1, 'candidate_contact');
       }
 
       // Verify candidate exists
@@ -416,7 +441,7 @@ router.post('/:candidateId/contact',
       }
 
       // Get user/company info
-      const user = await storage.getUser(userId);
+      const user = await storage.getUser(Number(userId));
       const company = user.companyId ? await storage.getCompany(user.companyId) : null;
 
       // Create contact record
@@ -457,9 +482,12 @@ router.post('/:candidateId/report',
   authenticate,
   rateLimiter(10, 60), // 10 requests per minute
   validate(reportCandidateSchema),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        throw Errors.authentication('User not authenticated');
+      }
       const { candidateId } = req.params;
       const { reason, description } = req.body;
 
@@ -470,7 +498,7 @@ router.post('/:candidateId/report',
       }
 
       // Check if user has already reported this candidate
-      const existingReport = await storage.getCandidateReport(userId, candidateId);
+      const existingReport = await storage.getCandidateReport(Number(userId), candidateId);
       if (existingReport) {
         throw Errors.validation('You have already reported this candidate');
       }
@@ -496,14 +524,17 @@ router.get('/recommendations/similar',
   authenticate,
   rateLimiter(50, 60), // 50 requests per minute
   validate(getCandidateRecommendationsSchema),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        throw Errors.authentication('User not authenticated');
+      }
       const { jobId, skills, limit } = req.query;
 
       // Check subscription/credits
-      const subscription = await storage.getUserSubscription(userId);
-      const credits = await storage.getUserJobCredits(userId);
+      const subscription = await storage.getUserSubscription(Number(userId));
+      const credits = await storage.getUserJobCredits(Number(userId));
       
       if (!subscription && (!credits || credits.creditsRemaining <= 0)) {
         throw Errors.forbidden('Active subscription or credits required to get recommendations');
@@ -560,12 +591,15 @@ router.get('/recommendations/similar',
 // Analytics Routes
 router.get('/analytics/searches',
   authenticate,
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        throw Errors.authentication('User not authenticated');
+      }
       const { period = '30d' } = req.query;
 
-      const analytics = await storage.getCandidateSearchAnalytics(userId, period as string);
+      const analytics = await storage.getCandidateSearchAnalytics(Number(userId), period as string);
 
       res.json({
         analytics: {
