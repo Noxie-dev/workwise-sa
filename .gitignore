@@ -43,6 +43,39 @@ tests/
 uploads/
 Documents/
 
+# Additional deployment optimizations
+*.db
+*.sqlite
+*.sqlite3
+test.db
+workwise.db
+your_database.db
+database.db
+.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.coverage
+htmlcov/
+.tox/
+.cache
+.mypy_cache
+.dmypy.json
+dmypy.json
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+.temp/
+temp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
