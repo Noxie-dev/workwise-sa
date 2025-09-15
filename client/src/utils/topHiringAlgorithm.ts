@@ -126,15 +126,14 @@ export const getTopHiringCompanies = (
 export const fetchTopHiringCompanies = async (limit: number = 3): Promise<TopHiringCompanyResult[]> => {
   try {
     // This would be the actual API call when the platform is live
-    const response = await fetch('http://localhost:4000/api/companies/top-hiring', {
+    const url = new URL('http://localhost:3001/api/companies/top-hiring');
+    url.searchParams.append('limit', limit.toString());
+    
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
-      // Add query parameter for limit
-      params: {
-        limit: limit.toString()
-      }
     });
     
     if (!response.ok) {
@@ -167,7 +166,7 @@ export const updateCompanyHiringMetrics = async (
   metrics: Partial<CompanyHiringMetrics>
 ): Promise<boolean> => {
   try {
-    const response = await fetch(`http://localhost:4000/api/companies/${companyId}/hiring-metrics`, {
+    const response = await fetch(`http://localhost:3001/api/companies/${companyId}/hiring-metrics`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -192,7 +191,7 @@ export const getHiringTrends = async (): Promise<{
   mostActiveLocations: string[];
 }> => {
   try {
-    const response = await fetch('http://localhost:4000/api/analytics/hiring-trends');
+    const response = await fetch('http://localhost:3001/api/analytics/hiring-trends');
     
     if (!response.ok) {
       throw new Error('Failed to fetch hiring trends');

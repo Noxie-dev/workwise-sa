@@ -41,13 +41,15 @@ export default function CVBuilderHelpGuide() {
     ContentComponent: React.LazyExoticComponent<() => JSX.Element>;
   }) => {
     const isOpen = openSection === id;
+    const ariaExpanded = isOpen ? 'true' : 'false';
 
     return (
       <div className="mb-4 border rounded-lg overflow-hidden bg-white">
         <button
+          type="button"
           onClick={() => toggleSection(id)}
           className="w-full p-4 flex items-center justify-between bg-blue-50 hover:bg-blue-100 transition-colors"
-          aria-expanded={isOpen}
+          aria-expanded={ariaExpanded}
           aria-controls={`section-content-${id}`}
         >
           <div className="flex items-center gap-2 text-lg font-medium text-blue-800">

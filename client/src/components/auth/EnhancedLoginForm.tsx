@@ -323,6 +323,7 @@ const EnhancedLoginForm: React.FC<LoginFormProps> = ({
                 name="remember-me"
                 type="checkbox"
                 className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                aria-label="Remember me"
               />
               <Label htmlFor="remember-me" className="text-sm text-muted-foreground">
                 Remember me

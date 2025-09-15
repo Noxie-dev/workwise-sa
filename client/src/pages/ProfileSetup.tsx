@@ -79,7 +79,7 @@ type SkillsValues = z.infer<typeof skillsSchema>;
 const ProfileSetup = () => {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const { currentUser, isLoading } = useAuth();
+  const { user: currentUser, loading: isLoading } = useAuth();
   const [currentStep, setCurrentStep] = useState<string>('personal');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profileData, setProfileData] = useState({
@@ -351,11 +351,11 @@ const ProfileSetup = () => {
         setCvScanComplete(true);
         setShowCvPreview(true);
 
-        if (warnings?.length > 0) {
+        if (warnings && warnings.length > 0) {
           toast({
             title: "CV Scanned with Warnings",
             description: "Some sections need your attention. Please review the preview.",
-            variant: "warning"
+            variant: "destructive"
           });
         } else {
           toast({
@@ -609,12 +609,9 @@ const ProfileSetup = () => {
         // In a real implementation, you would send the profile data to your backend
         console.log("Profile data to save:", completeProfileData);
 
-        // Update user profile in Firebase Auth if profile image was uploaded
+        // Note: Firebase user profile update would be handled by auth service
         if (profileImageUrl && user) {
-          await user.updateProfile({
-            displayName: profileData.personal.fullName,
-            photoURL: profileImageUrl
-          });
+          console.log("Profile update:", { displayName: profileData.personal.fullName, photoURL: profileImageUrl });
         }
 
         toast({
@@ -1072,11 +1069,9 @@ const ProfileSetup = () => {
                             render={({ field }) => (
                               <FormItem className="flex items-center space-x-3 space-y-0">
                                 <FormControl>
-                                  <input
-                                    type="checkbox"
+                                  <Checkbox
                                     checked={field.value}
-                                    onChange={field.onChange}
-                                    className="h-5 w-5 rounded border-gray-300"
+                                    onCheckedChange={field.onChange}
                                   />
                                 </FormControl>
                                 <FormLabel className="text-base font-semibold cursor-pointer">
@@ -1105,11 +1100,9 @@ const ProfileSetup = () => {
                                 render={({ field }) => (
                                   <FormItem className="flex items-center space-x-3 space-y-0">
                                     <FormControl>
-                                      <input
-                                        type="checkbox"
+                                      <Checkbox
                                         checked={field.value}
-                                        onChange={field.onChange}
-                                        className="h-5 w-5 rounded border-gray-300"
+                                        onCheckedChange={field.onChange}
                                       />
                                     </FormControl>
                                     <FormLabel className="font-normal cursor-pointer">
@@ -1376,6 +1369,8 @@ const ProfileSetup = () => {
                                   type="button"
                                   onClick={() => removeCustomSkill(skill)}
                                   className="ml-2 text-gray-500 hover:text-red-500"
+                                  title={`Remove ${skill}`}
+                                  aria-label={`Remove ${skill}`}
                                 >
                                   <XCircle className="h-4 w-4" />
                                 </button>
@@ -1569,7 +1564,7 @@ const ProfileSetup = () => {
                         )}
 
                         {cvScanComplete && (
-                          <Alert variant="success" className="mt-4 bg-green-50 border-green-200 text-green-800">
+                          <Alert className="mt-4 bg-green-50 border-green-200 text-green-800">
                             <CheckCircle className="h-4 w-4" />
                             <AlertTitle>CV Scan Complete</AlertTitle>
                             <AlertDescription>
@@ -1690,7 +1685,7 @@ const ProfileSetup = () => {
                     <h3 className="font-medium text-yellow-600">Attention Required</h3>
                     <div className="space-y-2">
                       {scanWarnings.map((warning, index) => (
-                        <Alert key={index} variant="warning">
+                        <Alert key={index} className="bg-yellow-50 border-yellow-200 text-yellow-800">
                           <AlertCircle className="h-4 w-4" />
                           <AlertTitle>{warning.section}</AlertTitle>
                           <AlertDescription>

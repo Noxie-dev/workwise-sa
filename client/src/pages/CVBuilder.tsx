@@ -505,7 +505,7 @@ export default function CVBuilder() {
   const onSubmit = async (data: CVFormValues) => {
     try {
       // Call the CV template generation endpoint
-      const response = await fetch('http://localhost:4000/api/cv/generate-template', {
+      const response = await fetch('http://localhost:3001/api/cv/generate-template', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -995,6 +995,7 @@ export default function CVBuilder() {
                               className="form-checkbox h-4 w-4 text-primary rounded border-gray-300"
                               checked={field.value}
                               onChange={field.onChange}
+                              aria-label="Current Job"
                             />
                           </FormControl>
                           <FormLabel className="m-0">Current Job</FormLabel>

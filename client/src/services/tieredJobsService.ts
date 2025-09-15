@@ -13,7 +13,7 @@ export const tieredJobsService = {
   async getJobPreviews(params: JobSearchParams = {}): Promise<JobSearchResponse> {
     try {
       // Use Netlify functions in production, local API in development
-      const baseUrl = shouldUseMockData() ? '' : 'http://localhost:4000';
+      const baseUrl = shouldUseMockData() ? '' : 'http://localhost:3001';
       const endpoint = shouldUseMockData() ? '/.netlify/functions/jobPreviews' : '/api/jobs/previews';
       
       const response = await fetch(baseUrl + endpoint + '?' + new URLSearchParams({
@@ -44,7 +44,7 @@ export const tieredJobsService = {
       }
 
       const token = await user.getIdToken();
-      const baseUrl = shouldUseMockData() ? '' : 'http://localhost:4000';
+      const baseUrl = shouldUseMockData() ? '' : 'http://localhost:3001';
       const endpoint = shouldUseMockData() ? `/.netlify/functions/jobDetails/${jobId}` : `/api/jobs/${jobId}`;
       const response = await fetch(baseUrl + endpoint, {
         headers: {
@@ -78,7 +78,7 @@ export const tieredJobsService = {
       }
 
       const token = await user.getIdToken();
-      const baseUrl = shouldUseMockData() ? '' : 'http://localhost:4000';
+      const baseUrl = shouldUseMockData() ? '' : 'http://localhost:3001';
       const endpoint = shouldUseMockData() ? '/.netlify/functions/jobApplications' : '/api/job-applications';
       const response = await fetch(baseUrl + endpoint, {
         method: 'POST',
@@ -112,7 +112,7 @@ export const tieredJobsService = {
       }
 
       const token = await user.getIdToken();
-      const baseUrl = shouldUseMockData() ? '' : 'http://localhost:4000';
+      const baseUrl = shouldUseMockData() ? '' : 'http://localhost:3001';
       const endpoint = shouldUseMockData() ? '/.netlify/functions/jobApplications' : '/api/job-applications';
       const response = await fetch(baseUrl + endpoint, {
         headers: {

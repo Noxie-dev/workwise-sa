@@ -7,6 +7,7 @@ import {
   userInteractions,
   userJobPreferences,
   userSessions,
+  userNotifications,
   User,
   Job,
   JobWithCompany
@@ -78,13 +79,13 @@ export async function calculateUserEngagementScore(userId: number): Promise<numb
     score += sessions.length * 2;
 
     // Score based on session duration
-    const totalDuration = sessions.reduce((sum, session) => {
+    const totalDuration = sessions.reduce((sum: number, session: any) => {
       return sum + (session.duration || 0);
     }, 0);
     score += Math.floor(totalDuration / 3600) * 5; // 5 points per hour spent on site
 
     // Score based on interactions
-    interactions.forEach(interaction => {
+    interactions.forEach((interaction: any) => {
       switch (interaction.interactionType) {
         case 'view':
           score += 1;
@@ -149,8 +150,8 @@ async function getUserAppliedJobs(userId: number): Promise<number[]> {
     ));
 
   return appliedJobInteractions
-    .filter(interaction => interaction.jobId !== null)
-    .map(interaction => interaction.jobId as number);
+    .filter((interaction: any) => interaction.jobId !== null)
+    .map((interaction: any) => interaction.jobId as number);
 }
 
 /**
@@ -373,10 +374,10 @@ export async function getJobRecommendations(
     const appliedJobIds = includeApplied ? [] : await getUserAppliedJobs(userId);
 
     // Filter out already applied jobs
-    const potentialJobs = allJobs.filter(job => !appliedJobIds.includes(job.id));
+    const potentialJobs = allJobs.filter((job: any) => !appliedJobIds.includes(job.id));
 
     // Calculate match scores
-    const scorePromises = potentialJobs.map(job => calculateJobMatchScore(userId, job));
+    const scorePromises = potentialJobs.map((job: any) => calculateJobMatchScore(userId, job));
     const jobScores = await Promise.all(scorePromises);
 
     // Sort by score descending
@@ -463,9 +464,7 @@ export async function sendJobNotificationToUser(
       type: 'job_match',
       content,
       jobId: job.id,
-      isRead: false,
-      createdAt: new Date(),
-      sentAt: new Date()
+      isRead: false
     });
 
     // In a real app, we would send a push notification here
@@ -637,7 +636,7 @@ export async function personalizedJobSearch(
     }
 
     // Personalize the results
-    const scorePromises = searchResults.map(async job => {
+    const scorePromises = searchResults.map(async (job: any) => {
       const jobData = {
         id: job.id,
         title: job.title,
@@ -650,6 +649,9 @@ export async function personalizedJobSearch(
         categoryId: job.categoryId,
         isFeatured: job.isFeatured,
         createdAt: job.createdAt,
+        externalId: null,
+        source: null,
+        ingestedAt: null
       };
 
       const matchScore = await calculateJobMatchScore(userId, jobData);

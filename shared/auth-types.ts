@@ -5,6 +5,7 @@
  */
 
 import { User as FirebaseUser } from 'firebase/auth';
+import { Request } from 'express';
 
 // ============================================================================
 // CORE AUTH TYPES
@@ -57,9 +58,11 @@ export type Permission =
  */
 export interface AppUser {
   uid: string;
+  id: string; // Database ID for compatibility with routes
   email: string;
   emailVerified: boolean;
   displayName: string | null;
+  name: string | null; // Alias for displayName for compatibility
   photoURL: string | null;
   phoneNumber: string | null;
   role: UserRole;
@@ -69,6 +72,7 @@ export interface AppUser {
   createdAt: Date;
   updatedAt: Date;
   metadata: UserMetadata;
+  stripeCustomerId?: string; // For payment processing
 }
 
 /**
@@ -221,7 +225,7 @@ export interface ApiResponse<T = any> {
 /**
  * Authenticated request interface for server middleware
  */
-export interface AuthenticatedRequest {
+export interface AuthenticatedRequest extends Request {
   user?: AppUser;
   firebaseUser?: FirebaseUser;
   permissions?: Permission[];

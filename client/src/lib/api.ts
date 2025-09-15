@@ -15,7 +15,8 @@ const API_BASE =
 /**
  * API Endpoints Configuration (using constants)
  */
-export const endpoints = ApiEndpoints;
+export const endpoints = {
+  ...ApiEndpoints,
   // Notifications
   notifications: {
     list: '/api/notifications',
