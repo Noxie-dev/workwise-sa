@@ -82,13 +82,11 @@ const processAIPromptSchema = z.object({
  */
 router.get('/:userId', async (req, res, next) => {
   try {
-    const userId = parseInt(req.params.userId);
-    
-    if (isNaN(userId)) {
-      throw Errors.badRequest('Invalid user ID');
-    }
-
-    const profile = await storage.getUserProfile(userId);
+    const userIdParam = req.params.userId;
+    const numericId = parseInt(userIdParam);
+    const profile = Number.isNaN(numericId)
+      ? await storage.getUserProfileByFirebaseUid(userIdParam)
+      : await storage.getUserProfile(numericId);
     
     if (!profile) {
       throw Errors.notFound('Profile not found');
@@ -111,15 +109,19 @@ router.put('/:userId',
   validate(updateProfileSchema),
   async (req, res, next) => {
     try {
-      const userId = parseInt(req.params.userId);
-      
-      if (isNaN(userId)) {
-        throw Errors.badRequest('Invalid user ID');
+      const userIdParam = req.params.userId;
+      const numericId = parseInt(userIdParam);
+      const resolvedId = Number.isNaN(numericId)
+        ? (await storage.getUserByFirebaseUid(userIdParam))?.id
+        : numericId;
+
+      if (!resolvedId) {
+        throw Errors.notFound('User not found');
       }
 
       const profileData = req.body;
       
-      const updatedProfile = await storage.updateUserProfile(userId, profileData);
+      const updatedProfile = await storage.updateUserProfile(resolvedId, profileData);
 
       res.json({
         success: true,

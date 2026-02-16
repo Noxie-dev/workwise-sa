@@ -140,7 +140,7 @@ export const profileService = {
     formData.append('file', file);
     formData.append('enhancedScan', 'true');
 
-    const response = await apiClient.post<CVScanResponse>('/api/scan-cv', formData, {
+    const response = await apiClient.post<CVScanResponse>('/scan-cv', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -156,7 +156,7 @@ export const profileService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await apiClient.post<ImageEnhancementResponse>('/api/enhance-image', formData, {
+    const response = await apiClient.post<ImageEnhancementResponse>('/enhance-image', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -178,7 +178,7 @@ export const profileService = {
       suggestedFix?: string;
     }>
   ): Promise<AIPromptResponse> {
-    const response = await apiClient.post<AIPromptResponse>('/api/process-ai-prompt', {
+    const response = await apiClient.post<AIPromptResponse>('/process-ai-prompt', {
       prompt,
       cvData,
       warnings,

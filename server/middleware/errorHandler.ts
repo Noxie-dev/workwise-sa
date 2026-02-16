@@ -58,6 +58,19 @@ export class ApiError extends Error {
  * Factory methods for common error types
  */
 export const Errors = {
+  /**
+   * Aliases for naming used across the codebase
+   * (e.g. Errors.badRequest / Errors.forbidden)
+   */
+  badRequest: (message: string = 'Bad request', details?: any) =>
+    new ApiError(message, 400, ErrorType.VALIDATION, details),
+
+  forbidden: (message: string = 'Forbidden') =>
+    new ApiError(message, 403, ErrorType.AUTHORIZATION),
+
+  unauthorized: (message: string = 'Unauthorized') =>
+    new ApiError(message, 401, ErrorType.AUTHENTICATION),
+
   validation: (message: string, details?: any) => 
     new ApiError(message, 400, ErrorType.VALIDATION, details),
     

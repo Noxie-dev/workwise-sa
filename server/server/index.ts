@@ -7,6 +7,7 @@ import { errorHandler, notFoundHandler, requestIdMiddleware } from '../middlewar
 import { setupSwagger } from '../../src/api/swagger';
 import { WiseUpService } from '../wiseup';
 import { storage } from '../storage';
+import { initializeDatabase } from '../db';
 import { logger } from '../utils/logger';
 import { secretManager } from '../services/secretManager';
 import { cacheService } from '../services/cacheService';
@@ -34,6 +35,7 @@ async function preloadSecrets() {
 
 async function startServer() {
   await preloadSecrets();
+  await initializeDatabase();
 
   // Initialize enhanced services
   await cacheService.initialize();

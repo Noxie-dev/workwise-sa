@@ -5,6 +5,7 @@
  */
 
 import { logger } from '../utils/logger';
+import { serializeError } from '../utils/serializeError';
 import { cacheService } from './cacheService';
 import { batchQueue } from './batchService';
 import { authMonitoringService } from './authMonitoringService';
@@ -294,7 +295,7 @@ export class PrometheusMetricsService {
       this.setGauge('system_uptime_seconds', process.uptime(), {});
 
     } catch (error) {
-      logger.error('Error collecting system metrics:', error);
+      logger.error('Error collecting system metrics', { error: serializeError(error) });
     }
   }
 
@@ -323,7 +324,7 @@ export class PrometheusMetricsService {
       this.setGauge('auth_token_refreshes_failed_total', tokenStats.failedAttempts, {});
 
     } catch (error) {
-      logger.error('Error collecting application metrics:', error);
+      logger.error('Error collecting application metrics', { error: serializeError(error) });
     }
   }
 

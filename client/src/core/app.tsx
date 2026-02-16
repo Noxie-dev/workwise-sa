@@ -75,6 +75,7 @@ function Router() {
             <Route path="/" component={HomeSimple} />
             <Route path="/home-original" component={Home} />
             <Route path="/jobs" component={Jobs} />
+            <Route path="/jobs/:id" component={Jobs} />
             <Route path="/resources" component={Resources} />
 
             {/* Resource sub-pages */}

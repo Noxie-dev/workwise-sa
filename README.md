@@ -10,15 +10,16 @@ WorkWise SA is a comprehensive job search platform designed to connect job seeke
 - CV builder
 - Career resources
 - User profiles
-- WiseUp learning platform with bookmark functionality
+- WiseUp learning platform (content available; bookmark flow currently in progress)
 
 ## Tech Stack
 
 - **Frontend**: React, Vite, TailwindCSS, shadcn/ui, React Query
-- **Backend**: Node.js, Express
+- **Backend**: Node.js (Express) with TypeScript
 - **Authentication**: Firebase Authentication
-- **Database**: PostgreSQL (production), SQLite (development)
+- **Database**: PostgreSQL (production), SQLite (development/test)
 - **ORM**: Drizzle ORM
+- **Testing**: Vitest + React Testing Library; Playwright for end-to-end
 
 ## Getting Started
 
@@ -85,9 +86,9 @@ workwisesa/
 
 ### Coding Standards & Workflow
 
-- **Style Guide**: ESLint with Airbnb config and Prettier for consistent formatting
-- **Testing**: Jest and React Testing Library with ≥80% coverage requirement
-- **Security**: Snyk for static analysis and dependency scanning
+- **Style Guide**: ESLint (Airbnb) with Prettier
+- **Testing**: Vitest + React Testing Library; Playwright for end-to-end checks
+- **Quality Gates**: `npm run qa:quick` (lint + type-check + unit) and `npm run qa:all` (lint + type-check + coverage + e2e)
 
 ### Quick Commands
 
@@ -99,7 +100,11 @@ npm run verify:ssh         # Test SSH connection
 # Development
 npm run dev                 # Start development servers
 npm run build              # Build for production
-npm run test               # Run tests
+npm run test               # Run unit/integration tests (Vitest)
+npm run test:coverage      # Unit/integration with coverage
+npm run test:e2e           # Playwright E2E suite
+npm run qa:quick           # Lint + type-check + unit
+npm run qa:all             # Lint + type-check + coverage + E2E
 
 # Environment
 npm run env:check          # Check environment files
@@ -115,35 +120,10 @@ npm run deploy:firebase    # Deploy to Firebase
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## WiseUp Bookmark Functionality
+## WiseUp Status
 
-The WiseUp feature includes a comprehensive bookmark system that allows users to save and organize content for later viewing.
-
-### How to Use the Bookmark Functionality
-
-1. **Saving Content**:
-   - When viewing content in the WiseUp feature, click the "Bookmark" button to save items for later
-   - The button will toggle between "Bookmark" and "Bookmarked" states
-   - Both educational content and sponsored content (ads) can be bookmarked
-
-2. **Accessing Bookmarks**:
-   - Click the bookmark icon in the WiseUp header to navigate to your bookmarks page
-   - The bookmarks page displays all saved items in a responsive grid layout
-   - Items are sorted with the most recently bookmarked items appearing first
-
-3. **Managing Bookmarks**:
-   - On the bookmarks page, you can:
-     - Click on a bookmark card to view the content
-     - Click the remove button (X) to remove a bookmark
-     - Load more bookmarks if there are more than the initial page size (pagination)
-
-4. **Direct Navigation**:
-   - When clicking on a bookmark card, you are taken directly to the WiseUp page with that specific item loaded
-   - This allows for quick access to your saved content without having to search for it again
-
-5. **Authentication**:
-   - You must be logged in to use the bookmark functionality
-   - If you try to bookmark content while not logged in, you'll be prompted to sign in
+- WiseUp cards/pages are present with sample data.
+- Bookmark experience is partially implemented and currently in progress; expect mock/sample behavior until the API wiring is finished.
 
 ## Acknowledgments
 

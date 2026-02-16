@@ -5,6 +5,7 @@
  */
 
 import { logger } from '../utils/logger';
+import { serializeError } from '../utils/serializeError';
 import { cacheService } from './cacheService';
 
 // ============================================================================
@@ -160,7 +161,7 @@ export class BatchQueueManager {
 
       return result;
     } catch (error) {
-      logger.error(`Batch processing failed for ${queueKey}:`, error);
+      logger.error(`Batch processing failed for ${queueKey}`, { error: serializeError(error) });
       
       // Retry failed operations
       await this.retryFailedOperations(batch);
@@ -197,7 +198,7 @@ export class BatchQueueManager {
         failedCount += result.failedCount;
         errors.push(...result.errors);
       } catch (error) {
-        logger.error(`Failed to execute ${type} operations:`, error);
+        logger.error(`Failed to execute ${type} operations`, { error: serializeError(error) });
         failedCount += ops.length;
         errors.push(...ops.map(op => ({
           operationId: op.id,
@@ -246,7 +247,7 @@ export class BatchQueueManager {
           throw new Error(`Unsupported operation type: ${type}`);
       }
     } catch (error) {
-      logger.error(`Failed to execute ${type} operations:`, error);
+      logger.error(`Failed to execute ${type} operations`, { error: serializeError(error) });
       failedCount = operations.length;
       errors.push(...operations.map(op => ({
         operationId: op.id,
@@ -398,7 +399,7 @@ export class BatchQueueManager {
       await cacheService.invalidate(`${table}:*`);
       logger.debug(`Invalidated cache for table ${table}`);
     } catch (error) {
-      logger.error(`Failed to invalidate cache for table ${table}:`, error);
+      logger.error(`Failed to invalidate cache for table ${table}`, { error: serializeError(error) });
     }
   }
 

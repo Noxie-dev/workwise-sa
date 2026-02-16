@@ -8,6 +8,7 @@
 
 import { createClient, RedisClientType } from 'redis';
 import { logger } from '../utils/logger';
+import { serializeError } from '../utils/serializeError';
 import { secretManager } from './secretManager';
 
 // ============================================================================
@@ -124,7 +125,7 @@ export class MultiTierCacheService {
       this.isInitialized = true;
       logger.info('✅ Multi-tier cache service initialized');
     } catch (error) {
-      logger.error('❌ Failed to initialize cache service:', error);
+      logger.error('❌ Failed to initialize cache service', { error: serializeError(error) });
       // Continue without Redis if it fails
       this.isInitialized = true;
     }
@@ -151,7 +152,7 @@ export class MultiTierCacheService {
         });
 
         this.redisClient.on('error', (err) => {
-          logger.error('Redis client error:', err);
+          logger.error('Redis client error', { error: serializeError(err) });
         });
 
         this.redisClient.on('connect', () => {
@@ -167,7 +168,7 @@ export class MultiTierCacheService {
         logger.warn('No Redis URL provided, running without Redis cache');
       }
     } catch (error) {
-      logger.error('Failed to initialize Redis:', error);
+      logger.error('Failed to initialize Redis', { error: serializeError(error) });
       this.redisClient = null;
     }
   }
@@ -217,7 +218,7 @@ export class MultiTierCacheService {
       return null;
 
     } catch (error) {
-      logger.error(`Cache get error for key ${key}:`, error);
+      logger.error(`Cache get error for key ${key}`, { error: serializeError(error) });
       this.stats.misses++;
       this.updateHitRate();
       return null;
@@ -247,7 +248,7 @@ export class MultiTierCacheService {
       }
 
     } catch (error) {
-      logger.error(`Cache set error for key ${key}:`, error);
+      logger.error(`Cache set error for key ${key}`, { error: serializeError(error) });
     }
   }
 
@@ -265,7 +266,7 @@ export class MultiTierCacheService {
       }
 
     } catch (error) {
-      logger.error(`Cache delete error for key ${key}:`, error);
+      logger.error(`Cache delete error for key ${key}`, { error: serializeError(error) });
     }
   }
 
@@ -290,7 +291,7 @@ export class MultiTierCacheService {
       logger.info(`Invalidated cache entries matching pattern: ${pattern}`);
 
     } catch (error) {
-      logger.error(`Cache invalidation error for pattern ${pattern}:`, error);
+      logger.error(`Cache invalidation error for pattern ${pattern}`, { error: serializeError(error) });
     }
   }
 
@@ -363,7 +364,7 @@ export class MultiTierCacheService {
       const data = await this.redisClient.get(key);
       return data ? JSON.parse(data) : null;
     } catch (error) {
-      logger.error(`Redis get error for key ${key}:`, error);
+      logger.error(`Redis get error for key ${key}`, { error: serializeError(error) });
       return null;
     }
   }
@@ -374,7 +375,7 @@ export class MultiTierCacheService {
     try {
       await this.redisClient.setEx(key, ttl, JSON.stringify(data));
     } catch (error) {
-      logger.error(`Redis set error for key ${key}:`, error);
+      logger.error(`Redis set error for key ${key}`, { error: serializeError(error) });
     }
   }
 
@@ -387,7 +388,7 @@ export class MultiTierCacheService {
         await this.redisClient.expire(`tag:${tag}`, this.config.redis.defaultTTL);
       }
     } catch (error) {
-      logger.error(`Redis tag error for key ${key}:`, error);
+      logger.error(`Redis tag error for key ${key}`, { error: serializeError(error) });
     }
   }
 
@@ -512,7 +513,7 @@ export class MultiTierCacheService {
 
       logger.info('All caches cleared');
     } catch (error) {
-      logger.error('Error clearing caches:', error);
+      logger.error('Error clearing caches', { error: serializeError(error) });
     }
   }
 
@@ -526,7 +527,7 @@ export class MultiTierCacheService {
       }
       logger.info('Cache service shutdown complete');
     } catch (error) {
-      logger.error('Error during cache service shutdown:', error);
+      logger.error('Error during cache service shutdown', { error: serializeError(error) });
     }
   }
 }

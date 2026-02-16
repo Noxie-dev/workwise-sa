@@ -15,7 +15,7 @@ import { generateCVPDF } from '../../../../server/services/cvTemplateService';
 
 export function registerCVRoutes(router: Router) {
   // AI-powered CV generation routes
-  router.post("/cv/generate-summary", async (req, res) => {
+  router.post("/generate-summary", async (req, res) => {
     try {
       const { name, skills, experience, education, language = 'English' } = req.body;
       
@@ -43,7 +43,7 @@ export function registerCVRoutes(router: Router) {
     }
   });
 
-  router.post("/cv/generate-job-description", async (req, res) => {
+  router.post("/generate-job-description", async (req, res) => {
     try {
       const { jobInfo, language = 'English' } = req.body;
       
@@ -65,7 +65,7 @@ export function registerCVRoutes(router: Router) {
     }
   });
 
-  router.post("/cv/translate", async (req, res) => {
+  router.post("/translate", async (req, res) => {
     try {
       const { text, targetLanguage } = req.body;
       
@@ -88,7 +88,7 @@ export function registerCVRoutes(router: Router) {
   });
   
   // Anthropic Claude-powered CV generation routes
-  router.post("/cv/claude/generate-summary", async (req, res) => {
+  router.post("/claude/generate-summary", async (req, res) => {
     try {
       if (!process.env.ANTHROPIC_API_KEY) {
         return res.status(500).json({ 
@@ -122,7 +122,7 @@ export function registerCVRoutes(router: Router) {
     }
   });
 
-  router.post("/cv/claude/generate-job-description", async (req, res) => {
+  router.post("/claude/generate-job-description", async (req, res) => {
     try {
       if (!process.env.ANTHROPIC_API_KEY) {
         return res.status(500).json({ 
@@ -150,7 +150,7 @@ export function registerCVRoutes(router: Router) {
     }
   });
 
-  router.post("/cv/claude/translate", async (req, res) => {
+  router.post("/claude/translate", async (req, res) => {
     try {
       if (!process.env.ANTHROPIC_API_KEY) {
         return res.status(500).json({ 
@@ -178,7 +178,7 @@ export function registerCVRoutes(router: Router) {
     }
   });
   
-  router.post("/cv/claude/analyze-image", async (req, res) => {
+  router.post("/claude/analyze-image", async (req, res) => {
     try {
       if (!process.env.ANTHROPIC_API_KEY) {
         return res.status(500).json({ 

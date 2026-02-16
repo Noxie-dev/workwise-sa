@@ -133,8 +133,8 @@ export function registerUserRoutes(router: Router) {
           error: {
             type: "ValidationError",
             message: "Invalid user data",
-            details: error.errors.reduce((acc, err) => {
-              acc[err.path.join('.')] = err.message;
+            details: error.issues.reduce((acc, issue) => {
+              acc[issue.path.join('.')] = issue.message;
               return acc;
             }, {} as Record<string, string>)
           }
