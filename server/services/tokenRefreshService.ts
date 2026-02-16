@@ -6,6 +6,7 @@
 
 import * as admin from 'firebase-admin';
 import { logger } from '../utils/logger';
+import { serializeError } from '../utils/serializeError';
 import { cacheService } from './cacheService';
 import { rateLimiters } from '../../src/middleware/rateLimit';
 
@@ -238,7 +239,7 @@ export class TokenRefreshService {
       };
 
     } catch (error) {
-      logger.error('Token refresh error:', error);
+      logger.error('Token refresh error', { error: serializeError(error) });
       await this.recordFailedAttempt(null, requestInfo, {
         code: 'INTERNAL_ERROR',
         message: 'Internal server error during token refresh'
@@ -271,7 +272,7 @@ export class TokenRefreshService {
       this.stats.revokedTokens++;
 
     } catch (error) {
-      logger.error(`Error revoking token ${tokenId}:`, error);
+      logger.error(`Error revoking token ${tokenId}`, { error: serializeError(error) });
     }
   }
 
@@ -291,7 +292,7 @@ export class TokenRefreshService {
       logger.info(`All tokens revoked for user ${userId}, reason: ${reason}`);
 
     } catch (error) {
-      logger.error(`Error revoking all tokens for user ${userId}:`, error);
+      logger.error(`Error revoking all tokens for user ${userId}`, { error: serializeError(error) });
     }
   }
 
@@ -353,7 +354,7 @@ export class TokenRefreshService {
       return { allowed: true };
 
     } catch (error) {
-      logger.error('Rate limit check error:', error);
+      logger.error('Rate limit check error', { error: serializeError(error) });
       // Allow on error to avoid blocking legitimate users
       return { allowed: true };
     }
@@ -422,7 +423,7 @@ export class TokenRefreshService {
       };
 
     } catch (error) {
-      logger.error('Token validation error:', error);
+      logger.error('Token validation error', { error: serializeError(error) });
       return {
         valid: false,
         error: {
@@ -444,7 +445,7 @@ export class TokenRefreshService {
       return customToken;
 
     } catch (error) {
-      logger.error('Error generating access token:', error);
+      logger.error('Error generating access token', { error: serializeError(error) });
       throw new Error('Failed to generate access token');
     }
   }
@@ -485,7 +486,7 @@ export class TokenRefreshService {
       return newToken;
 
     } catch (error) {
-      logger.error('Error rotating refresh token:', error);
+      logger.error('Error rotating refresh token', { error: serializeError(error) });
       throw new Error('Failed to rotate refresh token');
     }
   }
@@ -502,7 +503,7 @@ export class TokenRefreshService {
         });
       }
     } catch (error) {
-      logger.error(`Error updating token usage for ${tokenId}:`, error);
+      logger.error(`Error updating token usage for ${tokenId}`, { error: serializeError(error) });
     }
   }
 
@@ -514,7 +515,7 @@ export class TokenRefreshService {
       const tokens = await cacheService.get<string[]>(userTokensKey) || [];
       return tokens;
     } catch (error) {
-      logger.error(`Error getting active tokens for user ${userId}:`, error);
+      logger.error(`Error getting active tokens for user ${userId}`, { error: serializeError(error) });
       return [];
     }
   }
@@ -580,7 +581,7 @@ export class TokenRefreshService {
       });
 
     } catch (error) {
-      logger.error('Error storing refresh attempt:', error);
+      logger.error('Error storing refresh attempt', { error: serializeError(error) });
     }
   }
 
@@ -609,7 +610,7 @@ export class TokenRefreshService {
       await cacheService.set(key, recentAttempts, { ttl: 60 * 60 });
 
     } catch (error) {
-      logger.error('Error checking suspicious activity:', error);
+      logger.error('Error checking suspicious activity', { error: serializeError(error) });
     }
   }
 
@@ -674,7 +675,7 @@ export class TokenRefreshService {
         return [];
       }
     } catch (error) {
-      logger.error('Error getting failed attempts:', error);
+      logger.error('Error getting failed attempts', { error: serializeError(error) });
       return [];
     }
   }

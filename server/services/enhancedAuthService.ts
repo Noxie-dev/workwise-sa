@@ -24,6 +24,7 @@ import * as admin from 'firebase-admin';
 import { cacheService, cacheUserData, getCachedUserData, invalidateUserCache } from './cacheService';
 import { tokenRefreshService } from './tokenRefreshService';
 import { logger } from '../utils/logger';
+import { serializeError } from '../utils/serializeError';
 
 // ============================================================================
 // ENHANCED AUTHENTICATION SERVICE
@@ -62,7 +63,7 @@ export class EnhancedAuthService {
         }
       }
     } catch (error) {
-      logger.error('Failed to initialize enhanced auth service:', error);
+      logger.error('Failed to initialize enhanced auth service', { error: serializeError(error) });
       this.clearStoredTokens();
     }
   }
@@ -124,7 +125,7 @@ export class EnhancedAuthService {
       });
 
     } catch (error: any) {
-      logger.error('Login error:', error);
+      logger.error('Login error', { error: serializeError(error) });
       return this.handleError(error, 'login');
     }
   }
@@ -173,7 +174,7 @@ export class EnhancedAuthService {
       });
 
     } catch (error: any) {
-      logger.error('Google login error:', error);
+      logger.error('Google login error', { error: serializeError(error) });
       return this.handleError(error, 'google-login');
     }
   }
@@ -193,7 +194,7 @@ export class EnhancedAuthService {
       });
 
     } catch (error: any) {
-      logger.error('Email link login error:', error);
+      logger.error('Email link login error', { error: serializeError(error) });
       return this.handleError(error, 'email-link-login');
     }
   }
@@ -254,7 +255,7 @@ export class EnhancedAuthService {
       });
 
     } catch (error: any) {
-      logger.error('Registration error:', error);
+      logger.error('Registration error', { error: serializeError(error) });
       return this.handleError(error, 'registration');
     }
   }
@@ -287,7 +288,7 @@ export class EnhancedAuthService {
       return this.createSuccessResult('Logged out successfully');
 
     } catch (error: any) {
-      logger.error('Logout error:', error);
+      logger.error('Logout error', { error: serializeError(error) });
       return this.handleError(error, 'logout');
     }
   }
@@ -307,7 +308,7 @@ export class EnhancedAuthService {
       return this.createSuccessResult('Password reset email sent');
 
     } catch (error: any) {
-      logger.error('Password reset error:', error);
+      logger.error('Password reset error', { error: serializeError(error) });
       return this.handleError(error, 'password-reset');
     }
   }
@@ -363,7 +364,7 @@ export class EnhancedAuthService {
       }
 
     } catch (error: any) {
-      logger.error('User update error:', error);
+      logger.error('User update error', { error: serializeError(error) });
       return this.handleError(error, 'user-update');
     }
   }
@@ -398,7 +399,7 @@ export class EnhancedAuthService {
       return this.createSuccessResult('Account deleted successfully');
 
     } catch (error: any) {
-      logger.error('User deletion error:', error);
+      logger.error('User deletion error', { error: serializeError(error) });
       return this.handleError(error, 'user-deletion');
     }
   }
@@ -449,7 +450,7 @@ export class EnhancedAuthService {
       return null;
 
     } catch (error) {
-      logger.error('Token refresh failed:', error);
+      logger.error('Token refresh failed', { error: serializeError(error) });
       return null;
     }
   }
@@ -460,7 +461,7 @@ export class EnhancedAuthService {
       const user = await this.getCachedUserById(decodedToken.uid);
       return user;
     } catch (error) {
-      logger.error('Token verification failed:', error);
+      logger.error('Token verification failed', { error: serializeError(error) });
       return null;
     }
   }
@@ -543,7 +544,7 @@ export class EnhancedAuthService {
           return user;
         }
       } catch (refreshError) {
-        logger.error('Token refresh failed during verification:', refreshError);
+        logger.error('Token refresh failed during verification', { error: serializeError(refreshError) });
       }
     }
 
@@ -567,7 +568,7 @@ export class EnhancedAuthService {
 
       return user;
     } catch (error) {
-      logger.error(`Error getting user ${userId}:`, error);
+      logger.error(`Error getting user ${userId}`, { error: serializeError(error) });
       return null;
     }
   }
@@ -589,7 +590,7 @@ export class EnhancedAuthService {
 
       return user;
     } catch (error) {
-      logger.error(`Error getting user by email ${email}:`, error);
+      logger.error(`Error getting user by email ${email}`, { error: serializeError(error) });
       return null;
     }
   }
@@ -621,7 +622,7 @@ export class EnhancedAuthService {
       
       return { accessToken, refreshToken };
     } catch (error) {
-      logger.error('Error generating tokens:', error);
+      logger.error('Error generating tokens', { error: serializeError(error) });
       throw new Error('Failed to generate tokens');
     }
   }
@@ -683,7 +684,7 @@ export class EnhancedAuthService {
   }
 
   private handleError(error: any, operation: string): AuthResult {
-    logger.error(`Auth error in ${operation}:`, error);
+    logger.error(`Auth error in ${operation}`, { error: serializeError(error) });
     
     const authError: AuthError = {
       code: error.code || AUTH_ERROR_CODES.INTERNAL_ERROR,

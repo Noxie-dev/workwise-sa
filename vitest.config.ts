@@ -8,7 +8,11 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
     include: ['**/*.test.{ts,js}'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/client/**'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/client/**',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -28,3 +32,4 @@ export default defineConfig({
     },
   },
 });
+

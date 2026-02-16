@@ -1,11 +1,11 @@
-const { db } = require('./utils/db');
-const { verifyFirebaseToken } = require('./utils/auth');
+import { db } from './utils/postgres.js';
+import { verifyFirebaseAuth as verifyFirebaseToken } from './utils/auth.js';
 
 /**
  * Authenticated API endpoint for full job details
  * Requires valid Firebase authentication token
  */
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
   // Set CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',

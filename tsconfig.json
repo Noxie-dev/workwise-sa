@@ -1,10 +1,21 @@
 {
   "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
-  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist",
+    "tests",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/__tests__/**",
+    "src/api/test/**",
+    "server/tests/**"
+  ],
   "compilerOptions": {
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
     "noEmit": true,
+    "target": "ES2020",
     "module": "ESNext",
     "strict": true,
     "forceConsistentCasingInFileNames": true,
@@ -13,6 +24,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
+    "useUnknownInCatchVariables": false,
     "moduleResolution": "bundler",
     "baseUrl": ".",
     "types": ["node", "vite/client"],

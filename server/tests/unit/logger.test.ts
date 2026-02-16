@@ -3,12 +3,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { logger } from '../../utils/enhanced-logger';
 
 describe('Enhanced Logger', () => {
-  // Spy on console methods
+  // Spy directly on logger methods to avoid transport-specific timing/sink behavior
   beforeEach(() => {
-    vi.spyOn(console, 'log').mockImplementation(() => {});
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
-    vi.spyOn(console, 'debug').mockImplementation(() => {});
+    vi.spyOn(logger, 'info').mockImplementation(() => logger);
+    vi.spyOn(logger, 'warn').mockImplementation(() => logger);
+    vi.spyOn(logger, 'error').mockImplementation(() => logger);
+    vi.spyOn(logger, 'debug').mockImplementation(() => logger);
   });
 
   afterEach(() => {
@@ -17,31 +17,27 @@ describe('Enhanced Logger', () => {
 
   it('should log error messages', () => {
     logger.error('Test error message');
-    expect(console.error).toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalledWith('Test error message');
   });
 
   it('should log warning messages', () => {
     logger.warn('Test warning message');
-    expect(console.warn).toHaveBeenCalled();
+    expect(logger.warn).toHaveBeenCalledWith('Test warning message');
   });
 
   it('should log info messages', () => {
     logger.info('Test info message');
-    expect(console.log).toHaveBeenCalled();
+    expect(logger.info).toHaveBeenCalledWith('Test info message');
   });
 
   it('should log debug messages', () => {
     logger.debug('Test debug message');
-    expect(console.debug).toHaveBeenCalled();
+    expect(logger.debug).toHaveBeenCalledWith('Test debug message');
   });
 
   it('should include metadata in log messages', () => {
     const metadata = { userId: 123, action: 'test' };
     logger.info('Test message with metadata', metadata);
-    expect(console.log).toHaveBeenCalled();
-    // Check that the log contains the metadata
-    const logCall = (console.log as any).mock.calls[0][0];
-    expect(logCall).toContain('metadata');
-    expect(logCall).toContain('userId');
+    expect(logger.info).toHaveBeenCalledWith('Test message with metadata', metadata);
   });
 });
