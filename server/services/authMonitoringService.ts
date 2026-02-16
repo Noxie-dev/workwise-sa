@@ -5,6 +5,7 @@
  */
 
 import { logger } from '../utils/logger';
+import { serializeError } from '../utils/serializeError';
 import { cacheService } from './cacheService';
 import { tokenRefreshService } from './tokenRefreshService';
 
@@ -115,7 +116,7 @@ export class AuthMonitoringService {
       this.isInitialized = true;
       logger.info('✅ Authentication monitoring service initialized');
     } catch (error) {
-      logger.error('❌ Failed to initialize auth monitoring service:', error);
+      logger.error('❌ Failed to initialize auth monitoring service', { error: serializeError(error) });
     }
   }
 
@@ -155,7 +156,7 @@ export class AuthMonitoringService {
       await this.saveMetricsToCache();
 
     } catch (error) {
-      logger.error('Error tracking login:', error);
+      logger.error('Error tracking login', { error: serializeError(error) });
     }
   }
 
@@ -190,7 +191,7 @@ export class AuthMonitoringService {
       await this.saveMetricsToCache();
 
     } catch (error) {
-      logger.error('Error tracking token refresh:', error);
+      logger.error('Error tracking token refresh', { error: serializeError(error) });
     }
   }
 
@@ -214,7 +215,7 @@ export class AuthMonitoringService {
       await this.saveMetricsToCache();
 
     } catch (error) {
-      logger.error('Error tracking rate limited request:', error);
+      logger.error('Error tracking rate limited request', { error: serializeError(error) });
     }
   }
 
@@ -239,7 +240,7 @@ export class AuthMonitoringService {
       await this.saveMetricsToCache();
 
     } catch (error) {
-      logger.error('Error tracking token revocation:', error);
+      logger.error('Error tracking token revocation', { error: serializeError(error) });
     }
   }
 
@@ -271,7 +272,7 @@ export class AuthMonitoringService {
       await this.saveMetricsToCache();
 
     } catch (error) {
-      logger.error('Error tracking suspicious activity:', error);
+      logger.error('Error tracking suspicious activity', { error: serializeError(error) });
     }
   }
 
@@ -320,7 +321,7 @@ export class AuthMonitoringService {
       this.updateAverageResponseTime();
 
     } catch (error) {
-      logger.error('Error tracking performance:', error);
+      logger.error('Error tracking performance', { error: serializeError(error) });
     }
   }
 
@@ -361,7 +362,7 @@ export class AuthMonitoringService {
       });
 
     } catch (error) {
-      logger.error('Error recording security event:', error);
+      logger.error('Error recording security event', { error: serializeError(error) });
     }
   }
 
@@ -384,7 +385,7 @@ export class AuthMonitoringService {
         logger.info(`Security event ${eventId} resolved by ${resolvedBy}`);
       }
     } catch (error) {
-      logger.error(`Error resolving security event ${eventId}:`, error);
+      logger.error(`Error resolving security event ${eventId}`, { error: serializeError(error) });
     }
   }
 
@@ -437,7 +438,7 @@ export class AuthMonitoringService {
       }
 
     } catch (error) {
-      logger.error('Error loading metrics from cache:', error);
+      logger.error('Error loading metrics from cache', { error: serializeError(error) });
     }
   }
 
@@ -445,7 +446,7 @@ export class AuthMonitoringService {
     try {
       await cacheService.set('auth_metrics', this.metrics, { ttl: 7 * 24 * 60 * 60 }); // 7 days
     } catch (error) {
-      logger.error('Error saving metrics to cache:', error);
+      logger.error('Error saving metrics to cache', { error: serializeError(error) });
     }
   }
 

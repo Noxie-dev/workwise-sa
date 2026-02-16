@@ -17,6 +17,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserById(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByFirebaseUid(uid: string): Promise<User | undefined>;
   getUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
@@ -84,6 +85,7 @@ export interface IStorage {
 
   // Profile methods
   getUserProfile(userId: number): Promise<any>;
+  getUserProfileByFirebaseUid(uid: string): Promise<any>;
   updateUserProfile(userId: number, profileData: any): Promise<any>;
   createUserProfile(userId: number, profileData: any): Promise<any>;
 
@@ -109,6 +111,15 @@ export class DatabaseStorage implements IStorage {
       return user;
     } catch (error: any) {
       throw Errors.database(`Failed to get user by username: ${error.message}`, error);
+    }
+  }
+
+  async getUserByFirebaseUid(uid: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.firebaseUid, uid));
+      return user;
+    } catch (error: any) {
+      throw Errors.database(`Failed to get user by Firebase UID: ${error.message}`, error);
     }
   }
 
@@ -619,6 +630,12 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getUserProfileByFirebaseUid(uid: string): Promise<any> {
+    const user = await this.getUserByFirebaseUid(uid);
+    if (!user) return null;
+    return this.getUserProfile(user.id);
+  }
+
   async updateUserProfile(userId: number, profileData: any): Promise<any> {
     try {
       // In a real implementation, this would update a profiles table
@@ -776,4 +793,3 @@ export const storage = new DatabaseStorage();
 
 // Export the storage classes for direct use in other files
 // export { DatabaseStorage, FirestoreStorage };
-

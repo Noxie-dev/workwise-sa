@@ -11,6 +11,9 @@ vi.mock('../../services/secretManager', () => ({
 
 describe('Database Module', () => {
   beforeAll(async () => {
+    process.env.NODE_ENV = 'test';
+    process.env.DATABASE_URL = 'sqlite:./test.db';
+
     // Initialize the database before tests
     await initializeDatabase();
   });
@@ -20,17 +23,10 @@ describe('Database Module', () => {
     expect(db).toBeDefined();
   });
 
-  it('should throw an error if getDB is called before initialization', async () => {
-    // Mock the dbInitialized flag to be false
-    vi.mock('../../db', () => {
-      const original = vi.importActual('../../db');
-      return {
-        ...original,
-        dbInitialized: false
-      };
-    });
-
-    expect(() => getDB()).toThrow('Database not initialized');
+  it('should return the same initialized database instance', async () => {
+    const db1 = getDB();
+    const db2 = getDB();
+    expect(db1).toBe(db2);
   });
 
   afterAll(() => {

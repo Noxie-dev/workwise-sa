@@ -15,7 +15,7 @@ export const validate = (schema: z.ZodObject<any, any>) => {
       if (error instanceof ZodError) {
         return res.status(400).json({
           message: 'Invalid request data',
-          errors: error.errors,
+          errors: error.issues,
         });
       }
       next(error);

@@ -173,7 +173,7 @@ export function registerWiseUpRoutes(router: Router) {
     } catch (error) {
       console.error('Error adding bookmark:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: 'Invalid request data', errors: error.errors });
+        return res.status(400).json({ message: 'Invalid request data', errors: error.issues });
       }
       res.status(500).json({ message: 'Failed to add bookmark' });
     }

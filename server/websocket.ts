@@ -8,7 +8,7 @@
  */
 
 import { Server as HttpServer } from 'http';
-import WebSocket from 'ws';
+import WebSocket, { WebSocketServer } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from './utils/logger';
 
@@ -26,12 +26,12 @@ interface UpdateMessage {
 }
 
 export class WebSocketServer {
-  private wss: WebSocket.Server;
+  private wss: WebSocketServer;
   private clients: Map<string, Client> = new Map();
   private pingInterval: NodeJS.Timeout | null = null;
 
   constructor(server: HttpServer) {
-    this.wss = new WebSocket.Server({ server });
+    this.wss = new WebSocketServer({ server });
     this.initialize();
   }
 

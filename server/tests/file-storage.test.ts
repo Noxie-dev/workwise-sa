@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { DatabaseStorage } from '../storage';
-import { db } from '../db';
+import { initializeDatabase, getDB } from '../db';
 import { files } from '@shared/schema';
 import fs from 'fs';
 import path from 'path';
 
 // Create a test instance of DatabaseStorage
 const storage = new DatabaseStorage();
+let db: ReturnType<typeof getDB>;
 
 // Test file data
 const testFilePath = path.join(process.cwd(), 'uploads/test-file.txt');
@@ -14,7 +15,13 @@ const testFileUrl = 'http://localhost:3001/uploads/test-file.txt';
 
 describe('File Storage', () => {
   // Create test file
-  beforeAll(() => {
+  beforeAll(async () => {
+    process.env.NODE_ENV = 'test';
+    process.env.DATABASE_URL = 'sqlite:./test.db';
+
+    await initializeDatabase();
+    db = getDB();
+
     // Ensure uploads directory exists
     const uploadsDir = path.join(process.cwd(), 'uploads');
     if (!fs.existsSync(uploadsDir)) {

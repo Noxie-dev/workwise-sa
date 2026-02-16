@@ -1,10 +1,10 @@
-const { db } = require('./utils/db');
+import { db } from './utils/postgres.js';
 
 /**
  * Public API endpoint for job previews (no authentication required)
  * Returns basic job information for browsing
  */
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
   // Set CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -56,7 +56,7 @@ exports.handler = async (event, context) => {
 
     // Add search conditions
     if (query.trim()) {
-      whereConditions.push(`(j.title ILIKE $${paramIndex} OR j.description ILIKE $${paramIndex} OR c.name ILIKE $${paramIndex})`);
+      whereConditions.push(`(j.title ILIKE $${paramIndex} OR j.description ILIKE $${paramIndex} OR comp.name ILIKE $${paramIndex} OR cat.name ILIKE $${paramIndex})`);
       queryParams.push(`%${query.trim()}%`);
       paramIndex++;
     }

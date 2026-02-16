@@ -26,8 +26,8 @@ registerTopHiringRoutes(v1Router);
 const protectedRouter = Router();
 v1Router.use('/protected', authenticate, protectedRouter);
 
-// Register protected routes
-registerUserRoutes(protectedRouter);
+// Public user auth routes
+registerUserRoutes(v1Router);
 
 // CV routes with AI rate limiting
 const cvRouter = Router();
