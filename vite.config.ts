@@ -191,13 +191,16 @@ export default defineConfig(({ mode }) => ({
       usePolling: true, // More reliable file watching
       interval: 1000, // Check for changes every second
     },
+    fs: {
+      // Allow hoisted dependencies (e.g. Font Awesome webfonts) from the workspace root
+      allow: [path.resolve(__dirname)],
+    },
     proxy: {
       "/api": {
         target: "http://localhost:3001", // Match the PORT in .env
         changeOrigin: true,
         secure: false,
         ws: true, // Support websocket proxying
-        rewrite: (path) => path.replace(/^\/api/, ''),
       },
       "/ws": {
         target: "http://localhost:3001", // Match the PORT in .env

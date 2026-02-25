@@ -73,6 +73,8 @@ const Register = () => {
         errorMessage = "Multiple popup requests were made. Please try again.";
       } else if (error.code === 'auth/popup-blocked') {
         errorMessage = "Sign-in popup was blocked by your browser. Please allow popups for this site.";
+      } else if (error.code === 'firebase/unavailable-config') {
+        errorMessage = "Firebase registration is in demo mode. Add Firebase keys to client/.env or start the emulators.";
       }
 
       console.error("Google sign-in error:", error.code, error.message);
@@ -145,6 +147,8 @@ const Register = () => {
       } else if (error.code === 'auth/internal-error') {
         errorMessage = "An internal error occurred. This could be due to Firebase emulator issues.";
         console.error("Firebase internal error. Check if emulators are running correctly.");
+      } else if (error.code === 'firebase/unavailable-config') {
+        errorMessage = "Firebase registration is in demo mode. Add Firebase keys to client/.env or start the emulators.";
       }
 
       console.error("Registration error:", error.code, error.message);
