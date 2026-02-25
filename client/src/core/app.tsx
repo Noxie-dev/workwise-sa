@@ -9,6 +9,7 @@ import { Suspense, lazy } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { LoadingScreen } from '@/components/ui/loading-screen';
+import { firebaseStatus } from '@/lib/firebase';
 
 // Lazy load all pages for better performance
 const NotFound = lazy(() => import("@/pages/not-found"));
@@ -69,6 +70,14 @@ function Router() {
   return (
     <>
       <Header />
+      {!firebaseStatus.clientOpsEnabled && (
+        <div className="mx-auto w-full max-w-7xl px-4 pt-4">
+          <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            Firebase client features are in demo mode because Firebase keys are missing or placeholder values are being used.
+            Add `VITE_FIREBASE_API_KEY` and `VITE_FIREBASE_APP_ID` in `client/.env`, or enable emulators with `VITE_USE_FIREBASE_EMULATORS=true`.
+          </div>
+        </div>
+      )}
       <ErrorBoundary>
         <Suspense fallback={<LoadingScreen />}>
           <Switch>

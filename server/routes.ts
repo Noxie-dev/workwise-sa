@@ -1,7 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertCategorySchema, insertCompanySchema, insertJobSchema } from "@shared/schema";
+import {
+  insertUserSchema,
+  insertCategorySchema,
+  insertCompanySchema,
+  insertJobSchema,
+  type Category,
+  type Company,
+} from "@shared/schema";
 import { z } from "zod";
 import { generateProfessionalSummary, generateJobDescription, translateText } from "./ai";
 import { 
@@ -15,7 +22,7 @@ import { mlJobMatchingService } from "./services/mlJobMatching";
 import recommendationRoutes from "./recommendationRoutes";
 import fileRoutes from "./routes/files";
 import profileRoutes from "./routes/profile";
-import { ApiError, Errors } from './middleware/errorHandler';
+import { ApiError, Errors, ErrorType } from './middleware/errorHandler';
 import { secretManager } from './services/secretManager';
 
 import { validate } from "./middleware/validation";
@@ -32,6 +39,66 @@ const generateJobDescriptionSchema = z.object({ body: z.object({ jobInfo: z.any(
 const translateSchema = z.object({ body: z.object({ text: z.string(), targetLanguage: z.string() }) });
 const analyzeImageSchema = z.object({ body: z.object({ image: z.string() }) });
 
+const DEV_FALLBACK_CATEGORIES: Category[] = [
+  { id: 1, name: "General Worker", icon: "user", slug: "general-worker", jobCount: 245 },
+  { id: 2, name: "Construction Worker", icon: "hammer", slug: "construction-worker", jobCount: 178 },
+  { id: 3, name: "Picker / Packer", icon: "package", slug: "picker-packer", jobCount: 132 },
+  { id: 4, name: "Warehouse Assistant", icon: "warehouse", slug: "warehouse-assistant", jobCount: 98 },
+  { id: 5, name: "Cashier", icon: "credit-card", slug: "cashier", jobCount: 167 },
+  { id: 6, name: "Cleaner", icon: "sparkles", slug: "cleaner", jobCount: 203 },
+  { id: 7, name: "Security Guard", icon: "shield", slug: "security-guard", jobCount: 145 },
+  { id: 8, name: "Admin Clerk", icon: "file-text", slug: "admin-clerk", jobCount: 112 },
+];
+
+const DEV_FALLBACK_COMPANIES: Company[] = [
+  { id: 1, name: "TechSA", logo: "https://via.placeholder.com/150", location: "Cape Town, Western Cape", slug: "techsa", openPositions: 12 },
+  { id: 2, name: "Invest Group SA", logo: "https://via.placeholder.com/150", location: "Johannesburg, Gauteng", slug: "invest-group-sa", openPositions: 8 },
+  { id: 3, name: "EcoEnergy", logo: "https://via.placeholder.com/150", location: "Durban, KwaZulu-Natal", slug: "ecoenergy", openPositions: 6 },
+  { id: 4, name: "GrowSA", logo: "https://via.placeholder.com/150", location: "Pretoria, Gauteng", slug: "growsa", openPositions: 5 },
+  { id: 5, name: "HealthPlus", logo: "https://via.placeholder.com/150", location: "Johannesburg, Gauteng", slug: "healthplus", openPositions: 14 },
+];
+
+const isDatabaseUnavailableError = (error: unknown): boolean => {
+  const err = error as any;
+  const codes = [
+    err?.code,
+    err?.cause?.code,
+    err?.details?.code,
+    err?.details?.cause?.code,
+  ].filter(Boolean);
+
+  if (codes.includes("ECONNREFUSED")) {
+    return true;
+  }
+
+  const message = String(err?.message || "");
+  if (/ECONNREFUSED|connect.*5432|Failed query/i.test(message)) {
+    return true;
+  }
+
+  return err instanceof ApiError && err.type === ErrorType.DATABASE;
+};
+
+const tryRespondWithDevMock = (
+  routeLabel: string,
+  error: unknown,
+  res: any,
+  payload: unknown,
+): boolean => {
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
+
+  if (!isDatabaseUnavailableError(error)) {
+    return false;
+  }
+
+  console.warn(`[dev-mock] ${routeLabel}: database unavailable, returning mock data`);
+  res.setHeader("X-Workwise-Data-Source", "mock-fallback");
+  res.json(payload);
+  return true;
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Categories routes
   app.get("/api/categories", async (req, res, next) => {
@@ -39,6 +106,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const categories = await storage.getCategories();
       res.json(categories);
     } catch (error) {
+      if (tryRespondWithDevMock("/api/categories", error, res, DEV_FALLBACK_CATEGORIES)) {
+        return;
+      }
       next(error);
     }
   });
@@ -61,6 +131,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const companies = await storage.getCompanies();
       res.json(companies);
     } catch (error) {
+      if (tryRespondWithDevMock("/api/companies", error, res, DEV_FALLBACK_COMPANIES)) {
+        return;
+      }
       next(error);
     }
   });

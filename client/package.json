@@ -53,8 +53,8 @@
     "zod": "^4.1.5"
   },
   "scripts": {
-    "start": "vite",
-    "dev": "vite",
+    "start": "vite --host 0.0.0.0",
+    "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "test": "jest",
     "test:watch": "jest --watch",

@@ -14,9 +14,15 @@ const CategoriesSection = () => {
   const { data: categoriesResponse, isLoading, error } = useQuery<CategoryResponse>({
     queryKey: ['/api/categories'],
     queryFn: async () => {
+      const useMockPublicData = import.meta.env.VITE_USE_MOCK_PUBLIC_DATA !== 'false';
+
       // Always use mock data in production or if we're on Netlify
-      if (import.meta.env.PROD || window.location.hostname.includes('netlify.app')) {
-        console.log('Using mock categories data in production or Netlify environment');
+      if (
+        import.meta.env.PROD ||
+        window.location.hostname.includes('netlify.app') ||
+        (import.meta.env.DEV && useMockPublicData)
+      ) {
+        console.log('Using mock categories data');
         return createMockResponse(mockCategories);
       }
 
@@ -28,7 +34,7 @@ const CategoriesSection = () => {
         }
         return response.json();
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.warn('Falling back to mock categories data:', error);
         // Fallback to mock data if API call fails
         return createMockResponse(mockCategories);
       }

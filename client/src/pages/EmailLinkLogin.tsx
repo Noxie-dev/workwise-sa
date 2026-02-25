@@ -58,6 +58,8 @@ const EmailLinkLogin = () => {
         errorMessage = "Multiple popup requests were made. Please try again.";
       } else if (error.code === 'auth/popup-blocked') {
         errorMessage = "Sign-in popup was blocked by your browser. Please allow popups for this site.";
+      } else if (error.code === 'firebase/unavailable-config') {
+        errorMessage = "Firebase login is in demo mode. Add Firebase keys to client/.env or start the emulators.";
       }
 
       console.error("Google sign-in error:", error.code, error.message);
@@ -95,6 +97,8 @@ const EmailLinkLogin = () => {
         errorMessage = "Email link sign-in is not enabled. Please try another method or contact support.";
       } else if (error.code === 'auth/unauthorized-domain') {
         errorMessage = "This domain is not authorized for email link sign-in. Please try another method.";
+      } else if (error.code === 'firebase/unavailable-config') {
+        errorMessage = "Email-link sign-in is in demo mode. Add Firebase keys to client/.env or start the emulators.";
       }
 
       console.error("Email link error:", error.code, error.message);

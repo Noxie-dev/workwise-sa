@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { runFirebaseDiagnostics } from '@/utils/firebase-diagnostics';
-import { auth } from '@/lib/firebase';
+import { onAuthChange, firebaseStatus } from '@/lib/firebase';
 
 const FirebaseDiagnostics = () => {
   const [isRunningTests, setIsRunningTests] = useState(false);
@@ -13,7 +13,7 @@ const FirebaseDiagnostics = () => {
 
   useEffect(() => {
     // Check auth status
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = onAuthChange((user) => {
       setAuthStatus(user ? `Authenticated as ${user.email || user.uid}` : 'Not authenticated');
     });
 
@@ -85,6 +85,7 @@ const FirebaseDiagnostics = () => {
                   <h3 className="font-medium">Environment</h3>
                   <p>Mode: {import.meta.env.MODE}</p>
                   <p>Development: {import.meta.env.DEV ? 'Yes' : 'No'}</p>
+                  <p>Firebase Client Ops: {firebaseStatus.clientOpsEnabled ? 'Enabled' : 'Demo mode (disabled)'}</p>
                 </div>
                 
                 <Button 

@@ -14,9 +14,15 @@ const CompaniesSection = () => {
   const { data: companiesResponse, isLoading, error } = useQuery<CompanyResponse>({
     queryKey: ['/api/companies'],
     queryFn: async () => {
+      const useMockPublicData = import.meta.env.VITE_USE_MOCK_PUBLIC_DATA !== 'false';
+
       // Always use mock data in production or if we're on Netlify
-      if (import.meta.env.PROD || window.location.hostname.includes('netlify.app')) {
-        console.log('Using mock companies data in production or Netlify environment');
+      if (
+        import.meta.env.PROD ||
+        window.location.hostname.includes('netlify.app') ||
+        (import.meta.env.DEV && useMockPublicData)
+      ) {
+        console.log('Using mock companies data');
         return createMockResponse(mockCompanies);
       }
 
@@ -28,7 +34,7 @@ const CompaniesSection = () => {
         }
         return response.json();
       } catch (error) {
-        console.error('Error fetching companies:', error);
+        console.warn('Falling back to mock companies data:', error);
         // Fallback to mock data if API call fails
         return createMockResponse(mockCompanies);
       }
