@@ -37,11 +37,13 @@ import {
 // ============================================================================
 
 export class FirebaseAuthAdapter {
-  private auth = getAuth();
+  private auth: ReturnType<typeof getAuth> | null = null;
+  private authInitError: unknown = null;
   private googleProvider = new GoogleAuthProvider();
   private actionCodeSettings: ActionCodeSettings;
 
   constructor() {
+    this.initializeAuth();
     this.setupGoogleProvider();
     this.setupActionCodeSettings();
   }
@@ -49,6 +51,15 @@ export class FirebaseAuthAdapter {
   // ============================================================================
   // INITIALIZATION
   // ============================================================================
+
+  private initializeAuth(): void {
+    try {
+      this.auth = getAuth();
+    } catch (error) {
+      this.authInitError = error;
+      console.warn('Firebase auth adapter initialized in disabled mode:', error);
+    }
+  }
 
   private setupGoogleProvider(): void {
     this.googleProvider.addScope('email');
@@ -80,9 +91,27 @@ export class FirebaseAuthAdapter {
   // AUTHENTICATION METHODS
   // ============================================================================
 
+  private getUnavailableAuthResult(operation: string): AuthResult | null {
+    if (this.auth) {
+      return null;
+    }
+
+    return {
+      success: false,
+      error: {
+        code: AUTH_ERROR_CODES.INTERNAL_ERROR,
+        message: `Firebase authentication is unavailable for ${operation}. Check Firebase config or enable emulators.`,
+        details: this.authInitError,
+      },
+    };
+  }
+
   async loginWithEmailPassword(email: string, password: string): Promise<AuthResult> {
+    const unavailable = this.getUnavailableAuthResult('login');
+    if (unavailable) return unavailable;
+
     try {
-      const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(this.auth!, email, password);
       const appUser = await this.convertFirebaseUserToAppUser(userCredential.user);
       
       return {
@@ -97,8 +126,11 @@ export class FirebaseAuthAdapter {
   }
 
   async loginWithGoogle(): Promise<AuthResult> {
+    const unavailable = this.getUnavailableAuthResult('google login');
+    if (unavailable) return unavailable;
+
     try {
-      const result = await signInWithPopup(this.auth, this.googleProvider);
+      const result = await signInWithPopup(this.auth!, this.googleProvider);
       const appUser = await this.convertFirebaseUserToAppUser(result.user);
       
       return {
@@ -113,8 +145,11 @@ export class FirebaseAuthAdapter {
   }
 
   async loginWithEmailLink(email: string): Promise<AuthResult> {
+    const unavailable = this.getUnavailableAuthResult('email link sign in');
+    if (unavailable) return unavailable;
+
     try {
-      await sendSignInLinkToEmail(this.auth, email, this.actionCodeSettings);
+      await sendSignInLinkToEmail(this.auth!, email, this.actionCodeSettings);
       
       // Store email for verification
       if (typeof window !== 'undefined') {
@@ -131,8 +166,11 @@ export class FirebaseAuthAdapter {
   }
 
   async completeEmailLinkSignIn(email: string, link: string): Promise<AuthResult> {
+    const unavailable = this.getUnavailableAuthResult('email link completion');
+    if (unavailable) return unavailable;
+
     try {
-      if (!isSignInWithEmailLink(this.auth, link)) {
+      if (!isSignInWithEmailLink(this.auth!, link)) {
         return {
           success: false,
           error: {
@@ -142,7 +180,7 @@ export class FirebaseAuthAdapter {
         };
       }
 
-      const result = await signInWithEmailLink(this.auth, email, link);
+      const result = await signInWithEmailLink(this.auth!, email, link);
       const appUser = await this.convertFirebaseUserToAppUser(result.user);
       
       // Clear stored email
@@ -162,9 +200,12 @@ export class FirebaseAuthAdapter {
   }
 
   async registerWithEmailPassword(userData: RegisterData): Promise<AuthResult> {
+    const unavailable = this.getUnavailableAuthResult('registration');
+    if (unavailable) return unavailable;
+
     try {
       const userCredential = await createUserWithEmailAndPassword(
-        this.auth, 
+        this.auth!,
         userData.email, 
         userData.password
       );
@@ -194,8 +235,11 @@ export class FirebaseAuthAdapter {
   }
 
   async logout(): Promise<AuthResult> {
+    const unavailable = this.getUnavailableAuthResult('logout');
+    if (unavailable) return unavailable;
+
     try {
-      await signOut(this.auth);
+      await signOut(this.auth!);
       return {
         success: true,
         message: 'Logout successful'
@@ -206,8 +250,11 @@ export class FirebaseAuthAdapter {
   }
 
   async resetPassword(email: string): Promise<AuthResult> {
+    const unavailable = this.getUnavailableAuthResult('password reset');
+    if (unavailable) return unavailable;
+
     try {
-      await sendPasswordResetEmail(this.auth, email);
+      await sendPasswordResetEmail(this.auth!, email);
       return {
         success: true,
         message: 'Password reset email sent'
@@ -222,8 +269,11 @@ export class FirebaseAuthAdapter {
   // ============================================================================
 
   async updateUserProfile(updates: UserUpdate): Promise<AuthResult> {
+    const unavailable = this.getUnavailableAuthResult('profile update');
+    if (unavailable) return unavailable;
+
     try {
-      const currentUser = this.auth.currentUser;
+      const currentUser = this.auth!.currentUser;
       if (!currentUser) {
         return {
           success: false,
@@ -256,6 +306,8 @@ export class FirebaseAuthAdapter {
   }
 
   async getCurrentUser(): Promise<AppUser | null> {
+    if (!this.auth) return null;
+
     const currentUser = this.auth.currentUser;
     if (!currentUser) {
       return null;
@@ -265,6 +317,8 @@ export class FirebaseAuthAdapter {
   }
 
   async getToken(): Promise<string | null> {
+    if (!this.auth) return null;
+
     const currentUser = this.auth.currentUser;
     if (!currentUser) {
       return null;
@@ -279,6 +333,8 @@ export class FirebaseAuthAdapter {
   }
 
   async refreshToken(): Promise<string | null> {
+    if (!this.auth) return null;
+
     const currentUser = this.auth.currentUser;
     if (!currentUser) {
       return null;
@@ -297,6 +353,11 @@ export class FirebaseAuthAdapter {
   // ============================================================================
 
   onAuthStateChanged(callback: (user: AppUser | null) => void): () => void {
+    if (!this.auth) {
+      Promise.resolve().then(() => callback(null));
+      return () => {};
+    }
+
     return onAuthStateChanged(this.auth, async (firebaseUser) => {
       if (firebaseUser) {
         const appUser = await this.convertFirebaseUserToAppUser(firebaseUser);
@@ -325,6 +386,7 @@ export class FirebaseAuthAdapter {
   }
 
   isSignInWithEmailLink(link: string): boolean {
+    if (!this.auth) return false;
     return isSignInWithEmailLink(this.auth, link);
   }
 
@@ -435,6 +497,12 @@ export class FirebaseAuthAdapter {
         authError = {
           code: AUTH_ERROR_CODES.NETWORK_REQUEST_FAILED,
           message: 'Network error. Please check your connection'
+        };
+        break;
+      case 'auth/invalid-api-key':
+        authError = {
+          code: AUTH_ERROR_CODES.INTERNAL_ERROR,
+          message: 'Firebase client keys are missing or invalid. Add Firebase config to client/.env or use the emulators.'
         };
         break;
       case 'auth/operation-not-allowed':

@@ -11,6 +11,16 @@ export default defineConfig({
     hmr: {
       host: 'localhost',
     },
+    fs: {
+      // Allow serving hoisted deps/fonts from the workspace root in dev containers
+      allow: [path.resolve(__dirname, "..")],
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
   },
   resolve: {
     alias: {

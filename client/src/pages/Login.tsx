@@ -62,6 +62,8 @@ const Login = () => {
         errorMessage = "Multiple popup requests were made. Please try again.";
       } else if (error.code === 'auth/popup-blocked') {
         errorMessage = "Sign-in popup was blocked by your browser. Please allow popups for this site.";
+      } else if (error.code === 'firebase/unavailable-config') {
+        errorMessage = "Firebase login is in demo mode. Add Firebase keys to client/.env or start the emulators.";
       }
 
       console.error("Google sign-in error:", error.code, error.message);
@@ -95,6 +97,8 @@ const Login = () => {
         errorMessage = "Too many unsuccessful login attempts. Please try again later.";
       } else if (error.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your internet connection.";
+      } else if (error.code === 'firebase/unavailable-config') {
+        errorMessage = "Firebase login is in demo mode. Add Firebase keys to client/.env or start the emulators.";
       }
 
       toast({

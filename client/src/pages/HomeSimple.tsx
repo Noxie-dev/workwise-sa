@@ -90,14 +90,6 @@ const HomeSimple: React.FC = () => {
 
     // Check for user preference for reduced motion
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (mediaQuery.matches) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-      ctx.font = `16px 'Inter', sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.fillText('Welcome to WorkWise.SA', canvas.width / 2, canvas.height / 2);
-      return;
-    }
 
     const jobCategories = [
       'Cashier',
@@ -119,12 +111,46 @@ const HomeSimple: React.FC = () => {
     let canvasWidth = canvas.offsetWidth;
     let canvasHeight = canvas.offsetHeight;
 
+    const drawReducedMotionFallback = () => {
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+      const labels = ['Cashier', 'General Worker', 'Security', 'Driver', 'Retail', 'Cleaner'];
+      const cols = 3;
+      const rows = Math.ceil(labels.length / cols);
+      const cellWidth = canvasWidth / cols;
+      const cellHeight = Math.max(canvasHeight / (rows + 2), 80);
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      labels.forEach((label, index) => {
+        const col = index % cols;
+        const row = Math.floor(index / cols);
+        const x = cellWidth * (col + 0.5);
+        const y = cellHeight * (row + 1.4);
+
+        ctx.font = `600 15px 'Inter', sans-serif`;
+        ctx.fillStyle = index % 2 === 0 ? 'rgba(255, 255, 255, 0.18)' : 'rgba(254, 215, 170, 0.2)';
+        ctx.fillText(label, x, y);
+      });
+    };
+
     const resizeCanvas = () => {
       canvasWidth = canvas.offsetWidth;
       canvasHeight = canvas.offsetHeight;
-      canvas.width = canvasWidth;
-      canvas.height = canvasHeight;
+
+      if (!canvasWidth || !canvasHeight) return;
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(canvasWidth * dpr);
+      canvas.height = Math.floor(canvasHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
       initParticles();
+
+      if (mediaQuery.matches) {
+        drawReducedMotionFallback();
+      }
     };
 
     const initParticles = () => {
@@ -137,10 +163,10 @@ const HomeSimple: React.FC = () => {
           x: Math.random() * canvasWidth,
           y: Math.random() * canvasHeight,
           text: jobText,
-          fontSize: Math.random() * 6 + 12,
+          fontSize: Math.random() * 8 + 14,
           speedX: (Math.random() - 0.5) * 0.3,
           speedY: (Math.random() - 0.5) * 0.3,
-          opacity: Math.random() * 0.4 + 0.3,
+          opacity: Math.random() * 0.25 + 0.45,
           color: Math.random() > 0.5 ? '#FED7AA' : '#FFFFFF',
           rotation: Math.random() * 360,
           rotationSpeed: (Math.random() - 0.5) * 0.3,
@@ -151,7 +177,7 @@ const HomeSimple: React.FC = () => {
     const animate = () => {
       ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
       ctx.lineWidth = 1;
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
@@ -163,7 +189,7 @@ const HomeSimple: React.FC = () => {
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.globalAlpha = (1 - distance / 150) * 0.1;
+            ctx.globalAlpha = (1 - distance / 150) * 0.18;
             ctx.stroke();
           }
         }
@@ -224,7 +250,9 @@ const HomeSimple: React.FC = () => {
     };
 
     resizeCanvas();
-    animate();
+    if (!mediaQuery.matches) {
+      animate();
+    }
     window.addEventListener('resize', resizeCanvas);
 
     return () => {
@@ -295,13 +323,13 @@ const HomeSimple: React.FC = () => {
         >
           <canvas
             ref={canvasRef}
-            className="absolute inset-0 w-full h-full"
-            style={{ zIndex: 1 }}
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            style={{ zIndex: 2, opacity: 0.95 }}
           />
 
           <div
-            className="absolute inset-0 bg-gradient-to-r from-blue-900/10 via-purple-900/5 to-orange-900/10 motion-safe:animate-pulse"
-            style={{ zIndex: 2 }}
+            className="absolute inset-0 pointer-events-none bg-gradient-to-r from-blue-900/5 via-purple-900/0 to-orange-900/5 motion-safe:animate-pulse"
+            style={{ zIndex: 1 }}
           />
 
           <div className="container mx-auto px-4 py-16 relative z-10 text-center">
