@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/typescript-node:18
+FROM mcr.microsoft.com/devcontainers/typescript-node:22
 
 # Install additional development tools
 RUN apt-get update && apt-get install -y \
@@ -37,8 +37,8 @@ RUN npm install
 ENV NODE_ENV=development
 ENV PATH="/workspace/node_modules/.bin:$PATH"
 
-# Expose common development ports
-EXPOSE 3000 5173 8080 5000
+# Expose app and emulator ports used by this repo
+EXPOSE 3001 5173 8080 5001 5050 9099 9199 9000
 
 # Default command
 CMD ["/bin/bash"]

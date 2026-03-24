@@ -22,6 +22,7 @@ import { mlJobMatchingService } from "./services/mlJobMatching";
 import recommendationRoutes from "./recommendationRoutes";
 import fileRoutes from "./routes/files";
 import profileRoutes from "./routes/profile";
+import scrapingRoutes from "./routes/scraping";
 import { ApiError, Errors, ErrorType } from './middleware/errorHandler';
 import { secretManager } from './services/secretManager';
 
@@ -469,6 +470,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register profile routes
   app.use('/api/profile', profileRoutes);
+
+  // Register scraping orchestration routes
+  app.use('/api/scraping', scrapingRoutes);
   
   const httpServer = createServer(app);
   return httpServer;

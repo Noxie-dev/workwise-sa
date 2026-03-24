@@ -8,10 +8,14 @@ import postgres from 'postgres';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
-import { logger } from '../server/utils/enhanced-logger';
 
 // Load environment variables
 dotenv.config();
+
+const logger = {
+  info: console.log,
+  error: console.error,
+};
 
 async function runMigrations() {
   const connectionString = process.env.DATABASE_URL || 'sqlite:./test.db';

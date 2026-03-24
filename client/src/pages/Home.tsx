@@ -63,9 +63,6 @@ const Home = () => {
 
     const particles = particlesRef.current;
 
-    // Check for user preference for reduced motion
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-
     const jobCategories = [
       'Cashier',
       'General Worker',
@@ -86,30 +83,6 @@ const Home = () => {
     let canvasWidth = canvas.offsetWidth;
     let canvasHeight = canvas.offsetHeight;
 
-    const drawReducedMotionFallback = () => {
-      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
-      const labels = ['Cashier', 'General Worker', 'Security', 'Driver', 'Retail', 'Cleaner'];
-      const cols = 3;
-      const rows = Math.ceil(labels.length / cols);
-      const cellWidth = canvasWidth / cols;
-      const cellHeight = Math.max(canvasHeight / (rows + 2), 80);
-
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      labels.forEach((label, index) => {
-        const col = index % cols;
-        const row = Math.floor(index / cols);
-        const x = cellWidth * (col + 0.5);
-        const y = cellHeight * (row + 1.4);
-
-        ctx.font = `600 15px 'Inter', sans-serif`;
-        ctx.fillStyle = index % 2 === 0 ? 'rgba(255, 255, 255, 0.18)' : 'rgba(254, 215, 170, 0.2)';
-        ctx.fillText(label, x, y);
-      });
-    };
-
     const resizeCanvas = () => {
       canvasWidth = canvas.offsetWidth;
       canvasHeight = canvas.offsetHeight;
@@ -123,9 +96,6 @@ const Home = () => {
 
       initParticles();
 
-      if (mediaQuery.matches) {
-        drawReducedMotionFallback();
-      }
     };
 
     const initParticles = () => {
@@ -225,9 +195,7 @@ const Home = () => {
     };
 
     resizeCanvas();
-    if (!mediaQuery.matches) {
-      animate();
-    }
+    animate();
     window.addEventListener('resize', resizeCanvas);
 
     return () => {

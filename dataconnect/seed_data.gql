@@ -1,0 +1,57 @@
+mutation SeedData @transaction @auth(level: USER, insecureReason: "Seed data operations are only accessible to authenticated users for initial database setup.") {
+  user1: user_insert(data: {
+    id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+    email: "john.doe@example.com",
+    passwordHash: "hashedpassword1",
+    accountType: "job_seeker",
+    createdAt: "2023-01-01T10:00:00Z"
+  })
+  user2: user_insert(data: {
+    id: "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+    email: "jane.smith@example.com",
+    passwordHash: "hashedpassword2",
+    accountType: "employer",
+    createdAt: "2023-01-02T11:00:00Z"
+  })
+  jobSeekerProfile1: jobSeekerProfile_insert(data: {
+    userId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+    firstName: "John",
+    lastName: "Doe",
+    phoneNumber: "123-456-7890",
+    resumeUrl: "http://example.com/john_resume.pdf",
+    headline: "Experienced Software Engineer",
+    skills: ["JavaScript", "React", "Node.js"],
+    experience: "5 years in software development",
+    education: "B.S. in Computer Science",
+    desiredJobType: ["Full-time", "Remote"]
+  })
+  employerProfile1: employerProfile_insert(data: {
+    userId: "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+    companyName: "Tech Solutions Inc.",
+    contactPerson: "Jane Smith",
+    industry: "Information Technology",
+    companyDescription: "Leading tech company specializing in AI solutions.",
+    website: "http://techsolutions.com",
+    companyLogoUrl: "http://techsolutions.com/logo.png"
+  })
+  jobPosting1: jobPosting_insert(data: {
+    employerProfileId: "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+    title: "Senior Software Engineer",
+    description: "Develop and maintain web applications.",
+    location: "San Francisco, CA",
+    jobType: "Full-time",
+    salaryRange: "$120,000 - $150,000",
+    createdAt: "2023-01-10T09:00:00Z",
+    requirements: "5+ years experience, React, Node.js",
+    benefits: "Health insurance, 401k, unlimited PTO",
+    applicationDeadline: "2023-03-01"
+  })
+  application1: application_insert(data: {
+    jobSeekerProfileId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+    jobPostingId: "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+    applicationDate: "2023-02-15T14:30:00Z",
+    status: "Pending",
+    coverLetter: "Attached is my cover letter for the Senior Software Engineer position.",
+    resumeUrl: "http://example.com/john_resume.pdf"
+  })
+}
