@@ -10,42 +10,42 @@ interface CategoryResponse {
   data: Category[];
 }
 
+const normalizeCategoriesResponse = (payload: Category[] | CategoryResponse): Category[] => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  return Array.isArray(payload.data) ? payload.data : [];
+};
+
 const CategoriesSection = () => {
-  const { data: categoriesResponse, isLoading, error } = useQuery<CategoryResponse>({
+  const { data: categories, isLoading, error } = useQuery<Category[]>({
     queryKey: ['/api/categories'],
     queryFn: async () => {
       const useMockPublicData = import.meta.env.VITE_USE_MOCK_PUBLIC_DATA !== 'false';
 
-      // Always use mock data in production or if we're on Netlify
-      if (
-        import.meta.env.PROD ||
-        window.location.hostname.includes('netlify.app') ||
-        (import.meta.env.DEV && useMockPublicData)
-      ) {
-        console.log('Using mock categories data');
-        return createMockResponse(mockCategories);
-      }
-
-      // In development, make the actual API call
       try {
         const response = await fetch('/api/categories');
         if (!response.ok) {
           throw new Error('Failed to fetch categories');
         }
-        return response.json();
+        const payload = await response.json();
+        return normalizeCategoriesResponse(payload);
       } catch (error) {
-        console.warn('Falling back to mock categories data:', error);
-        // Fallback to mock data if API call fails
-        return createMockResponse(mockCategories);
+        if (import.meta.env.DEV && useMockPublicData) {
+          console.warn('Falling back to mock categories data:', error);
+          return normalizeCategoriesResponse(createMockResponse(mockCategories));
+        }
+
+        throw error;
       }
     }
   });
 
-  // Extract the categories array from the response and map to the expected format
-  const categories = categoriesResponse?.data?.map(category => ({
+  const normalizedCategories = categories?.map(category => ({
     ...category,
-    jobCount: category.count, // Map count to jobCount
-    icon: category.icon || 'briefcase' // Provide a default icon
+    jobCount: category.jobCount ?? (category as Category & { count?: number }).count ?? 0,
+    icon: category.icon || 'briefcase'
   }));
 
   const renderCategorySkeleton = () => (
@@ -84,8 +84,8 @@ const CategoriesSection = () => {
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {isLoading ? renderCategorySkeleton() : (
-            Array.isArray(categories) && categories.length > 0 ? (
-              categories.map((category) => (
+            Array.isArray(normalizedCategories) && normalizedCategories.length > 0 ? (
+              normalizedCategories.map((category) => (
                 <CategoryCard key={category.id} category={category} />
               ))
             ) : (

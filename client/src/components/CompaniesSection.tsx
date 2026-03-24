@@ -10,42 +10,42 @@ interface CompanyResponse {
   data: Company[];
 }
 
+const normalizeCompaniesResponse = (payload: Company[] | CompanyResponse): Company[] => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  return Array.isArray(payload.data) ? payload.data : [];
+};
+
 const CompaniesSection = () => {
-  const { data: companiesResponse, isLoading, error } = useQuery<CompanyResponse>({
+  const { data: companies, isLoading, error } = useQuery<Company[]>({
     queryKey: ['/api/companies'],
     queryFn: async () => {
       const useMockPublicData = import.meta.env.VITE_USE_MOCK_PUBLIC_DATA !== 'false';
 
-      // Always use mock data in production or if we're on Netlify
-      if (
-        import.meta.env.PROD ||
-        window.location.hostname.includes('netlify.app') ||
-        (import.meta.env.DEV && useMockPublicData)
-      ) {
-        console.log('Using mock companies data');
-        return createMockResponse(mockCompanies);
-      }
-
-      // In development, make the actual API call
       try {
         const response = await fetch('/api/companies');
         if (!response.ok) {
           throw new Error('Failed to fetch companies');
         }
-        return response.json();
+        const payload = await response.json();
+        return normalizeCompaniesResponse(payload);
       } catch (error) {
-        console.warn('Falling back to mock companies data:', error);
-        // Fallback to mock data if API call fails
-        return createMockResponse(mockCompanies);
+        if (import.meta.env.DEV && useMockPublicData) {
+          console.warn('Falling back to mock companies data:', error);
+          return normalizeCompaniesResponse(createMockResponse(mockCompanies));
+        }
+
+        throw error;
       }
     }
   });
 
-  // Extract the companies array from the response and map to the expected format
-  const companies = companiesResponse?.data?.map(company => ({
+  const normalizedCompanies = companies?.map(company => ({
     ...company,
-    slug: company.name.toLowerCase().replace(/\s+/g, '-'), // Generate slug from name
-    openPositions: 5 // Default value for open positions
+    slug: company.slug || company.name.toLowerCase().replace(/\s+/g, '-'),
+    openPositions: company.openPositions ?? 0
   }));
 
   const renderCompanySkeleton = () => (
@@ -82,7 +82,7 @@ const CompaniesSection = () => {
           <ScrollArea className="w-full pb-4 top-companies-slider touch-pan-x">
             <div className="flex space-x-4 md:space-x-6 min-w-max px-4 md:px-0">
               {isLoading ? renderCompanySkeleton() : (
-                companies?.map((company) => (
+                normalizedCompanies?.map((company) => (
                   <CompanyCard key={company.id} company={company} />
                 ))
               )}

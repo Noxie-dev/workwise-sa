@@ -16,18 +16,9 @@ import {
 } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, role } = useAuth();
 
-  // Check if user is an admin (in a real app, this would be based on a role in the database)
-  const isAdmin = React.useMemo(() => {
-    if (!currentUser?.email) return false;
-    // For demo purposes, consider users with these domains as admins
-    const adminDomains = ['workwisesa.co.za', 'admin.workwisesa.co.za', 'admin.com'];
-    // Also grant admin access to specific email addresses
-    const adminEmails = ['phakikrwele@gmail.com'];
-    return adminDomains.some(domain => currentUser.email?.endsWith(domain)) ||
-           adminEmails.includes(currentUser.email);
-  }, [currentUser]);
+  const isAdmin = role === 'admin';
 
   // If user is not an admin, show access denied message
   if (!isAdmin) {

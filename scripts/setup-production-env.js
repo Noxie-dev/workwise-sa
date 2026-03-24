@@ -1,59 +1,78 @@
 #!/usr/bin/env node
 
-import { execSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
-
 const REQUIRED_ENV_VARS = [
   'NODE_ENV',
   'DATABASE_URL',
   'FIREBASE_PROJECT_ID',
-  'FIREBASE_SERVICE_ACCOUNT',
+  'FIREBASE_STORAGE_BUCKET',
   'GOOGLE_GENAI_API_KEY',
   'VITE_USE_FIREBASE_EMULATORS',
-  'VITE_BACKEND_API_URL'
+  'VITE_API_URL'
 ];
 
-function setNetlifyEnvVars() {
-  console.log('🚀 Setting up Netlify environment variables...');
-  
-  const envVars = {
-    'NODE_ENV': 'production',
-    'FIREBASE_PROJECT_ID': 'workwise-sa-project',
-    'FIREBASE_STORAGE_BUCKET': 'workwise-sa-project.appspot.com',
-    'VITE_USE_FIREBASE_EMULATORS': 'false',
-    'VITE_FIREBASE_PROJECT_ID': 'workwise-sa-project',
-    'VITE_FIREBASE_AUTH_DOMAIN': 'workwise-sa-project.firebaseapp.com',
-    'VITE_FIREBASE_STORAGE_BUCKET': 'workwise-sa-project.appspot.com',
-    'VITE_FIREBASE_API_KEY': 'AIzaSyDygjMpaMXBEBcRnVVtOxW41nD7DA-cXJY',
-    'VITE_FIREBASE_MESSAGING_SENDER_ID': '716919248302',
-    'VITE_FIREBASE_APP_ID': '1:716919248302:web:582684fa2eb06133aca43f'
-  };
+function printPrimaryEnvTemplate() {
+  console.log('Primary Express deployment environment template:\n');
+  console.log(`NODE_ENV=production
+PORT=3001
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/workwise_sa
+FILE_SERVE_URL=https://your-domain.example/uploads
+UPLOAD_DIR=uploads
+FIREBASE_PROJECT_ID=workwise-sa-project
+FIREBASE_STORAGE_BUCKET=workwise-sa-project.appspot.com
+GOOGLE_GENAI_API_KEY=your_google_genai_api_key_here
+SCRAPING_INGEST_TOKEN=your_scraping_ingest_token_here
+VITE_API_URL=/api
+VITE_USE_FIREBASE_EMULATORS=false
+VITE_USE_MOCK_PUBLIC_DATA=false
+VITE_FIREBASE_PROJECT_ID=workwise-sa-project
+VITE_FIREBASE_AUTH_DOMAIN=workwise-sa-project.firebaseapp.com
+VITE_FIREBASE_STORAGE_BUCKET=workwise-sa-project.appspot.com
+VITE_FIREBASE_API_KEY=your_firebase_api_key_here
+VITE_FIREBASE_MESSAGING_SENDER_ID=000000000000
+VITE_FIREBASE_APP_ID=your_firebase_app_id_here`);
+}
 
-  // Set basic environment variables
-  for (const [key, value] of Object.entries(envVars)) {
-    try {
-      execSync(`netlify env:set ${key} "${value}"`, { stdio: 'inherit' });
-      console.log(`✅ Set ${key}`);
-    } catch (error) {
-      console.error(`❌ Failed to set ${key}:`, error.message);
+function checkPrimaryEnv() {
+  console.log('Checking canonical production environment...');
+
+  let hasErrors = false;
+  for (const key of REQUIRED_ENV_VARS) {
+    if (!process.env[key]) {
+      console.error(`❌ Missing ${key}`);
+      hasErrors = true;
+    } else {
+      console.log(`✅ ${key}`);
     }
   }
 
-  console.log('\n⚠️  You still need to manually set these sensitive variables:');
-  console.log('netlify env:set DATABASE_URL "your_production_database_url"');
-  console.log('netlify env:set FIREBASE_SERVICE_ACCOUNT \'{"type":"service_account",...}\'');
-  console.log('netlify env:set GOOGLE_GENAI_API_KEY "your_api_key"');
-  console.log('netlify env:set VITE_BACKEND_API_URL "https://your-domain.netlify.app/api"');
-}
-
-function checkNetlifyEnv() {
-  console.log('🔍 Checking Netlify environment variables...');
-  try {
-    execSync('netlify env:list', { stdio: 'inherit' });
-  } catch (error) {
-    console.error('❌ Failed to list environment variables. Make sure you\'re logged in to Netlify CLI.');
+  if ((process.env.DATABASE_URL || '').startsWith('sqlite')) {
+    console.error('❌ DATABASE_URL points to SQLite. Primary production requires PostgreSQL.');
+    hasErrors = true;
   }
+
+  if (process.env.VITE_USE_FIREBASE_EMULATORS === 'true') {
+    console.error('❌ VITE_USE_FIREBASE_EMULATORS must be false in primary production.');
+    hasErrors = true;
+  }
+
+  if (process.env.VITE_USE_MOCK_PUBLIC_DATA === 'true') {
+    console.error('❌ VITE_USE_MOCK_PUBLIC_DATA must be false in primary production.');
+    hasErrors = true;
+  }
+
+  if (!process.env.FILE_SERVE_URL) {
+    console.warn('⚠️  FILE_SERVE_URL is not set. Uploaded file URLs may be incorrect.');
+  }
+
+  if (!process.env.GOOGLE_APPLICATION_CREDENTIALS && !process.env.FIREBASE_SERVICE_ACCOUNT) {
+    console.warn('⚠️  No Firebase Admin credential hint found. Ensure workload identity or GOOGLE_APPLICATION_CREDENTIALS is configured in the target environment.');
+  }
+
+  if (hasErrors) {
+    process.exit(1);
+  }
+
+  console.log('✅ Canonical production environment looks valid');
 }
 
 function main() {
@@ -61,10 +80,10 @@ function main() {
 
   switch (command) {
     case 'set':
-      setNetlifyEnvVars();
+      printPrimaryEnvTemplate();
       break;
     case 'check':
-      checkNetlifyEnv();
+      checkPrimaryEnv();
       break;
     case 'help':
     default:
@@ -75,8 +94,8 @@ Usage:
   node scripts/setup-production-env.js [command]
 
 Commands:
-  set     Set up basic Netlify environment variables
-  check   List current Netlify environment variables
+  set     Print the canonical Express production env template
+  check   Validate the current environment for the primary production path
   help    Show this help message
 
 Examples:

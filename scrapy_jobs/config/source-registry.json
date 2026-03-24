@@ -1,0 +1,29 @@
+{
+  "gumtree": {
+    "enabled": true,
+    "approvalStatus": "reviewed",
+    "rolloutStage": "production",
+    "allowIngest": true,
+    "maxConcurrency": 2,
+    "robotsCheckedAt": "2026-03-24",
+    "notes": "Use compliance middleware and revisit robots before changing crawl scope."
+  },
+  "jobmail": {
+    "enabled": true,
+    "approvalStatus": "reviewed",
+    "rolloutStage": "pilot",
+    "allowIngest": false,
+    "maxConcurrency": 1,
+    "robotsCheckedAt": "2026-03-24",
+    "notes": "Low-volume crawl only until automated governance is in place."
+  },
+  "bizcommunity": {
+    "enabled": true,
+    "approvalStatus": "reviewed",
+    "rolloutStage": "pilot",
+    "allowIngest": false,
+    "maxConcurrency": 1,
+    "robotsCheckedAt": "2026-03-24",
+    "notes": "Re-check source rules before increasing concurrency."
+  }
+}

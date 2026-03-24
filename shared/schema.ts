@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, boolean, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, boolean, jsonb, uniqueIndex, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
@@ -88,7 +88,9 @@ export const jobs = pgTable("jobs", {
   categoryId: integer("category_id").notNull().references(() => categories.id),
   isFeatured: boolean("is_featured").default(false),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => ({
+  createdAtIdx: index("idx_jobs_created_at").on(table.createdAt),
+}));
 
 export const jobIngestRecords = pgTable(
   "job_ingest_records",
@@ -194,7 +196,9 @@ export const userInteractions = pgTable("user_interactions", {
   categoryId: integer("category_id").references(() => categories.id),
   duration: integer("duration"), // For video watches, in seconds
   metadata: jsonb("metadata"), // Additional data
-});
+}, (table) => ({
+  jobTimeIdx: index("idx_user_interactions_job_time").on(table.jobId, table.interactionTime),
+}));
 
 export const jobApplications = pgTable("job_applications", {
   id: serial("id").primaryKey(),
@@ -206,7 +210,10 @@ export const jobApplications = pgTable("job_applications", {
   resumeUrl: text("resume_url"),
   coverLetter: text("cover_letter"),
   notes: text("notes"),
-});
+}, (table) => ({
+  userJobUnique: uniqueIndex("idx_job_applications_user_job_unique").on(table.userId, table.jobId),
+  jobStatusIdx: index("idx_job_applications_job_status").on(table.jobId, table.status),
+}));
 
 export const userNotifications = pgTable("user_notifications", {
   id: serial("id").primaryKey(),
@@ -217,7 +224,13 @@ export const userNotifications = pgTable("user_notifications", {
   isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   sentAt: timestamp("sent_at"),
-});
+}, (table) => ({
+  userReadCreatedIdx: index("idx_user_notifications_user_read_created").on(
+    table.userId,
+    table.isRead,
+    table.createdAt
+  ),
+}));
 
 export const userJobPreferences = pgTable("user_job_preferences", {
   id: serial("id").primaryKey(),
