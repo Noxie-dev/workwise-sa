@@ -48,7 +48,7 @@ import {
 } from 'lucide-react';
 
 export default function EmployerDashboard() {
-  const { currentUser } = useAuth();
+  const { currentUser, role } = useAuth();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
   const [dateRange, setDateRange] = useState('30d');
@@ -83,6 +83,17 @@ export default function EmployerDashboard() {
   } = useQuery({
     queryKey: ['employerJobs', currentUser?.uid, statusFilter],
     queryFn: () => currentUser ? employerDashboardService.fetchEmployerJobs(currentUser.uid, statusFilter) : null,
+    enabled: !!currentUser,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const {
+    data: applicationsData,
+    isLoading: isApplicationsLoading,
+    error: applicationsError
+  } = useQuery({
+    queryKey: ['employerApplications', currentUser?.uid],
+    queryFn: () => employerDashboardService.fetchEmployerApplications(),
     enabled: !!currentUser,
     staleTime: 5 * 60 * 1000,
   });
@@ -144,6 +155,20 @@ export default function EmployerDashboard() {
           <AlertTitle>Authentication Required</AlertTitle>
           <AlertDescription>
             Please log in to access the employer dashboard.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!['admin', 'employer'].includes(role || '')) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Alert variant="destructive" className="w-96">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Employer Access Required</AlertTitle>
+          <AlertDescription>
+            Your account does not currently have employer access.
           </AlertDescription>
         </Alert>
       </div>
@@ -494,13 +519,48 @@ export default function EmployerDashboard() {
             <CardDescription>Review and manage job applications</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-10">
-              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">Application management coming soon</p>
-              <p className="text-sm text-gray-400">
-                Track, review, and manage all applications in one place
-              </p>
-            </div>
+            {isApplicationsLoading ? (
+              <div className="space-y-4">
+                {Array(4).fill(0).map((_, index) => (
+                  <div key={index} className="border rounded-lg p-4">
+                    <Skeleton className="h-5 w-1/3 mb-2" />
+                    <Skeleton className="h-4 w-1/2 mb-2" />
+                    <Skeleton className="h-4 w-1/4" />
+                  </div>
+                ))}
+              </div>
+            ) : applicationsError ? (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Failed to load applications</AlertTitle>
+                <AlertDescription>
+                  {applicationsError instanceof Error ? applicationsError.message : 'Unknown error'}
+                </AlertDescription>
+              </Alert>
+            ) : applicationsData?.length ? (
+              <div className="space-y-4">
+                {applicationsData.map((application) => (
+                  <div key={application.id} className="rounded-lg border p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-semibold">{application.applicantName}</p>
+                        <p className="text-sm text-gray-500">{application.applicantEmail}</p>
+                        <p className="mt-2 text-sm text-gray-700">Applied for {application.jobTitle}</p>
+                      </div>
+                      <Badge variant="secondary">{application.status}</Badge>
+                    </div>
+                    <p className="mt-3 text-xs text-gray-500">
+                      Submitted {new Date(application.appliedAt).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">No applications have been received yet.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </TabsContent>

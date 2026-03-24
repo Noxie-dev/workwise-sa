@@ -1,14 +1,18 @@
-import { PredictionServiceClient } from '@google-cloud/aiplatform';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 /**
  * AI Service for handling generative AI operations
  */
 export class AIService {
   private static instance: AIService;
-  private predictionServiceClient: PredictionServiceClient;
+  private genAI: GoogleGenerativeAI | null;
+  private readonly modelName: string;
 
   private constructor() {
-    this.predictionServiceClient = new PredictionServiceClient();
+    this.genAI = process.env.GOOGLE_GENAI_API_KEY
+      ? new GoogleGenerativeAI(process.env.GOOGLE_GENAI_API_KEY)
+      : null;
+    this.modelName = process.env.GOOGLE_GENAI_MODEL || 'gemini-1.5-flash';
   }
 
   public static getInstance(): AIService {
@@ -25,8 +29,19 @@ export class AIService {
    */
   public async generateResponse(prompt: string): Promise<string> {
     try {
-      // TODO: Implement actual AI generation using Google Cloud AI Platform
-      return `Response to: ${prompt}`;
+      if (!this.genAI) {
+        throw new Error('GOOGLE_GENAI_API_KEY is not configured');
+      }
+
+      const model = this.genAI.getGenerativeModel({ model: this.modelName });
+      const result = await model.generateContent(prompt);
+      const text = result.response.text().trim();
+
+      if (!text) {
+        throw new Error('AI model returned an empty response');
+      }
+
+      return text;
     } catch (error) {
       console.error(`Error generating AI response: ${error}`);
       throw new Error(`Failed to generate AI response: ${error}`);
@@ -40,8 +55,9 @@ export class AIService {
    */
   public async greet(name: string): Promise<string> {
     try {
-      // TODO: Implement actual AI greeting using Google Cloud AI Platform
-      return `Hello ${name}! Welcome to WorkWiseSA.`;
+      return await this.generateResponse(
+        `Write a short, friendly greeting for ${name} welcoming them to WorkWise SA. Keep it under 25 words.`
+      );
     } catch (error) {
       console.error(`Error in greet flow: ${error}`);
       throw new Error(`Failed to generate greeting: ${error}`);

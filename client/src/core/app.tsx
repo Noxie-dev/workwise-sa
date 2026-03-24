@@ -29,11 +29,7 @@ const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const AdminAnalytics = lazy(() => import("@/pages/admin/Analytics"));
 const AdminSettings = lazy(() => import("@/pages/admin/SettingsPage"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const UITest = lazy(() => import("@/components/ui-test"));
-const TestPage = lazy(() => import("@/pages/TestPage"));
-const FooterTest = lazy(() => import("@/pages/FooterTest"));
-const ColorTest = lazy(() => import("@/pages/ColorTest"));
-const SimpleTest = lazy(() => import("@/pages/SimpleTest"));
+const JobDetails = lazy(() => import("@/pages/JobDetails"));
 const HomeSimple = lazy(() => import("@/pages/HomeSimple"));
 const FAQWheelPage = lazy(() => import("@/pages/FAQWheelPage"));
 
@@ -50,6 +46,7 @@ const CVBuilderHelp = lazy(() => import("@/pages/resources/CVBuilderHelp"));
 
 // Employer pages
 const PostJob = lazy(() => import("@/pages/employers/PostJob"));
+const EmployerDashboard = lazy(() => import("@/pages/employers/EmployerDashboard"));
 const BrowseCandidates = lazy(() => import("@/pages/employers/BrowseCandidates"));
 const Solutions = lazy(() => import("@/pages/employers/Solutions"));
 const Pricing = lazy(() => import("@/pages/employers/Pricing"));
@@ -84,7 +81,7 @@ function Router() {
             <Route path="/" component={HomeSimple} />
             <Route path="/home-original" component={Home} />
             <Route path="/jobs" component={Jobs} />
-            <Route path="/jobs/:id" component={Jobs} />
+            <Route path="/jobs/:id" component={JobDetails} />
             <Route path="/resources" component={Resources} />
 
             {/* Resource sub-pages */}
@@ -98,6 +95,7 @@ function Router() {
             <Route path="/blog-wise" component={BlogWise} />
 
             {/* Employer pages */}
+            <Route path="/employers/dashboard" component={EmployerDashboard} />
             <Route path="/employers/post-job" component={PostJob} />
             <Route path="/employers/browse-candidates" component={BrowseCandidates} />
             <Route path="/employers/solutions" component={Solutions} />
@@ -127,11 +125,6 @@ function Router() {
             </Route>
             <Route path="/email-link-login" component={EmailLinkLogin} />
             <Route path="/auth/email-signin-complete" component={EmailSignInComplete} />
-            <Route path="/ui-test" component={UITest} />
-            <Route path="/test" component={TestPage} />
-            <Route path="/footer-test" component={FooterTest} />
-            <Route path="/color-test" component={ColorTest} />
-            <Route path="/simple-test" component={SimpleTest} />
             <Route path="/admin" component={AdminDashboard} />
             <Route path="/admin/analytics" component={AdminAnalytics} />
             <Route path="/admin/settings" component={AdminSettings} />

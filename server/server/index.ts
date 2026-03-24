@@ -2,7 +2,7 @@
 import express, { Application, Router } from 'express';
 import cors from 'cors';
 import { registerRoutes } from '../routes';
-import apiRouter from '../../src/api';
+import v1Router from '../routes/v1';
 import { errorHandler, notFoundHandler, requestIdMiddleware } from '../middleware/errorHandler';
 import { setupSwagger } from '../../src/api/swagger';
 import { WiseUpService } from '../wiseup';
@@ -83,7 +83,7 @@ async function startServer() {
   }
 
   // Mount versioned API routes
-  app.use('/api', apiRouter as unknown as Router);
+  app.use('/api/v1', v1Router as unknown as Router);
 
   // For backward compatibility, register original routes
   const httpServer = await registerRoutes(app as any);

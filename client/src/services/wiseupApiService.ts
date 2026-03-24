@@ -1,4 +1,4 @@
-import { ContentItem, AdItem, WiseUpItem } from '@/pages/WiseUp/types';
+import { WiseUpContentItem as ContentItem, WiseUpAdItem as AdItem, WiseUpFeedItem as WiseUpItem } from '@shared/wiseup-contracts';
 import api from '@/lib/api';
 
 /**

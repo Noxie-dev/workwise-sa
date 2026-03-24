@@ -10,6 +10,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
+from scrapy_jobs.legal_registry import (
+    SourceRegistryError,
+    enforce_source_rollout,
+    get_source_readiness_summary,
+    validate_source,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -44,6 +50,11 @@ def parse_args():
     parser.add_argument("--ingest", default="false", help="true to POST normalized artifacts")
     parser.add_argument("--concurrent", type=int, default=1, help="number of spiders to run in parallel")
     parser.add_argument("--max-items", type=int, default=0, help="close spider after N items when greater than 0")
+    parser.add_argument(
+        "--allow-unverified",
+        action="store_true",
+        help="bypass legal registry approval checks for local experimentation",
+    )
     return parser.parse_args()
 
 
@@ -55,6 +66,13 @@ def selected_spiders(source):
     if source in DEFAULT_SOURCES.values():
         return [source]
     raise ValueError(f"Unsupported source: {source}")
+
+
+def source_name_for_spider(spider_name):
+    for source_name, configured_spider in DEFAULT_SOURCES.items():
+        if configured_spider == spider_name:
+            return source_name
+    return spider_name
 
 
 def run_spider(spider_name, max_items=0):
@@ -145,6 +163,7 @@ def ingest_jobs(spider_name, jobs):
 
 
 def aggregate_report(results, ingest_enabled):
+    source_readiness = get_source_readiness_summary()
     report = {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "statistics": {
@@ -157,6 +176,7 @@ def aggregate_report(results, ingest_enabled):
             "errors": 0,
         },
         "sources": results,
+        "sourceReadiness": source_readiness,
         "ingestEnabled": ingest_enabled,
     }
 
@@ -186,6 +206,25 @@ def main():
     results = []
 
     logger.info("Starting scraping run for spiders: %s", ", ".join(spiders))
+
+    for spider in spiders:
+        source_name = source_name_for_spider(spider)
+        try:
+            registry_entry = enforce_source_rollout(
+                source_name,
+                ingest_enabled=ingest_enabled,
+                concurrency=args.concurrent,
+                allow_unverified=args.allow_unverified,
+            )
+            logger.info(
+                "Legal registry check passed for source %s with status %s and rollout %s",
+                source_name,
+                registry_entry.get("approvalStatus"),
+                registry_entry.get("rolloutStage"),
+            )
+        except SourceRegistryError as exc:
+            logger.error("Legal registry blocked source %s: %s", source_name, exc)
+            return 1
 
     with ThreadPoolExecutor(max_workers=max(1, args.concurrent)) as executor:
         futures = {

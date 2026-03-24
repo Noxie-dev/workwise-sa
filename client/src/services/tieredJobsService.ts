@@ -4,6 +4,8 @@ import { auth } from '@/lib/firebase';
 import { mockJobs, mockCompanies, mockCategories } from '@/services/mockData';
 
 const useMockPublicData = import.meta.env.VITE_USE_MOCK_PUBLIC_DATA !== 'false';
+const apiOrigin = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '');
+const publicJobsBaseUrl = `${apiOrigin}/api`;
 
 const inferExperienceLevel = (title: string): JobPreview['experienceLevel'] => {
   const t = title.toLowerCase();
@@ -123,7 +125,7 @@ export const tieredJobsService = {
       const query = new URLSearchParams(
         Object.fromEntries(Object.entries(params).map(([key, value]) => [key, String(value)])),
       );
-      const response = await fetch(`/.netlify/functions/jobPreviews?${query}`);
+      const response = await fetch(`${publicJobsBaseUrl}/job-previews?${query}`);
 
       if (!response.ok) {
         return getFallbackJobPreviews(params, `HTTP ${response.status}`);
@@ -151,7 +153,7 @@ export const tieredJobsService = {
       }
 
       const token = await user.getIdToken();
-      const response = await fetch(`/.netlify/functions/jobDetails/${jobId}`, {
+      const response = await fetch(`/api/jobs/${jobId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -183,7 +185,7 @@ export const tieredJobsService = {
       }
 
       const token = await user.getIdToken();
-      const response = await fetch('/.netlify/functions/jobApplications', {
+      const response = await fetch(`/api/jobs/${applicationData.jobId}/apply`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -215,7 +217,7 @@ export const tieredJobsService = {
       }
 
       const token = await user.getIdToken();
-      const response = await fetch('/.netlify/functions/jobApplications', {
+      const response = await fetch('/api/job-applications', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

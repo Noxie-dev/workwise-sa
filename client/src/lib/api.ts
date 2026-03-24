@@ -1,8 +1,10 @@
 import axios from 'axios';
 
+const normalizedApiOrigin = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '');
+
 // Create an axios instance with the base URL from environment variables
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/.netlify/functions',
+  baseURL: normalizedApiOrigin,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -78,7 +80,7 @@ export const endpoints = {
   
   // Category endpoints
   categories: {
-    list: '/categories',
+    list: '/api/categories',
   },
   
   // Company endpoints

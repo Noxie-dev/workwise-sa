@@ -7,14 +7,14 @@ vi.mock('../../services/jobIngestionService', () => ({
 }));
 
 import { ingestJobs } from '../../services/jobIngestionService';
-import { registerJobIngestRoutes } from '../../../src/api/v1/routes/jobs.ingest';
+import v1Router from '../../routes/v1';
 
 const mockedIngestJobs = vi.mocked(ingestJobs);
 
 function createApp() {
   const app = express();
   app.use(express.json({ limit: '2mb' }));
-  registerJobIngestRoutes(app);
+  app.use(v1Router);
   return app;
 }
 
