@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, boolean, foreignKey, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, boolean, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
@@ -90,6 +90,30 @@ export const jobs = pgTable("jobs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const jobIngestRecords = pgTable(
+  "job_ingest_records",
+  {
+    id: serial("id").primaryKey(),
+    jobId: integer("job_id").notNull().references(() => jobs.id),
+    sourceSite: text("source_site").notNull(),
+    sourceUrl: text("source_url").notNull(),
+    externalId: text("external_id").notNull(),
+    applyUrl: text("apply_url"),
+    postedAt: timestamp("posted_at"),
+    fingerprint: text("fingerprint").notNull(),
+    metadata: jsonb("metadata"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    sourceExternalUnique: uniqueIndex("job_ingest_records_source_external_idx").on(
+      table.sourceSite,
+      table.externalId
+    ),
+    fingerprintUnique: uniqueIndex("job_ingest_records_fingerprint_idx").on(table.fingerprint),
+  })
+);
+
 export const insertJobSchema = createInsertSchema(jobs).pick({
   title: true,
   description: true,
@@ -115,6 +139,9 @@ export type Company = typeof companies.$inferSelect;
 export type InsertJob = z.infer<typeof insertJobSchema>;
 export type Job = typeof jobs.$inferSelect;
 
+export type InsertJobIngestRecord = typeof jobIngestRecords.$inferInsert;
+export type JobIngestRecord = typeof jobIngestRecords.$inferSelect;
+
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
   jobs: many(jobs),
@@ -136,6 +163,13 @@ export const jobsRelations = relations(jobs, ({ one }) => ({
   category: one(categories, {
     fields: [jobs.categoryId],
     references: [categories.id],
+  }),
+}));
+
+export const jobIngestRecordsRelations = relations(jobIngestRecords, ({ one }) => ({
+  job: one(jobs, {
+    fields: [jobIngestRecords.jobId],
+    references: [jobs.id],
   }),
 }));
 

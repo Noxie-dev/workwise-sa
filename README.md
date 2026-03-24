@@ -1,132 +1,400 @@
 # WorkWise SA
 
-WorkWise SA is a comprehensive job search platform designed to connect job seekers with employers in South Africa, offering career resources and CV building tools.
+WorkWise SA is a South African employment platform built around job discovery, employer workflows, candidate profiles, CV tooling, content/learning surfaces, and a growing job-ingestion pipeline.
 
-## Features
+This repository behaves like a monorepo, but it is not a clean single-app codebase. It contains a primary React frontend, an Express backend, shared Drizzle schema/types, a second root-level API slice, Firebase and Netlify runtimes, and a Python scraping subsystem.
 
-- User authentication (Email/Password, Email Link, and Google Sign-In)
-- Job search and filtering
-- Company listings
-- CV builder
-- Career resources
-- User profiles
-- WiseUp learning platform (content available; bookmark flow currently in progress)
+## Current Repo Reality
 
-## Tech Stack
+The most important thing to understand before editing this repo is that it contains parallel code paths:
 
-- **Frontend**: React, Vite, TailwindCSS, shadcn/ui, React Query
-- **Backend**: Node.js (Express) with TypeScript
-- **Authentication**: Firebase Authentication
-- **Database**: PostgreSQL (production), SQLite (development/test)
-- **ORM**: Drizzle ORM
-- **Testing**: Vitest + React Testing Library; Playwright for end-to-end
+- `client/` is the main browser application used by the root Vite build.
+- `server/` is the main Express backend and Drizzle storage layer.
+- `shared/` contains the SQL schema, Zod insert schemas, and shared types.
+- `src/` contains an active `/api/v1` router plus overlapping frontend-style code.
+- `functions/` contains Firebase Functions code.
+- `netlify/functions/` contains Netlify serverless code.
+- `dataconnect/` and `dataconnect-generated/` contain Firebase Data Connect assets.
+- `scrapy_jobs/` contains the Python-based scraping and ingestion pipeline.
 
-## Getting Started
+This means “the app” is not one folder. If you change routes, auth, schema, or deployment behavior, check both `server/` and `src/` before assuming ownership.
 
-### Prerequisites
+For a deeper codebase reference, see [idex.md](/workspace/idex.md).
 
-- Node.js (v16 or newer)
-- npm or yarn
-- Git with SSH authentication configured (recommended)
+## Product Areas
 
-### Installation
+The repo currently covers these major product surfaces:
 
-1. Download and extract the project files:
-   ```
-   cd workwisesa
-   ```
+- public job browsing and filtering
+- employer dashboards and job posting flows
+- user authentication and profile setup
+- CV/profile and file upload workflows
+- company browsing
+- WiseUp content/learning pages
+- AI-assisted content and job-related tooling
+- multi-source scraping and normalized job ingestion
 
-2. Install dependencies:
-   ```
-   npm install
-   ```
+Some areas are production-oriented, some are partial, and some still rely on mock/demo behavior. Treat the code as mixed maturity rather than uniformly complete.
 
-3. Setup environment variables:
-   - Copy the `.env.example` file to create your own `.env` files:
-   ```bash
-   cp .env.example .env
-   cp .env.example client/.env
-   ```
-   - Fill in the actual values for each environment variable
-   - See [ENV_SETUP.md](ENV_SETUP.md) for detailed instructions and explanations of all environment variables
+## Architecture
 
-4. (Optional) Set up SSH authentication for GitHub:
-   ```bash
-   npm run setup:ssh
-   ```
-   See [GitHub SSH Setup Guide](docs/GITHUB_SSH_SETUP.md) for detailed instructions.
+### Frontend
 
-5. Start the development server:
-   ```
-   npm run dev
-   ```
-   - Client runs on: http://localhost:5173 (or next available port)
-   - Server runs on: http://localhost:3001
+The main frontend is the Vite app rooted in `client/`.
 
-## Project Structure
+- entry: [client/src/main.tsx](/workspace/client/src/main.tsx)
+- app shell: [client/src/core/app.tsx](/workspace/client/src/core/app.tsx)
+- alias: `@` -> `client/src`
+- shared alias: `@shared` -> `shared`
+- dev server: Vite on `localhost:5173`
+- API proxy target: Express on `localhost:3001`
 
+Primary frontend technologies:
+
+- React 18
+- Vite
+- Tailwind CSS
+- Radix UI / shadcn-style primitives
+- React Query
+- Wouter
+
+### Backend
+
+The main server entry is [server/server/index.ts](/workspace/server/server/index.ts).
+
+Backend responsibilities include:
+
+- route registration
+- auth middleware
+- Swagger exposure
+- database initialization
+- storage layer setup
+- secret loading
+- caching
+- monitoring
+- scraping session/orchestration routes
+- AI and recommendation services
+
+Important routing fact:
+
+- `server/server/index.ts` mounts `src/api` under `/api`
+- `server/routes.ts` also registers a large set of `/api/*` routes directly
+
+That mixed routing model is real and active.
+
+### Database
+
+The shared relational model is defined in [shared/schema.ts](/workspace/shared/schema.ts).
+
+Primary entities include:
+
+- users
+- categories
+- companies
+- jobs
+- job ingest records
+- files
+- job applications
+- interaction/session/notification tables
+
+Database behavior is environment-dependent:
+
+- PostgreSQL is the main production path
+- SQLite is used for development/test fallback in parts of the backend
+- Drizzle ORM owns the TypeScript data layer
+
+### Scraping And Ingestion
+
+The repo now includes a two-stage job ingestion pipeline:
+
+1. Python scrapers extract, normalize, and anonymize job data.
+2. The Node backend ingests validated batches and persists them through Drizzle.
+
+Key files:
+
+- orchestrator: [scrapy_jobs/run_scrapers.py](/workspace/scrapy_jobs/run_scrapers.py)
+- Scrapy pipeline: [scrapy_jobs/scrapy_jobs/pipelines.py](/workspace/scrapy_jobs/scrapy_jobs/pipelines.py)
+- compliance middleware: [scrapy_jobs/scrapy_jobs/middleware/compliance_middleware.py](/workspace/scrapy_jobs/scrapy_jobs/middleware/compliance_middleware.py)
+- ingest contract: [shared/job-ingest-schema.ts](/workspace/shared/job-ingest-schema.ts)
+- ingest service: [server/services/jobIngestionService.ts](/workspace/server/services/jobIngestionService.ts)
+- ingest route: [src/api/v1/routes/jobs.ingest.ts](/workspace/src/api/v1/routes/jobs.ingest.ts)
+
+Supported/implemented scraping work is still evolving. The repo currently has real work around Gumtree, Job Mail, and Bizcommunity, but coverage is not uniform and source viability depends on robots, site behavior, and field quality.
+
+## Repo Structure
+
+```text
+/workspace
+├── client/                    # Primary React/Vite frontend
+├── server/                    # Main Express backend, storage, middleware, services
+├── shared/                    # Drizzle schema and shared TS/Zod contracts
+├── src/                       # /api/v1 router plus overlapping frontend/service code
+├── functions/                 # Firebase Functions runtime
+├── netlify/functions/         # Netlify serverless functions
+├── dataconnect/               # Firebase Data Connect config/schema
+├── dataconnect-generated/     # Generated Data Connect client package
+├── scrapy_jobs/               # Python scraping + normalization + ingest artifacts
+├── scripts/                   # Operational and build scripts
+├── migrations/                # SQL migrations
+├── public/                    # Shared static assets
+├── archive/                   # Archived docs and historical artifacts
+└── idex.md                    # High-level technical repo index
 ```
-workwisesa/
-├── client/             # Frontend React app
-│   ├── public/         # Static files
-│   └── src/            # React source code
-│       ├── components/ # UI components
-│       ├── contexts/   # React contexts
-│       ├── hooks/      # Custom hooks
-│       ├── lib/        # Utilities and libraries
-│       └── pages/      # Page components
-├── server/             # Backend Express server
-│   ├── controllers/    # API route controllers
-│   ├── models/         # Database models
-│   └── routes/         # API routes
-└── public/             # Shared static assets
-```
 
-## Development Standards
+## Prerequisites
 
-### Coding Standards & Workflow
+- Node.js `22.x` or `24.x`
+- `pnpm` `10.x`
+- Python `3.12+` for scraping work
+- Git
+- access to project environment variables if running live services
 
-- **Style Guide**: ESLint (Airbnb) with Prettier
-- **Testing**: Vitest + React Testing Library; Playwright for end-to-end checks
-- **Quality Gates**: `npm run qa:quick` (lint + type-check + unit) and `npm run qa:all` (lint + type-check + coverage + e2e)
+Optional but often needed:
 
-### Quick Commands
+- Firebase CLI
+- Netlify CLI
+- PostgreSQL, unless using SQLite fallback
+
+## Installation
+
+### Root workspace
 
 ```bash
-# Setup
-npm run setup:ssh          # Configure SSH for GitHub
-npm run verify:ssh         # Test SSH connection
-
-# Development
-npm run dev                 # Start development servers
-npm run build              # Build for production
-npm run test               # Run unit/integration tests (Vitest)
-npm run test:coverage      # Unit/integration with coverage
-npm run test:e2e           # Playwright E2E suite
-npm run qa:quick           # Lint + type-check + unit
-npm run qa:all             # Lint + type-check + coverage + E2E
-
-# Environment
-npm run env:check          # Check environment files
-npm run env:sanitize       # Sanitize environment variables
-
-# Deployment
-npm run deploy:fast        # Fast deployment to Netlify
-npm run deploy:prod        # Production deployment
-npm run deploy:firebase    # Deploy to Firebase
+pnpm install
 ```
+
+This repo is normalized around `pnpm` at the root. The root `package-lock.json` has been removed intentionally.
+
+### Python scraping dependencies
+
+```bash
+python3 -m pip install -r scrapy_jobs/requirements.txt
+```
+
+If your environment does not ship with `pip`, install it first before working on `scrapy_jobs/`.
+
+## Environment Setup
+
+Create root and client environment files as needed:
+
+```bash
+cp .env.example .env
+cp .env.example client/.env
+```
+
+Important notes:
+
+- some services can run in fallback/local mode
+- Firebase, Gemini, email, and deployment flows require real credentials
+- scraping ingest can be protected with `SCRAPING_INGEST_TOKEN`
+- database mode depends heavily on `DATABASE_URL`
+
+Useful commands:
+
+```bash
+pnpm run env:check
+pnpm run env:sanitize
+pnpm run check:firebase-config
+```
+
+## Development
+
+### Main app
+
+```bash
+pnpm run dev
+```
+
+Expected local ports:
+
+- frontend: `http://localhost:5173`
+- backend: `http://localhost:3001`
+
+### Backend only
+
+```bash
+pnpm run dev:server
+```
+
+### Frontend only
+
+```bash
+pnpm run dev:client
+```
+
+### With emulator checks
+
+```bash
+pnpm run dev:with-checks
+```
+
+This validates Firebase emulator availability before starting the main dev flow.
+
+## Database And Migrations
+
+Generate migrations:
+
+```bash
+pnpm run db:generate
+```
+
+Run migrations:
+
+```bash
+pnpm run db:migrate
+```
+
+Test migrations:
+
+```bash
+pnpm run db:migrate:test
+```
+
+Other useful commands:
+
+```bash
+pnpm run db:push
+pnpm run db:status
+pnpm run db:studio
+```
+
+## Scraping Workflows
+
+Run a single source locally:
+
+```bash
+python3 scrapy_jobs/run_scrapers.py --source=gumtree
+```
+
+Run all configured sources:
+
+```bash
+python3 scrapy_jobs/run_scrapers.py --source=all
+```
+
+Run and ingest into the Node backend:
+
+```bash
+python3 scrapy_jobs/run_scrapers.py --source=gumtree --ingest=true
+```
+
+The scraper now:
+
+- writes raw artifacts
+- writes normalized artifacts
+- applies normalization/compliance filtering
+- can POST normalized batches to `/api/v1/jobs/ingest`
+- writes retry payloads if ingestion POSTs fail
+
+## Quality And Verification
+
+### Root sanity check
+
+```bash
+pnpm check
+```
+
+This is a root repository sanity check. It validates the package manager/lockfile/config state. It is not the same as a full repo-wide TypeScript compile.
+
+### Lint
+
+```bash
+pnpm run lint
+pnpm run lint:fix
+```
+
+### TypeScript
+
+```bash
+pnpm run type-check
+```
+
+Important current reality: `type-check` still surfaces broad legacy TypeScript debt across mixed codepaths. Do not assume it is green.
+
+### Tests
+
+```bash
+pnpm run test
+pnpm run test:unit
+pnpm run test:integration
+pnpm run test:coverage
+```
+
+Backend-only tests:
+
+```bash
+pnpm run test:server
+```
+
+E2E:
+
+```bash
+pnpm run test:e2e
+```
+
+## Build And Deploy
+
+Build:
+
+```bash
+pnpm run build
+```
+
+Netlify-related commands:
+
+```bash
+pnpm run netlify:prepare
+pnpm run netlify:build
+pnpm run netlify:validate
+pnpm run deploy:prod
+```
+
+Firebase-related commands:
+
+```bash
+pnpm run firebase:build
+pnpm run firebase:deploy
+pnpm run firebase:deploy:functions
+pnpm run firebase:deploy:all
+```
+
+Data Connect:
+
+```bash
+pnpm run dataconnect:sdk:generate
+pnpm run dataconnect:sdk:patch-peers
+pnpm run dataconnect:sdk:regenerate
+```
+
+## Documentation Notes
+
+The docs in `archive/docs/initial-docs/` are useful for product intent and historical planning, but several of them are stale relative to the live codebase.
+
+Use these references carefully:
+
+- [idex.md](/workspace/idex.md) for the current high-level technical index
+- `archive/docs/initial-docs/` for historical specs and research
+- code itself for final authority when architecture docs and implementation disagree
+
+## Known Caveats
+
+- the repo contains overlapping frontend and backend implementations
+- some features remain mock-backed or partially integrated
+- root quality tooling is healthier than the full application graph
+- full type safety is not yet restored across the whole workspace
+- scraping source quality varies by platform and robots/compliance limits
+
+## Recommended Editing Strategy
+
+Before making non-trivial changes:
+
+1. identify whether the feature lives in `client/`, `server/`, `src/`, or multiple places
+2. check [shared/schema.ts](/workspace/shared/schema.ts) for data contracts
+3. verify whether a route is mounted from `server/routes.ts` or `src/api/v1`
+4. confirm whether the flow is using real persistence, fallback behavior, or mock services
+
+That up-front check prevents most accidental regressions in this codebase.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## WiseUp Status
-
-- WiseUp cards/pages are present with sample data.
-- Bookmark experience is partially implemented and currently in progress; expect mock/sample behavior until the API wiring is finished.
-
-## Acknowledgments
-
-- [shadcn/ui](https://ui.shadcn.com/) for the UI components
-
-- [Firebase](https://firebase.google.com/) for authentication services
+This project is licensed under the MIT License. See [LICENSE](/workspace/LICENSE) if present in your environment.

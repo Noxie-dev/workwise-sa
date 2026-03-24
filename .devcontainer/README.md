@@ -1,58 +1,71 @@
 # DevContainer Configuration
 
-This directory contains the development container configuration for the WorkWise SA project.
+This directory contains the VS Code Dev Containers setup for the WorkWise SA project.
 
-## Recent Fix Applied
+## How It Is Wired
 
-**Issue**: Container build was failing due to an inaccessible Firebase CLI feature from GitHub Container Registry.
+- VS Code Dev Containers builds `.devcontainer/Dockerfile` using the repository root as the build context (`..`).
+- `docker-compose.yml` is kept as an optional manual/local Docker workflow and mirrors the same app and Firebase emulator ports.
 
-**Error**: 
+## Files
+
+- `devcontainer.json` - VS Code Dev Containers configuration (build, ports, extensions, post-create setup)
+- `Dockerfile` - Development image definition based on `mcr.microsoft.com/devcontainers/typescript-node:22`
+- `../docker-compose.yml` - Optional compose service for running the workspace container manually
+
+## Forwarded Ports (VS Code) / Mapped Ports (Compose)
+
+- `3001` - Backend API server
+- `5173` - Vite dev server
+- `8080` - Firebase Firestore emulator
+- `5001` - Firebase Functions emulator
+- `5050` - Firebase Hosting emulator
+- `9099` - Firebase Auth emulator
+- `9199` - Firebase Storage emulator
+- `9000` - Firebase Realtime Database emulator
+
+## Post-Create Setup
+
+After the container is created, VS Code runs:
+
+```bash
+npm install && npm --prefix client install && npm --prefix server install && npm --prefix functions install
 ```
-Could not resolve Feature manifest for 'ghcr.io/devcontainers/features/firebase-cli:1'
-```
 
-**Solution**: 
-- Removed the problematic `ghcr.io/devcontainers/features/firebase-cli:1` feature from `devcontainer.json`
-- Firebase CLI is now installed directly in the Dockerfile and via `postCreateCommand`
-- This ensures a more reliable installation process
-
-## Configuration Details
-
-### Features Used
-- `ghcr.io/devcontainers/features/docker-in-docker:2` - Docker support within the container
-- `ghcr.io/devcontainers/features/git:1` - Git tools
-
-### Ports Forwarded
-- 5000, 5001 - Firebase hosting and functions
-- 8080 - Development server
-- 9099, 9199 - Firebase emulators
-
-### Post-Creation Commands
-- Installs latest Firebase CLI globally
-- Installs dependencies in the functions directory
+This installs dependencies for the root project and the `client`, `server`, and `functions` packages.
 
 ## Troubleshooting
 
-### If container build fails:
-1. Check Docker is running: `docker --version`
-2. Clean up old containers: `docker system prune -a`
-3. Rebuild container from VS Code Command Palette: "Dev Containers: Rebuild Container"
+### If the devcontainer build fails
 
-### If Firebase CLI is missing:
-The Firebase CLI is installed via multiple methods for redundancy:
-- In Dockerfile: `npm install -g firebase-tools`
-- In postCreateCommand: `npm install -g firebase-tools@latest`
+1. Verify Docker is running: `docker --version`
+2. Rebuild from VS Code Command Palette: `Dev Containers: Rebuild Container`
+3. If needed, clean unused Docker state: `docker system prune -a`
 
-### Common Issues:
-- **Network connectivity**: Ensure internet access for downloading base images and packages
-- **Docker permissions**: Make sure your user has Docker permissions
-- **Disk space**: Ensure sufficient disk space for container images (~2.3GB)
+### If forwarded ports do not appear
 
-## Manual Container Build (if needed)
+1. Confirm the process is listening inside the container
+2. Check `devcontainer.json` `forwardPorts` and `portsAttributes`
+3. For manual Docker usage, verify `docker-compose.yml` `ports` mappings
+
+### If dependency installs fail in post-create
+
+- Check network access from inside the container
+- Re-run the post-create command manually in the container terminal
+- Remove stale `node_modules` directories and reinstall if dependencies changed significantly
+
+## Manual Docker Usage (Optional)
+
+### Build the dev image directly
 
 ```bash
-# Build the container manually
-docker build -t workwise-sa-dev .devcontainer/
+docker build -f .devcontainer/Dockerfile -t workwise-sa-dev .
+```
 
-# Run the container
-docker run -it --rm -v $(pwd):/workspaces/workwise-sa workwise-sa-dev
+### Start the workspace container with Docker Compose
+
+```bash
+docker compose up -d app
+```
+
+This starts the `app` container and exposes the same ports listed above.

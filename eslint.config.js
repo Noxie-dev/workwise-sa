@@ -1,166 +1,131 @@
-import globals from "globals";
-import pluginJs from "@eslint/js";
-import pluginReact from "eslint-plugin-react";
-import pluginReactHooks from "eslint-plugin-react-hooks";
-import tseslint from "typescript-eslint";
-import prettierConfig from "eslint-config-prettier";
-import pluginPrettier from "eslint-plugin-prettier";
-import airbnb from "eslint-config-airbnb";
-import airbnbReact from "eslint-config-airbnb/hooks";
-import path from "path";
-import { fileURLToPath } from "url";
-
-// mimic __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import js from '@eslint/js';
+import globals from 'globals';
+import pluginImport from 'eslint-plugin-import';
+import pluginPrettier from 'eslint-plugin-prettier';
+import pluginReact from 'eslint-plugin-react';
+import pluginReactHooks from 'eslint-plugin-react-hooks';
+import tseslint from 'typescript-eslint';
+import prettierConfig from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    files: ["**/*.{js,jsx,ts,tsx}"],
-    extends: [
-      pluginJs.configs.recommended,
-      ...tseslint.configs.recommended,
-      airbnb,
-      airbnbReact,
-      pluginReact.configs.recommended,
-      prettierConfig,
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.pnpm-store/**',
+      '**/coverage/**',
+      '**/*.d.ts',
+      '**/*.tsbuildinfo',
+      'client/package-lock.json',
+      'functions/package-lock.json',
+      'netlify/functions/package-lock.json',
+      'public_backup_old/**',
+      'archive/**',
     ],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-        jest: true,
-      },
       parser: tseslint.parser,
       parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
         ecmaFeatures: {
           jsx: true,
         },
-        ecmaVersion: 12,
-        sourceType: "module",
-        project: ["./tsconfig.json", "./client/tsconfig.json", "./server/tsconfig.json"],
-        tsconfigRootDir: __dirname,
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        ...globals.jest,
       },
     },
     plugins: {
+      '@typescript-eslint': tseslint.plugin,
+      import: pluginImport,
       react: pluginReact,
-      "react-hooks": pluginReactHooks,
-      "@typescript-eslint": tseslint.plugin,
+      'react-hooks': pluginReactHooks,
       prettier: pluginPrettier,
-    },
-    rules: {
-      "react/jsx-filename-extension": [1, { extensions: [".tsx", ".jsx"] }],
-      "import/extensions": [
-        "error",
-        "ignorePackages",
-        {
-          ts: "never",
-          tsx: "never",
-          js: "never",
-          jsx: "never",
-        },
-      ],
-      "no-use-before-define": "off",
-      "@typescript-eslint/no-use-before-define": ["error"],
-      "react/react-in-jsx-scope": "off",
-      "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "warn",
-      "import/prefer-default-export": "off",
-      "react/prop-types": "off",
-      "react/require-default-props": "off",
-      "prettier/prettier": "error",
-      // Disable rules that conflict with Prettier or are not needed with TypeScript
-      "indent": "off",
-      "@typescript-eslint/indent": "off",
-      "linebreak-style": "off",
-      "quotes": "off",
-      "semi": "off",
-      "no-trailing-spaces": "off",
-      "comma-dangle": "off",
-      "object-curly-spacing": "off",
-      "arrow-parens": "off",
-      "no-console": "warn", // Allow console.warn for development
-      "no-debugger": "warn", // Allow debugger for development
-      "max-len": ["error", { "code": 120, "ignoreUrls": true }], // Adjust max line length
-      "no-shadow": "off", // Disable no-shadow as it conflicts with TS enums/types
-      "@typescript-eslint/no-shadow": ["error"],
-      "import/no-extraneous-dependencies": ["error", {"devDependencies": true}], // Allow dev dependencies in certain files
-      "react/function-component-definition": ["error", { "namedComponents": "arrow-function" }], // Enforce arrow functions for named components
-      "react/jsx-props-no-spreading": "off", // Allow prop spreading
-      "react/destructuring-assignment": "off", // Allow direct prop access
-      "no-param-reassign": ["error", { "props": false }], // Allow reassigning properties of parameters
-      "no-underscore-dangle": "off", // Allow dangling underscores
-      "class-methods-use-this": "off", // Allow class methods that don't use 'this'
-      "no-restricted-syntax": [ // Adjust restricted syntax
-        "error",
-        {
-          "selector": "ForInStatement",
-          "message": "for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array.",
-        },
-        {
-          "selector": "LabeledStatement",
-          "message": "Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.",
-        },
-        {
-          "selector": "WithStatement",
-          "message": "`with` statements are disallowed in strict mode because they make code impossible to optimise.",
-        },
-      ],
     },
     settings: {
       react: {
-        version: "detect",
+        version: 'detect',
       },
-      "import/resolver": {
+      'import/resolver': {
         node: {
-          extensions: [".js", ".jsx", ".ts", ".tsx"],
+          extensions: ['.js', '.jsx', '.ts', '.tsx'],
         },
       },
     },
+    rules: {
+      'react/jsx-filename-extension': [1, { extensions: ['.tsx', '.jsx'] }],
+      'no-use-before-define': 'off',
+      '@typescript-eslint/no-use-before-define': 'error',
+      'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
+      'react/require-default-props': 'off',
+      'react/function-component-definition': ['error', { namedComponents: 'arrow-function' }],
+      'react/jsx-props-no-spreading': 'off',
+      'react/destructuring-assignment': 'off',
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+      'prettier/prettier': 'error',
+      'no-console': 'warn',
+      'no-debugger': 'warn',
+      'max-len': ['error', { code: 120, ignoreUrls: true }],
+      'no-shadow': 'off',
+      '@typescript-eslint/no-shadow': 'error',
+      'import/prefer-default-export': 'off',
+      'no-param-reassign': ['error', { props: false }],
+      'no-underscore-dangle': 'off',
+      'class-methods-use-this': 'off',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'ForInStatement',
+          message:
+            'for..in loops iterate over the entire prototype chain, which is virtually never what you want.',
+        },
+        {
+          selector: 'LabeledStatement',
+          message:
+            'Labels are a form of GOTO; using them makes code confusing and hard to maintain.',
+        },
+        {
+          selector: 'WithStatement',
+          message:
+            '`with` statements are disallowed in strict mode because they make code impossible to optimise.',
+        },
+      ],
+    },
   },
   {
-    // Configuration for files in the 'server' directory
-    files: ["server/**/*.{js,ts}"],
+    files: ['server/**/*.{js,ts}', 'scripts/**/*.{js,ts}', 'netlify/functions/**/*.{js,ts}'],
     languageOptions: {
       globals: {
         ...globals.node,
       },
-      parserOptions: {
-        project: ["./server/tsconfig.json"],
-        tsconfigRootDir: __dirname,
-      },
     },
     rules: {
-      "import/no-extraneous-dependencies": ["error", {"devDependencies": true, "packageDir": ["./", "./server"]}],
-      "no-console": "off", // Allow console logs in server
+      'no-console': 'off',
     },
   },
   {
-    // Configuration for files in the 'client' directory
-    files: ["client/**/*.{js,jsx,ts,tsx}"],
+    files: ['client/**/*.{js,jsx,ts,tsx}', 'src/**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
       globals: {
         ...globals.browser,
       },
-      parserOptions: {
-        project: ["./client/tsconfig.json"],
-        tsconfigRootDir: __dirname,
-      },
-    },
-    rules: {
-      "import/no-extraneous-dependencies": ["error", {"devDependencies": true, "packageDir": ["./", "./client"]}],
     },
   },
   {
-    // Configuration for test files
-    files: ["**/*.test.{js,jsx,ts,tsx}", "**/*.spec.{js,jsx,ts,tsx}"],
-    languageOptions: {
-      globals: {
-        ...globals.jest,
-      },
-    },
+    files: ['**/*.test.{js,jsx,ts,tsx}', '**/*.spec.{js,jsx,ts,tsx}'],
     rules: {
-      "import/no-extraneous-dependencies": ["off"], // Allow dev dependencies in test files
+      'import/no-extraneous-dependencies': 'off',
     },
-  }
-];
+  },
+  prettierConfig
+);

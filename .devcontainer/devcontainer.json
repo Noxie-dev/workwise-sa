@@ -1,11 +1,16 @@
 {
   "name": "WorkWise Development Environment",
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:18",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
-      "version": "18"
+      "version": "22"
     },
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "moby": false
+    },
     "ghcr.io/devcontainers/features/git:1": {}
   },
   "customizations": {
@@ -14,14 +19,7 @@
         "ms-vscode.vscode-typescript-next",
         "bradlc.vscode-tailwindcss",
         "esbenp.prettier-vscode",
-        "ms-vscode.vscode-eslint",
-        "ms-vscode.vscode-json",
-        "ms-vscode.vscode-css",
-        "ms-vscode.vscode-html",
-        "ms-vscode.vscode-js-debug",
-        "ms-vscode.vscode-js-debug-companion",
-        "ms-vscode.vscode-js-debug-nightly",
-        "ms-vscode.vscode-js-debug-nightly-companion"
+        "dbaeumer.vscode-eslint"
       ],
       "settings": {
         "typescript.preferences.includePackageJsonAutoImports": "on",
@@ -31,10 +29,10 @@
       }
     }
   },
-  "forwardPorts": [3000, 5173, 8080, 5001],
+  "forwardPorts": [3001, 5173, 8080, 5001, 5050, 9099, 9199, 9000],
   "portsAttributes": {
-    "3000": {
-      "label": "Client Dev Server",
+    "3001": {
+      "label": "Backend API Server",
       "onAutoForward": "notify"
     },
     "5173": {
@@ -42,15 +40,31 @@
       "onAutoForward": "notify"
     },
     "8080": {
-      "label": "Backend Server",
+      "label": "Firestore Emulator",
       "onAutoForward": "notify"
     },
     "5001": {
-      "label": "Firebase Functions",
+      "label": "Firebase Functions Emulator",
+      "onAutoForward": "notify"
+    },
+    "5050": {
+      "label": "Firebase Hosting Emulator",
+      "onAutoForward": "notify"
+    },
+    "9099": {
+      "label": "Firebase Auth Emulator",
+      "onAutoForward": "notify"
+    },
+    "9199": {
+      "label": "Firebase Storage Emulator",
+      "onAutoForward": "notify"
+    },
+    "9000": {
+      "label": "Firebase Database Emulator",
       "onAutoForward": "notify"
     }
   },
-  "postCreateCommand": "npm install",
+  "postCreateCommand": "npm install --no-audit --no-fund && npm --prefix client install --no-audit --no-fund && npm --prefix server install --no-audit --no-fund && npm --prefix functions install --no-audit --no-fund",
   "remoteUser": "node",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace"

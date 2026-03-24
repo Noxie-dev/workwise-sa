@@ -5,7 +5,7 @@ import re
 from datetime import datetime, timedelta
 from itemloaders import ItemLoader
 
-from scrapy_jobs.items import JobItem, CompanyItem
+from scrapy_jobs.items import JobItem
 
 
 class GumtreeJobsSpider(scrapy.Spider):
@@ -27,9 +27,8 @@ class GumtreeJobsSpider(scrapy.Spider):
     ]
     
     custom_settings = {
-        'DOWNLOAD_DELAY': 2,
+        'DOWNLOAD_DELAY': 3,
         'RANDOMIZE_DOWNLOAD_DELAY': True,
-        'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
     
     def start_requests(self):
@@ -108,7 +107,7 @@ class GumtreeJobsSpider(scrapy.Spider):
         
         # Company information
         company_name = self.extract_company_name(response, description)
-        loader.add_value('company_name', company_name)
+        loader.add_value('companyName', company_name)
         
         # Location
         location = response.css('.ad-location::text').get()
@@ -125,34 +124,44 @@ class GumtreeJobsSpider(scrapy.Spider):
         # Extract salary if mentioned in description
         salary = self.extract_salary(description)
         if salary:
-            loader.add_value('salary', salary)
+            loader.add_value('salaryText', salary)
         
         # Job type and work mode
         job_type, work_mode = self.classify_job_type(title, description)
-        loader.add_value('job_type', job_type)
-        loader.add_value('work_mode', work_mode)
+        loader.add_value('jobType', job_type)
+        loader.add_value('workMode', work_mode)
         
         # Posted date
         posted_date = self.extract_posted_date(response)
         if posted_date:
-            loader.add_value('posted_date', posted_date)
+            loader.add_value('postedAt', posted_date)
         
         # Source information
-        loader.add_value('source_url', response.url)
-        loader.add_value('source_site', 'gumtree')
+        loader.add_value('sourceUrl', response.url)
+        loader.add_value('sourceSite', 'gumtree')
         
         # Extract external ID from URL
         external_id = self.extract_external_id(response.url)
         if external_id:
-            loader.add_value('external_id', external_id)
+            loader.add_value('externalId', external_id)
         
         # Apply URL (usually the same as source URL for Gumtree)
-        loader.add_value('apply_url', response.url)
-        
-        # Check if it's a featured/urgent post
-        is_featured = bool(response.css('.featured, .urgent, .top-ad').get())
-        loader.add_value('is_featured', is_featured)
-        
+        loader.add_value('applyUrl', response.url)
+        loader.add_value('rawData', {
+            'title': title,
+            'description': description,
+            'companyName': company_name,
+            'location': location or 'South Africa',
+            'salaryText': salary,
+            'jobType': job_type,
+            'workMode': work_mode,
+            'sourceSite': 'gumtree',
+            'sourceUrl': response.url,
+            'externalId': external_id,
+            'postedAt': posted_date,
+            'applyUrl': response.url,
+        })
+
         yield loader.load_item()
     
     def extract_company_name(self, response, description):

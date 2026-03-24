@@ -1,0 +1,271 @@
+Job Distribution
+Dashboard
+
+ Dashboard Overview
+ Job Intake Panel
+
+Marketing Rules Manager
+
+
+
+Search...
+
+JS
+
+John Smith
+
+Job Distribution Workflow with Marketing Rules
+Marketing Rules are applied between categorization and distribution to sanitize sensitive information and add call-to-action messages for public channels.
+
+
+
+ Categorization Engine
+
+
+
+Job Intake
+
+ Marketing Rules
+
+Import and validate job
+listings
+
+ Algorithm Sync
+
+Categorization
+
+→
+
+Classify by location, job
+type, skills
+
+
+
+
+
+→
+
+Algorithm Sync
+
+→
+
+Marketing Rules
+
+Prepare for scoring
+model
+
+Sanitize PII & add CTAs
+
+
+→
+
+Distribution
+Queue for delivery to
+users
+
+ Distribution Queue
+ Analytics
+ Admin Controls
+
++ Create New Rule
+
+Marketing Rules List
+
+Rule Name
+
+Targeting
+
+CTA Preview
+
+Location: Gauteng
+Job Type: All
+
+Gauteng Jobs
+Created 14 days ago
+
+Security Jobs
+Created 7 days ago
+
+Retail Summer
+Campaign
+Created 3 days ago
+
+Entry-level Tech Jobs
+Created 1 day ago
+
+Status
+
+"Apply on WorkwiseSA for exclusive access!"
+
+Location: All
+Job Type: Security
+
+"Click to view security clearance requirements"
+
+Location: Cape Town
+Job Type: Retail
+
+"Summer retail positions - Apply now!"
+
+Location: All
+Job Type: IT/Technology
+Demographics: Entrylevel
+
+"No experience? No problem! Click to learn
+more"
+
+Marketing Rules Stats
+Active Rules
+
+3
+
+Inactive Rules
+
+1
+
+Jobs Processed
+
+1,247
+
+CTA Click Rate
+
+23.5%
+
+Actions
+
+Active
+
+Active
+
+
+
+
+
+
+
+Inactive
+
+Active
+
+
+
+
+
+Edit Marketing Rule
+Rule Name
+
+Status
+Active
+
+Entry-level Tech Jobs
+
+Targeted Location
+
+Targeted Job Type
+
+All Locations
+
+IT/Technology
+
+Targeted Demographics (Optional)
+Entry-level
+Entry-level
+
+No experience
+
+Graduate
+
+Junior
+
+Message Template (CTA)
+No experience? No problem! Click to learn more
+
+This message will replace contact information in job listings.
+
+CTA Link
+https://www.workwisesa.co.za/tech-careers
+
+Cancel
+
+Save Changes
+
+Marketing Rule Preview
+Original Job Listing
+
+After Marketing Rule Applied
+
+Junior Software Developer
+
+Junior Software Developer
+
+Company: TechInnovate Solutions
+Location: Johannesburg, Gauteng
+Job Type: IT/Technology
+
+Company: TechInnovate Solutions
+Location: Johannesburg, Gauteng
+Job Type: IT/Technology
+
+Entry-level position for a passionate developer. Knowledge of HTML, CSS, and JavaScript preferred. Opportunity to learn
+and grow in a supportive environment.
+
+Entry-level position for a passionate developer. Knowledge of HTML, CSS, and JavaScript preferred. Opportunity to learn
+and grow in a supportive environment.
+
+Contact Information:
+
+How to Apply:
+
+Email: recruitment@techinnovate.co.za
+Phone: 011-555-9876
+Send CV to jobs@techinnovate.co.za by August 15th
+
+No experience? No problem! Click to learn more
+
+ Visit WorkwiseSA
+
+Last 7 Days
+
+Marketing Rule Performance Analytics
+
+4,721
+
+1,109
+
+23.5%
+
+Total CTA Views
++12.5% from last period
+
+Total CTA Clicks
++8.3% from last period
+
+Click-Through Rate
+-2.1% from last period
+
+Click Performance by Rule
+100%
+
+75%
+
+50%
+
+25%
+
+0%
+
+Gauteng Jobs
+
+Security Jobs
+
+Retail Summer
+
+Conversion Funnel Analysis
+CTA Views: 4,721
+CTA Clicks: 1,109 (23.5%)
+Application Started: 658 (13.9%)
+Application Completed: 312 (6.6%)
+
+Entry-level Tech
+
+
