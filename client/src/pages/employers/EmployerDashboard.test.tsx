@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import EmployerDashboard from './EmployerDashboard';
 import { employerDashboardService } from '@/services/employerDashboardService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -36,6 +37,22 @@ vi.mock('@/services/analyticsService', () => ({
 }));
 
 describe('EmployerDashboard Component', () => {
+  const renderDashboard = () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+
+    return render(
+      <QueryClientProvider client={queryClient}>
+        <EmployerDashboard />
+      </QueryClientProvider>,
+    );
+  };
+
   beforeEach(() => {
     // Reset all mocks
     vi.resetAllMocks();
@@ -43,6 +60,7 @@ describe('EmployerDashboard Component', () => {
     // Mock the auth context
     (useAuth as any).mockReturnValue({
       currentUser: { uid: 'test-employer-id', displayName: 'Test Employer' },
+      role: 'employer',
     });
 
     // Mock the service responses
@@ -93,14 +111,14 @@ describe('EmployerDashboard Component', () => {
   });
 
   it('renders the employer dashboard title', async () => {
-    render(<EmployerDashboard />);
+    renderDashboard();
 
     // Check for the title
     expect(screen.getByText('Employer Dashboard')).toBeInTheDocument();
   });
 
   it('fetches and displays dashboard data', async () => {
-    render(<EmployerDashboard />);
+    renderDashboard();
 
     // Wait for the data to load
     await waitFor(() => {
@@ -117,7 +135,7 @@ describe('EmployerDashboard Component', () => {
   });
 
   it('fetches and displays jobs list', async () => {
-    render(<EmployerDashboard />);
+    renderDashboard();
 
     // Wait for the data to load
     await waitFor(() => {
@@ -131,7 +149,7 @@ describe('EmployerDashboard Component', () => {
   });
 
   it('displays dashboard tabs', async () => {
-    render(<EmployerDashboard />);
+    renderDashboard();
 
     // Check for all tabs
     expect(screen.getByText('Overview')).toBeInTheDocument();
@@ -144,9 +162,10 @@ describe('EmployerDashboard Component', () => {
     // Mock user as not logged in
     (useAuth as any).mockReturnValue({
       currentUser: null,
+      role: null,
     });
 
-    render(<EmployerDashboard />);
+    renderDashboard();
 
     // Check for authentication required message
     expect(screen.getByText('Authentication Required')).toBeInTheDocument();
@@ -154,16 +173,43 @@ describe('EmployerDashboard Component', () => {
   });
 
   it('displays Post New Job button', async () => {
-    render(<EmployerDashboard />);
+    renderDashboard();
 
     // Check for Post New Job button
     expect(screen.getByText('Post New Job')).toBeInTheDocument();
   });
 
   it('displays Export Data button', async () => {
-    render(<EmployerDashboard />);
+    renderDashboard();
 
     // Check for Export Data button
     expect(screen.getByText('Export Data')).toBeInTheDocument();
+  });
+
+  it('exports dashboard data when export is clicked', async () => {
+    renderDashboard();
+
+    await waitFor(() => {
+      expect(screen.getByText('Total Jobs')).toBeInTheDocument();
+    });
+
+    const exportButton = screen.getByText('Export Data');
+    fireEvent.click(exportButton);
+
+    await waitFor(() => {
+      expect(employerDashboardService.exportDashboardData).toHaveBeenCalled();
+    });
+  });
+
+  it('shows a dashboard error state when the overview query fails', async () => {
+    (employerDashboardService.fetchEmployerDashboard as any).mockRejectedValueOnce(
+      new Error('Failed to load employer dashboard'),
+    );
+
+    renderDashboard();
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to load employer dashboard')).toBeInTheDocument();
+    });
   });
 });

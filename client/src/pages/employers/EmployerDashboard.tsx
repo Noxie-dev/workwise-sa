@@ -247,9 +247,8 @@ export default function EmployerDashboard() {
           <TabsTrigger value="applications">Applications</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
-      </Tabs>
 
-      <TabsContent value="overview" className={activeTab === "overview" ? "block" : "hidden"}>
+        <TabsContent value="overview" className={activeTab === "overview" ? "block" : "hidden"}>
         {/* Summary Stats Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {isLoading ? (
@@ -410,9 +409,9 @@ export default function EmployerDashboard() {
             )}
           </CardContent>
         </Card>
-      </TabsContent>
+        </TabsContent>
 
-      <TabsContent value="jobs" className={activeTab === "jobs" ? "block" : "hidden"}>
+        <TabsContent value="jobs" className={activeTab === "jobs" ? "block" : "hidden"}>
         <Card>
           <CardHeader>
             <CardTitle>Manage Jobs</CardTitle>
@@ -510,9 +509,9 @@ export default function EmployerDashboard() {
             )}
           </CardContent>
         </Card>
-      </TabsContent>
+        </TabsContent>
 
-      <TabsContent value="applications" className={activeTab === "applications" ? "block" : "hidden"}>
+        <TabsContent value="applications" className={activeTab === "applications" ? "block" : "hidden"}>
         <Card>
           <CardHeader>
             <CardTitle>Application Management</CardTitle>
@@ -563,9 +562,9 @@ export default function EmployerDashboard() {
             )}
           </CardContent>
         </Card>
-      </TabsContent>
+        </TabsContent>
 
-      <TabsContent value="analytics" className={activeTab === "analytics" ? "block" : "hidden"}>
+        <TabsContent value="analytics" className={activeTab === "analytics" ? "block" : "hidden"}>
         <Card>
           <CardHeader>
             <CardTitle>Advanced Analytics</CardTitle>
@@ -581,7 +580,8 @@ export default function EmployerDashboard() {
             </div>
           </CardContent>
         </Card>
-      </TabsContent>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

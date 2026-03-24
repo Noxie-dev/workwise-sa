@@ -26,7 +26,7 @@ const AuthPromptModal: React.FC<AuthPromptModalProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" data-testid="auth-prompt-modal">
         <DialogHeader>
           <DialogTitle className="flex items-center text-xl">
             <Lock className="w-5 h-5 mr-2 text-primary" />
