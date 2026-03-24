@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from 'playwright/test';
 
 /**
  * @see https://playwright.dev/docs/test-configuration
@@ -33,6 +33,8 @@ export default defineConfig({
     /* Record video on failure */
     video: 'retain-on-failure',
   },
+
+  timeout: 30 * 1000,
 
   /* Configure projects for major browsers */
   projects: [
@@ -74,9 +76,10 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npm run dev',
+    command:
+      'pnpm run build && concurrently --kill-others-on-fail "pnpm run start" "pnpm exec vite preview --host 0.0.0.0 --port 5173"',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
+    timeout: 240 * 1000,
   },
 });

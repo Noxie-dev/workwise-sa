@@ -1,176 +1,224 @@
-import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { HelmetProvider } from 'react-helmet-async';
-import { Router } from 'wouter';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
-import JobDetails from '../pages/JobDetails';
-import { jobsService } from '../services/jobsService';
-import { AuthProvider } from '../contexts/AuthContext';
-import { JobWithCompany } from '@shared/schema';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import JobDetails from '@/pages/JobDetails';
+import { tieredJobsService } from '@/services/tieredJobsService';
+import { useAuth } from '@/hooks/useAuth';
 
-// Mock the services
-vi.mock('../services/jobsService');
-vi.mock('../contexts/AuthContext');
+const mockNavigate = vi.fn();
+const mockToast = vi.fn();
 
-// Mock wouter router
+vi.mock('@/services/tieredJobsService', () => ({
+  tieredJobsService: {
+    getJobDetails: vi.fn(),
+    applyForJob: vi.fn(),
+  },
+}));
+
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: vi.fn(),
+}));
+
+vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: mockToast,
+  }),
+}));
+
+vi.mock('react-helmet-async', () => ({
+  Helmet: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  HelmetProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 vi.mock('wouter', async () => {
-  const actual = await vi.importActual('wouter');
+  const actual = await vi.importActual<typeof import('wouter')>('wouter');
   return {
     ...actual,
     useParams: () => ({ id: '1' }),
-    useLocation: () => ['/jobs/1', vi.fn()],
+    useLocation: () => ['/jobs/1', mockNavigate],
+    Link: ({ children, href, ...props }: any) => (
+      <a href={href} {...props}>
+        {children}
+      </a>
+    ),
   };
 });
 
-// Sample job data for testing
-const mockJob: JobWithCompany = {
+const mockJob = {
   id: 1,
-  title: 'Software Developer',
-  description: 'We are looking for a skilled software developer to join our team. You will be responsible for developing and maintaining web applications using modern technologies.',
-  location: 'Cape Town, South Africa',
-  salary: 'R35,000 - R50,000',
+  title: 'Cashier',
+  location: 'Cape Town',
   jobType: 'Full-time',
-  workMode: 'Hybrid',
-  companyId: 1,
-  categoryId: 1,
-  isFeatured: true,
-  createdAt: '2024-01-15T10:00:00.000Z',
+  workMode: 'On-site',
+  category: {
+    id: 1,
+    name: 'Retail',
+  },
   company: {
     id: 1,
-    name: 'TechCorp Solutions',
-    logo: 'https://example.com/logo.png',
-    location: 'Cape Town, South Africa',
-    slug: 'techcorp-solutions',
-    openPositions: 5,
-  }
+    name: 'Retail SA',
+    location: 'Cape Town',
+    logo: null,
+  },
+  shortDescription: 'Front-of-store cashier role.',
+  tags: ['Retail', 'Full-time'],
+  postedDate: new Date('2026-03-20T00:00:00.000Z'),
+  isRemote: false,
+  experienceLevel: 'entry' as const,
+  featured: true,
+  details: {
+    id: 1,
+    fullDescription: 'Serve customers, process payments, and keep the checkout area tidy.',
+    requirements: ['Customer service experience', 'Basic numeracy'],
+    responsibilities: ['Process payments', 'Support customers'],
+    benefits: ['Training provided', 'Growth opportunities'],
+    applicationInstructions: 'Apply via WorkWise SA',
+    companyDetails: {
+      about: 'Retail SA is a growing retail employer.',
+      industry: 'Retail',
+      website: 'https://example.com',
+      size: '50-100',
+    },
+    salaryDetails: {
+      currency: 'ZAR',
+      negotiable: true,
+      displayText: 'R5 000 per month',
+    },
+    createdAt: new Date('2026-03-20T00:00:00.000Z'),
+    updatedAt: new Date('2026-03-20T00:00:00.000Z'),
+  },
 };
 
-describe('JobDetails', () => {
-  let queryClient: QueryClient;
-
-  beforeEach(() => {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          retry: false,
-        },
+function renderJobDetails() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
       },
-    });
-
-    // Mock the auth context
-    vi.mocked(AuthProvider).mockImplementation(({ children }) => (
-      <div>{children}</div>
-    ));
+      mutations: {
+        retry: false,
+      },
+    },
   });
 
-  const renderJobDetails = () => {
-    return render(
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <Router>
-              <JobDetails />
-            </Router>
-          </AuthProvider>
-        </QueryClientProvider>
-      </HelmetProvider>
+  return render(
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <JobDetails />
+      </QueryClientProvider>
+    </HelmetProvider>,
+  );
+}
+
+describe('JobDetails', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useAuth).mockReturnValue({
+      user: { uid: 'user-1' },
+      loading: false,
+      isAuthenticated: true,
+    } as any);
+  });
+
+  it('shows the auth guard for anonymous users', () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      loading: false,
+      isAuthenticated: false,
+    } as any);
+
+    renderJobDetails();
+
+    expect(screen.getByText('Authentication Required')).toBeInTheDocument();
+    expect(screen.getByText('Please sign in to view full job details')).toBeInTheDocument();
+  });
+
+  it('renders job details for authenticated users', async () => {
+    vi.mocked(tieredJobsService.getJobDetails).mockResolvedValue(mockJob as any);
+
+    renderJobDetails();
+
+    await waitFor(() => {
+      expect(screen.getByText('Cashier')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Retail SA')).toBeInTheDocument();
+    expect(screen.getByText('Job Description')).toBeInTheDocument();
+    expect(screen.getByText('Requirements')).toBeInTheDocument();
+    expect(screen.getByText('Benefits & Perks')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /apply for this job/i })).toBeInTheDocument();
+  });
+
+  it('shows the API error state when loading fails', async () => {
+    vi.mocked(tieredJobsService.getJobDetails).mockRejectedValue(new Error('Please sign in to view full job details'));
+
+    renderJobDetails();
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to Load Job')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Please sign in to view full job details')).toBeInTheDocument();
+  });
+
+  it('submits an application and shows a success toast', async () => {
+    vi.mocked(tieredJobsService.getJobDetails).mockResolvedValue(mockJob as any);
+    vi.mocked(tieredJobsService.applyForJob).mockResolvedValue({
+      applicationId: 99,
+      appliedAt: new Date('2026-03-24T00:00:00.000Z'),
+      message: 'Application submitted successfully',
+    });
+
+    renderJobDetails();
+
+    await screen.findByText('Cashier');
+
+    fireEvent.click(screen.getByRole('button', { name: /apply for this job/i }));
+
+    const coverLetterInput = await screen.findByPlaceholderText(
+      "Tell us why you're interested in this position...",
     );
-  };
+    fireEvent.change(coverLetterInput, {
+      target: { value: 'I have experience handling customers and payments.' },
+    });
 
-  it('renders loading state initially', () => {
-    vi.mocked(jobsService.getJobById).mockImplementation(() => 
-      new Promise(() => {}) // Never resolves
+    fireEvent.click(screen.getByRole('button', { name: /submit application/i }));
+
+    await waitFor(() => {
+      expect(tieredJobsService.applyForJob).toHaveBeenCalledWith({
+        jobId: 1,
+        coverLetter: 'I have experience handling customers and payments.',
+      });
+    });
+
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Application Submitted!',
+        description: 'Application submitted successfully',
+      }),
     );
-
-    renderJobDetails();
-
-    expect(screen.getByText('Back to Jobs')).toBeInTheDocument();
-    // Should show skeleton loading
-    expect(document.querySelector('.animate-pulse')).toBeInTheDocument();
   });
 
-  it('renders job details when data is loaded', async () => {
-    vi.mocked(jobsService.getJobById).mockResolvedValue(mockJob);
+  it('shows a destructive toast when application submission fails', async () => {
+    vi.mocked(tieredJobsService.getJobDetails).mockResolvedValue(mockJob as any);
+    vi.mocked(tieredJobsService.applyForJob).mockRejectedValue(new Error('Application failed'));
 
     renderJobDetails();
 
-    await waitFor(() => {
-      expect(screen.getByText('Software Developer')).toBeInTheDocument();
-      expect(screen.getByText('TechCorp Solutions')).toBeInTheDocument();
-      expect(screen.getByText('Cape Town, South Africa')).toBeInTheDocument();
-      expect(screen.getByText('R35,000 - R50,000')).toBeInTheDocument();
-      expect(screen.getByText('Full-time')).toBeInTheDocument();
-      expect(screen.getByText('Hybrid')).toBeInTheDocument();
-      expect(screen.getByText('Featured')).toBeInTheDocument();
-    });
-  });
+    await screen.findByText('Cashier');
 
-  it('displays job description', async () => {
-    vi.mocked(jobsService.getJobById).mockResolvedValue(mockJob);
-
-    renderJobDetails();
+    fireEvent.click(screen.getByRole('button', { name: /apply for this job/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /submit application/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/We are looking for a skilled software developer/)).toBeInTheDocument();
-    });
-  });
-
-  it('shows company information', async () => {
-    vi.mocked(jobsService.getJobById).mockResolvedValue(mockJob);
-
-    renderJobDetails();
-
-    await waitFor(() => {
-      expect(screen.getByText('About TechCorp Solutions')).toBeInTheDocument();
-      expect(screen.getByText('5 open positions at this company')).toBeInTheDocument();
-    });
-  });
-
-  it('displays action buttons', async () => {
-    vi.mocked(jobsService.getJobById).mockResolvedValue(mockJob);
-
-    renderJobDetails();
-
-    await waitFor(() => {
-      expect(screen.getAllByText('Apply Now')[0]).toBeInTheDocument();
-      expect(screen.getByText('Save Job')).toBeInTheDocument();
-      expect(screen.getByText('Share Job')).toBeInTheDocument();
-    });
-  });
-
-  it('shows error state when job is not found', async () => {
-    vi.mocked(jobsService.getJobById).mockRejectedValue(new Error('Job not found'));
-
-    renderJobDetails();
-
-    await waitFor(() => {
-      expect(screen.getByText(/Failed to load job details/)).toBeInTheDocument();
-    });
-  });
-
-  it('displays job posting date', async () => {
-    vi.mocked(jobsService.getJobById).mockResolvedValue(mockJob);
-
-    renderJobDetails();
-
-    await waitFor(() => {
-      // Should show relative time (e.g., "months ago")
-      expect(screen.getByText(/ago/)).toBeInTheDocument();
-      // Should show formatted date
-      expect(screen.getByText(/January/)).toBeInTheDocument();
-    });
-  });
-
-  it('shows help and support section', async () => {
-    vi.mocked(jobsService.getJobById).mockResolvedValue(mockJob);
-
-    renderJobDetails();
-
-    await waitFor(() => {
-      expect(screen.getByText('Need Help?')).toBeInTheDocument();
-      expect(screen.getByText('Contact Support')).toBeInTheDocument();
-      expect(screen.getByText('Application Tips')).toBeInTheDocument();
-      expect(screen.getByText('Report Issue')).toBeInTheDocument();
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'destructive',
+          title: 'Application Failed',
+          description: 'Application failed',
+        }),
+      );
     });
   });
 });

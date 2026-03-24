@@ -37,6 +37,7 @@ const JobSearch = ({ initialQuery = '', className = '' }: JobSearchProps) => {
                 type="text"
                 placeholder="Search for: cashier, security, cleaner, nanny..."
                 className="pl-10 w-full"
+                data-testid="job-search-input"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -44,6 +45,7 @@ const JobSearch = ({ initialQuery = '', className = '' }: JobSearchProps) => {
             <Button 
               type="submit"
               className="bg-primary text-white hover:bg-blue-600"
+              data-testid="job-search-submit"
             >
               Search Jobs
             </Button>
