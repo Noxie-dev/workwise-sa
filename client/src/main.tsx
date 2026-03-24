@@ -7,6 +7,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { registerServiceWorker } from '@/lib/registerServiceWorker';
 
 /**
  * Main entry point for the WorkWise SA application
@@ -22,6 +23,7 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+registerServiceWorker();
 
 // Find the root element
 const rootElement = document.getElementById('root');

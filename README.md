@@ -2,7 +2,7 @@
 
 WorkWise SA is a South African employment platform built around job discovery, employer workflows, candidate profiles, CV tooling, content/learning surfaces, and a growing job-ingestion pipeline.
 
-This repository behaves like a monorepo, but it is not a clean single-app codebase. It contains a primary React frontend, an Express backend, shared Drizzle schema/types, a second root-level API slice, Firebase and Netlify runtimes, and a Python scraping subsystem.
+This repository behaves like a monorepo, but it is not a clean single-app codebase. It contains a primary React frontend, an Express backend, shared Drizzle schema/types, legacy Firebase and Netlify runtimes, and a Python scraping subsystem.
 
 ## Current Repo Reality
 
@@ -11,13 +11,13 @@ The most important thing to understand before editing this repo is that it conta
 - `client/` is the main browser application used by the root Vite build.
 - `server/` is the main Express backend and Drizzle storage layer.
 - `shared/` contains the SQL schema, Zod insert schemas, and shared types.
-- `src/` contains an active `/api/v1` router plus overlapping frontend-style code.
-- `functions/` contains Firebase Functions code.
-- `netlify/functions/` contains Netlify serverless code.
+- `src/` now holds transitional support code, Swagger wiring, and a few shared modules. It is no longer the canonical frontend or `/api/v1` backend owner.
+- `functions/` contains legacy Firebase Functions code.
+- `netlify/functions/` contains legacy Netlify serverless code.
 - `dataconnect/` and `dataconnect-generated/` contain Firebase Data Connect assets.
 - `scrapy_jobs/` contains the Python-based scraping and ingestion pipeline.
 
-This means “the app” is not one folder. If you change routes, auth, schema, or deployment behavior, check both `server/` and `src/` before assuming ownership.
+This means “the app” is not one folder. The canonical browser/runtime paths are `client/`, `server/`, and `shared/`. Treat root `src/` as transitional support code unless a file clearly proves otherwise.
 
 For a deeper codebase reference, see [idex.md](/workspace/idex.md).
 
@@ -75,12 +75,11 @@ Backend responsibilities include:
 - scraping session/orchestration routes
 - AI and recommendation services
 
-Important routing fact:
+Important routing facts:
 
-- `server/server/index.ts` mounts `src/api` under `/api`
-- `server/routes.ts` also registers a large set of `/api/*` routes directly
-
-That mixed routing model is real and active.
+- `server/server/index.ts` mounts [server/routes/v1.ts](/workspace/server/routes/v1.ts) under `/api/v1`
+- `server/routes.ts` registers non-versioned `/api/*` routes
+- `src/api/index.ts` is now a compatibility re-export, not the live route owner
 
 ### Database
 
@@ -99,8 +98,8 @@ Primary entities include:
 
 Database behavior is environment-dependent:
 
-- PostgreSQL is the main production path
-- SQLite is used for development/test fallback in parts of the backend
+- PostgreSQL is the canonical production database
+- SQLite is dev/test only and should not drive production contract decisions
 - Drizzle ORM owns the TypeScript data layer
 
 ### Scraping And Ingestion
@@ -117,9 +116,11 @@ Key files:
 - compliance middleware: [scrapy_jobs/scrapy_jobs/middleware/compliance_middleware.py](/workspace/scrapy_jobs/scrapy_jobs/middleware/compliance_middleware.py)
 - ingest contract: [shared/job-ingest-schema.ts](/workspace/shared/job-ingest-schema.ts)
 - ingest service: [server/services/jobIngestionService.ts](/workspace/server/services/jobIngestionService.ts)
-- ingest route: [src/api/v1/routes/jobs.ingest.ts](/workspace/src/api/v1/routes/jobs.ingest.ts)
+- ingest route: [server/routes/v1.ts](/workspace/server/routes/v1.ts)
 
 Supported/implemented scraping work is still evolving. The repo currently has real work around Gumtree, Job Mail, and Bizcommunity, but coverage is not uniform and source viability depends on robots, site behavior, and field quality.
+
+Source rollout is now controlled by the legal/source registry in `scrapy_jobs/config/source-registry.json`. A source can be reviewed without being approved for ingest or higher concurrency.
 
 ## Repo Structure
 
@@ -128,7 +129,7 @@ Supported/implemented scraping work is still evolving. The repo currently has re
 ├── client/                    # Primary React/Vite frontend
 ├── server/                    # Main Express backend, storage, middleware, services
 ├── shared/                    # Drizzle schema and shared TS/Zod contracts
-├── src/                       # /api/v1 router plus overlapping frontend/service code
+├── src/                       # Transitional support code and Swagger helpers
 ├── functions/                 # Firebase Functions runtime
 ├── netlify/functions/         # Netlify serverless functions
 ├── dataconnect/               # Firebase Data Connect config/schema
@@ -184,16 +185,19 @@ cp .env.example client/.env
 
 Important notes:
 
-- some services can run in fallback/local mode
-- Firebase, Gemini, email, and deployment flows require real credentials
+- local development can still run with selective fallbacks
+- primary production expects PostgreSQL, real Firebase credentials, and real AI/provider credentials
 - scraping ingest can be protected with `SCRAPING_INGEST_TOKEN`
 - database mode depends heavily on `DATABASE_URL`
+- `VITE_API_URL` should point at the Express API root and defaults to `/api`
+- `VITE_USE_MOCK_PUBLIC_DATA` should stay `false` outside explicit local mock testing
 
 Useful commands:
 
 ```bash
 pnpm run env:check
 pnpm run env:sanitize
+pnpm run env:verify:supported
 pnpm run check:firebase-config
 ```
 
@@ -340,22 +344,42 @@ Build:
 pnpm run build
 ```
 
-Netlify-related commands:
+Primary production runtime:
+
+```bash
+pnpm run env:check-prod
+pnpm run env:verify:primary
+pnpm run build
+pnpm run start
+pnpm run deploy:prod
+```
+
+Primary runtime facts:
+
+- `pnpm run build` produces `dist/public` for frontend assets and `dist/index.js` for the Express server
+- `pnpm run start` runs the bundled Express server from `dist/index.js`
+- `pnpm run deploy:prod` validates the primary Express deployment contract and environment requirements
+- `pnpm run env:verify:primary` audits database, uploads, Firebase, AI, cache, SMS, and ingest wiring for the supported production model
+- PostgreSQL is the canonical production database
+
+Legacy Netlify/Firebase commands remain in the repo for compatibility and migration support, but they are not the canonical production path.
+
+Legacy Netlify commands:
 
 ```bash
 pnpm run netlify:prepare
 pnpm run netlify:build
 pnpm run netlify:validate
-pnpm run deploy:prod
+pnpm run deploy:legacy:netlify
 ```
 
-Firebase-related commands:
+Legacy Firebase commands:
 
 ```bash
 pnpm run firebase:build
-pnpm run firebase:deploy
-pnpm run firebase:deploy:functions
-pnpm run firebase:deploy:all
+pnpm run deploy:legacy:firebase:hosting
+pnpm run deploy:legacy:firebase:functions
+pnpm run deploy:legacy:firebase:all
 ```
 
 Data Connect:
@@ -383,6 +407,8 @@ Use these references carefully:
 - root quality tooling is healthier than the full application graph
 - full type safety is not yet restored across the whole workspace
 - scraping source quality varies by platform and robots/compliance limits
+- legacy Firebase/Netlify deployment assets still exist, but they are no longer the primary runtime contract
+- file storage is still local-disk based and requires a writable upload volume plus a correct `FILE_SERVE_URL`
 
 ## Recommended Editing Strategy
 

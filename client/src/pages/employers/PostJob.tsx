@@ -10,6 +10,7 @@ import { INITIAL_FORM_STATE, JobFormValues } from '@/constants/formConstants';
 import useJobFormState from '@/hooks/useJobFormState';
 import useFormAutosave from '@/hooks/useFormAutosave';
 import { fetchCategories, generateAIContent, submitJobPost } from '@/services/jobService';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Import form steps
 const JobDetailsStep = React.lazy(() => import('@/components/form-steps/JobDetailsStep'));
@@ -26,6 +27,7 @@ const LoadingStepFallback = () => (
 const PostJob = () => {
   const FORM_ID = "job-post-form-v1";
   const [, setLocation] = useLocation();
+  const { currentUser, role } = useAuth();
   const formState = useJobFormState(INITIAL_FORM_STATE);
   const { loadSavedData, clearSavedData } = useFormAutosave(formState.values, FORM_ID);
 
@@ -142,6 +144,21 @@ const PostJob = () => {
     await submitMutation.mutateAsync(formState.values);
     formState.setIsSubmitting(false);
   };
+
+  if (!currentUser || !['admin', 'employer'].includes(role || '')) {
+    return (
+      <main className="flex-grow">
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-2xl rounded-lg border bg-white p-6 shadow-sm">
+            <h1 className="text-2xl font-bold">Employer Access Required</h1>
+            <p className="mt-3 text-gray-600">
+              Posting jobs is limited to employer and admin accounts. Sign in with the correct account or request employer access.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
 
   return (

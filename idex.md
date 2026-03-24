@@ -11,7 +11,7 @@ This repository contains the code for WorkWise SA, a job platform oriented aroun
 - content-style "WiseUp" learning/media pages
 - AI-assisted features for CV generation, translation, summaries, and job-related workflows
 
-The repo is not a strict monorepo, but it behaves like one. It contains multiple partially overlapping application surfaces, deployment targets, and runtime models inside a single workspace.
+The repo is not a strict monorepo, but it behaves like one. It contains multiple deployment targets and runtime models inside a single workspace, but the canonical application ownership is now clearer than it used to be.
 
 ## High-Level System Shape
 
@@ -27,10 +27,7 @@ At a high level, the repo contains five main code strata:
    Drizzle schema and shared types consumed by both frontend and backend.
 
 4. `src/`
-   A second root-level application/API layer. This contains:
-   - an Express API slice mounted under `/api/v1`
-   - a second frontend app shell and related services/components
-   - middleware and service code that overlaps with `client/` and `server/`
+   Transitional support code. This now mainly contains Swagger wiring, middleware reused by `server/`, and compatibility exports.
 
 5. platform-specific runtimes
    - `functions/` for Firebase Functions
@@ -38,7 +35,19 @@ At a high level, the repo contains five main code strata:
    - `dataconnect/` and `dataconnect-generated/` for Firebase Data Connect
    - `scrapy_jobs/` for Python scraping
 
-The important architectural reality is that this repo contains duplicated or parallel implementations of some concepts instead of a single canonical path.
+The important architectural reality is that this repo still contains some historical overlap, but the canonical ownership is:
+
+- `client/` for the browser app
+- `server/` for API/runtime code
+- `shared/` for contracts and schema
+
+The canonical production deployment path is the bundled Express application produced by the root build:
+
+- frontend assets: `dist/public`
+- server artifact: `dist/index.js`
+- runtime command: `pnpm run start`
+
+Firebase Functions and Netlify Functions remain in the repo as legacy/compatibility deployment targets, not the primary runtime contract.
 
 ## Runtime Architecture
 
@@ -74,18 +83,16 @@ Startup sequence:
 4. initialize cache and auth-monitoring services
 5. configure Express middleware
 6. mount Swagger docs
-7. mount root `src/api` router at `/api`
-8. register legacy/original routes via `registerRoutes(app)`
+7. mount [server/routes/v1.ts](/workspace/server/routes/v1.ts) at `/api/v1`
+8. register non-versioned routes via [server/routes.ts](/workspace/server/routes.ts)
 9. attach error handlers
 10. listen on `PORT`
 
 Important implication:
 
-- the backend is composed from both `server/` and root `src/`
-- `/api/v1/*` comes from `src/api`
-- many `/api/*` endpoints also come from `server/routes.ts`
-
-This mixed composition should be treated as a core architectural fact when changing routes.
+- `/api/v1/*` is now owned by `server/`
+- many `/api/*` endpoints still come from [server/routes.ts](/workspace/server/routes.ts)
+- root `src/` still matters for some middleware and Swagger support, but it is no longer the canonical API owner
 
 ## Major Code Areas
 
@@ -162,10 +169,7 @@ Important files:
   Main application startup.
 
 - [server/routes.ts](/workspace/server/routes.ts)
-  Large legacy route registration file. Contains many `/api/*` handlers directly on the Express app.
-
-- [server/routes/index.ts](/workspace/server/routes/index.ts)
-  A second route registration module that mounts AI/auth-monitoring/storage routes and returns an HTTP server. This overlaps in name and purpose with `server/routes.ts`.
+  Non-versioned route registration coordinator. This now delegates to modular route files rather than owning one giant mixed implementation.
 
 - [server/storage.ts](/workspace/server/storage.ts)
   Data access abstraction. Implements `IStorage` against Drizzle. This is a key seam in the backend.
@@ -194,8 +198,8 @@ Important files:
 
 Observations:
 
-- `server/` mixes old and new route patterns.
-- There are multiple auth middleware implementations across `server/` and root `src/`.
+- `server/` still mixes old and new route patterns, but route ownership is more modular than before.
+- There are still multiple auth-related modules across `server/` and root `src/`.
 - Database behavior is environment-sensitive and tolerant of development fallbacks.
 - Some endpoints intentionally return mock data in development when the database is unavailable.
 
@@ -229,14 +233,14 @@ This file also exports:
 
 This schema is consumed directly by the backend storage layer and indirectly by parts of the frontend via `@shared`.
 
-### `src/`: secondary app/API layer
+### `src/`: transitional support code
 
-This directory is structurally important.
+This directory is still structurally important, but it is no longer a parallel frontend or canonical `/api/v1` backend.
 
 It contains:
 
 - `src/api/`
-  Express router code. [src/api/index.ts](/workspace/src/api/index.ts) mounts `v1`.
+  Compatibility exports and Swagger support.
 
 - `src/api/v1/`
   Versioned routes for:
@@ -552,7 +556,8 @@ Notable script groups:
 
 - deployment
   - `deploy:prod`
-  - `deploy:firebase*`
+  - `deploy:legacy:*`
+  - `firebase:*`
   - `netlify:*`
 
 - environment and setup
@@ -560,7 +565,7 @@ Notable script groups:
   - `setup:ssh`
   - `verify:ssh`
 
-There are also many one-off utility scripts under `scripts/` for deployment validation, environment checks, migration helpers, and Firebase/Netlify workflows.
+There are also many one-off utility scripts under `scripts/` for deployment validation, environment checks, migration helpers, and legacy Firebase/Netlify workflows.
 
 ## Known Architectural Sharp Edges
 
@@ -610,6 +615,7 @@ Impact:
 
 - duplicated backend logic
 - multiple operational paths to maintain
+- deployment drift unless the primary Express path stays authoritative
 
 ### 5. Mixed storage models
 

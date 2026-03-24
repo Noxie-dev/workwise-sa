@@ -3,6 +3,10 @@ import { aiService } from '../services/aiService';
 
 const router = express.Router();
 
+function experimentalAiEnabled() {
+  return process.env.ENABLE_EXPERIMENTAL_AI_ENDPOINTS === 'true';
+}
+
 /**
  * @route POST /api/ai/greet
  * @desc Generate a greeting using AI
@@ -10,6 +14,10 @@ const router = express.Router();
  */
 router.post('/greet', async (req, res) => {
   try {
+    if (!experimentalAiEnabled()) {
+      return res.status(404).json({ error: 'Experimental AI endpoint is disabled' });
+    }
+
     const { name } = req.body;
     if (!name) {
       return res.status(400).json({ error: 'Name is required' });
@@ -30,6 +38,10 @@ router.post('/greet', async (req, res) => {
  */
 router.post('/generate', async (req, res) => {
   try {
+    if (!experimentalAiEnabled()) {
+      return res.status(404).json({ error: 'Experimental AI endpoint is disabled' });
+    }
+
     const { prompt } = req.body;
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });

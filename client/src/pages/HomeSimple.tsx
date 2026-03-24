@@ -6,6 +6,7 @@ import CategoriesSection from '@/components/CategoriesSection';
 import CompaniesSection from '@/components/CompaniesSection';
 import CtaSection from '@/components/CtaSection';
 import JobPreviewCard from '@/components/JobPreviewCard';
+import AdSlot from '@/components/ads/AdSlot';
 import AuthPromptModal from '@/components/AuthPromptModal';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -457,6 +458,16 @@ const HomeSimple: React.FC = () => {
                 </Button>
               </div>
             )}
+          </div>
+        </section>
+
+        <section className="bg-white py-6">
+          <div className="container mx-auto px-4">
+            <AdSlot
+              placement="home-inline"
+              title="Sponsored jobs and training"
+              description="This scaffolded slot gives us a single place to wire ad providers, low-data placement rules, and advertiser analytics without mixing those concerns into page components."
+            />
           </div>
         </section>
 

@@ -1,3 +1,6 @@
+# Legacy deployment target only.
+# The canonical production runtime is the Express server built from `server/server/index.ts`
+# and started from the root `dist/index.js` artifact after `pnpm run build`.
 [build]
   publish = "dist/public"
   command = "npm run netlify:build"

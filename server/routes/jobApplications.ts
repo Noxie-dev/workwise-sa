@@ -4,6 +4,7 @@ import { storage } from '../storage';
 import { validate } from '../middleware/validation';
 import { verifyFirebaseToken } from '../middleware/auth';
 import { Errors } from '../middleware/errorHandler';
+import { assertRole, resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
 import { createInsertSchema } from 'drizzle-zod';
 import { jobApplications } from '@shared/schema';
 
@@ -78,8 +79,8 @@ router.post('/',
         throw Errors.authentication('User authentication required');
       }
 
-      // For now, use a placeholder userId since we need to map Firebase UID to database user ID
-      const userId = 1; // TODO: Implement proper user mapping
+      const dbUser = await resolveAuthenticatedDatabaseUser(user);
+      const userId = dbUser.id;
 
       // Check if job exists
       const job = await storage.getJob(jobId);
@@ -136,8 +137,8 @@ router.get('/',
         throw Errors.authentication('User authentication required');
       }
 
-      // For now, use a placeholder userId since we need to map Firebase UID to database user ID
-      const userId = 1; // TODO: Implement proper user mapping
+      const dbUser = await resolveAuthenticatedDatabaseUser(user);
+      const userId = dbUser.id;
 
       const applications = await storage.getJobApplicationsByUser(userId, {
         page,
@@ -176,17 +177,15 @@ router.get('/:applicationId',
         throw Errors.authentication('User authentication required');
       }
 
-      // For now, use a placeholder userId since we need to map Firebase UID to database user ID
-      const userId = 1; // TODO: Implement proper user mapping
+      const dbUser = await resolveAuthenticatedDatabaseUser(user);
+      const userId = dbUser.id;
 
       const application = await storage.getJobApplication(applicationId);
       if (!application) {
         throw Errors.notFound('Job application not found');
       }
 
-      // Check if user owns this application or is admin
-      // TODO: Implement proper role checking from Firebase custom claims
-      if (application.userId !== userId) {
+      if (application.userId !== userId && !['admin', 'employer'].includes(dbUser.role ?? 'user')) {
         throw Errors.forbidden('You can only view your own job applications');
       }
 
@@ -211,17 +210,15 @@ router.put('/:applicationId',
         throw Errors.authentication('User authentication required');
       }
 
-      // For now, use a placeholder userId since we need to map Firebase UID to database user ID
-      const userId = 1; // TODO: Implement proper user mapping
+      const dbUser = await resolveAuthenticatedDatabaseUser(user);
+      const userId = dbUser.id;
 
       const application = await storage.getJobApplication(applicationId);
       if (!application) {
         throw Errors.notFound('Job application not found');
       }
 
-      // Check if user owns this application or is admin/employer
-      // TODO: Implement proper role checking from Firebase custom claims
-      if (application.userId !== userId) {
+      if (application.userId !== userId && !['admin', 'employer'].includes(dbUser.role ?? 'user')) {
         throw Errors.forbidden('You can only update your own job applications');
       }
 
@@ -279,16 +276,15 @@ router.delete('/:applicationId',
         throw Errors.authentication('User authentication required');
       }
 
-      // For now, use a placeholder userId since we need to map Firebase UID to database user ID
-      const userId = 1; // TODO: Implement proper user mapping
+      const dbUser = await resolveAuthenticatedDatabaseUser(user);
+      const userId = dbUser.id;
 
       const application = await storage.getJobApplication(applicationId);
       if (!application) {
         throw Errors.notFound('Job application not found');
       }
 
-      // Check if user owns this application
-      if (application.userId !== userId) {
+      if (application.userId !== userId && !['admin', 'employer'].includes(dbUser.role ?? 'user')) {
         throw Errors.forbidden('You can only withdraw your own job applications');
       }
 
@@ -332,8 +328,8 @@ router.get('/job/:jobId',
         throw Errors.authentication('User authentication required');
       }
 
-      // For now, use a placeholder userId since we need to map Firebase UID to database user ID
-      const userId = 1; // TODO: Implement proper user mapping
+      const dbUser = await resolveAuthenticatedDatabaseUser(user);
+      assertRole(dbUser, ['admin', 'employer']);
 
       // Check if job exists
       const job = await storage.getJob(jobId);

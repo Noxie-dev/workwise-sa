@@ -40,6 +40,7 @@ class ArtifactPipeline:
         try:
             normalized = normalize_job_item(data)
             compliant = apply_compliance(normalized)
+            compliant.setdefault("schemaVersion", "job-ingest.v1")
             self.normalized_items.append(compliant)
             return compliant
         except ComplianceError as exc:
