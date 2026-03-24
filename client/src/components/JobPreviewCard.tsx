@@ -57,6 +57,7 @@ const JobPreviewCard: React.FC<JobPreviewCardProps> = ({
   return (
     <Card 
       className={`bg-white rounded-lg shadow-card overflow-hidden job-preview-card transition-all duration-200 hover:shadow-lg cursor-pointer ${className}`}
+      data-testid={`job-preview-card-${job.id}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleCardClick}

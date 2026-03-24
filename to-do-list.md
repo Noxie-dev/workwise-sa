@@ -96,11 +96,11 @@ This checklist turns the repo from mixed maturity into a single, production-read
 
 ## Phase 8: Quality Gates, Testing, And Observability
 
-- [ ] Define minimum test coverage for critical candidate, employer, admin, AI, and ingestion flows
-- [ ] Add missing backend route tests for applications, profile, auth mapping, uploads, and permissions
-- [ ] Add missing frontend tests for job details, application flow, employer actions, and failure states
-- [ ] Expand Playwright coverage to full user journeys, not just search/smoke cases
-- [ ] Add CI gates for `lint`, `type-check`, `test`, and selected E2E suites
+- [x] Define minimum test coverage for critical candidate, employer, admin, AI, and ingestion flows
+- [x] Add missing backend route tests for applications, profile, auth mapping, uploads, and permissions
+- [x] Add missing frontend tests for job details, application flow, employer actions, and failure states
+- [x] Expand Playwright coverage to full user journeys, not just search/smoke cases
+- [x] Add CI gates for `lint`, `type-check`, `test`, and selected E2E suites
 - [ ] Add structured monitoring for API errors, background jobs, scraper runs, and auth failures
 - [ ] Add release verification steps for staging and production
 
