@@ -1,5 +1,6 @@
 # Dependencies
 node_modules
+.pnpm-store
 .pnp
 .pnp.js
 
@@ -55,3 +56,13 @@ lerna-debug.log*
 
 # Local Netlify folder
 .netlify
+
+# Python / scraping local artifacts
+__pycache__/
+*.py[cod]
+scrapy_jobs/.scrapy/
+scrapy_jobs/output/
+scrapy_jobs/scraping_report_*.json
+
+# Local databases
+*.db

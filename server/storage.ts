@@ -3,13 +3,14 @@ import {
   categories, type Category, type InsertCategory,
   companies, type Company, type InsertCompany,
   jobs, type Job, type InsertJob,
+  jobIngestRecords, type JobIngestRecord, type InsertJobIngestRecord,
   files, type File, type InsertFile,
   jobApplications, type JobApplication, type InsertJobApplication,
   userInteractions, type UserInteraction, type InsertUserInteraction,
   userNotifications, type UserNotification, type InsertUserNotification,
   type JobWithCompany
 } from "@shared/schema";
-import { db } from "./db";
+import { db, getSqliteConnection, isSqliteDatabase } from "./db";
 import { eq, like, or, desc, and, count } from "drizzle-orm";
 
 export interface IStorage {
@@ -47,6 +48,9 @@ export interface IStorage {
   getJobsByCategory(categoryId: number): Promise<Job[]>;
   searchJobs(query: string): Promise<JobWithCompany[]>;
   createJob(job: InsertJob): Promise<Job>;
+  getJobIngestRecordBySource(sourceSite: string, externalId: string): Promise<JobIngestRecord | undefined>;
+  getJobIngestRecordByFingerprint(fingerprint: string): Promise<JobIngestRecord | undefined>;
+  createJobIngestRecord(record: InsertJobIngestRecord): Promise<JobIngestRecord>;
 
   // Files methods
   getFile(id: number): Promise<File | undefined>;
@@ -347,10 +351,166 @@ export class DatabaseStorage implements IStorage {
 
   async createJob(insertJob: InsertJob): Promise<Job> {
     try {
-      const [job] = await db.insert(jobs).values(insertJob).returning();
+      if (isSqliteDatabase()) {
+        const sqlite = getSqliteConnection();
+        const createdAt = new Date().toISOString();
+        const result = sqlite
+          .prepare(
+            `INSERT INTO jobs (
+              title, description, location, salary, job_type, work_mode, company_id, category_id, is_featured, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          )
+          .run(
+            insertJob.title,
+            insertJob.description,
+            insertJob.location,
+            insertJob.salary ?? null,
+            insertJob.jobType,
+            insertJob.workMode,
+            insertJob.companyId,
+            insertJob.categoryId,
+            insertJob.isFeatured ? 1 : 0,
+            createdAt
+          );
+
+        const row = sqlite.prepare(`SELECT * FROM jobs WHERE id = ?`).get(result.lastInsertRowid);
+        return {
+          id: Number(row.id),
+          title: row.title,
+          description: row.description,
+          location: row.location,
+          salary: row.salary,
+          jobType: row.job_type,
+          workMode: row.work_mode,
+          companyId: row.company_id,
+          categoryId: row.category_id,
+          isFeatured: Boolean(row.is_featured),
+          createdAt: row.created_at,
+        } as Job;
+      }
+
+      const [job] = await db
+        .insert(jobs)
+        .values({
+          ...insertJob,
+          createdAt: new Date().toISOString(),
+        })
+        .returning();
       return job;
     } catch (error: any) {
       throw Errors.database(`Failed to create job: ${error.message}`, error);
+    }
+  }
+
+  async getJobIngestRecordBySource(
+    sourceSite: string,
+    externalId: string
+  ): Promise<JobIngestRecord | undefined> {
+    try {
+      const [record] = await db
+        .select()
+        .from(jobIngestRecords)
+        .where(and(eq(jobIngestRecords.sourceSite, sourceSite), eq(jobIngestRecords.externalId, externalId)));
+      return record;
+    } catch (error: any) {
+      throw Errors.database(`Failed to get job ingest record by source: ${error.message}`, error);
+    }
+  }
+
+  async getJobIngestRecordByFingerprint(fingerprint: string): Promise<JobIngestRecord | undefined> {
+    try {
+      const [record] = await db
+        .select()
+        .from(jobIngestRecords)
+        .where(eq(jobIngestRecords.fingerprint, fingerprint));
+      return record;
+    } catch (error: any) {
+      throw Errors.database(`Failed to get job ingest record by fingerprint: ${error.message}`, error);
+    }
+  }
+
+  async createJobIngestRecord(insertRecord: InsertJobIngestRecord): Promise<JobIngestRecord> {
+    try {
+      if (isSqliteDatabase()) {
+        const sqlite = getSqliteConnection();
+        const createdAt =
+          insertRecord.createdAt instanceof Date
+            ? insertRecord.createdAt.toISOString()
+            : insertRecord.createdAt ?? new Date().toISOString();
+        const updatedAt =
+          insertRecord.updatedAt instanceof Date
+            ? insertRecord.updatedAt.toISOString()
+            : insertRecord.updatedAt ?? new Date().toISOString();
+        const postedAt =
+          insertRecord.postedAt instanceof Date
+            ? insertRecord.postedAt.toISOString()
+            : insertRecord.postedAt ?? null;
+        const metadata =
+          insertRecord.metadata && typeof insertRecord.metadata !== 'string'
+            ? JSON.stringify(insertRecord.metadata)
+            : insertRecord.metadata ?? null;
+
+        const result = sqlite
+          .prepare(
+            `INSERT INTO job_ingest_records (
+              job_id, source_site, source_url, external_id, apply_url, posted_at, fingerprint, metadata, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          )
+          .run(
+            insertRecord.jobId,
+            insertRecord.sourceSite,
+            insertRecord.sourceUrl,
+            insertRecord.externalId,
+            insertRecord.applyUrl ?? null,
+            postedAt,
+            insertRecord.fingerprint,
+            metadata,
+            createdAt,
+            updatedAt
+          );
+
+        const row = sqlite
+          .prepare(`SELECT * FROM job_ingest_records WHERE id = ?`)
+          .get(result.lastInsertRowid);
+        return {
+          id: Number(row.id),
+          jobId: row.job_id,
+          sourceSite: row.source_site,
+          sourceUrl: row.source_url,
+          externalId: row.external_id,
+          applyUrl: row.apply_url,
+          postedAt: row.posted_at,
+          fingerprint: row.fingerprint,
+          metadata: row.metadata,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+        } as JobIngestRecord;
+      }
+
+      const [record] = await db
+        .insert(jobIngestRecords)
+        .values({
+          ...insertRecord,
+          postedAt: insertRecord.postedAt instanceof Date
+            ? insertRecord.postedAt.toISOString()
+            : insertRecord.postedAt ?? null,
+          metadata:
+            insertRecord.metadata && typeof insertRecord.metadata !== 'string'
+              ? JSON.stringify(insertRecord.metadata)
+              : insertRecord.metadata ?? null,
+          createdAt:
+            insertRecord.createdAt instanceof Date
+              ? insertRecord.createdAt.toISOString()
+              : insertRecord.createdAt ?? new Date().toISOString(),
+          updatedAt:
+            insertRecord.updatedAt instanceof Date
+              ? insertRecord.updatedAt.toISOString()
+              : insertRecord.updatedAt ?? new Date().toISOString(),
+        })
+        .returning();
+      return record;
+    } catch (error: any) {
+      throw Errors.database(`Failed to create job ingest record: ${error.message}`, error);
     }
   }
 

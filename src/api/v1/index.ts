@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { registerCategoryRoutes } from './routes/categories';
 import { registerCompanyRoutes } from './routes/companies';
 import { registerJobRoutes } from './routes/jobs';
+import { registerJobIngestRoutes } from './routes/jobs.ingest';
 import { registerUserRoutes } from './routes/users';
 import { registerTopHiringRoutes } from './routes/top-hiring';
 import { registerCVRoutes } from './routes/cv';
@@ -20,6 +21,7 @@ v1Router.use(rateLimiters.general);
 registerCategoryRoutes(v1Router);
 registerCompanyRoutes(v1Router);
 registerJobRoutes(v1Router);
+registerJobIngestRoutes(v1Router);
 registerTopHiringRoutes(v1Router);
 
 // Protected routes - require authentication

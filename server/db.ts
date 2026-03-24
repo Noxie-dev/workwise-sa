@@ -9,6 +9,7 @@ import { secretManager } from './services/secretManager';
 // Database instance
 let db: any;
 let dbInitialized = false;
+let sqliteConnection: any = null;
 
 // Initialize database connection
 export async function initializeDatabase() {
@@ -16,16 +17,25 @@ export async function initializeDatabase() {
   
   try {
     // Get database connection string
-    const connectionString = await secretManager.getSecret('DATABASE_URL');
+    const secretConnectionString = await secretManager.getSecret('DATABASE_URL');
+    const fallbackConnectionString =
+      process.env.NODE_ENV === 'production' ? undefined : 'sqlite:./test.db';
+    const connectionString = secretConnectionString || process.env.DATABASE_URL || fallbackConnectionString;
+
+    if (!connectionString) {
+      throw new Error('DATABASE_URL is not configured');
+    }
     
     // Create database client based on connection string
-    if (connectionString?.startsWith('sqlite')) {
-      // SQLite for testing
-      const sqlite = new Database('test.db');
+    if (connectionString.startsWith('sqlite')) {
+      const sqlitePath = connectionString.replace(/^sqlite:\/*/, '') || 'test.db';
+      const sqlite = new Database(sqlitePath);
+      sqliteConnection = sqlite;
       db = drizzle(sqlite, { schema });
     } else {
       // PostgreSQL for production
       const client = postgres(connectionString as string);
+      sqliteConnection = null;
       db = drizzlePostgres(client, { schema });
     }
     
@@ -44,6 +54,14 @@ export function getDB() {
     throw new Error('Database not initialized. Call initializeDatabase() first.');
   }
   return db;
+}
+
+export function getSqliteConnection() {
+  return sqliteConnection;
+}
+
+export function isSqliteDatabase() {
+  return Boolean(sqliteConnection);
 }
 
 // Export database instance (for backward compatibility)

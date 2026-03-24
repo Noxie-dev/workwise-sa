@@ -9,9 +9,11 @@ const router = Router();
 
 const triggerScrapingSchema = z.object({
   spiders: z.array(z.string()).optional(),
+  source: z.string().optional(),
   maxItems: z.number().min(1).max(10000).optional(),
   concurrent: z.number().min(1).max(5).optional(),
   dryRun: z.boolean().optional(),
+  ingest: z.boolean().optional(),
 });
 
 type ScrapingStatus = 'running' | 'completed' | 'failed' | 'cancelled';
@@ -28,6 +30,13 @@ type ScrapingSession = {
     itemsScraped: number;
     errors: number;
   };
+  artifacts?: Array<{
+    spider: string;
+    rawPath?: string;
+    normalizedPath?: string;
+    jobsPrepared?: number;
+    ingestSummary?: unknown;
+  }>;
   results?: unknown;
   error?: string;
 };
@@ -97,7 +106,7 @@ router.post('/trigger', async (req, res) => {
     }
 
     const sessionId = `scraping_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
-    const spiders = validatedData.spiders ?? ['gumtree_jobs'];
+    const spiders = validatedData.spiders ?? [validatedData.source ?? 'gumtree'];
 
     const session: ScrapingSession = {
       id: sessionId,
@@ -110,6 +119,7 @@ router.post('/trigger', async (req, res) => {
         itemsScraped: 0,
         errors: 0,
       },
+      artifacts: [],
     };
 
     scrapingSessions.set(sessionId, session);
@@ -237,21 +247,15 @@ router.get('/stats', async (_req, res) => {
 
 function startScrapingProcess(sessionId: string, options: TriggerScrapingOptions) {
   const args = ['python3', pythonScript];
-
-  if (options.spiders && options.spiders.length === 1) {
-    args.push('--spider', options.spiders[0]);
-  }
-
-  if (options.maxItems) {
-    args.push('--max-items', options.maxItems.toString());
-  }
+  const source = options.source ?? (options.spiders?.length === 1 ? options.spiders[0] : 'all');
+  args.push('--source', source);
 
   if (options.concurrent) {
     args.push('--concurrent', options.concurrent.toString());
   }
 
-  if (options.dryRun) {
-    args.push('--dry-run');
+  if (options.ingest) {
+    args.push('--ingest', 'true');
   }
 
   console.log(`Starting scraping process: ${args.join(' ')}`);
@@ -317,14 +321,22 @@ async function loadScrapingResults(sessionId: string) {
     const reportPath = path.join(scrapyDir, reportFiles[0]);
     const reportContent = await fs.readFile(reportPath, 'utf-8');
     const results = JSON.parse(reportContent) as {
-      statistics?: { jobs_scraped?: number };
+      statistics?: { jobsScraped?: number };
+      sources?: Array<{
+        spider: string;
+        rawPath?: string;
+        normalizedPath?: string;
+        jobsPrepared?: number;
+        ingestSummary?: unknown;
+      }>;
     };
 
     const session = scrapingSessions.get(sessionId);
     if (!session) return;
 
     session.results = results;
-    session.progress.itemsScraped = results.statistics?.jobs_scraped ?? 0;
+    session.progress.itemsScraped = results.statistics?.jobsScraped ?? 0;
+    session.artifacts = results.sources ?? [];
   } catch (error) {
     console.error(`Error loading results for session ${sessionId}:`, error);
   }

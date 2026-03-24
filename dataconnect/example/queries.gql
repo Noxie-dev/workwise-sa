@@ -1,0 +1,53 @@
+query AllJobPostings @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public as it retrieves general job posting information.") {
+  jobPostings {
+    id
+    title
+    description
+    location
+    jobType
+    salaryRange
+    createdAt
+    applicationDeadline
+    employerProfile {
+      companyName
+      industry
+    }
+  }
+}
+
+query MyJobSeekerProfile @auth(level: USER, insecureReason: "This operation is safe to expose to all logged in users as it retrieves their own profile.") {
+  jobSeekerProfile(key: {userId_expr: "auth.uid"}) {
+    firstName
+    lastName
+    headline
+    skills
+    experience
+    education
+    desiredJobType
+    phoneNumber
+    resumeUrl
+  }
+}
+
+mutation CreateApplication($jobPostingId: UUID!, $coverLetter: String, $resumeUrl: String) @auth(level: USER, insecureReason: "This operation allows logged-in users to create an application for a job posting, and it includes their user ID automatically.") {
+  application_insert(data: {
+    jobSeekerProfile: {userId_expr: "auth.uid"},
+    jobPosting: {id: $jobPostingId},
+    applicationDate_expr: "request.time",
+    status: "Pending",
+    coverLetter: $coverLetter,
+    resumeUrl: $resumeUrl
+  }) {
+    id
+  }
+}
+
+mutation UpdateMyEmployerProfile($companyDescription: String, $website: String, $companyLogoUrl: String) @auth(level: USER, insecureReason: "This operation allows logged-in employer users to update their own profile, and it includes their user ID automatically.") {
+  employerProfile_update(key: {userId_expr: "auth.uid"}, data: {
+    companyDescription: $companyDescription,
+    website: $website,
+    companyLogoUrl: $companyLogoUrl
+  }) {
+    id
+  }
+}
