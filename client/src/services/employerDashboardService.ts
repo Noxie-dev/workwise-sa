@@ -2,7 +2,10 @@ import apiClient from './apiClient';
 import type {
   EmployerApplicationSummary,
   EmployerDashboard,
+  EmployerJobDetail,
+  EmployerJobForm,
   EmployerJobSummary,
+  EmployerJobStatus,
 } from '@shared/platform-contracts';
 
 /**
@@ -38,6 +41,26 @@ export const employerDashboardService = {
 
   async fetchEmployerApplications(): Promise<EmployerApplicationSummary[]> {
     const response = await apiClient.get<EmployerApplicationSummary[]>('/employer/applications');
+    return response.data;
+  },
+
+  async fetchEmployerJob(jobId: string): Promise<EmployerJobDetail> {
+    const response = await apiClient.get<EmployerJobDetail>(`/employer/jobs/${jobId}`);
+    return response.data;
+  },
+
+  async createEmployerJob(payload: EmployerJobForm): Promise<EmployerJobDetail> {
+    const response = await apiClient.post<EmployerJobDetail>('/employer/jobs', payload);
+    return response.data;
+  },
+
+  async updateEmployerJob(jobId: string, payload: EmployerJobForm): Promise<EmployerJobDetail> {
+    const response = await apiClient.put<EmployerJobDetail>(`/employer/jobs/${jobId}`, payload);
+    return response.data;
+  },
+
+  async updateEmployerJobStatus(jobId: string, status: EmployerJobStatus): Promise<{ success: boolean; jobId: string; status: EmployerJobStatus }> {
+    const response = await apiClient.patch<{ success: boolean; jobId: string; status: EmployerJobStatus }>(`/employer/jobs/${jobId}/status`, { status });
     return response.data;
   },
 

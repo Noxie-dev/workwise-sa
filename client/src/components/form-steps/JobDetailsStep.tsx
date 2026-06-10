@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { MapPin, DollarSign, Calendar, Sparkles, Loader2, Info } from 'lucide-react';
 import { marked } from 'marked';

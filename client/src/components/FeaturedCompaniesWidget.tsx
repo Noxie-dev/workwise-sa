@@ -19,6 +19,8 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 
+const DEFAULT_COMPANY_LOGO = '/images/workwise-logo-full.svg';
+
 interface FeaturedCompany {
   id: number;
   name: string;
@@ -38,7 +40,7 @@ const featuredCompanies: FeaturedCompany[] = [
   {
     id: 1,
     name: 'Shoprite Holdings',
-    logo: 'https://via.placeholder.com/150',
+    logo: DEFAULT_COMPANY_LOGO,
     industry: 'Retail',
     rating: 4.1,
     growthRate: 12,
@@ -52,7 +54,7 @@ const featuredCompanies: FeaturedCompany[] = [
   {
     id: 2,
     name: 'ADT Security',
-    logo: 'https://via.placeholder.com/150',
+    logo: DEFAULT_COMPANY_LOGO,
     industry: 'Security',
     rating: 3.7,
     growthRate: 14,
@@ -66,7 +68,7 @@ const featuredCompanies: FeaturedCompany[] = [
   {
     id: 3,
     name: 'Pick n Pay',
-    logo: 'https://via.placeholder.com/150',
+    logo: DEFAULT_COMPANY_LOGO,
     industry: 'Retail',
     rating: 4.2,
     growthRate: 8,
@@ -209,7 +211,7 @@ const FeaturedCompaniesWidget: React.FC = () => {
         <CardContent>
           <div className="text-center space-y-4">
             <Avatar className="w-16 h-16 mx-auto border-4 border-white shadow-lg">
-              <AvatarImage src="https://via.placeholder.com/150" alt="GrowSA" />
+              <AvatarImage src={DEFAULT_COMPANY_LOGO} alt="Clicks Group" />
               <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold text-xl">
                 G
               </AvatarFallback>

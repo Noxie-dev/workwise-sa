@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';

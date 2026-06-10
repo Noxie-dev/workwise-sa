@@ -32,6 +32,7 @@ const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const JobDetails = lazy(() => import("@/pages/JobDetails"));
 const HomeSimple = lazy(() => import("@/pages/HomeSimple"));
 const FAQWheelPage = lazy(() => import("@/pages/FAQWheelPage"));
+const Billing = lazy(() => import("@/pages/Billing"));
 
 // Companies and Blog pages
 const Companies = lazy(() => import("@/pages/Companies"));
@@ -47,7 +48,6 @@ const CVBuilderHelp = lazy(() => import("@/pages/resources/CVBuilderHelp"));
 // Employer pages
 const PostJob = lazy(() => import("@/pages/employers/PostJob"));
 const EmployerDashboard = lazy(() => import("@/pages/employers/EmployerDashboard"));
-const BrowseCandidates = lazy(() => import("@/pages/employers/BrowseCandidates"));
 const Solutions = lazy(() => import("@/pages/employers/Solutions"));
 const Pricing = lazy(() => import("@/pages/employers/Pricing"));
 const SuccessStories = lazy(() => import("@/pages/employers/SuccessStories"));
@@ -97,7 +97,7 @@ function Router() {
             {/* Employer pages */}
             <Route path="/employers/dashboard" component={EmployerDashboard} />
             <Route path="/employers/post-job" component={PostJob} />
-            <Route path="/employers/browse-candidates" component={BrowseCandidates} />
+            <Route path="/employers/jobs/:id/edit" component={PostJob} />
             <Route path="/employers/solutions" component={Solutions} />
             <Route path="/employers/pricing" component={Pricing} />
             <Route path="/employers/success-stories" component={SuccessStories} />
@@ -113,6 +113,7 @@ function Router() {
 
             <Route path="/wise-up" component={WiseUpPage} />
             <Route path="/cv-builder" component={CVBuilder} />
+            <Route path="/billing" component={Billing} />
             <Route path="/login" component={Login} />
             <Route path="/register" component={Register} />
             <Route path="/profile" component={UserProfile} />

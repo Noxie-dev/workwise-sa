@@ -26,6 +26,7 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { TooltipHelper } from '@/components/ui/tooltip-helper';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import {
   AlertCircle,
   HelpCircle,
@@ -137,7 +138,9 @@ export default function CVBuilder() {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('English');
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [isGeneratingJobDescription, setIsGeneratingJobDescription] = useState(false);
+  const [isGeneratingAiCv, setIsGeneratingAiCv] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
+  const { data: entitlements, refetch: refetchEntitlements } = useEntitlements();
 
   // Available languages for the CV
   const availableLanguages = [
@@ -498,6 +501,66 @@ export default function CVBuilder() {
       });
     } finally {
       setIsTranslating(false);
+    }
+  };
+
+  const generateAiCvFromProfile = async () => {
+    if (!entitlements?.canGenerateCv) {
+      toast({
+        title: 'AI CV limit reached',
+        description: 'Upgrade to WorkWise Plus for unlimited AI CV generation.',
+        variant: 'destructive',
+      });
+      window.location.href = '/billing';
+      return;
+    }
+
+    setIsGeneratingAiCv(true);
+
+    try {
+      const response = await apiRequest(
+        'POST',
+        '/api/cv/ai/generate',
+        {
+          language: selectedLanguage,
+          idempotencyKey: `cv-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        }
+      );
+      const payload = await response.json();
+      const content = payload.document?.content;
+
+      if (!content) {
+        throw new Error('AI response did not include CV content');
+      }
+
+      form.reset({
+        ...defaultValues,
+        ...content,
+        personalInfo: {
+          ...defaultValues.personalInfo,
+          ...content.personalInfo,
+        },
+        experience: content.experience?.length ? content.experience : defaultValues.experience,
+        education: content.education?.length ? content.education : defaultValues.education,
+        skills: content.skills?.length ? content.skills : defaultValues.skills,
+        languages: content.languages?.length ? content.languages : defaultValues.languages,
+        references: content.references?.length ? content.references : defaultValues.references,
+      });
+      setActiveSection('personalInfo');
+      await refetchEntitlements();
+      toast({
+        title: 'AI CV ready',
+        description: 'Your profile has been converted into editable CV content.',
+      });
+    } catch (error) {
+      console.error('Error generating AI CV:', error);
+      toast({
+        title: 'AI CV generation failed',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingAiCv(false);
     }
   };
 
@@ -1416,7 +1479,21 @@ export default function CVBuilder() {
                       <Sparkles className="text-blue-500 h-5 w-5 mr-2" />
                       <h3 className="font-medium">AI-Powered CV Builder</h3>
                     </div>
+                    <div className="mb-3 rounded-md border border-blue-100 bg-blue-50 p-3 text-xs text-blue-900">
+                      AI CVs left: {entitlements?.hasUnlimitedAiCv ? 'Unlimited' : entitlements?.remainingFreeCvGenerations ?? 0}
+                    </div>
                     <nav className="space-y-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full justify-start border-blue-300 text-blue-700 hover:bg-blue-50"
+                        onClick={generateAiCvFromProfile}
+                        disabled={isGeneratingAiCv}
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        {isGeneratingAiCv ? 'Generating...' : 'Generate from Profile'}
+                      </Button>
+                      <Separator className="my-2" />
                       <Button
                         type="button"
                         variant={activeSection === 'personalInfo' ? 'default' : 'ghost'}

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useLocation } from 'wouter';

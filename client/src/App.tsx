@@ -43,7 +43,6 @@ const CVBuilderHelp = lazy(() => import("@/pages/resources/CVBuilderHelp"));
 
 // Lazy load employer pages
 const PostJob = lazy(() => import("@/pages/employers/PostJob"));
-const BrowseCandidates = lazy(() => import("@/pages/employers/BrowseCandidates"));
 const Solutions = lazy(() => import("@/pages/employers/Solutions"));
 const Pricing = lazy(() => import("@/pages/employers/Pricing"));
 const SuccessStories = lazy(() => import("@/pages/employers/SuccessStories"));
@@ -94,7 +93,7 @@ function Router() {
           <Route path="/employers/pricing" component={Pricing} />
           <Route path="/employers/success-stories" component={SuccessStories} />
           <Route path="/employers/post-job" component={PostJob} />
-          <Route path="/employers/browse-candidates" component={BrowseCandidates} />
+          <Route path="/employers/jobs/:id/edit" component={PostJob} />
           <Route path="/employers/dashboard" component={EmployerDashboard} />
 
           {/* Authentication pages */}

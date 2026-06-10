@@ -1,4 +1,4 @@
-import React, { useState, useRef, lazy, Suspense } from 'react';
+import React, { useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import CustomHelmet from '@/components/CustomHelmet';
 import { Button } from '@/components/ui/button';
@@ -12,9 +12,6 @@ import { Loader2 } from 'lucide-react';
 // Lazy load services for code splitting
 const loadCVService = () => import('@/services/cvService');
 const loadVertexService = () => import('@/services/vertexService');
-
-// Lazy load payment modal
-const PaymentModal = lazy(() => import('@/components/PaymentModal'));
 
 type FormData = {
   personalInfo: {
@@ -80,7 +77,6 @@ const CVTemplates: React.FC = () => {
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [generatedCVUrl, setGeneratedCVUrl] = useState<string | null>(null);
   const [isGeneratingCV, setIsGeneratingCV] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,11 +143,6 @@ const CVTemplates: React.FC = () => {
   };
 
   const handleGenerateCV = async (data: FormData) => {
-    setShowPaymentModal(true);
-  };
-
-  const handlePaymentSuccess = async () => {
-    const data = watch();
     setIsGeneratingCV(true);
     try {
       // Dynamically load and use CV service
@@ -160,7 +151,7 @@ const CVTemplates: React.FC = () => {
       // Generate the CV with form data and processed image
       const cvData = await generateCV({
         ...data,
-        profileImage: processedImage || profileImage,
+        profileImage: processedImage ?? profileImage ?? undefined,
       });
       
       setGeneratedCVUrl(cvData.downloadUrl);
@@ -177,7 +168,6 @@ const CVTemplates: React.FC = () => {
       console.error("CV generation error:", error);
     } finally {
       setIsGeneratingCV(false);
-      setShowPaymentModal(false);
     }
   };
 
@@ -819,18 +809,6 @@ const CVTemplates: React.FC = () => {
             </div>
           )}
 
-          {/* Payment Modal */}
-          {showPaymentModal && (
-            <Suspense fallback={<div>Loading payment...</div>}>
-              <PaymentModal 
-                amount={30}
-                currency="ZAR"
-                onClose={() => setShowPaymentModal(false)}
-                onSuccess={handlePaymentSuccess}
-                productName="Professional CV Template"
-              />
-            </Suspense>
-          )}
         </div>
       </main>
     </>

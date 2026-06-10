@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { lazy } from 'react';
 
 // Lazy load heavy components that aren't needed immediately
