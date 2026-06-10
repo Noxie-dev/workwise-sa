@@ -1,6 +1,6 @@
 // server/utils/enhanced-logger.ts
 import winston from 'winston';
-import { Request } from 'express';
+import { Request, Response, NextFunction } from 'express';
 
 // Define log levels
 const levels = {
@@ -45,7 +45,7 @@ const fileFormat = winston.format.combine(
 );
 
 // Define transports
-const transports = [
+const transports: winston.transport[] = [
   // Console transport
   new winston.transports.Console({
     format: consoleFormat,
@@ -96,7 +96,7 @@ export const extractRequestInfo = (req: Request) => {
 };
 
 // HTTP request logger middleware
-export const httpLogger = (req: Request, res: Response, next: Function) => {
+export const httpLogger = (req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   
   res.on('finish', () => {

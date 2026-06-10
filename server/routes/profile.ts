@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { storage } from '../storage';
 import { validate } from '../middleware/validation';
-import { authenticate } from '../middleware/auth';
 import { Errors } from '../middleware/errorHandler';
 
 const router = Router();

@@ -8,8 +8,11 @@ import dashboardRoutes from "./routes/dashboard";
 import employerRoutes from "./routes/employer";
 import adminAnalyticsRoutes from "./routes/adminAnalytics";
 import jobApplicationRoutes from "./routes/jobApplications";
+import jobFavoritesRoutes from "./routes/jobFavorites";
 import monetizationRoutes from "./routes/monetization";
 import notificationChannelRoutes from "./routes/notificationChannels";
+import billingRoutes from "./routes/billing";
+import entitlementRoutes from "./routes/entitlements";
 import { registerCvApiRoutes } from "./routes/cvApi";
 import { registerPublicApiRoutes } from "./routes/publicApi";
 
@@ -25,6 +28,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register monetization scaffolding routes
   app.use('/api/monetization', monetizationRoutes);
+  app.use('/api/entitlements', entitlementRoutes);
+  app.use('/api/billing', billingRoutes);
 
   // Register dashboard and employer/admin analytics routes
   app.use('/api/dashboard', dashboardRoutes);
@@ -39,6 +44,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register job application routes
   app.use('/api/job-applications', jobApplicationRoutes);
+  app.use('/api/jobs', jobFavoritesRoutes);
 
   // Register scraping orchestration routes
   app.use('/api/scraping', scrapingRoutes);

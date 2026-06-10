@@ -4,7 +4,7 @@ import cors from 'cors';
 import { registerRoutes } from '../routes';
 import v1Router from '../routes/v1';
 import { errorHandler, notFoundHandler, requestIdMiddleware } from '../middleware/errorHandler';
-import { setupSwagger } from '../../src/api/swagger';
+import { setupSwagger } from '../utils/swagger';
 import { WiseUpService } from '../wiseup';
 import { storage } from '../storage';
 import { initializeDatabase } from '../db';
@@ -12,6 +12,7 @@ import { logger } from '../utils/logger';
 import { secretManager } from '../services/secretManager';
 import { cacheService } from '../services/cacheService';
 import { authMonitoringService } from '../services/authMonitoringService';
+import { initializeFirebaseServices } from '../firebase';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -36,6 +37,7 @@ async function preloadSecrets() {
 async function startServer() {
   await preloadSecrets();
   await initializeDatabase();
+  await initializeFirebaseServices();
 
   // Initialize enhanced services
   await cacheService.initialize();

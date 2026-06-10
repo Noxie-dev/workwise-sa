@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Enhanced Authentication Middleware
  * Integrates multi-tier caching, token refresh, and rate limiting

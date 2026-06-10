@@ -4,6 +4,7 @@ import {
   companies, type Company, type InsertCompany,
   jobs, type Job, type InsertJob,
   jobIngestRecords, type JobIngestRecord, type InsertJobIngestRecord,
+  userFavoriteJobs, type UserFavoriteJob,
   files, type File, type InsertFile,
   jobApplications, type JobApplication, type InsertJobApplication,
   userInteractions, type UserInteraction, type InsertUserInteraction,
@@ -11,7 +12,7 @@ import {
   type JobWithCompany
 } from "@shared/schema";
 import { db, getSqliteConnection, isSqliteDatabase } from "./db";
-import { eq, like, or, desc, and, count } from "drizzle-orm";
+import { eq, like, or, desc, and, count, inArray, asc } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -51,6 +52,16 @@ export interface IStorage {
   getJobIngestRecordBySource(sourceSite: string, externalId: string): Promise<JobIngestRecord | undefined>;
   getJobIngestRecordByFingerprint(fingerprint: string): Promise<JobIngestRecord | undefined>;
   createJobIngestRecord(record: InsertJobIngestRecord): Promise<JobIngestRecord>;
+  getUserFavoriteJobs(userId: number, options: {
+    page: number;
+    limit: number;
+    sortBy: string;
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ jobs: JobWithCompany[]; total: number }>;
+  isJobFavorited(userId: number, jobId: number): Promise<boolean>;
+  addJobToFavorites(userId: number, jobId: number): Promise<UserFavoriteJob>;
+  removeJobFromFavorites(userId: number, jobId: number): Promise<boolean>;
+  getUserFavoriteJobsCount(userId: number): Promise<number>;
 
   // Files methods
   getFile(id: number): Promise<File | undefined>;
@@ -98,7 +109,39 @@ export interface IStorage {
 }
 
 import { ApiError, Errors, ErrorType } from './middleware/errorHandler';
-export class DatabaseStorage implements IStorage {
+
+function asRecord(value: unknown): Record<string, any> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, any> : {};
+}
+
+function profileSection(value: unknown, fallback: Record<string, any>) {
+  return {
+    ...fallback,
+    ...asRecord(value),
+  };
+}
+
+function mergeProfileSection(current: unknown, updates: unknown) {
+  return {
+    ...asRecord(current),
+    ...asRecord(updates),
+  };
+}
+
+function extractSkillArray(skills: unknown): string[] {
+  if (Array.isArray(skills)) {
+    return skills.filter((skill): skill is string => typeof skill === 'string' && skill.trim().length > 0);
+  }
+
+  const skillsRecord = asRecord(skills);
+  if (Array.isArray(skillsRecord.skills)) {
+    return skillsRecord.skills.filter((skill: unknown): skill is string => typeof skill === 'string' && skill.trim().length > 0);
+  }
+
+  return [];
+}
+
+export class DatabaseStorage {
   // User methods
   async getUser(id: number): Promise<User | undefined> {
     try {
@@ -150,7 +193,7 @@ export class DatabaseStorage implements IStorage {
       return user;
     } catch (error: any) {
       if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === '23505') { // SQLite and PostgreSQL unique violation
-        throw Errors.conflict(`User with username '${insertUser.username}' already exists.`, error);
+        throw Errors.conflict(`User with username '${insertUser.username}' already exists.`);
       }
       throw Errors.database(`Failed to create user: ${error.message}`, error);
     }
@@ -165,7 +208,7 @@ export class DatabaseStorage implements IStorage {
       return updatedUser;
     } catch (error: any) {
       if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === '23505') {
-        throw Errors.conflict(`User with username '${updates.username}' already exists.`, error);
+        throw Errors.conflict(`User with username '${updates.username}' already exists.`);
       }
       throw Errors.database(`Failed to update user: ${error.message}`, error);
     }
@@ -213,7 +256,7 @@ export class DatabaseStorage implements IStorage {
       return category;
     } catch (error: any) {
       if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === '23505') {
-        throw Errors.conflict(`Category with slug '${insertCategory.slug}' already exists.`, error);
+        throw Errors.conflict(`Category with slug '${insertCategory.slug}' already exists.`);
       }
       throw Errors.database(`Failed to create category: ${error.message}`, error);
     }
@@ -252,7 +295,7 @@ export class DatabaseStorage implements IStorage {
       return company;
     } catch (error: any) {
       if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === '23505') {
-        throw Errors.conflict(`Company with slug '${insertCompany.slug}' already exists.`, error);
+        throw Errors.conflict(`Company with slug '${insertCompany.slug}' already exists.`);
       }
       throw Errors.database(`Failed to create company: ${error.message}`, error);
     }
@@ -514,6 +557,141 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getUserFavoriteJobs(
+    userId: number,
+    options: {
+      page: number;
+      limit: number;
+      sortBy: string;
+      sortOrder: 'asc' | 'desc';
+    }
+  ): Promise<{ jobs: JobWithCompany[]; total: number }> {
+    try {
+      const { page, limit, sortBy, sortOrder } = options;
+      const favoriteRows = await db
+        .select()
+        .from(userFavoriteJobs)
+        .where(eq(userFavoriteJobs.userId, userId))
+        .orderBy(sortOrder === 'asc' ? asc(userFavoriteJobs.createdAt) : desc(userFavoriteJobs.createdAt));
+
+      if (favoriteRows.length === 0) {
+        return { jobs: [], total: 0 };
+      }
+
+      const jobIds = favoriteRows.map((row) => row.jobId);
+      const favoriteJobs = await db.query.jobs.findMany({
+        with: { company: true },
+        where: inArray(jobs.id, jobIds),
+      });
+
+      const favoriteCreatedAtByJobId = new Map(
+        favoriteRows.map((row) => [row.jobId, row.createdAt ? new Date(row.createdAt).getTime() : 0]),
+      );
+
+      const sortedJobs = [...(favoriteJobs as JobWithCompany[])].sort((left, right) => {
+        if (sortBy === 'jobTitle') {
+          return sortOrder === 'asc'
+            ? left.title.localeCompare(right.title)
+            : right.title.localeCompare(left.title);
+        }
+
+        if (sortBy === 'company') {
+          return sortOrder === 'asc'
+            ? left.company.name.localeCompare(right.company.name)
+            : right.company.name.localeCompare(left.company.name);
+        }
+
+        if (sortBy === 'salary') {
+          const leftSalary = left.salary ?? '';
+          const rightSalary = right.salary ?? '';
+          return sortOrder === 'asc'
+            ? leftSalary.localeCompare(rightSalary)
+            : rightSalary.localeCompare(leftSalary);
+        }
+
+        const leftCreatedAt = Number(favoriteCreatedAtByJobId.get(left.id) ?? 0);
+        const rightCreatedAt = Number(favoriteCreatedAtByJobId.get(right.id) ?? 0);
+        return sortOrder === 'asc' ? leftCreatedAt - rightCreatedAt : rightCreatedAt - leftCreatedAt;
+      });
+
+      const offset = (page - 1) * limit;
+      return {
+        jobs: sortedJobs.slice(offset, offset + limit),
+        total: sortedJobs.length,
+      };
+    } catch (error: any) {
+      throw Errors.database(`Failed to get user favorite jobs: ${error.message}`, error);
+    }
+  }
+
+  async isJobFavorited(userId: number, jobId: number): Promise<boolean> {
+    try {
+      const [favorite] = await db
+        .select()
+        .from(userFavoriteJobs)
+        .where(and(eq(userFavoriteJobs.userId, userId), eq(userFavoriteJobs.jobId, jobId)));
+      return Boolean(favorite);
+    } catch (error: any) {
+      throw Errors.database(`Failed to check favorite job state: ${error.message}`, error);
+    }
+  }
+
+  async addJobToFavorites(userId: number, jobId: number): Promise<UserFavoriteJob> {
+    try {
+      const [favorite] = await db
+        .insert(userFavoriteJobs)
+        .values({
+          userId,
+          jobId,
+          createdAt: new Date(),
+        })
+        .returning();
+      return favorite;
+    } catch (error: any) {
+      if (error.code === 'SQLITE_CONSTRAINT_PRIMARYKEY' || error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === '23505') {
+        const [favorite] = await db
+          .select()
+          .from(userFavoriteJobs)
+          .where(and(eq(userFavoriteJobs.userId, userId), eq(userFavoriteJobs.jobId, jobId)));
+        if (favorite) {
+          return favorite;
+        }
+      }
+      throw Errors.database(`Failed to add job to favorites: ${error.message}`, error);
+    }
+  }
+
+  async removeJobFromFavorites(userId: number, jobId: number): Promise<boolean> {
+    try {
+      if (isSqliteDatabase()) {
+        const sqlite = getSqliteConnection();
+        const result = sqlite
+          .prepare(`DELETE FROM user_favorite_jobs WHERE user_id = ? AND job_id = ?`)
+          .run(userId, jobId);
+        return result.changes > 0;
+      }
+
+      const result = await db
+        .delete(userFavoriteJobs)
+        .where(and(eq(userFavoriteJobs.userId, userId), eq(userFavoriteJobs.jobId, jobId)));
+      return result.count > 0;
+    } catch (error: any) {
+      throw Errors.database(`Failed to remove job from favorites: ${error.message}`, error);
+    }
+  }
+
+  async getUserFavoriteJobsCount(userId: number): Promise<number> {
+    try {
+      const [result] = await db
+        .select({ count: count() })
+        .from(userFavoriteJobs)
+        .where(eq(userFavoriteJobs.userId, userId));
+      return Number(result?.count ?? 0);
+    } catch (error: any) {
+      throw Errors.database(`Failed to count favorite jobs: ${error.message}`, error);
+    }
+  }
+
   // File methods
   async getFile(id: number): Promise<File | undefined> {
     try {
@@ -621,9 +799,8 @@ export class DatabaseStorage implements IStorage {
       const total = totalResult.count;
 
       // Get applications with sorting
-      const orderByClause = sortOrder === 'desc' 
-        ? desc(jobApplications[sortBy as keyof typeof jobApplications]) 
-        : jobApplications[sortBy as keyof typeof jobApplications];
+      const sortColumn = (jobApplications as Record<string, any>)[sortBy] ?? jobApplications.appliedAt;
+      const orderByClause = sortOrder === 'desc' ? desc(sortColumn) : sortColumn;
 
       const applications = await db.select()
         .from(jobApplications)
@@ -664,9 +841,8 @@ export class DatabaseStorage implements IStorage {
       const total = totalResult.count;
 
       // Get applications with sorting
-      const orderByClause = sortOrder === 'desc' 
-        ? desc(jobApplications[sortBy as keyof typeof jobApplications]) 
-        : jobApplications[sortBy as keyof typeof jobApplications];
+      const sortColumn = (jobApplications as Record<string, any>)[sortBy] ?? jobApplications.appliedAt;
+      const orderByClause = sortOrder === 'desc' ? desc(sortColumn) : sortColumn;
 
       const applications = await db.select()
         .from(jobApplications)
@@ -739,41 +915,62 @@ export class DatabaseStorage implements IStorage {
       const professionalImage = userFiles.find(f => f.fileType === 'professional_image');
       const cvFile = userFiles.find(f => f.fileType === 'cv');
 
-      // Mock profile data structure - in real implementation, this would come from a profiles table
+      const education = profileSection(user.education, {
+        highestEducation: "",
+        schoolName: "",
+        yearCompleted: "",
+        achievements: "",
+        additionalCourses: "",
+      });
+      const experience = profileSection(user.experience, {
+        hasExperience: false,
+        currentlyEmployed: false,
+        jobTitle: "",
+        employer: "",
+        startDate: "",
+        endDate: "",
+        jobDescription: "",
+        previousExperience: "",
+        volunteerWork: "",
+        references: "",
+      });
+      const skills = profileSection(user.skills, {
+        skills: extractSkillArray(user.skills),
+        customSkills: "",
+        languages: ["English"],
+        hasDriversLicense: false,
+        hasTransport: false,
+        cvUpload: cvFile?.fileUrl,
+      });
+      const preferences = profileSection(user.preferences, {
+        jobTypes: [],
+        locations: [],
+        minSalary: 0,
+        willingToRelocate: user.willingToRelocate || false,
+      });
+
       return {
+        userId: user.id,
+        firebaseUid: user.firebaseUid,
+        email: user.email,
         personal: {
-          fullName: user.username, // Using username as placeholder
-          phoneNumber: user.email, // Using email as placeholder
-          location: "Not specified",
-          bio: "Professional seeking opportunities",
+          fullName: user.name || user.username,
+          phoneNumber: user.phoneNumber || "",
+          location: user.location || "",
+          bio: user.bio || "",
           profilePicture: profileImage?.fileUrl,
           professionalImage: professionalImage?.fileUrl,
         },
-        education: {
-          highestEducation: "Not specified",
-          schoolName: "Not specified",
-        },
-        experience: {
-          hasExperience: false,
-          jobTitle: "Not specified",
-          employer: "Not specified",
-        },
+        education,
+        experience,
         skills: {
-          skills: [],
-          languages: ["English"],
-          hasDriversLicense: false,
-          hasTransport: false,
-          cvUpload: cvFile?.fileUrl,
+          ...skills,
+          cvUpload: skills.cvUpload || cvFile?.fileUrl,
         },
-        preferences: {
-          jobTypes: [],
-          locations: [],
-          minSalary: 0,
-          willingToRelocate: false,
-        },
+        preferences,
         // Additional profile metadata
         memberSince: user.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
-        engagementScore: 25,
+        engagementScore: user.engagementScore || 0,
         applications: {
           current: 0,
           total: 0,
@@ -798,37 +995,38 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserProfile(userId: number, profileData: any): Promise<any> {
     try {
-      // In a real implementation, this would update a profiles table
-      // For now, we'll just return the updated data
       const currentProfile = await this.getUserProfile(userId);
-      
-      const updatedProfile = {
-        ...currentProfile,
-        ...profileData,
-        personal: {
-          ...currentProfile.personal,
-          ...profileData.personal,
-        },
-        education: {
-          ...currentProfile.education,
-          ...profileData.education,
-        },
-        experience: {
-          ...currentProfile.experience,
-          ...profileData.experience,
-        },
-        skills: {
-          ...currentProfile.skills,
-          ...profileData.skills,
-        },
-        preferences: {
-          ...currentProfile.preferences,
-          ...profileData.preferences,
-        },
-      };
+      if (!currentProfile) {
+        throw Errors.notFound('User not found');
+      }
 
-      return updatedProfile;
+      const personal = mergeProfileSection(currentProfile.personal, profileData.personal);
+      const education = mergeProfileSection(currentProfile.education, profileData.education);
+      const experience = mergeProfileSection(currentProfile.experience, profileData.experience);
+      const skills = mergeProfileSection(currentProfile.skills, profileData.skills);
+      const preferences = mergeProfileSection(currentProfile.preferences, profileData.preferences);
+
+      const updatedUser = await this.updateUser(userId, {
+        name: personal.fullName || currentProfile.personal.fullName,
+        phoneNumber: personal.phoneNumber || null,
+        location: personal.location || null,
+        bio: personal.bio || null,
+        education,
+        experience,
+        skills,
+        preferences,
+        willingToRelocate: Boolean(preferences.willingToRelocate),
+      } as Partial<InsertUser>);
+
+      if (!updatedUser) {
+        throw Errors.notFound('User not found');
+      }
+
+      return await this.getUserProfile(userId);
     } catch (error: any) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
       throw Errors.database(`Failed to update user profile: ${error.message}`, error);
     }
   }

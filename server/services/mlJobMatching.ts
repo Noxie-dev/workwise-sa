@@ -72,6 +72,18 @@ export class MLJobMatchingService {
     this.initializeSkillsEmbeddings();
   }
 
+  private extractUserSkills(skills: unknown): string[] {
+    if (Array.isArray(skills)) {
+      return skills.filter((skill): skill is string => typeof skill === 'string' && skill.trim().length > 0);
+    }
+
+    if (skills && typeof skills === 'object' && Array.isArray((skills as any).skills)) {
+      return (skills as any).skills.filter((skill: unknown): skill is string => typeof skill === 'string' && skill.trim().length > 0);
+    }
+
+    return [];
+  }
+
   /**
    * Initialize skills embeddings (simplified approach)
    * In a real implementation, you would use pre-trained embeddings
@@ -150,7 +162,7 @@ export class MLJobMatchingService {
         .where(eq(userInteractions.userId, userId));
 
       // Extract skills from user profile
-      const userSkills = (user.skills as string[]) || [];
+      const userSkills = this.extractUserSkills(user.skills);
       const skillsVector = this.skillsToVector(userSkills);
 
       // Calculate experience level (0-1 scale)
@@ -540,7 +552,7 @@ export class MLJobMatchingService {
       const jobIds = [...new Set(recommendedJobIds
         .filter(interaction => interaction.jobId)
         .map(interaction => interaction.jobId!)
-      )];
+      )] as number[];
 
       // Generate match results for these jobs
       const userVector = await this.generateUserVector(userId);

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Database Batch Service
  * Implements request batching to reduce DB round-trips

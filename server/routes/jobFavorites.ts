@@ -2,8 +2,9 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { storage } from '../storage';
 import { validate } from '../middleware/validation';
-import { authenticate } from '../middleware/auth';
+import { verifyFirebaseToken } from '../middleware/auth';
 import { Errors } from '../middleware/errorHandler';
+import { resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
 
 const router = Router();
 
@@ -27,12 +28,16 @@ const getFavoritesSchema = z.object({
 
 // Get user's favorite jobs
 router.get('/favorites',
-  authenticate,
+  verifyFirebaseToken,
   validate(getFavoritesSchema),
   async (req, res, next) => {
     try {
-      const userId = req.user.id;
-      const { page, limit, sortBy, sortOrder } = req.query;
+      const dbUser = await resolveAuthenticatedDatabaseUser((req as any).user);
+      const userId = dbUser.id;
+      const page = Number(req.query.page ?? 1);
+      const limit = Number(req.query.limit ?? 20);
+      const sortBy = typeof req.query.sortBy === 'string' ? req.query.sortBy : 'createdAt';
+      const sortOrder = req.query.sortOrder === 'asc' ? 'asc' : 'desc';
 
       const favorites = await storage.getUserFavoriteJobs(userId, {
         page,
@@ -58,24 +63,25 @@ router.get('/favorites',
 
 // Check if job is favorited by user
 router.get('/:jobId/favorite',
-  authenticate,
+  verifyFirebaseToken,
   validate(toggleFavoriteSchema),
   async (req, res, next) => {
     try {
-      const userId = req.user.id;
-      const { jobId } = req.params;
+      const dbUser = await resolveAuthenticatedDatabaseUser((req as any).user);
+      const userId = dbUser.id;
+      const jobId = Number((req.params as { jobId: string }).jobId);
 
       // Verify job exists
-      const job = await storage.getJob(parseInt(jobId));
+      const job = await storage.getJob(jobId);
       if (!job) {
         throw Errors.notFound('Job not found');
       }
 
-      const isFavorited = await storage.isJobFavorited(userId, parseInt(jobId));
+      const isFavorited = await storage.isJobFavorited(userId, jobId);
 
       res.json({
         isFavorited,
-        jobId: parseInt(jobId),
+        jobId,
       });
     } catch (error) {
       next(error);
@@ -85,21 +91,22 @@ router.get('/:jobId/favorite',
 
 // Add job to favorites
 router.post('/:jobId/favorite',
-  authenticate,
+  verifyFirebaseToken,
   validate(toggleFavoriteSchema),
   async (req, res, next) => {
     try {
-      const userId = req.user.id;
-      const { jobId } = req.params;
+      const dbUser = await resolveAuthenticatedDatabaseUser((req as any).user);
+      const userId = dbUser.id;
+      const jobId = Number((req.params as { jobId: string }).jobId);
 
       // Verify job exists
-      const job = await storage.getJob(parseInt(jobId));
+      const job = await storage.getJob(jobId);
       if (!job) {
         throw Errors.notFound('Job not found');
       }
 
       // Check if already favorited
-      const isAlreadyFavorited = await storage.isJobFavorited(userId, parseInt(jobId));
+      const isAlreadyFavorited = await storage.isJobFavorited(userId, jobId);
       if (isAlreadyFavorited) {
         return res.json({
           success: true,
@@ -109,13 +116,13 @@ router.post('/:jobId/favorite',
       }
 
       // Add to favorites
-      await storage.addJobToFavorites(userId, parseInt(jobId));
+      await storage.addJobToFavorites(userId, jobId);
 
       // Log activity
       await storage.createUserInteraction({
         userId,
         interactionType: 'favorite',
-        jobId: parseInt(jobId),
+        jobId,
         interactionTime: new Date(),
         metadata: { action: 'add' },
       });
@@ -133,15 +140,16 @@ router.post('/:jobId/favorite',
 
 // Remove job from favorites
 router.delete('/:jobId/favorite',
-  authenticate,
+  verifyFirebaseToken,
   validate(toggleFavoriteSchema),
   async (req, res, next) => {
     try {
-      const userId = req.user.id;
-      const { jobId } = req.params;
+      const dbUser = await resolveAuthenticatedDatabaseUser((req as any).user);
+      const userId = dbUser.id;
+      const jobId = Number((req.params as { jobId: string }).jobId);
 
       // Check if favorited
-      const isFavorited = await storage.isJobFavorited(userId, parseInt(jobId));
+      const isFavorited = await storage.isJobFavorited(userId, jobId);
       if (!isFavorited) {
         return res.json({
           success: true,
@@ -151,13 +159,13 @@ router.delete('/:jobId/favorite',
       }
 
       // Remove from favorites
-      await storage.removeJobFromFavorites(userId, parseInt(jobId));
+      await storage.removeJobFromFavorites(userId, jobId);
 
       // Log activity
       await storage.createUserInteraction({
         userId,
         interactionType: 'unfavorite',
-        jobId: parseInt(jobId),
+        jobId,
         interactionTime: new Date(),
         metadata: { action: 'remove' },
       });
@@ -175,10 +183,11 @@ router.delete('/:jobId/favorite',
 
 // Get favorite jobs count
 router.get('/favorites/count',
-  authenticate,
+  verifyFirebaseToken,
   async (req, res, next) => {
     try {
-      const userId = req.user.id;
+      const dbUser = await resolveAuthenticatedDatabaseUser((req as any).user);
+      const userId = dbUser.id;
       const count = await storage.getUserFavoriteJobsCount(userId);
 
       res.json({

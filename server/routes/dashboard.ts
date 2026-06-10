@@ -112,7 +112,7 @@ router.get("/job-recommendations", async (req, res, next) => {
       db.select().from(companies),
     ]);
 
-    const companyMap = new Map(companyRows.map((company) => [company.id, company]));
+    const companyMap = new Map<number, any>((companyRows as any[]).map((company) => [company.id, company]));
     const userSkills = extractUserSkills(dbUser.skills);
 
     res.json(paginatedResponseSchema(z.array(jobRecommendationSchema)).parse({

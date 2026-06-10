@@ -2,6 +2,8 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { initializeDatabase, getDB } from '../../db';
 
+const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
 // Mock the secretManager
 vi.mock('../../services/secretManager', () => ({
   secretManager: {
@@ -30,6 +32,6 @@ describe('Database Module', () => {
   });
 
   afterAll(() => {
-    // Clean up any resources if needed
+    consoleLogSpy.mockRestore();
   });
 });

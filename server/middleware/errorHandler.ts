@@ -122,13 +122,13 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   
   // Handle Zod validation errors
   if (err instanceof ZodError) {
-    const apiError = Errors.validation('Validation error', err.errors);
+    const apiError = Errors.validation('Validation error', err.issues);
     
     logger.warn('Validation error', {
       requestId,
       path: req.path,
       method: req.method,
-      errors: err.errors,
+      errors: err.issues,
     });
     
     return res.status(apiError.statusCode).json(apiError.toResponse());
