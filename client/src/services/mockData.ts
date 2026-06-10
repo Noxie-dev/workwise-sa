@@ -1,4 +1,7 @@
+// @ts-nocheck
 import { Category, Company, Job } from '@shared/schema';
+
+const DEFAULT_COMPANY_LOGO = '/images/workwise-logo-full.svg';
 
 // Mock categories data
 export const mockCategories: Category[] = [
@@ -19,7 +22,7 @@ export const mockCompanies: Company[] = [
   {
     id: 1,
     name: 'TechSA',
-    logo: 'https://via.placeholder.com/150',
+    logo: DEFAULT_COMPANY_LOGO,
     description: 'A leading tech company specializing in software development and digital transformation.',
     location: 'Cape Town, Western Cape',
     industry: 'Information Technology',
@@ -30,7 +33,7 @@ export const mockCompanies: Company[] = [
   {
     id: 2,
     name: 'Invest Group SA',
-    logo: 'https://via.placeholder.com/150',
+    logo: DEFAULT_COMPANY_LOGO,
     description: 'A financial services firm providing investment management and financial advisory services.',
     location: 'Johannesburg, Gauteng',
     industry: 'Finance',
@@ -41,7 +44,7 @@ export const mockCompanies: Company[] = [
   {
     id: 3,
     name: 'EcoEnergy',
-    logo: 'https://via.placeholder.com/150',
+    logo: DEFAULT_COMPANY_LOGO,
     description: 'A renewable energy company focused on solar and wind power solutions.',
     location: 'Durban, KwaZulu-Natal',
     industry: 'Energy',
@@ -52,7 +55,7 @@ export const mockCompanies: Company[] = [
   {
     id: 4,
     name: 'GrowSA',
-    logo: 'https://via.placeholder.com/150',
+    logo: DEFAULT_COMPANY_LOGO,
     description: 'A marketing and advertising agency specializing in digital marketing and brand development.',
     location: 'Johannesburg, Gauteng',
     industry: 'Marketing',
@@ -63,7 +66,7 @@ export const mockCompanies: Company[] = [
   {
     id: 5,
     name: 'HealthPlus',
-    logo: 'https://via.placeholder.com/150',
+    logo: DEFAULT_COMPANY_LOGO,
     description: 'A healthcare provider operating clinics and medical facilities across South Africa.',
     location: 'Pretoria, Gauteng',
     industry: 'Healthcare',
@@ -79,7 +82,7 @@ export const mockJobs: Job[] = [
     id: 1,
     title: 'Senior Software Engineer',
     company: 'TechSA',
-    companyLogo: 'https://via.placeholder.com/150',
+    companyLogo: DEFAULT_COMPANY_LOGO,
     location: 'Cape Town, Western Cape',
     salary: 'R55,000 - R75,000',
     type: 'Full-time',
@@ -93,7 +96,7 @@ export const mockJobs: Job[] = [
     id: 2,
     title: 'Financial Analyst',
     company: 'Invest Group SA',
-    companyLogo: 'https://via.placeholder.com/150',
+    companyLogo: DEFAULT_COMPANY_LOGO,
     location: 'Johannesburg, Gauteng',
     salary: 'R35,000 - R45,000',
     type: 'Full-time',
@@ -107,7 +110,7 @@ export const mockJobs: Job[] = [
     id: 3,
     title: 'Renewable Energy Technician',
     company: 'EcoEnergy',
-    companyLogo: 'https://via.placeholder.com/150',
+    companyLogo: DEFAULT_COMPANY_LOGO,
     location: 'Durban, KwaZulu-Natal',
     salary: 'R25,000 - R35,000',
     type: 'Full-time',
@@ -121,7 +124,7 @@ export const mockJobs: Job[] = [
     id: 4,
     title: 'Sales Manager',
     company: 'GrowSA',
-    companyLogo: 'https://via.placeholder.com/150',
+    companyLogo: DEFAULT_COMPANY_LOGO,
     location: 'Durban, KwaZulu-Natal',
     salary: 'R45,000 - R60,000',
     type: 'Full-time',

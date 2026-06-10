@@ -10,6 +10,8 @@ vi.mock('@/services/employerDashboardService', () => ({
   employerDashboardService: {
     fetchEmployerDashboard: vi.fn(),
     fetchEmployerJobs: vi.fn(),
+    fetchEmployerApplications: vi.fn(),
+    updateEmployerJobStatus: vi.fn(),
     exportDashboardData: vi.fn(),
   },
 }));
@@ -24,6 +26,14 @@ vi.mock('wouter', () => ({
 
 vi.mock('react-helmet-async', () => ({
   Helmet: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+vi.mock('@/components/employer/ApplicationsChart', () => ({
+  default: () => <div data-testid="applications-chart">Applications Chart</div>,
+}));
+
+vi.mock('@/components/employer/JobManagementChart', () => ({
+  default: () => <div data-testid="job-management-chart">Job Management Chart</div>,
 }));
 
 vi.mock('@/services/analyticsService', () => ({
@@ -108,6 +118,13 @@ describe('EmployerDashboard Component', () => {
         status: 'paused'
       },
     ]);
+
+    (employerDashboardService.fetchEmployerApplications as any).mockResolvedValue([]);
+    (employerDashboardService.updateEmployerJobStatus as any).mockResolvedValue({
+      success: true,
+      jobId: 'job1',
+      status: 'paused',
+    });
   });
 
   it('renders the employer dashboard title', async () => {
@@ -212,4 +229,5 @@ describe('EmployerDashboard Component', () => {
       expect(screen.getByText('Failed to load employer dashboard')).toBeInTheDocument();
     });
   });
+
 });

@@ -25,6 +25,16 @@ export interface JobSearchResponse {
   totalPages: number;
 }
 
+export interface FavoriteJobsResponse {
+  jobs: JobWithCompany[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 /**
  * Service for job-related API calls
  */
@@ -112,8 +122,13 @@ export const jobsService = {
    * Get user's favorite jobs
    */
   async getFavoriteJobs(): Promise<JobWithCompany[]> {
-    const response = await apiClient.get<JobWithCompany[]>('/jobs/favorites');
-    return response.data;
+    const response = await apiClient.get<FavoriteJobsResponse>('/jobs/favorites');
+    return response.data.jobs;
+  },
+
+  async isFavorite(jobId: number): Promise<boolean> {
+    const response = await apiClient.get<{ isFavorited: boolean }>(`/jobs/${jobId}/favorite`);
+    return response.data.isFavorited;
   },
 
   /**

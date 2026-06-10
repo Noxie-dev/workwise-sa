@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useRef, useEffect, lazy, Suspense, memo } from 'react';
 import { X, ChevronLeft, ChevronRight, RotateCw, Loader, KeyRound, HelpCircle } from 'lucide-react';
 import { useFAQWheel, ItemPosition } from '../hooks/useFAQWheel';

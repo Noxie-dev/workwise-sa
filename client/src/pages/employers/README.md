@@ -26,12 +26,12 @@ A comprehensive dashboard for employers to manage their job postings and track a
 - **Empty State**: Helpful message when no jobs are posted with quick action to post first job
 
 ### Applications Tab
-- **Coming Soon**: Application management features in development
-- Placeholder for future functionality to review and manage job applications
+- **Application Feed**: Displays submitted applications with applicant details and current status
+- Supports the current employer review surface exposed in the dashboard runtime
 
 ### Analytics Tab
-- **Coming Soon**: Advanced analytics features in development
-- Placeholder for detailed insights into job posting performance
+- **Current Reporting**: Shows the supported analytics surface for overview metrics and application activity
+- Deeper cohort and attribution reporting are not enabled in the current runtime
 
 ## Technical Features
 

@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getTopHiringCompanies, fetchTopHiringCompanies, type CompanyHiringMetrics } from '@/utils/topHiringAlgorithm';
 
+const DEFAULT_COMPANY_LOGO = '/images/workwise-logo-full.svg';
+
 // Interface for top hiring company data
 interface TopHiringCompany {
   id: number;
@@ -121,7 +123,7 @@ const generateTopHiringCompanies = (allCompanies: any[]): TopHiringCompany[] => 
     
     return {
       ...company,
-      logo: sourceCompany?.logo || 'https://via.placeholder.com/150',
+      logo: sourceCompany?.logo || DEFAULT_COMPANY_LOGO,
       description: sourceCompany?.description || 'Leading employer actively hiring.',
       location: sourceCompany?.location || 'South Africa',
       industry: sourceCompany?.industry || 'Various',
@@ -140,7 +142,7 @@ const placeholderTopCompanies: TopHiringCompany[] = [
   {
     id: 1,
     name: 'Shoprite Holdings',
-    logo: 'https://via.placeholder.com/150',
+    logo: DEFAULT_COMPANY_LOGO,
     description: 'Africa\'s largest food retailer offering entry-level opportunities in retail, warehousing, and customer service.',
     location: 'Cape Town, Western Cape',
     industry: 'Retail',
@@ -160,7 +162,7 @@ const placeholderTopCompanies: TopHiringCompany[] = [
   {
     id: 2,
     name: 'Bidvest Group',
-    logo: 'https://via.placeholder.com/150',
+    logo: DEFAULT_COMPANY_LOGO,
     description: 'Diversified services group offering entry-level opportunities in cleaning, security, catering, and general services.',
     location: 'Johannesburg, Gauteng',
     industry: 'Services',
@@ -180,7 +182,7 @@ const placeholderTopCompanies: TopHiringCompany[] = [
   {
     id: 3,
     name: 'Transnet SOC Ltd',
-    logo: 'https://via.placeholder.com/150',
+    logo: DEFAULT_COMPANY_LOGO,
     description: 'State-owned freight transport and logistics company offering general worker, security, and maintenance positions.',
     location: 'Durban, KwaZulu-Natal',
     industry: 'Transport & Logistics',

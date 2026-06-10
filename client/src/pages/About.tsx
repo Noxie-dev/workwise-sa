@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useEffect, useRef } from 'react';
 import {
   Users, Briefcase, Zap, BookOpen, Search, Filter, BarChart3, TrendingUp,

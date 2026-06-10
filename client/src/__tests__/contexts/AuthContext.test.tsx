@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthProvider, useAuth } from '../../contexts/AuthContext';
 import { User } from 'firebase/auth';
@@ -35,8 +35,19 @@ const TestComponent = () => {
 };
 
 describe('AuthContext', () => {
+  const buildMockUser = (overrides: Partial<User> = {}) =>
+    ({
+      uid: '123',
+      email: 'test@example.com',
+      displayName: 'Test User',
+      getIdToken: vi.fn().mockResolvedValue('mock-token'),
+      getIdTokenResult: vi.fn().mockResolvedValue({ claims: {} }),
+      ...overrides,
+    }) as unknown as User;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    delete (global as any).authChangeCallback;
   });
 
   it('should show loading state initially', () => {
@@ -59,14 +70,12 @@ describe('AuthContext', () => {
     );
     
     // Simulate user sign in
-    const mockUser = {
-      uid: '123',
-      email: 'test@example.com',
-      displayName: 'Test User',
-    } as User;
+    const mockUser = buildMockUser();
     
     // Trigger the auth change callback with the mock user
-    (global as any).authChangeCallback(mockUser);
+    await act(async () => {
+      await (global as any).authChangeCallback(mockUser);
+    });
     
     // Wait for the component to update
     await waitFor(() => {
@@ -83,12 +92,11 @@ describe('AuthContext', () => {
     );
     
     // First simulate user sign in
-    const mockUser = {
-      uid: '123',
-      email: 'test@example.com',
-    } as User;
+    const mockUser = buildMockUser();
     
-    (global as any).authChangeCallback(mockUser);
+    await act(async () => {
+      await (global as any).authChangeCallback(mockUser);
+    });
     
     // Wait for the component to update
     await waitFor(() => {
@@ -96,7 +104,9 @@ describe('AuthContext', () => {
     });
     
     // Then simulate sign out
-    (global as any).authChangeCallback(null);
+    await act(async () => {
+      await (global as any).authChangeCallback(null);
+    });
     
     // Wait for the component to update again
     await waitFor(() => {
@@ -139,12 +149,11 @@ describe('AuthContext', () => {
     );
     
     // Simulate user sign in
-    const mockUser = {
-      uid: '123',
-      email: 'test@example.com',
-    } as User;
+    const mockUser = buildMockUser();
     
-    (global as any).authChangeCallback(mockUser);
+    await act(async () => {
+      await (global as any).authChangeCallback(mockUser);
+    });
     
     // Wait for the component to update
     await waitFor(() => {

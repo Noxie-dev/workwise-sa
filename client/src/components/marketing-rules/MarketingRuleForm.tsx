@@ -149,7 +149,7 @@ const MarketingRuleForm: React.FC<MarketingRuleFormProps> = ({
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="targeting">Targeting</TabsTrigger>
                 <TabsTrigger value="content">Content</TabsTrigger>
-                <TabsTrigger value="advanced">Advanced</TabsTrigger>
+                <TabsTrigger value="advanced">Automation Notes</TabsTrigger>
               </TabsList>
 
               <TabsContent value="targeting" className="space-y-4 pt-4">
@@ -309,8 +309,8 @@ const MarketingRuleForm: React.FC<MarketingRuleFormProps> = ({
               </TabsContent>
 
               <TabsContent value="advanced" className="space-y-4 pt-4">
-                <div className="text-center py-8 text-muted-foreground">
-                  Advanced settings coming soon
+                <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+                  Advanced rule behavior is currently managed by the backend policy layer. Use targeting and content to configure the active rule inputs for this runtime.
                 </div>
               </TabsContent>
             </Tabs>

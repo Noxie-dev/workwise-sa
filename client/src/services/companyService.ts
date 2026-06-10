@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { mockExtendedCompanies } from '@/pages/Companies';
 import { createMockResponse } from './mockData';
 

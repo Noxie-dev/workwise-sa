@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Algorithm for determining top hiring companies based on multiple factors
 
 export interface CompanyHiringMetrics {

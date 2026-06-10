@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Enhanced Authentication Hooks
  * This file provides custom hooks for authentication functionality

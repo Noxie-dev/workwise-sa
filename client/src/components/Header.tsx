@@ -12,6 +12,7 @@ const navigationItems = [
   { href: '/jobs', label: 'Find Jobs', id: 'jobs' },
   { href: '/companies', label: 'Companies', id: 'companies' },
   { href: '/cv-builder', label: 'CV Builder', id: 'cv-builder' },
+  { href: '/billing', label: 'Plus', id: 'billing' },
   { href: '/wise-up', label: 'Wise-Up', id: 'wise-up' },
   { href: '/blog-wise', label: 'Blog Wise', id: 'blog-wise' },
   { href: '/resources', label: 'Resources', id: 'resources' },

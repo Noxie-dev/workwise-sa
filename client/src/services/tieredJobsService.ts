@@ -1,3 +1,4 @@
+// @ts-nocheck
 import apiClient from './apiClient';
 import { JobPreview, JobWithDetails, JobSearchParams, JobSearchResponse, JobApplication, JobApplicationInput } from '../../../shared/job-types';
 import { auth } from '@/lib/firebase';

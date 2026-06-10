@@ -25,7 +25,11 @@ export default function AdSlot({
   useEffect(() => {
     let active = true;
 
-    fetch(`/api/monetization/slots/${placement}`)
+    const token = localStorage.getItem("auth_token") || localStorage.getItem("authToken");
+
+    fetch(`/api/monetization/slots/${placement}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
       .then(async (response) => {
         if (!response.ok) {
           throw new Error(`Failed to load ad slot ${placement}`);
