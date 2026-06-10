@@ -1,10 +1,3 @@
-// scripts/run-migrations.ts
-import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
-import { migrate as migratePostgres } from 'drizzle-orm/postgres-js/migrator';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { drizzle as drizzlePostgres } from 'drizzle-orm/postgres-js';
-import Database from 'better-sqlite3';
-import postgres from 'postgres';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
@@ -29,26 +22,19 @@ async function runMigrations() {
   }
 
   try {
-    if (connectionString.startsWith('sqlite')) {
-      // SQLite migrations
-      logger.info('Running SQLite migrations...');
-      const db = new Database(connectionString.replace('sqlite:', ''));
-      const drizzleDb = drizzle(db);
-      
-      await migrate(drizzleDb, { migrationsFolder });
-      logger.info('SQLite migrations completed successfully');
-    } else {
-      // PostgreSQL migrations
-      logger.info('Running PostgreSQL migrations...');
-      const migrationClient = postgres(connectionString, { max: 1 });
-      const drizzleDb = drizzlePostgres(migrationClient);
-      
-      await migratePostgres(drizzleDb, { migrationsFolder });
-      logger.info('PostgreSQL migrations completed successfully');
-      
-      // Close the connection
-      await migrationClient.end();
+    const migrationModule = await import('../server/utils/sqlMigrations.ts') as any;
+    const runSqlMigrations =
+      migrationModule.runSqlMigrations ?? migrationModule.default?.runSqlMigrations;
+    if (!runSqlMigrations) {
+      throw new Error('Raw SQL migration runner could not be loaded');
     }
+
+    const connectionType = connectionString.startsWith('sqlite') ? 'SQLite' : 'PostgreSQL';
+    logger.info(`Running ${connectionType} migrations...`);
+    const result = await runSqlMigrations({ connectionString, migrationsFolder, logger });
+    logger.info(
+      `${connectionType} migrations completed successfully (${result.applied.length} applied, ${result.skipped.length} skipped)`,
+    );
   } catch (error) {
     logger.error('Migration failed', { error });
     process.exit(1);

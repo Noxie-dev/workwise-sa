@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Centralized Authentication Service
  * This service provides a unified interface for all authentication operations

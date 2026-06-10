@@ -40,7 +40,7 @@ export class FirebaseAuthAdapter {
   private auth: ReturnType<typeof getAuth> | null = null;
   private authInitError: unknown = null;
   private googleProvider = new GoogleAuthProvider();
-  private actionCodeSettings: ActionCodeSettings;
+  private actionCodeSettings!: ActionCodeSettings;
 
   constructor() {
     this.initializeAuth();
@@ -71,10 +71,10 @@ export class FirebaseAuthAdapter {
       url: this.getEmailLinkUrl(),
       handleCodeInApp: true,
       iOS: {
-        bundleId: import.meta.env.VITE_IOS_BUNDLE_ID
+        bundleId: import.meta.env.VITE_IOS_BUNDLE_ID || ''
       },
       android: {
-        packageName: import.meta.env.VITE_ANDROID_PACKAGE_NAME,
+        packageName: import.meta.env.VITE_ANDROID_PACKAGE_NAME || '',
         installApp: true,
         minimumVersion: '12'
       },
@@ -396,7 +396,7 @@ export class FirebaseAuthAdapter {
 
   private async convertFirebaseUserToAppUser(
     firebaseUser: FirebaseUser, 
-    additionalData?: Partial<AppUser>
+    additionalData?: Partial<AppUser> & Record<string, unknown>
   ): Promise<AppUser> {
     // Get user role and permissions (this would typically come from your backend)
     const role = await this.getUserRole(firebaseUser.uid);

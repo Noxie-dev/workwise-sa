@@ -2,6 +2,15 @@ import fs from 'fs';
 import path from 'path';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('../../utils/logger', () => ({
+  logger: {
+    warn: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
 vi.mock('../../storage', () => ({
   storage: {
     createFile: vi.fn(),
