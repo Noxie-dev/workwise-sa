@@ -7,7 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import AuthGuard from '@/components/AuthGuard';
 import { 
@@ -22,12 +29,15 @@ import {
   Send,
   ArrowLeft,
   ExternalLink,
-  Star
+  Star,
+  Sparkles
 } from 'lucide-react';
 import { JobWithDetails, JobApplicationInput } from '../../../shared/job-types';
 import { tieredJobsService } from '@/services/tieredJobsService';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useEntitlements } from '@/hooks/useEntitlements';
+import { apiRequest } from '@/lib/queryClient';
 
 /**
  * Job Details page - shows full job information for authenticated users
@@ -41,6 +51,8 @@ const JobDetails: React.FC = () => {
   
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
   const [coverLetter, setCoverLetter] = useState('');
+  const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
+  const { data: entitlements, refetch: refetchEntitlements } = useEntitlements();
 
   const jobId = id ? parseInt(id) : null;
 
@@ -82,6 +94,49 @@ const JobDetails: React.FC = () => {
       jobId,
       coverLetter: coverLetter.trim() || undefined,
     });
+  };
+
+  const handleGenerateCoverLetter = async () => {
+    if (!jobId) return;
+
+    if (!entitlements?.canGenerateCoverLetter) {
+      toast({
+        variant: 'destructive',
+        title: 'AI cover-letter limit reached',
+        description: 'Upgrade to WorkWise Plus for unlimited cover letters.',
+      });
+      navigate('/billing');
+      return;
+    }
+
+    setIsGeneratingCoverLetter(true);
+    try {
+      const response = await apiRequest('POST', '/api/cv/ai/cover-letter', {
+        jobId,
+        tone: 'professional',
+        idempotencyKey: `cover-${jobId}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+      });
+      const payload = await response.json();
+      const generated = payload.document?.content?.coverLetter;
+      if (!generated) {
+        throw new Error('AI response did not include a cover letter');
+      }
+
+      setCoverLetter(generated);
+      await refetchEntitlements();
+      toast({
+        title: 'Cover letter generated',
+        description: 'Review it before submitting your application.',
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Cover letter failed',
+        description: error instanceof Error ? error.message : 'Please try again.',
+      });
+    } finally {
+      setIsGeneratingCoverLetter(false);
+    }
   };
 
   const formatPostedDate = (date: Date) => {
@@ -272,12 +327,31 @@ const JobDetails: React.FC = () => {
                       <DialogContent>
                         <DialogHeader>
                           <DialogTitle>Apply for {job.title}</DialogTitle>
+                          <DialogDescription>
+                            Submit your application details for {job.company.name}. Add a cover letter if you
+                            want to provide extra context.
+                          </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div>
-                            <label className="text-sm font-medium mb-2 block">
-                              Cover Letter (Optional)
-                            </label>
+                            <div className="mb-2 flex items-center justify-between gap-3">
+                              <label className="text-sm font-medium block">
+                                Cover Letter (Optional)
+                              </label>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleGenerateCoverLetter}
+                                disabled={isGeneratingCoverLetter}
+                              >
+                                <Sparkles className="mr-2 h-4 w-4" />
+                                {isGeneratingCoverLetter ? 'Generating...' : 'Generate'}
+                              </Button>
+                            </div>
+                            <p className="mb-2 text-xs text-muted-foreground">
+                              AI cover letters left: {entitlements?.hasUnlimitedAiCoverLetters ? 'Unlimited' : entitlements?.remainingFreeCoverLetterGenerations ?? 0}
+                            </p>
                             <Textarea
                               placeholder="Tell us why you're interested in this position..."
                               value={coverLetter}

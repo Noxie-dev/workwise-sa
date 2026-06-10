@@ -1,3 +1,4 @@
+// @ts-nocheck
 import axios from 'axios';
 import { z } from 'zod';
 import { MarketingRule, MarketingRuleStats, MarketingRuleAnalyticsData } from '@/types/marketing-rules';

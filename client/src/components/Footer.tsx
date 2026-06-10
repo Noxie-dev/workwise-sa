@@ -45,7 +45,7 @@ const Footer = () => {
             <h3 className="font-semibold text-lg mb-4">For Employers</h3>
             <ul className="space-y-2">
               <li><Link href="/employers/post-job" className="text-primary hover:text-accent">Post a Job</Link></li>
-              <li><Link href="/employers/browse-candidates" className="text-primary hover:text-accent">Browse Candidates</Link></li>
+              <li><Link href="/employers/dashboard" className="text-primary hover:text-accent">Employer Dashboard</Link></li>
               <li><Link href="/employers/solutions" className="text-primary hover:text-accent">Recruitment Solutions</Link></li>
               <li><Link href="/employers/pricing" className="text-primary hover:text-accent">Pricing</Link></li>
               <li><Link href="/employers/success-stories" className="text-primary hover:text-accent">Success Stories</Link></li>

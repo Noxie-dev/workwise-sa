@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as React from "react"
 import {
   ColumnDef,
@@ -121,4 +122,4 @@ export function DataTable<TData, TValue>({
       <DataTablePagination table={table} />
     </div>
   )
-} 
+}

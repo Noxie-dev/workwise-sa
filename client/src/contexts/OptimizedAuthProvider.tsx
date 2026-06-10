@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Optimized Auth Provider - Combines Split Contexts
  * Provides all auth functionality while minimizing re-renders

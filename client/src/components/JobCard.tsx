@@ -33,6 +33,10 @@ const JobCard: React.FC<JobCardProps> = ({
 }) => {
   const [isFavorite, setIsFavorite] = useState<boolean>(initialFavoriteState);
 
+  React.useEffect(() => {
+    setIsFavorite(initialFavoriteState);
+  }, [initialFavoriteState]);
+
   /**
    * Toggles the favorite status of a job
    */

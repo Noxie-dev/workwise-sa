@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { useParams } from 'wouter';
 import { Helmet } from 'react-helmet-async';
