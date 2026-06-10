@@ -155,7 +155,7 @@ jobs:
         flags: backend
         name: backend-coverage
         
-    - name: API integration tests
+    - name: Focused backend API route tests
       run: pnpm run test:api
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/workwise_test

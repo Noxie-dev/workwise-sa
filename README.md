@@ -321,6 +321,7 @@ Important current reality: `type-check` still surfaces broad legacy TypeScript d
 pnpm run test
 pnpm run test:unit
 pnpm run test:integration
+pnpm run test:api
 pnpm run test:coverage
 ```
 
@@ -329,6 +330,8 @@ Backend-only tests:
 ```bash
 pnpm run test:server
 ```
+
+Current reality: `test:server`, `test:unit`, `test:integration`, and `test:api` all point at the maintained backend unit suite and route-level API checks that run cleanly in the canonical environment. Older demo-style and bind-to-port backend tests have been retired instead of kept as dead fallback paths.
 
 E2E:
 
