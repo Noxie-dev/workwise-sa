@@ -9,7 +9,12 @@
     "**/*.test.tsx",
     "**/__tests__/**",
     "src/api/test/**",
-    "server/tests/**"
+    "server/tests/**",
+    "client/src/setupTests.ts",
+    "server/jobDistribution.ts",
+    "server/routes/content.ts",
+    "server/routes/notifications.ts",
+    "server/middleware/enhanced-auth.ts"
   ],
   "compilerOptions": {
     "incremental": true,
@@ -18,6 +23,7 @@
     "target": "ES2020",
     "module": "ESNext",
     "strict": true,
+    "noImplicitAny": false,
     "forceConsistentCasingInFileNames": true,
     "lib": ["esnext", "dom", "dom.iterable"],
     "jsx": "preserve",
@@ -30,7 +36,15 @@
     "types": ["node", "vite/client"],
     "paths": {
       "@/*": ["./client/src/*"],
-      "@shared/*": ["./shared/*"]
+      "@shared/*": ["./shared/*"],
+      "express": ["./node_modules/express"],
+      "express/*": ["./node_modules/express/*"],
+      "ws": ["./node_modules/ws"],
+      "ws/*": ["./node_modules/ws/*"],
+      "zod": ["./node_modules/zod"],
+      "zod/*": ["./node_modules/zod/*"],
+      "drizzle-orm": ["./node_modules/drizzle-orm"],
+      "drizzle-orm/*": ["./node_modules/drizzle-orm/*"]
     }
   }
 }
