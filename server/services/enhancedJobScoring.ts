@@ -261,10 +261,17 @@ async function getUserPreferences(userId: number): Promise<UserPreferences | nul
       return null;
     }
 
+    const rawSkills = userData?.skills as unknown;
+    const skills = Array.isArray(rawSkills)
+      ? rawSkills.filter((skill): skill is string => typeof skill === "string" && skill.trim().length > 0)
+      : rawSkills && typeof rawSkills === "object" && Array.isArray((rawSkills as any).skills)
+        ? (rawSkills as any).skills.filter((skill: unknown): skill is string => typeof skill === "string" && skill.trim().length > 0)
+        : [];
+
     return {
       preferredCategories: (userPreference?.preferredCategories as number[]) || [],
       preferredLocations: (userPreference?.preferredLocations as string[]) || [],
-      skills: (userData?.skills as string[]) || [],
+      skills,
       willingToRelocate: userPreference?.willingToRelocate || userData?.willingToRelocate || false
     };
   } catch (error) {

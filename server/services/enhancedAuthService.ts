@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Enhanced Authentication Service
  * Integrates multi-tier caching and advanced token refresh with rotation

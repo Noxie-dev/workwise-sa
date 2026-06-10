@@ -46,9 +46,10 @@ This document is the baseline inventory for moving the repo from mixed maturity 
 | [server/routes/jobFavorites.ts](/workspace/server/routes/jobFavorites.ts) | `partial` | Keep | Real feature surface that needs full integration verification. |
 | [server/routes/content.ts](/workspace/server/routes/content.ts) | `partial` | Keep | Candidate/employer content operations need scope validation and tests. |
 | [server/routes/dashboard.ts](/workspace/server/routes/dashboard.ts) | `mock-backed` | Keep only after real metrics/data integration | Explicit mock/pagination simulation remains. |
-| [server/routes/payments.ts](/workspace/server/routes/payments.ts) | `partial` | Keep if billing stays in scope | Feature must either be completed or formally removed later. |
+| [server/routes/billing.ts](/workspace/server/routes/billing.ts) | `foundation` | Keep and finish | Provider-neutral Phase 1 billing surface. Replaces the removed Stripe-specific `server/routes/payments.ts` scaffold. |
+| [server/routes/entitlements.ts](/workspace/server/routes/entitlements.ts) | `foundation` | Keep and finish | Central entitlement read surface backed by the Phase 1 monetization model. |
 | [server/routes/notifications.ts](/workspace/server/routes/notifications.ts) | `partial` | Keep | Large surface area, needs maturity validation. |
-| [server/routes/candidates.ts](/workspace/server/routes/candidates.ts) | `partial` | Keep | Employer-side candidate workflows need end-to-end completion. |
+| Candidate access routes | `not-implemented` | Rebuild on identity and entitlements | Removed the unmounted candidate scaffold because it depended on nonexistent subscription, credit, storage, and employer-access contracts. |
 | [server/routes/scraping.ts](/workspace/server/routes/scraping.ts) | `partial` | Keep | Real operational subsystem. |
 | [server/routes/authMonitoring.ts](/workspace/server/routes/authMonitoring.ts) | `partial` | Keep | Admin/ops feature, depends on real auth and monitoring data. |
 | [server/routes/aiRoutes.ts](/workspace/server/routes/aiRoutes.ts) | `partial` | Keep only if backed by real AI services | Depends on placeholder implementations in current AI service layer. |

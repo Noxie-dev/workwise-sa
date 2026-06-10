@@ -167,12 +167,16 @@ export class TokenRefreshService {
       // Validate refresh token
       const tokenValidation = await this.validateRefreshToken(refreshToken);
       if (!tokenValidation.valid) {
-        await this.recordFailedAttempt(null, requestInfo, tokenValidation.error);
+        const validationError = tokenValidation.error ?? {
+          code: 'INVALID_REFRESH_TOKEN',
+          message: 'Invalid refresh token',
+        };
+        await this.recordFailedAttempt(null, requestInfo, validationError);
         this.stats.failedAttempts++;
         this.updateSuccessRate();
         return {
           success: false,
-          error: tokenValidation.error
+          error: validationError
         };
       }
 

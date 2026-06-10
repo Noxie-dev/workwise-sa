@@ -299,7 +299,7 @@ const options: swaggerJsdoc.Options = {
   ],
 };
 
-const specs = swaggerJsdoc(options);
+const specs = swaggerJsdoc(options) as { paths: Record<string, unknown> };
 
 /**
  * Initialize Swagger documentation

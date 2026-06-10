@@ -1,5 +1,48 @@
 import { z } from "zod";
 
+export const employerJobStatusSchema = z.enum(["draft", "active", "paused", "closed", "archived"]);
+
+export const employerJobFormSchema = z.object({
+  title: z.string().min(1),
+  category: z.string().min(1),
+  jobType: z.string().min(1),
+  location: z.string().default(""),
+  isRemote: z.boolean().default(false),
+  applicationDeadline: z.string().optional().nullable(),
+  salaryMin: z.string().default(""),
+  salaryMax: z.string().default(""),
+  isSalaryNegotiable: z.boolean().default(false),
+  description: z.string().min(1),
+  responsibilities: z.string().default(""),
+  requirements: z.string().default(""),
+  companyName: z.string().min(1),
+  companyLogo: z.string().optional().nullable(),
+  companyBio: z.string().default(""),
+  contactName: z.string().min(1),
+  contactEmail: z.string().email(),
+  contactPhone: z.string().default(""),
+  website: z.string().default(""),
+  howToApply: z.enum(["email", "url", "custom"]).default("email"),
+  applicationEmail: z.string().default(""),
+  applicationUrl: z.string().default(""),
+  customInstructions: z.string().default(""),
+  isConfidential: z.boolean().default(false),
+  isDraft: z.boolean().default(false),
+  screenerQuestions: z.array(z.string()).default([]),
+});
+
+export const employerJobDetailSchema = employerJobFormSchema.extend({
+  id: z.string(),
+  companyId: z.number().int().min(1),
+  categoryId: z.number().int().min(1),
+  status: employerJobStatusSchema,
+  createdAt: z.union([z.string(), z.null()]).optional(),
+});
+
+export const employerJobStatusUpdateSchema = z.object({
+  status: employerJobStatusSchema,
+});
+
 export const paginationMetadataSchema = z.object({
   page: z.number().int().min(1),
   limit: z.number().int().min(1),
@@ -91,7 +134,7 @@ export const employerJobSummarySchema = z.object({
   applications: z.number().int().min(0),
   views: z.number().int().min(0),
   postedDate: z.string(),
-  status: z.string(),
+  status: employerJobStatusSchema,
 });
 
 export const employerApplicationSummarySchema = z.object({
@@ -135,3 +178,7 @@ export type EmployerDashboard = z.infer<typeof employerDashboardSchema>;
 export type EmployerJobSummary = z.infer<typeof employerJobSummarySchema>;
 export type EmployerApplicationSummary = z.infer<typeof employerApplicationSummarySchema>;
 export type AdminAnalytics = z.infer<typeof adminAnalyticsSchema>;
+export type EmployerJobStatus = z.infer<typeof employerJobStatusSchema>;
+export type EmployerJobForm = z.infer<typeof employerJobFormSchema>;
+export type EmployerJobDetail = z.infer<typeof employerJobDetailSchema>;
+export type EmployerJobStatusUpdate = z.infer<typeof employerJobStatusUpdateSchema>;

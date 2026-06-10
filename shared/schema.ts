@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, boolean, jsonb, uniqueIndex, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, boolean, jsonb, uniqueIndex, index, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
@@ -21,6 +21,7 @@ export const users = pgTable("users", {
   experience: jsonb("experience"), // JSON with experience details
   education: jsonb("education"), // JSON with education details
   skills: jsonb("skills"), // JSON with skills
+  referredByUserId: integer("referred_by_user_id"),
   lastActive: timestamp("last_active"),
   engagementScore: integer("engagement_score").default(0), // Tracks user engagement
   notificationPreference: boolean("notification_preference").default(true),
@@ -38,6 +39,11 @@ export const insertUserSchema = createInsertSchema(users).pick({
   bio: true,
   phoneNumber: true,
   willingToRelocate: true,
+  preferences: true,
+  experience: true,
+  education: true,
+  skills: true,
+  referredByUserId: true,
   notificationPreference: true,
 });
 
@@ -86,10 +92,12 @@ export const jobs = pgTable("jobs", {
   workMode: text("work_mode").notNull(), // Remote, On-site, Hybrid
   companyId: integer("company_id").notNull().references(() => companies.id),
   categoryId: integer("category_id").notNull().references(() => categories.id),
+  status: text("status").notNull().default("active"),
   isFeatured: boolean("is_featured").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => ({
   createdAtIdx: index("idx_jobs_created_at").on(table.createdAt),
+  statusCreatedAtIdx: index("idx_jobs_status_created_at").on(table.status, table.createdAt),
 }));
 
 export const jobIngestRecords = pgTable(
@@ -125,6 +133,7 @@ export const insertJobSchema = createInsertSchema(jobs).pick({
   workMode: true,
   companyId: true,
   categoryId: true,
+  status: true,
   isFeatured: true,
 });
 
@@ -232,6 +241,15 @@ export const userNotifications = pgTable("user_notifications", {
   ),
 }));
 
+export const userFavoriteJobs = pgTable("user_favorite_jobs", {
+  userId: integer("user_id").notNull().references(() => users.id),
+  jobId: integer("job_id").notNull().references(() => jobs.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.userId, table.jobId] }),
+  userCreatedIdx: index("idx_user_favorite_jobs_user_created").on(table.userId, table.createdAt),
+}));
+
 export const userJobPreferences = pgTable("user_job_preferences", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id).unique(),
@@ -242,6 +260,144 @@ export const userJobPreferences = pgTable("user_job_preferences", {
   minSalary: integer("min_salary"),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+export const systemConfig = pgTable("system_config", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+  description: text("description"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const billingPlans = pgTable("billing_plans", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  displayName: text("display_name").notNull(),
+  description: text("description"),
+  priceCents: integer("price_cents").notNull().default(0),
+  currency: text("currency").notNull().default("ZAR"),
+  billingInterval: text("billing_interval").notNull().default("month"),
+  entitlements: jsonb("entitlements"),
+  isActive: boolean("is_active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const billingSubscriptions = pgTable("billing_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  planId: integer("plan_id").notNull().references(() => billingPlans.id),
+  provider: text("provider").notNull().default("payfast"),
+  providerSubscriptionId: text("provider_subscription_id"),
+  providerToken: text("provider_token"),
+  status: text("status").notNull().default("active"),
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  gracePeriodEndsAt: timestamp("grace_period_ends_at"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+  cancelledAt: timestamp("cancelled_at"),
+  expiredAt: timestamp("expired_at"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+  userStatusIdx: index("idx_billing_subscriptions_user_status").on(table.userId, table.status),
+  providerSubscriptionIdx: uniqueIndex("idx_billing_subscriptions_provider_subscription").on(
+    table.provider,
+    table.providerSubscriptionId,
+  ),
+}));
+
+export const billingTransactions = pgTable("billing_transactions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  planId: integer("plan_id").references(() => billingPlans.id),
+  subscriptionId: integer("subscription_id").references(() => billingSubscriptions.id),
+  provider: text("provider").notNull().default("payfast"),
+  providerPaymentId: text("provider_payment_id"),
+  merchantReference: text("merchant_reference").notNull().unique(),
+  amountCents: integer("amount_cents").notNull(),
+  currency: text("currency").notNull().default("ZAR"),
+  status: text("status").notNull().default("pending"),
+  paymentType: text("payment_type").notNull().default("subscription"),
+  checkoutUrl: text("checkout_url"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+  userCreatedIdx: index("idx_billing_transactions_user_created").on(table.userId, table.createdAt),
+  providerPaymentIdx: index("idx_billing_transactions_provider_payment").on(table.provider, table.providerPaymentId),
+}));
+
+export const billingWebhookEvents = pgTable("billing_webhook_events", {
+  id: serial("id").primaryKey(),
+  provider: text("provider").notNull().default("payfast"),
+  eventId: text("event_id").notNull(),
+  eventType: text("event_type").notNull(),
+  payload: jsonb("payload"),
+  verified: boolean("verified").notNull().default(false),
+  processedAt: timestamp("processed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+  providerEventUnique: uniqueIndex("idx_billing_webhook_events_provider_event").on(table.provider, table.eventId),
+}));
+
+export const aiUsageEvents = pgTable("ai_usage_events", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  documentType: text("document_type").notNull(),
+  jobId: integer("job_id").references(() => jobs.id),
+  model: text("model"),
+  tokens: integer("tokens").notNull().default(0),
+  costEstimateCents: integer("cost_estimate_cents").notNull().default(0),
+  generationTimeMs: integer("generation_time_ms").notNull().default(0),
+  success: boolean("success").notNull().default(false),
+  status: text("status").notNull().default("started"),
+  idempotencyKey: text("idempotency_key").notNull(),
+  errorMessage: text("error_message"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"),
+}, (table) => ({
+  userDocumentIdx: index("idx_ai_usage_events_user_document").on(table.userId, table.documentType),
+  userIdempotencyUnique: uniqueIndex("idx_ai_usage_events_user_idempotency").on(table.userId, table.idempotencyKey),
+}));
+
+export const aiGeneratedDocuments = pgTable("ai_generated_documents", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  usageEventId: integer("usage_event_id").references(() => aiUsageEvents.id),
+  documentType: text("document_type").notNull(),
+  jobId: integer("job_id").references(() => jobs.id),
+  title: text("title"),
+  content: jsonb("content").notNull(),
+  model: text("model"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const candidatePromotionState = pgTable("candidate_promotion_state", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id).unique(),
+  boostScore: integer("boost_score").notNull().default(0),
+  visibilityMultiplier: integer("visibility_multiplier").notNull().default(100),
+  profileStrength: integer("profile_strength").notNull().default(0),
+  active: boolean("active").notNull().default(false),
+  source: text("source").notNull().default("system"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const proInterest = pgTable("pro_interest", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  email: text("email").notNull(),
+  source: text("source").notNull().default("plus_page"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+  emailUnique: uniqueIndex("idx_pro_interest_email").on(table.email),
+}));
 
 // Combined types for the frontend
 export type JobWithCompany = Job & {
@@ -290,6 +446,7 @@ export const insertJobApplicationSchema = createInsertSchema(jobApplications).pi
 export const insertUserInteractionSchema = createInsertSchema(userInteractions).pick({
   userId: true,
   interactionType: true,
+  interactionTime: true,
   jobId: true,
   videoId: true,
   categoryId: true,
@@ -305,6 +462,16 @@ export const insertUserNotificationSchema = createInsertSchema(userNotifications
   isRead: true,
 });
 
+export const insertSystemConfigSchema = createInsertSchema(systemConfig);
+export const insertBillingPlanSchema = createInsertSchema(billingPlans);
+export const insertBillingSubscriptionSchema = createInsertSchema(billingSubscriptions);
+export const insertBillingTransactionSchema = createInsertSchema(billingTransactions);
+export const insertBillingWebhookEventSchema = createInsertSchema(billingWebhookEvents);
+export const insertAiUsageEventSchema = createInsertSchema(aiUsageEvents);
+export const insertAiGeneratedDocumentSchema = createInsertSchema(aiGeneratedDocuments);
+export const insertCandidatePromotionStateSchema = createInsertSchema(candidatePromotionState);
+export const insertProInterestSchema = createInsertSchema(proInterest);
+
 // Export additional types for the new tables
 export type UserSession = typeof userSessions.$inferSelect;
 export type UserInteraction = typeof userInteractions.$inferSelect;
@@ -313,9 +480,28 @@ export type JobApplication = typeof jobApplications.$inferSelect;
 export type InsertJobApplication = z.infer<typeof insertJobApplicationSchema>;
 export type UserNotification = typeof userNotifications.$inferSelect;
 export type InsertUserNotification = z.infer<typeof insertUserNotificationSchema>;
+export type UserFavoriteJob = typeof userFavoriteJobs.$inferSelect;
 export type UserJobPreference = typeof userJobPreferences.$inferSelect;
 export type InsertFile = z.infer<typeof insertFileSchema>;
 export type File = typeof files.$inferSelect;
+export type SystemConfig = typeof systemConfig.$inferSelect;
+export type InsertSystemConfig = z.infer<typeof insertSystemConfigSchema>;
+export type BillingPlan = typeof billingPlans.$inferSelect;
+export type InsertBillingPlan = z.infer<typeof insertBillingPlanSchema>;
+export type BillingSubscription = typeof billingSubscriptions.$inferSelect;
+export type InsertBillingSubscription = z.infer<typeof insertBillingSubscriptionSchema>;
+export type BillingTransaction = typeof billingTransactions.$inferSelect;
+export type InsertBillingTransaction = z.infer<typeof insertBillingTransactionSchema>;
+export type BillingWebhookEvent = typeof billingWebhookEvents.$inferSelect;
+export type InsertBillingWebhookEvent = z.infer<typeof insertBillingWebhookEventSchema>;
+export type AiUsageEvent = typeof aiUsageEvents.$inferSelect;
+export type InsertAiUsageEvent = z.infer<typeof insertAiUsageEventSchema>;
+export type AiGeneratedDocument = typeof aiGeneratedDocuments.$inferSelect;
+export type InsertAiGeneratedDocument = z.infer<typeof insertAiGeneratedDocumentSchema>;
+export type CandidatePromotionState = typeof candidatePromotionState.$inferSelect;
+export type InsertCandidatePromotionState = z.infer<typeof insertCandidatePromotionStateSchema>;
+export type ProInterest = typeof proInterest.$inferSelect;
+export type InsertProInterest = z.infer<typeof insertProInterestSchema>;
 
 // Import WiseUp schema
 export * from './wiseup-schema';

@@ -146,7 +146,7 @@ export const trackDatabaseOperation = (operation: string, table: string) => {
     }
 
     const startTime = Date.now();
-    const dbOp = {
+    const dbOp: PerformanceContext['databaseOperations'][number] = {
       operation,
       table,
       startTime
@@ -171,7 +171,7 @@ export const trackDatabaseOperation = (operation: string, table: string) => {
         });
       }
 
-      return originalNext.call(this, err);
+      return originalNext(err);
     };
 
     return next;

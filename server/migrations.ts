@@ -1,14 +1,8 @@
-// server/migrations.ts
-import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
-import { migrate as migratePostgres } from 'drizzle-orm/postgres-js/migrator';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { drizzle as drizzlePostgres } from 'drizzle-orm/postgres-js/migrator';
-import Database from 'better-sqlite3';
-import postgres from 'postgres';
 import * as path from 'path';
 import * as fs from 'fs';
 import { logger } from './utils/logger';
 import { secretManager } from './services/secretManager';
+import { runSqlMigrations } from './utils/sqlMigrations.ts';
 
 /**
  * Run database migrations
@@ -39,25 +33,11 @@ export async function runMigrations(): Promise<void> {
 
     logger.info('Running database migrations', { connectionType: connectionString.startsWith('sqlite') ? 'SQLite' : 'PostgreSQL' });
 
-    if (connectionString.startsWith('sqlite')) {
-      // SQLite migrations
-      const dbPath = connectionString.replace('sqlite:', '');
-      const db = new Database(dbPath);
-      const drizzleDb = drizzle(db);
-      
-      await migrate(drizzleDb, { migrationsFolder });
-      logger.info('SQLite migrations completed successfully');
-    } else {
-      // PostgreSQL migrations
-      const migrationClient = postgres(connectionString, { max: 1 });
-      const drizzleDb = drizzlePostgres(migrationClient);
-      
-      await migratePostgres(drizzleDb, { migrationsFolder });
-      logger.info('PostgreSQL migrations completed successfully');
-      
-      // Close the connection
-      await migrationClient.end();
-    }
+    const result = await runSqlMigrations({ connectionString, migrationsFolder, logger });
+    logger.info('Database migrations completed successfully', {
+      applied: result.applied.length,
+      skipped: result.skipped.length,
+    });
   } catch (error) {
     logger.error('Migration failed', { error });
     throw new Error(`Failed to run migrations: ${error.message}`);

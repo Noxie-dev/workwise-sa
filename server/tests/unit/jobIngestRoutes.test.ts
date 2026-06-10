@@ -1,5 +1,3 @@
-import express from 'express';
-import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../../services/jobIngestionService', () => ({
@@ -11,11 +9,54 @@ import v1Router from '../../routes/v1';
 
 const mockedIngestJobs = vi.mocked(ingestJobs);
 
-function createApp() {
-  const app = express();
-  app.use(express.json({ limit: '2mb' }));
-  app.use(v1Router);
-  return app;
+function createMockResponse() {
+  const response: any = {
+    statusCode: 200,
+    body: undefined,
+    headers: {},
+    status(code: number) {
+      this.statusCode = code;
+      return this;
+    },
+    json(payload: unknown) {
+      this.body = payload;
+      return this;
+    },
+    setHeader(key: string, value: string) {
+      this.headers[key] = value;
+    },
+  };
+
+  return response;
+}
+
+function getRouteHandler(path: string, method: 'post') {
+  const layer = v1Router.stack.find(
+    (entry: any) => entry.route?.path === path && entry.route.methods?.[method],
+  );
+
+  if (!layer) {
+    throw new Error(`Route not found for ${method.toUpperCase()} ${path}`);
+  }
+
+  return layer.route.stack[layer.route.stack.length - 1].handle;
+}
+
+async function invokeRoute({
+  path,
+  method,
+  req,
+}: {
+  path: string;
+  method: 'post';
+  req: Record<string, any>;
+}) {
+  const handler = getRouteHandler(path, method);
+  const response = createMockResponse();
+
+  await handler(req, response);
+
+  return response;
 }
 
 function buildJob(overrides: Record<string, unknown> = {}) {
@@ -54,11 +95,16 @@ describe('job ingest routes', () => {
       errors: [],
     });
 
-    const response = await request(createApp())
-      .post('/jobs/ingest')
-      .send([buildJob()]);
+    const response = await invokeRoute({
+      path: '/jobs/ingest',
+      method: 'post',
+      req: {
+        body: [buildJob()],
+        headers: {},
+      },
+    });
 
-    expect(response.status).toBe(200);
+    expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
       inserted: 1,
       duplicates: 0,
@@ -76,11 +122,16 @@ describe('job ingest routes', () => {
       errors: [],
     });
 
-    const response = await request(createApp())
-      .post('/jobs/ingest')
-      .send([buildJob()]);
+    const response = await invokeRoute({
+      path: '/jobs/ingest',
+      method: 'post',
+      req: {
+        body: [buildJob()],
+        headers: {},
+      },
+    });
 
-    expect(response.status).toBe(200);
+    expect(response.statusCode).toBe(200);
     expect(response.body.duplicates).toBe(1);
   });
 
@@ -88,11 +139,16 @@ describe('job ingest routes', () => {
     const invalidJob = buildJob();
     delete (invalidJob as { companyName?: string }).companyName;
 
-    const response = await request(createApp())
-      .post('/jobs/ingest')
-      .send([invalidJob]);
+    const response = await invokeRoute({
+      path: '/jobs/ingest',
+      method: 'post',
+      req: {
+        body: [invalidJob],
+        headers: {},
+      },
+    });
 
-    expect(response.status).toBe(400);
+    expect(response.statusCode).toBe(400);
     expect(response.body.message).toBe('Invalid ingestion payload');
     expect(mockedIngestJobs).not.toHaveBeenCalled();
   });
@@ -106,11 +162,16 @@ describe('job ingest routes', () => {
       })
     );
 
-    const response = await request(createApp())
-      .post('/jobs/ingest')
-      .send(batch);
+    const response = await invokeRoute({
+      path: '/jobs/ingest',
+      method: 'post',
+      req: {
+        body: batch,
+        headers: {},
+      },
+    });
 
-    expect(response.status).toBe(413);
+    expect(response.statusCode).toBe(413);
     expect(response.body.message).toContain('maximum of 500');
     expect(mockedIngestJobs).not.toHaveBeenCalled();
   });

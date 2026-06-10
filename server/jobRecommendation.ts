@@ -4,6 +4,7 @@ import {
   jobs,
   categories,
   companies,
+  userNotifications,
   userInteractions,
   userJobPreferences,
   userSessions,
@@ -648,6 +649,7 @@ export async function personalizedJobSearch(
         workMode: job.workMode,
         companyId: job.companyId,
         categoryId: job.categoryId,
+        status: job.status ?? 'active',
         isFeatured: job.isFeatured,
         createdAt: job.createdAt,
       };

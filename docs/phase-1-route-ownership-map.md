@@ -23,9 +23,9 @@ This document records the canonical destination for each active API surface and 
 | Profile | [server/routes/profile.ts](/workspace/server/routes/profile.ts) | `server/` | Keep |
 | Job applications | [server/routes/jobApplications.ts](/workspace/server/routes/jobApplications.ts) | `server/` | Keep and finish |
 | Favorites | [server/routes/jobFavorites.ts](/workspace/server/routes/jobFavorites.ts) | `server/` | Keep and finish |
-| Candidates | [server/routes/candidates.ts](/workspace/server/routes/candidates.ts) | `server/` | Keep and finish |
+| Candidates | Not currently mounted | `server/` | Rebuild after employer identity/access and entitlement contracts are complete |
 | Notifications | [server/routes/notifications.ts](/workspace/server/routes/notifications.ts) | `server/` | Keep and finish |
-| Payments | [server/routes/payments.ts](/workspace/server/routes/payments.ts) | `server/` | Keep only if feature remains in scope |
+| Billing | [server/routes/billing.ts](/workspace/server/routes/billing.ts), [server/routes/entitlements.ts](/workspace/server/routes/entitlements.ts) | `server/` | Keep provider-neutral Phase 1 surface; removed legacy Stripe payment scaffold |
 | Scraping orchestration | [server/routes/scraping.ts](/workspace/server/routes/scraping.ts) | `server/` | Keep |
 
 ## Consolidation Work Completed

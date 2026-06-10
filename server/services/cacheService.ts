@@ -138,8 +138,6 @@ export class MultiTierCacheService {
       if (redisUrl) {
         this.redisClient = createClient({
           url: redisUrl as string,
-          retry_delay_on_failover: this.config.redis.retryDelayOnFailover,
-          max_attempts: this.config.redis.maxRetriesPerRequest,
           socket: {
             reconnectStrategy: (retries) => {
               if (retries > 10) {
@@ -205,7 +203,7 @@ export class MultiTierCacheService {
           
           // Store in memory cache for faster future access
           if (!options.skipMemory) {
-            this.setInMemory(key, redisResult, options.ttl);
+            this.setInMemory(key, redisResult, options.ttl ?? this.config.memory.defaultTTL);
           }
           
           return redisResult;

@@ -7,13 +7,6 @@ DELETE FROM job_applications;
 DELETE FROM user_interactions;
 DELETE FROM user_sessions;
 DELETE FROM user_job_preferences;
-DELETE FROM invoice_items;
-DELETE FROM invoices;
-DELETE FROM job_credits;
-DELETE FROM payments;
-DELETE FROM payment_methods;
-DELETE FROM billing_addresses;
-DELETE FROM subscriptions;
 DELETE FROM jobs;
 DELETE FROM users;
 DELETE FROM companies;
@@ -61,19 +54,19 @@ INSERT INTO companies (name, logo, location, slug, open_positions) VALUES
 ('Multichoice', 'https://via.placeholder.com/150x150/20c997/ffffff?text=M', 'Randburg', 'multichoice', 30);
 
 -- Insert Users (Mix of candidates and employers)
-INSERT INTO users (username, password, email, name, location, bio, phone_number, willing_to_relocate, preferences, experience, education, skills, last_active, engagement_score, notification_preference, user_type, subscription_status, stripe_customer_id, created_at) VALUES
-('john.doe', '$2b$10$encrypted_password_hash', 'john.doe@example.com', 'John Doe', 'Cape Town', 'Full-stack developer with 5 years experience in React and Node.js', '+27823456789', 1, 'Remote work preferred', 'Senior Developer at TechCorp', 'BSc Computer Science - UCT', 'JavaScript,React,Node.js,Python,SQL', datetime('now', '-2 hours'), 85, 1, 'candidate', 'free', NULL, datetime('now', '-30 days')),
-('sarah.smith', '$2b$10$encrypted_password_hash', 'sarah.smith@example.com', 'Sarah Smith', 'Johannesburg', 'Digital marketing specialist with expertise in SEO and social media', '+27834567890', 0, 'Growth-focused companies', 'Marketing Manager at AdCorp', 'BA Marketing - Wits', 'Digital Marketing,SEO,Social Media,Google Analytics', datetime('now', '-1 hour'), 92, 1, 'candidate', 'free', NULL, datetime('now', '-25 days')),
-('mike.johnson', '$2b$10$encrypted_password_hash', 'mike.johnson@example.com', 'Mike Johnson', 'Durban', 'Financial analyst with CFA certification', '+27845678901', 1, 'Banking and finance sector', 'Senior Analyst at InvestCorp', 'BCom Finance - UKZN', 'Financial Analysis,Excel,Bloomberg,Risk Management', datetime('now', '-3 hours'), 78, 1, 'candidate', 'free', NULL, datetime('now', '-20 days')),
-('lisa.williams', '$2b$10$encrypted_password_hash', 'lisa.williams@example.com', 'Lisa Williams', 'Pretoria', 'HR recruiter specializing in tech talent acquisition', '+27856789012', 0, 'Technology companies', 'Recruitment Specialist at TalentCorp', 'BA Psychology - UP', 'Recruitment,HR,Talent Acquisition,Interviewing', datetime('now', '-30 minutes'), 88, 1, 'employer', 'trial', 'cus_stripe_12345', datetime('now', '-15 days')),
-('david.brown', '$2b$10$encrypted_password_hash', 'david.brown@example.com', 'David Brown', 'Cape Town', 'UX/UI designer with 7 years experience in product design', '+27867890123', 1, 'Startups and scale-ups', 'Lead Designer at DesignCorp', 'BFA Design - Stellenbosch', 'UI/UX Design,Figma,Sketch,Adobe Creative Suite', datetime('now', '-4 hours'), 91, 1, 'candidate', 'free', NULL, datetime('now', '-18 days')),
-('emma.davis', '$2b$10$encrypted_password_hash', 'emma.davis@example.com', 'Emma Davis', 'Sandton', 'Software engineer passionate about AI and machine learning', '+27878901234', 1, 'AI/ML companies', 'ML Engineer at DataCorp', 'MSc Computer Science - Wits', 'Python,TensorFlow,PyTorch,Machine Learning,AI', datetime('now', '-1 hour'), 94, 1, 'candidate', 'free', NULL, datetime('now', '-22 days')),
-('james.wilson', '$2b$10$encrypted_password_hash', 'james.wilson@example.com', 'James Wilson', 'Johannesburg', 'Sales manager with proven track record in B2B sales', '+27889012345', 0, 'Enterprise sales roles', 'Sales Manager at SalesCorp', 'BCom Sales - UJ', 'B2B Sales,CRM,Salesforce,Negotiation', datetime('now', '-2 hours'), 82, 1, 'candidate', 'free', NULL, datetime('now', '-28 days')),
-('anna.taylor', '$2b$10$encrypted_password_hash', 'anna.taylor@example.com', 'Anna Taylor', 'Cape Town', 'Project manager with PMP certification', '+27890123456', 1, 'Large projects', 'Senior PM at ProjectCorp', 'MBA - GSB', 'Project Management,Agile,Scrum,Leadership', datetime('now', '-45 minutes'), 87, 1, 'candidate', 'free', NULL, datetime('now', '-12 days')),
-('robert.anderson', '$2b$10$encrypted_password_hash', 'robert.anderson@example.com', 'Robert Anderson', 'Pretoria', 'DevOps engineer specializing in cloud infrastructure', '+27901234567', 1, 'Cloud-first companies', 'DevOps Engineer at CloudCorp', 'BSc IT - UP', 'AWS,Docker,Kubernetes,Terraform,CI/CD', datetime('now', '-3 hours'), 89, 1, 'candidate', 'free', NULL, datetime('now', '-35 days')),
-('olivia.thomas', '$2b$10$encrypted_password_hash', 'olivia.thomas@example.com', 'Olivia Thomas', 'Durban', 'Data scientist with PhD in Statistics', '+27912345678', 1, 'Data-driven companies', 'Data Scientist at DataCorp', 'PhD Statistics - UKZN', 'Python,R,SQL,Machine Learning,Statistics', datetime('now', '-1 hour'), 96, 1, 'candidate', 'free', NULL, datetime('now', '-40 days')),
-('hr.manager', '$2b$10$encrypted_password_hash', 'hr@takealot.com', 'Takealot HR Team', 'Cape Town', 'Official HR account for Takealot', '+27215551234', 0, NULL, NULL, NULL, NULL, datetime('now', '-15 minutes'), 75, 1, 'employer', 'active', 'cus_stripe_67890', datetime('now', '-60 days')),
-('recruiter.discovery', '$2b$10$encrypted_password_hash', 'jobs@discovery.co.za', 'Discovery Talent Team', 'Sandton', 'Discovery talent acquisition team', '+27115552345', 0, NULL, NULL, NULL, NULL, datetime('now', '-30 minutes'), 80, 1, 'employer', 'active', 'cus_stripe_11111', datetime('now', '-45 days'));
+INSERT INTO users (username, password, email, name, location, bio, phone_number, willing_to_relocate, preferences, experience, education, skills, last_active, engagement_score, notification_preference, created_at) VALUES
+('john.doe', '$2b$10$encrypted_password_hash', 'john.doe@example.com', 'John Doe', 'Cape Town', 'Full-stack developer with 5 years experience in React and Node.js', '+27823456789', 1, 'Remote work preferred', 'Senior Developer at TechCorp', 'BSc Computer Science - UCT', 'JavaScript,React,Node.js,Python,SQL', datetime('now', '-2 hours'), 85, 1, datetime('now', '-30 days')),
+('sarah.smith', '$2b$10$encrypted_password_hash', 'sarah.smith@example.com', 'Sarah Smith', 'Johannesburg', 'Digital marketing specialist with expertise in SEO and social media', '+27834567890', 0, 'Growth-focused companies', 'Marketing Manager at AdCorp', 'BA Marketing - Wits', 'Digital Marketing,SEO,Social Media,Google Analytics', datetime('now', '-1 hour'), 92, 1, datetime('now', '-25 days')),
+('mike.johnson', '$2b$10$encrypted_password_hash', 'mike.johnson@example.com', 'Mike Johnson', 'Durban', 'Financial analyst with CFA certification', '+27845678901', 1, 'Banking and finance sector', 'Senior Analyst at InvestCorp', 'BCom Finance - UKZN', 'Financial Analysis,Excel,Bloomberg,Risk Management', datetime('now', '-3 hours'), 78, 1, datetime('now', '-20 days')),
+('lisa.williams', '$2b$10$encrypted_password_hash', 'lisa.williams@example.com', 'Lisa Williams', 'Pretoria', 'HR recruiter specializing in tech talent acquisition', '+27856789012', 0, 'Technology companies', 'Recruitment Specialist at TalentCorp', 'BA Psychology - UP', 'Recruitment,HR,Talent Acquisition,Interviewing', datetime('now', '-30 minutes'), 88, 1, datetime('now', '-15 days')),
+('david.brown', '$2b$10$encrypted_password_hash', 'david.brown@example.com', 'David Brown', 'Cape Town', 'UX/UI designer with 7 years experience in product design', '+27867890123', 1, 'Startups and scale-ups', 'Lead Designer at DesignCorp', 'BFA Design - Stellenbosch', 'UI/UX Design,Figma,Sketch,Adobe Creative Suite', datetime('now', '-4 hours'), 91, 1, datetime('now', '-18 days')),
+('emma.davis', '$2b$10$encrypted_password_hash', 'emma.davis@example.com', 'Emma Davis', 'Sandton', 'Software engineer passionate about AI and machine learning', '+27878901234', 1, 'AI/ML companies', 'ML Engineer at DataCorp', 'MSc Computer Science - Wits', 'Python,TensorFlow,PyTorch,Machine Learning,AI', datetime('now', '-1 hour'), 94, 1, datetime('now', '-22 days')),
+('james.wilson', '$2b$10$encrypted_password_hash', 'james.wilson@example.com', 'James Wilson', 'Johannesburg', 'Sales manager with proven track record in B2B sales', '+27889012345', 0, 'Enterprise sales roles', 'Sales Manager at SalesCorp', 'BCom Sales - UJ', 'B2B Sales,CRM,Salesforce,Negotiation', datetime('now', '-2 hours'), 82, 1, datetime('now', '-28 days')),
+('anna.taylor', '$2b$10$encrypted_password_hash', 'anna.taylor@example.com', 'Anna Taylor', 'Cape Town', 'Project manager with PMP certification', '+27890123456', 1, 'Large projects', 'Senior PM at ProjectCorp', 'MBA - GSB', 'Project Management,Agile,Scrum,Leadership', datetime('now', '-45 minutes'), 87, 1, datetime('now', '-12 days')),
+('robert.anderson', '$2b$10$encrypted_password_hash', 'robert.anderson@example.com', 'Robert Anderson', 'Pretoria', 'DevOps engineer specializing in cloud infrastructure', '+27901234567', 1, 'Cloud-first companies', 'DevOps Engineer at CloudCorp', 'BSc IT - UP', 'AWS,Docker,Kubernetes,Terraform,CI/CD', datetime('now', '-3 hours'), 89, 1, datetime('now', '-35 days')),
+('olivia.thomas', '$2b$10$encrypted_password_hash', 'olivia.thomas@example.com', 'Olivia Thomas', 'Durban', 'Data scientist with PhD in Statistics', '+27912345678', 1, 'Data-driven companies', 'Data Scientist at DataCorp', 'PhD Statistics - UKZN', 'Python,R,SQL,Machine Learning,Statistics', datetime('now', '-1 hour'), 96, 1, datetime('now', '-40 days')),
+('hr.manager', '$2b$10$encrypted_password_hash', 'hr@takealot.com', 'Takealot HR Team', 'Cape Town', 'Official HR account for Takealot', '+27215551234', 0, NULL, NULL, NULL, NULL, datetime('now', '-15 minutes'), 75, 1, datetime('now', '-60 days')),
+('recruiter.discovery', '$2b$10$encrypted_password_hash', 'jobs@discovery.co.za', 'Discovery Talent Team', 'Sandton', 'Discovery talent acquisition team', '+27115552345', 0, NULL, NULL, NULL, NULL, datetime('now', '-30 minutes'), 80, 1, datetime('now', '-45 days'));
 
 -- Insert Jobs
 INSERT INTO jobs (title, description, location, salary, job_type, work_mode, company_id, category_id, is_featured, created_at) VALUES
@@ -109,35 +102,6 @@ INSERT INTO user_job_preferences (user_id, preferred_categories, preferred_locat
 (8, 'Operations', 'Cape Town', 'Full-time', 1, 40000, datetime('now', '-6 days')),
 (9, 'Technology', 'Pretoria,Remote', 'Full-time', 1, 45000, datetime('now', '-8 days')),
 (10, 'Technology', 'Durban,Remote', 'Full-time', 1, 50000, datetime('now', '-9 days'));
-
--- Insert Subscriptions
-INSERT INTO subscriptions (user_id, stripe_subscription_id, plan_type, status, current_period_start, current_period_end, trial_start, trial_end, created_at) VALUES
-(4, 'sub_stripe_12345', 'basic', 'trialing', datetime('now', '-15 days'), datetime('now', '+15 days'), datetime('now', '-15 days'), datetime('now', '+15 days'), datetime('now', '-15 days')),
-(11, 'sub_stripe_67890', 'professional', 'active', datetime('now', '-30 days'), datetime('now', '+30 days'), NULL, NULL, datetime('now', '-60 days')),
-(12, 'sub_stripe_11111', 'enterprise', 'active', datetime('now', '-20 days'), datetime('now', '+40 days'), NULL, NULL, datetime('now', '-45 days'));
-
--- Insert Payment Methods
-INSERT INTO payment_methods (user_id, stripe_payment_method_id, type, card_brand, card_last4, card_exp_month, card_exp_year, is_default, created_at) VALUES
-(4, 'pm_stripe_12345', 'card', 'visa', '4242', 12, 2027, 1, datetime('now', '-15 days')),
-(11, 'pm_stripe_67890', 'card', 'mastercard', '5555', 8, 2026, 1, datetime('now', '-60 days')),
-(12, 'pm_stripe_11111', 'card', 'visa', '4444', 10, 2028, 1, datetime('now', '-45 days'));
-
--- Insert Billing Addresses
-INSERT INTO billing_addresses (user_id, line1, line2, city, state, postal_code, country, is_default, created_at) VALUES
-(4, '123 Main Street', 'Unit 4B', 'Pretoria', 'Gauteng', '0001', 'ZA', 1, datetime('now', '-15 days')),
-(11, '456 Oak Avenue', NULL, 'Cape Town', 'Western Cape', '8001', 'ZA', 1, datetime('now', '-60 days')),
-(12, '789 Pine Road', 'Suite 200', 'Sandton', 'Gauteng', '2196', 'ZA', 1, datetime('now', '-45 days'));
-
--- Insert Payments
-INSERT INTO payments (user_id, subscription_id, stripe_payment_intent_id, amount, currency, status, payment_method, description, created_at) VALUES
-(11, 2, 'pi_stripe_67890', 599.00, 'ZAR', 'succeeded', 'card', 'Professional Plan - Monthly', datetime('now', '-30 days')),
-(12, 3, 'pi_stripe_11111', 1299.00, 'ZAR', 'succeeded', 'card', 'Enterprise Plan - Monthly', datetime('now', '-20 days'));
-
--- Insert Job Credits
-INSERT INTO job_credits (user_id, subscription_id, credits_total, credits_used, credits_remaining, expires_at, created_at) VALUES
-(4, 1, 5, 0, 5, datetime('now', '+15 days'), datetime('now', '-15 days')),
-(11, 2, 25, 8, 17, datetime('now', '+30 days'), datetime('now', '-30 days')),
-(12, 3, 100, 12, 88, datetime('now', '+40 days'), datetime('now', '-20 days'));
 
 -- Insert Job Applications
 INSERT INTO job_applications (user_id, job_id, status, applied_at, resume_url, cover_letter, notes) VALUES
