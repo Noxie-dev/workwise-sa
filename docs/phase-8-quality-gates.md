@@ -33,4 +33,11 @@ The canonical CI path should run:
 - `pnpm run test:api`
 - a focused Playwright browser test against the local canonical app runtime
 
+Current implementation truth:
+
+- `test:unit` is the canonical backend gate
+- `test:integration` currently aliases that same maintained backend suite so CI stays stable while older network-style integration files are rewritten
+- `test:api` is the focused ingest/API route check inside the unit-safe harness
+- obsolete demo-style and bind-to-port backend tests have been removed rather than preserved as misleading fallback coverage
+
 Broader staging, visual, and accessibility suites can remain additional layers, but they should not be the only browser verification path.

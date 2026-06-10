@@ -29,21 +29,21 @@ This checklist turns the repo from mixed maturity into a single, production-read
 - [x] Remove or deprecate duplicate route registrations and conflicting middleware chains
 - [x] Audit overlap between `client/src` and root `src/` frontend-style code
 - [x] Move any still-needed root `src/` frontend code into `client/` or retire it
-- [ ] Remove dead backup/refactor artifacts once replacements are verified
+- [x] Remove dead backup/refactor artifacts once replacements are verified
 - [x] Update imports, aliases, and build scripts to reflect the chosen canonical layout
 - [x] Update `README.md` and `idex.md` after consolidation decisions are implemented
 
 ## Phase 2: Eliminate Mock, Demo, And Placeholder Behavior
 
 - [x] Inventory all mock/demo/placeholder paths found in frontend, backend, and serverless code
-- [ ] Replace backend mock fallbacks in [server/routes.ts](/workspace/server/routes.ts) with real data access or explicit failure handling
+- [x] Replace backend mock fallbacks in [server/routes.ts](/workspace/server/routes.ts) with real data access or explicit failure handling
 - [x] Replace placeholder user mapping in [server/routes/jobApplications.ts](/workspace/server/routes/jobApplications.ts) with real Firebase UID to DB user resolution
-- [ ] Replace mock Firebase fallbacks in [server/firebase.ts](/workspace/server/firebase.ts) and [src/firebase.ts](/workspace/src/firebase.ts) with environment-aware real implementations
+- [x] Replace mock Firebase fallbacks in [server/firebase.ts](/workspace/server/firebase.ts) and [src/firebase.ts](/workspace/src/firebase.ts) with environment-aware real implementations
 - [x] Remove mock dashboard responses from [client/src/services/dashboardService.ts](/workspace/client/src/services/dashboardService.ts) and [src/services/dashboardService.ts](/workspace/src/services/dashboardService.ts)
 - [x] Replace mock categories and companies in [client/src/components/CategoriesSection.tsx](/workspace/client/src/components/CategoriesSection.tsx) and [client/src/components/CompaniesSection.tsx](/workspace/client/src/components/CompaniesSection.tsx)
-- [ ] Replace placeholder company/job media URLs such as `via.placeholder.com` with stored assets or deterministic fallbacks
+- [x] Replace placeholder company/job media URLs such as `via.placeholder.com` with stored assets or deterministic fallbacks
 - [ ] Review Netlify functions for mock Firebase behavior and either productionize or retire them
-- [ ] Remove “coming soon” UI and placeholder form sections unless they are intentionally hidden behind feature flags
+- [x] Remove “coming soon” UI and placeholder form sections unless they are intentionally hidden behind feature flags
 
 ## Phase 3: Complete Core Candidate Flows
 
@@ -52,14 +52,14 @@ This checklist turns the repo from mixed maturity into a single, production-read
 - [x] Finish application history and application status tracking
 - [ ] Finish profile read/update flows, including avatar/file upload
 - [ ] Finish CV/profile generation, persistence, and retrieval flows
-- [ ] Ensure favorites/saved jobs work across API, database, and UI
+- [x] Ensure favorites/saved jobs work across API, database, and UI
 - [ ] Verify authentication persistence across refresh, logout, email link, and protected routes
 - [ ] Add empty, loading, error, and unauthorized states for all candidate-facing flows
 
 ## Phase 4: Complete Employer And Admin Flows
 
 - [x] Replace employer dashboard mock data with real API-backed data
-- [ ] Complete create/edit/publish/archive job posting flows
+- [x] Complete create/edit/publish/archive job posting flows
 - [ ] Complete employer-side application review and candidate management flows
 - [x] Complete role-based access control for employer and admin features
 - [x] Remove hardcoded admin checks and move role resolution into database/custom claims
