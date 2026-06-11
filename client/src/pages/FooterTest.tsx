@@ -1,5 +1,4 @@
 import React from 'react';
-import FooterTestComponent from '@/components/FooterTestComponent';
 
 const FooterTest = () => {
   return (
@@ -8,7 +7,6 @@ const FooterTest = () => {
         <h1 className="text-2xl font-bold mb-4">Footer Test Page</h1>
         <p>This page is used to test the Footer component.</p>
       </main>
-      <FooterTestComponent />
     </div>
   );
 };

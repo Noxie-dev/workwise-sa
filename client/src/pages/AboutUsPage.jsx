@@ -389,12 +389,6 @@ const AboutUsPage = () => {
           </div>
         </section>
       </main>
-
-      <footer className="text-center py-10 mt-16 border-t border-border/50">
-        <p className="text-muted-foreground">
-          © {new Date().getFullYear()} WorkWise SA. All rights reserved.
-        </p>
-      </footer>
     </div>
   );
 };

@@ -378,9 +378,9 @@ const HomeSimple: React.FC = () => {
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-              <div className="flex items-center justify-center mb-4">
-                <Briefcase className="w-8 h-8 text-primary mr-3" />
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+              <div className="flex flex-col items-center justify-center gap-3 mb-4 sm:flex-row sm:gap-0">
+                <Briefcase className="w-8 h-8 text-primary sm:mr-3" />
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
                   Featured Opportunities
                 </h2>
               </div>
