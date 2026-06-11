@@ -42,11 +42,14 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
       <div className={`flex items-center space-x-3 ${className || ''}`}>
         <Link
           href="/login"
-          className="text-primary hover:text-primary-dark font-medium transition-colors"
+          className="text-inherit hover:text-[#f2c94c] font-medium transition-colors"
         >
           Login
         </Link>
-        <Button asChild className="bg-primary text-white hover:bg-blue-500 transition-colors">
+        <Button
+          asChild
+          className="bg-[#f2c94c] text-[#102a47] hover:bg-[#e0ad00] transition-colors"
+        >
           <Link href="/register">Register</Link>
         </Button>
       </div>

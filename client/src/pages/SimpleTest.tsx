@@ -1,5 +1,4 @@
 import React from 'react';
-import Footer from '@/components/Footer';
 
 const SimpleTest = () => {
   return (
@@ -41,7 +40,6 @@ const SimpleTest = () => {
           </ul>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };

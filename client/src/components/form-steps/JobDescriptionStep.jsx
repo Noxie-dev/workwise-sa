@@ -4,7 +4,7 @@ import { Sparkles } from 'lucide-react';
 import FormField from '../ui/FormField';
 import Textarea from '../ui/Textarea';
 import Button from '../ui/Button';
-import { Card, CardContent } from '../ui/Card';
+import { Card, CardContent } from '../ui/card';
 
 const JobDescriptionStep = ({ formState, onInitiateAIAssist }) => {
   const { values, errors, touched, handleChange, handleBlur } = formState;

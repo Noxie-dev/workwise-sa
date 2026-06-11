@@ -19,7 +19,7 @@ import useFormAutosave from '../hooks/useFormAutosave';
 import { fetchCategories, generateAIContent, submitJobPost } from '../services/jobService';
 
 import Button from './ui/Button';
-import { Card, CardContent } from './ui/Card';
+import { Card, CardContent } from './ui/card';
 import {
   AlertDialog,
   AlertDialogContent,

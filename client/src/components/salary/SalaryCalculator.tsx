@@ -277,13 +277,13 @@ const SalaryCalculator = () => {
           </Suspense>
         </TabsContent>
       </Tabs>
-      <footer className="text-center text-xs text-muted-foreground mt-8">
+      <div className="text-center text-xs text-muted-foreground mt-8">
         <p>
           © {new Date().getFullYear()} Salary Calculator. For estimation purposes only. Consult a
           financial advisor for professional advice.
         </p>
         <p>Tax brackets and MTC rates for 2024/2025 tax year.</p>
-      </footer>
+      </div>
     </div>
   );
 };
