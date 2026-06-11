@@ -43,7 +43,7 @@ const WiseUpLayout: React.FC<WiseUpLayoutProps> = ({
   onNext,
   onPrevious,
   isNextDisabled,
-  isPreviousDisabled
+  isPreviousDisabled,
 }) => {
   return (
     <div className="flex flex-col md:flex-row flex-1 overflow-hidden h-full max-w-[1600px] mx-auto">

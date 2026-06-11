@@ -36,10 +36,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     if (isPlaying) {
       const playPromise = videoRef.current.play();
-      
+
       // Handle play promise rejection (e.g., autoplay policy)
       if (playPromise !== undefined) {
-        playPromise.catch((err) => {
+        playPromise.catch(err => {
           console.warn('Video play failed:', err);
           // Sync parent state with actual video state
           onTogglePlay();
@@ -65,17 +65,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Effect to reset video when src changes
   useEffect(() => {
     if (!videoRef.current || !src) return;
-    
+
     // Reset video state
     videoRef.current.currentTime = 0;
     setError(null);
-    
+
     // Attempt autoplay if isPlaying is true
     if (isPlaying) {
       const playPromise = videoRef.current.play();
-      
+
       if (playPromise !== undefined) {
-        playPromise.catch((err) => {
+        playPromise.catch(err => {
           console.warn('Autoplay failed after source change:', err);
           // Sync parent state with actual video state
           onTogglePlay();
@@ -87,10 +87,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Handle time updates
   const handleTimeUpdate = () => {
     if (videoRef.current) {
-      onTimeUpdate(
-        videoRef.current.currentTime,
-        videoRef.current.duration || 0
-      );
+      onTimeUpdate(videoRef.current.currentTime, videoRef.current.duration || 0);
     }
   };
 
@@ -109,10 +106,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Handle video errors
   const handleError = () => {
     if (!videoRef.current) return;
-    
+
     const videoError = videoRef.current.error;
     let errorMessage = 'Unknown video error';
-    
+
     if (videoError) {
       // Map error codes to user-friendly messages
       switch (videoError.code) {
@@ -132,7 +129,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           errorMessage = `Video error: ${videoError.message}`;
       }
     }
-    
+
     setError(errorMessage);
     onError(videoError);
   };
@@ -150,7 +147,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         onEnded={handleEnded}
         onError={handleError}
       />
-      
+
       {/* Error overlay */}
       {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 p-4">

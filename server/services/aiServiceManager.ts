@@ -1,9 +1,9 @@
 import { generateProfessionalSummary, generateJobDescription, translateText } from '../ai';
-import { 
-  generateProfessionalSummaryWithClaude, 
-  generateJobDescriptionWithClaude, 
+import {
+  generateProfessionalSummaryWithClaude,
+  generateJobDescriptionWithClaude,
   translateTextWithClaude,
-  analyzeImage 
+  analyzeImage,
 } from '../anthropic';
 import { secretManager } from './secretManager';
 
@@ -60,11 +60,13 @@ export class AIServiceManager {
   private lastHealthCheck: Map<AIServiceType, number> = new Map();
   private readonly HEALTH_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
-  constructor(config: AIServiceConfig = {
-    primary: 'claude',
-    fallback: 'gemini',
-    enableFallback: true
-  }) {
+  constructor(
+    config: AIServiceConfig = {
+      primary: 'claude',
+      fallback: 'gemini',
+      enableFallback: true,
+    }
+  ) {
     this.config = config;
     this.initializeServiceAvailability();
   }
@@ -93,7 +95,7 @@ export class AIServiceManager {
 
     try {
       let available = false;
-      
+
       switch (service) {
         case 'gemini':
           const geminiKey = await secretManager.getSecret('GOOGLE_GENAI_API_KEY');
@@ -107,7 +109,7 @@ export class AIServiceManager {
 
       this.serviceAvailability.set(service, available);
       this.lastHealthCheck.set(service, now);
-      
+
       return available;
     } catch (error) {
       console.error(`Error checking ${service} availability:`, error);
@@ -122,7 +124,7 @@ export class AIServiceManager {
    */
   private async getBestService(): Promise<AIServiceType | null> {
     const primaryAvailable = await this.isServiceAvailable(this.config.primary);
-    
+
     if (primaryAvailable) {
       return this.config.primary;
     }
@@ -142,12 +144,13 @@ export class AIServiceManager {
    */
   async generateProfessionalSummary(request: AIGenerationRequest): Promise<AIResponse> {
     const service = await this.getBestService();
-    
+
     if (!service) {
       return {
         success: false,
-        error: 'No AI services are currently available. Please try again later or write your summary manually.',
-        data: this.getFallbackSummary(request)
+        error:
+          'No AI services are currently available. Please try again later or write your summary manually.',
+        data: this.getFallbackSummary(request),
       };
     }
 
@@ -160,7 +163,7 @@ export class AIServiceManager {
           result = await this.callPrimaryService('summary', request);
         } catch (primaryError) {
           console.error(`Primary service (${this.config.primary}) failed:`, primaryError);
-          
+
           if (this.config.enableFallback) {
             console.log(`Falling back to ${this.config.fallback}`);
             result = await this.callFallbackService('summary', request);
@@ -178,14 +181,14 @@ export class AIServiceManager {
         success: true,
         data: result,
         service,
-        fallbackUsed
+        fallbackUsed,
       };
     } catch (error) {
       console.error('All AI services failed for summary generation:', error);
       return {
         success: false,
         error: 'AI services are temporarily unavailable. Please try again later.',
-        data: this.getFallbackSummary(request)
+        data: this.getFallbackSummary(request),
       };
     }
   }
@@ -195,12 +198,13 @@ export class AIServiceManager {
    */
   async generateJobDescription(request: JobDescriptionRequest): Promise<AIResponse> {
     const service = await this.getBestService();
-    
+
     if (!service) {
       return {
         success: false,
-        error: 'No AI services are currently available. Please try again later or write your description manually.',
-        data: this.getFallbackJobDescription(request)
+        error:
+          'No AI services are currently available. Please try again later or write your description manually.',
+        data: this.getFallbackJobDescription(request),
       };
     }
 
@@ -213,7 +217,7 @@ export class AIServiceManager {
           result = await this.callPrimaryService('jobDescription', request);
         } catch (primaryError) {
           console.error(`Primary service (${this.config.primary}) failed:`, primaryError);
-          
+
           if (this.config.enableFallback) {
             console.log(`Falling back to ${this.config.fallback}`);
             result = await this.callFallbackService('jobDescription', request);
@@ -231,14 +235,14 @@ export class AIServiceManager {
         success: true,
         data: result,
         service,
-        fallbackUsed
+        fallbackUsed,
       };
     } catch (error) {
       console.error('All AI services failed for job description generation:', error);
       return {
         success: false,
         error: 'AI services are temporarily unavailable. Please try again later.',
-        data: this.getFallbackJobDescription(request)
+        data: this.getFallbackJobDescription(request),
       };
     }
   }
@@ -248,12 +252,12 @@ export class AIServiceManager {
    */
   async translateText(request: TranslationRequest): Promise<AIResponse> {
     const service = await this.getBestService();
-    
+
     if (!service) {
       return {
         success: false,
         error: 'Translation services are temporarily unavailable. Please try again later.',
-        data: request.text // Return original text as fallback
+        data: request.text, // Return original text as fallback
       };
     }
 
@@ -266,7 +270,7 @@ export class AIServiceManager {
           result = await this.callPrimaryService('translate', request);
         } catch (primaryError) {
           console.error(`Primary service (${this.config.primary}) failed:`, primaryError);
-          
+
           if (this.config.enableFallback) {
             console.log(`Falling back to ${this.config.fallback}`);
             result = await this.callFallbackService('translate', request);
@@ -284,14 +288,14 @@ export class AIServiceManager {
         success: true,
         data: result,
         service,
-        fallbackUsed
+        fallbackUsed,
       };
     } catch (error) {
       console.error('All AI services failed for translation:', error);
       return {
         success: false,
         error: 'Translation services are temporarily unavailable. Please try again later.',
-        data: request.text // Return original text as fallback
+        data: request.text, // Return original text as fallback
       };
     }
   }
@@ -302,28 +306,28 @@ export class AIServiceManager {
   async analyzeImage(request: ImageAnalysisRequest): Promise<AIResponse> {
     try {
       const claudeAvailable = await this.isServiceAvailable('claude');
-      
+
       if (!claudeAvailable) {
         return {
           success: false,
           error: 'Image analysis is temporarily unavailable. Please try again later.',
-          data: 'Unable to analyze the image at this time. Please ensure your photo is professional and well-lit.'
+          data: 'Unable to analyze the image at this time. Please ensure your photo is professional and well-lit.',
         };
       }
 
       const result = await analyzeImage(request.base64Image);
-      
+
       return {
         success: true,
         data: result,
-        service: 'claude'
+        service: 'claude',
       };
     } catch (error) {
       console.error('Image analysis failed:', error);
       return {
         success: false,
         error: 'Image analysis failed. Please try again later.',
-        data: 'Unable to analyze the image. Please ensure your photo is in a supported format (JPEG, PNG) and well-lit.'
+        data: 'Unable to analyze the image. Please ensure your photo is in a supported format (JPEG, PNG) and well-lit.',
       };
     }
   }
@@ -387,23 +391,25 @@ export class AIServiceManager {
    */
   private getFallbackSummary(request: AIGenerationRequest): string {
     const { name, skills, experience, education } = request;
-    
-    const skillsList = skills.length > 0 ? skills.slice(0, 5).join(', ') : 'various technical skills';
+
+    const skillsList =
+      skills.length > 0 ? skills.slice(0, 5).join(', ') : 'various technical skills';
     const latestJob = experience[0];
     const latestEducation = education[0];
-    
+
     let summary = `I am ${name}, a motivated professional with expertise in ${skillsList}.`;
-    
+
     if (latestJob) {
       summary += ` I have experience working as ${latestJob.jobTitle || 'a professional'} at ${latestJob.employer || 'a reputable organization'}.`;
     }
-    
+
     if (latestEducation) {
       summary += ` I hold ${latestEducation.degree || 'a qualification'} from ${latestEducation.school || 'an educational institution'}.`;
     }
-    
-    summary += ' I am eager to contribute my skills and experience to new opportunities and continue growing professionally.';
-    
+
+    summary +=
+      ' I am eager to contribute my skills and experience to new opportunities and continue growing professionally.';
+
     return summary;
   }
 
@@ -412,17 +418,18 @@ export class AIServiceManager {
    */
   private getFallbackJobDescription(request: JobDescriptionRequest): string {
     const { jobTitle, employer, description } = request;
-    
+
     let fallback = `I worked as ${jobTitle} at ${employer}.`;
-    
+
     if (description) {
       fallback += ` ${description}`;
     } else {
-      fallback += ' I was responsible for various tasks related to this role and contributed to the organization\'s goals.';
+      fallback +=
+        " I was responsible for various tasks related to this role and contributed to the organization's goals.";
     }
-    
+
     fallback += ' This experience has enhanced my professional skills and knowledge.';
-    
+
     return fallback;
   }
 
@@ -439,10 +446,10 @@ export class AIServiceManager {
   async getServiceStatus(): Promise<Record<AIServiceType, boolean>> {
     const geminiAvailable = await this.isServiceAvailable('gemini');
     const claudeAvailable = await this.isServiceAvailable('claude');
-    
+
     return {
       gemini: geminiAvailable,
-      claude: claudeAvailable
+      claude: claudeAvailable,
     };
   }
 }

@@ -1,6 +1,6 @@
-import type { User } from "@shared/schema";
-import { storage } from "../storage";
-import { Errors } from "../middleware/errorHandler";
+import type { User } from '@shared/schema';
+import { storage } from '../storage';
+import { Errors } from '../middleware/errorHandler';
 
 type FirebaseLikeUser = {
   uid?: string;
@@ -10,7 +10,7 @@ type FirebaseLikeUser = {
 };
 
 function normalizeRole(role: unknown): string {
-  return typeof role === "string" && role.trim() ? role : "user";
+  return typeof role === 'string' && role.trim() ? role : 'user';
 }
 
 function defaultName(user: FirebaseLikeUser) {
@@ -18,16 +18,16 @@ function defaultName(user: FirebaseLikeUser) {
     return user.name.trim();
   }
 
-  if (user.email?.includes("@")) {
-    return user.email.split("@")[0];
+  if (user.email?.includes('@')) {
+    return user.email.split('@')[0];
   }
 
-  return "WorkWise User";
+  return 'WorkWise User';
 }
 
 export async function resolveAuthenticatedDatabaseUser(authUser: FirebaseLikeUser): Promise<User> {
   if (!authUser?.uid) {
-    throw Errors.authentication("User authentication required");
+    throw Errors.authentication('User authentication required');
   }
 
   const existingUser = await storage.getUserByFirebaseUid(authUser.uid);
@@ -36,7 +36,7 @@ export async function resolveAuthenticatedDatabaseUser(authUser: FirebaseLikeUse
   }
 
   if (!authUser.email) {
-    throw Errors.authentication("Authenticated Firebase user is missing an email");
+    throw Errors.authentication('Authenticated Firebase user is missing an email');
   }
 
   return storage.createUser({
@@ -54,8 +54,8 @@ export async function resolveAuthenticatedDatabaseUser(authUser: FirebaseLikeUse
   });
 }
 
-export function assertRole(user: Pick<User, "role">, allowedRoles: string[]) {
-  if (!allowedRoles.includes(user.role ?? "user")) {
-    throw Errors.forbidden("You do not have permission to access this resource");
+export function assertRole(user: Pick<User, 'role'>, allowedRoles: string[]) {
+  if (!allowedRoles.includes(user.role ?? 'user')) {
+    throw Errors.forbidden('You do not have permission to access this resource');
   }
 }

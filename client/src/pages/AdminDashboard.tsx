@@ -2,7 +2,14 @@ import React from 'react';
 import { Link } from 'wouter';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
@@ -12,7 +19,7 @@ import {
   Settings,
   FileText,
   Bell,
-  ShieldAlert
+  ShieldAlert,
 } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
@@ -32,7 +39,9 @@ const AdminDashboard: React.FC = () => {
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
           <ShieldAlert className="h-16 w-16 text-red-500 mb-4" />
           <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-          <p className="text-muted-foreground mb-6">You do not have permission to access this page.</p>
+          <p className="text-muted-foreground mb-6">
+            You do not have permission to access this page.
+          </p>
           <Button asChild>
             <Link href="/">Return to Home</Link>
           </Button>
@@ -96,9 +105,7 @@ const AdminDashboard: React.FC = () => {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Admin Dashboard</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage and monitor WorkWise SA platform
-          </p>
+          <p className="text-muted-foreground mt-2">Manage and monitor WorkWise SA platform</p>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Logged in as:</span>
@@ -111,9 +118,7 @@ const AdminDashboard: React.FC = () => {
           <Card key={index} className="overflow-hidden">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
-                <div className="p-2 bg-muted rounded-lg">
-                  {module.icon}
-                </div>
+                <div className="p-2 bg-muted rounded-lg">{module.icon}</div>
                 {module.notifications > 0 && (
                   <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
                     {module.notifications}

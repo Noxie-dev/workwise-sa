@@ -34,7 +34,8 @@ const consoleFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
   winston.format.colorize({ all: true }),
   winston.format.printf(
-    (info) => `${info.timestamp} ${info.level}: ${info.message}${info.metadata ? ' ' + JSON.stringify(info.metadata) : ''}`
+    info =>
+      `${info.timestamp} ${info.level}: ${info.message}${info.metadata ? ' ' + JSON.stringify(info.metadata) : ''}`
   )
 );
 
@@ -98,17 +99,17 @@ export const extractRequestInfo = (req: Request) => {
 // HTTP request logger middleware
 export const httpLogger = (req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
-  
+
   res.on('finish', () => {
     const duration = Date.now() - start;
     const requestInfo = extractRequestInfo(req);
-    
+
     logger.http(`${req.method} ${req.path}`, {
       ...requestInfo,
       statusCode: res.statusCode,
       duration: `${duration}ms`,
     });
   });
-  
+
   next();
 };

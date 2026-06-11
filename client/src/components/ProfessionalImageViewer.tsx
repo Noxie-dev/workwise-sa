@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  X, 
-  Download, 
-  ZoomIn, 
-  ZoomOut, 
+import {
+  X,
+  Download,
+  ZoomIn,
+  ZoomOut,
   RotateCw,
   Maximize2,
   Minimize2,
   Briefcase,
-  User
+  User,
 } from 'lucide-react';
 
 interface ProfessionalImageViewerProps {
@@ -25,7 +25,7 @@ const ProfessionalImageViewer: React.FC<ProfessionalImageViewerProps> = ({
   imageUrl,
   candidateName,
   onClose,
-  isOpen
+  isOpen,
 }) => {
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -65,7 +65,9 @@ const ProfessionalImageViewer: React.FC<ProfessionalImageViewerProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-      <div className={`bg-white rounded-lg shadow-2xl ${isFullscreen ? 'w-full h-full' : 'max-w-4xl max-h-[90vh] w-full mx-4'} flex flex-col`}>
+      <div
+        className={`bg-white rounded-lg shadow-2xl ${isFullscreen ? 'w-full h-full' : 'max-w-4xl max-h-[90vh] w-full mx-4'} flex flex-col`}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg">
           <div className="flex items-center gap-3">
@@ -80,7 +82,7 @@ const ProfessionalImageViewer: React.FC<ProfessionalImageViewerProps> = ({
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-xs">
               Recruiter View
@@ -99,63 +101,33 @@ const ProfessionalImageViewer: React.FC<ProfessionalImageViewerProps> = ({
         {/* Controls */}
         <div className="flex items-center justify-between p-3 border-b bg-gray-50">
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleZoomOut}
-              disabled={zoom <= 0.5}
-            >
+            <Button variant="outline" size="sm" onClick={handleZoomOut} disabled={zoom <= 0.5}>
               <ZoomOut className="h-4 w-4" />
             </Button>
             <span className="text-sm text-gray-600 min-w-[60px] text-center">
               {Math.round(zoom * 100)}%
             </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleZoomIn}
-              disabled={zoom >= 3}
-            >
+            <Button variant="outline" size="sm" onClick={handleZoomIn} disabled={zoom >= 3}>
               <ZoomIn className="h-4 w-4" />
             </Button>
-            
+
             <div className="w-px h-6 bg-gray-300 mx-2" />
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRotate}
-            >
+
+            <Button variant="outline" size="sm" onClick={handleRotate}>
               <RotateCw className="h-4 w-4" />
             </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={resetView}
-            >
+
+            <Button variant="outline" size="sm" onClick={resetView}>
               Reset
             </Button>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleFullscreen}
-            >
-              {isFullscreen ? (
-                <Minimize2 className="h-4 w-4" />
-              ) : (
-                <Maximize2 className="h-4 w-4" />
-              )}
+            <Button variant="outline" size="sm" onClick={toggleFullscreen}>
+              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownload}
-            >
+
+            <Button variant="outline" size="sm" onClick={handleDownload}>
               <Download className="h-4 w-4" />
               Download
             </Button>
@@ -171,7 +143,7 @@ const ProfessionalImageViewer: React.FC<ProfessionalImageViewerProps> = ({
               className="max-w-full max-h-full object-contain shadow-lg rounded-lg transition-transform duration-200"
               style={{
                 transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                transformOrigin: 'center center'
+                transformOrigin: 'center center',
               }}
             />
           </div>

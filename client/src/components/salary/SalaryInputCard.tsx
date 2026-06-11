@@ -5,14 +5,20 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Calculator, HelpCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   professionalIndustryAverages,
   lowLevelJobAverages,
   jobLevelDescriptions,
-  MINIMUM_WAGE
+  MINIMUM_WAGE,
 } from '@/data/salaryData';
 
 interface SalaryInputCardProps {
@@ -56,7 +62,7 @@ const SalaryInputCard: React.FC<SalaryInputCardProps> = ({
   setExperience,
   applyIndustryAverage,
   jobLevel = 'professional',
-  setJobLevel = () => {}
+  setJobLevel = () => {},
 }) => {
   const amountId = useId();
   const hoursId = useId();
@@ -70,27 +76,32 @@ const SalaryInputCard: React.FC<SalaryInputCardProps> = ({
 
   const handleAmountChange = (value: string) => {
     const numValue = parseFloat(value);
-    if (value === "" || (numValue >= 0 && !isNaN(numValue))) {
-      setAmount(value === "" ? "" : numValue); // Allow empty to clear, then treat as 0 for calc
+    if (value === '' || (numValue >= 0 && !isNaN(numValue))) {
+      setAmount(value === '' ? '' : numValue); // Allow empty to clear, then treat as 0 for calc
       setInputErrors(prev => ({ ...prev, amount: null }));
     } else {
-      setInputErrors(prev => ({ ...prev, amount: "Please enter a valid positive number." }));
+      setInputErrors(prev => ({ ...prev, amount: 'Please enter a valid positive number.' }));
     }
   };
 
-  const createNumericHandler = (setter: (val: number) => void, fieldName: string, min: number, max: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const numValue = parseInt(value);
-    if (value === "") {
+  const createNumericHandler =
+    (setter: (val: number) => void, fieldName: string, min: number, max: number) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      const numValue = parseInt(value);
+      if (value === '') {
         setter(min); // Reset to default or min if cleared
         setInputErrors(prev => ({ ...prev, [fieldName]: null }));
-    } else if (!isNaN(numValue) && numValue >= min && numValue <= max) {
+      } else if (!isNaN(numValue) && numValue >= min && numValue <= max) {
         setter(numValue);
         setInputErrors(prev => ({ ...prev, [fieldName]: null }));
-    } else {
-        setInputErrors(prev => ({ ...prev, [fieldName]: `Value must be between ${min} and ${max}.` }));
-    }
-  };
+      } else {
+        setInputErrors(prev => ({
+          ...prev,
+          [fieldName]: `Value must be between ${min} and ${max}.`,
+        }));
+      }
+    };
 
   // Format currency for display
   const formatCurrency = (value: number | string) => {
@@ -105,7 +116,10 @@ const SalaryInputCard: React.FC<SalaryInputCardProps> = ({
   return (
     <Card className="md:col-span-1">
       <CardHeader>
-        <CardTitle className="flex items-center text-[#163b6d]"><Calculator className="mr-2 h-5 w-5" />Salary Input</CardTitle>
+        <CardTitle className="flex items-center text-[#163b6d]">
+          <Calculator className="mr-2 h-5 w-5" />
+          Salary Input
+        </CardTitle>
         <CardDescription>Enter your salary details below.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -121,18 +135,24 @@ const SalaryInputCard: React.FC<SalaryInputCardProps> = ({
             type="number"
             min="0"
             value={amount}
-            onChange={(e) => handleAmountChange(e.target.value)}
+            onChange={e => handleAmountChange(e.target.value)}
             className={`flex-1 ${inputErrors.amount ? 'border-red-500' : ''}`}
             aria-invalid={!!inputErrors.amount}
             aria-describedby={inputErrors.amount ? `${amountId}-error` : undefined}
           />
-          {inputErrors.amount && <p id={`${amountId}-error`} className="text-xs text-red-500 mt-1">{inputErrors.amount}</p>}
+          {inputErrors.amount && (
+            <p id={`${amountId}-error`} className="text-xs text-red-500 mt-1">
+              {inputErrors.amount}
+            </p>
+          )}
         </div>
 
         <div className="space-y-1">
           <Label>Payment Frequency</Label>
           <Select value={inputType} onValueChange={setInputType}>
-            <SelectTrigger><SelectValue placeholder="Select frequency" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Select frequency" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="hourly">Hourly Rate</SelectItem>
               <SelectItem value="daily">Daily Rate</SelectItem>
@@ -151,48 +171,72 @@ const SalaryInputCard: React.FC<SalaryInputCardProps> = ({
             <Label htmlFor="advanced-calc-switch">Advanced Settings (for hourly/daily calc)</Label>
             <Switch
               id="advanced-calc-switch"
-              checked={calculationType === "advanced"}
-              onCheckedChange={(checked) => setCalculationType(checked ? "advanced" : "basic")}
+              checked={calculationType === 'advanced'}
+              onCheckedChange={checked => setCalculationType(checked ? 'advanced' : 'basic')}
             />
           </div>
         </div>
 
-        {calculationType === "advanced" && (
+        {calculationType === 'advanced' && (
           <div className="space-y-3 mt-3 p-3 border rounded-md">
             <div className="space-y-1">
               <Label htmlFor={hoursId}>Hours per day</Label>
               <Input
-                id={hoursId} type="number" min="1" max="24" value={hoursPerDay}
+                id={hoursId}
+                type="number"
+                min="1"
+                max="24"
+                value={hoursPerDay}
                 onChange={createNumericHandler(setHoursPerDay, 'hoursPerDay', 1, 24)}
                 className={inputErrors.hoursPerDay ? 'border-red-500' : ''}
                 aria-invalid={!!inputErrors.hoursPerDay}
                 aria-describedby={inputErrors.hoursPerDay ? `${hoursId}-error` : undefined}
               />
-              {inputErrors.hoursPerDay && <p id={`${hoursId}-error`} className="text-xs text-red-500 mt-1">{inputErrors.hoursPerDay}</p>}
+              {inputErrors.hoursPerDay && (
+                <p id={`${hoursId}-error`} className="text-xs text-red-500 mt-1">
+                  {inputErrors.hoursPerDay}
+                </p>
+              )}
             </div>
 
             <div className="space-y-1">
               <Label htmlFor={daysId}>Days per week</Label>
               <Input
-                id={daysId} type="number" min="1" max="7" value={daysPerWeek}
+                id={daysId}
+                type="number"
+                min="1"
+                max="7"
+                value={daysPerWeek}
                 onChange={createNumericHandler(setDaysPerWeek, 'daysPerWeek', 1, 7)}
                 className={inputErrors.daysPerWeek ? 'border-red-500' : ''}
                 aria-invalid={!!inputErrors.daysPerWeek}
                 aria-describedby={inputErrors.daysPerWeek ? `${daysId}-error` : undefined}
               />
-               {inputErrors.daysPerWeek && <p id={`${daysId}-error`} className="text-xs text-red-500 mt-1">{inputErrors.daysPerWeek}</p>}
+              {inputErrors.daysPerWeek && (
+                <p id={`${daysId}-error`} className="text-xs text-red-500 mt-1">
+                  {inputErrors.daysPerWeek}
+                </p>
+              )}
             </div>
 
             <div className="space-y-1">
               <Label htmlFor={weeksId}>Working weeks per year</Label>
               <Input
-                id={weeksId} type="number" min="1" max="52" value={weeksPerYear}
+                id={weeksId}
+                type="number"
+                min="1"
+                max="52"
+                value={weeksPerYear}
                 onChange={createNumericHandler(setWeeksPerYear, 'weeksPerYear', 1, 52)}
                 className={inputErrors.weeksPerYear ? 'border-red-500' : ''}
                 aria-invalid={!!inputErrors.weeksPerYear}
                 aria-describedby={inputErrors.weeksPerYear ? `${weeksId}-error` : undefined}
               />
-              {inputErrors.weeksPerYear && <p id={`${weeksId}-error`} className="text-xs text-red-500 mt-1">{inputErrors.weeksPerYear}</p>}
+              {inputErrors.weeksPerYear && (
+                <p id={`${weeksId}-error`} className="text-xs text-red-500 mt-1">
+                  {inputErrors.weeksPerYear}
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -211,13 +255,18 @@ const SalaryInputCard: React.FC<SalaryInputCardProps> = ({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
-                  <p>Professional jobs include corporate and skilled positions. Entry-level jobs include entry-level, general worker, and service positions.</p>
+                  <p>
+                    Professional jobs include corporate and skilled positions. Entry-level jobs
+                    include entry-level, general worker, and service positions.
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
           <Select value={jobLevel} onValueChange={setJobLevel}>
-            <SelectTrigger id="job-level"><SelectValue placeholder="Select job level" /></SelectTrigger>
+            <SelectTrigger id="job-level">
+              <SelectValue placeholder="Select job level" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="professional">Professional Jobs</SelectItem>
               <SelectItem value="entry-level">Entry-Level Jobs</SelectItem>
@@ -236,15 +285,21 @@ const SalaryInputCard: React.FC<SalaryInputCardProps> = ({
           </div>
           <div className="grid grid-cols-2 gap-2">
             <Select value={industry} onValueChange={setIndustry}>
-              <SelectTrigger><SelectValue placeholder="Select industry" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Select industry" />
+              </SelectTrigger>
               <SelectContent>
-                {Object.keys(industryData).map((ind) => (
-                  <SelectItem key={ind} value={ind}>{ind}</SelectItem>
+                {Object.keys(industryData).map(ind => (
+                  <SelectItem key={ind} value={ind}>
+                    {ind}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select value={experience} onValueChange={setExperience}>
-              <SelectTrigger><SelectValue placeholder="Experience level" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Experience level" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="entry">Entry Level</SelectItem>
                 <SelectItem value="mid">Mid Level</SelectItem>
@@ -273,7 +328,7 @@ const SalaryInputCard: React.FC<SalaryInputCardProps> = ({
             className="w-full mt-2"
             onClick={applyIndustryAverage}
             disabled={!industry || !experience}
-            title={!industry || !experience ? "Please select an industry and experience level" : ""}
+            title={!industry || !experience ? 'Please select an industry and experience level' : ''}
           >
             Apply Industry Average
           </Button>

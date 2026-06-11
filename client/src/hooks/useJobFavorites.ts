@@ -23,13 +23,13 @@ export const useJobFavorites = () => {
 
       try {
         const jobs = await jobsService.getFavoriteJobs();
-        setFavorites(jobs.map((job) => job.id));
+        setFavorites(jobs.map(job => job.id));
       } catch (error) {
         console.error('Error loading saved jobs:', error);
         toast({
           variant: 'destructive',
           title: 'Error loading saved jobs',
-          description: 'Your saved jobs could not be loaded.'
+          description: 'Your saved jobs could not be loaded.',
         });
       } finally {
         setIsLoading(false);
@@ -52,62 +52,74 @@ export const useJobFavorites = () => {
     return false;
   }, [currentUser, toast]);
 
-  const addFavorite = useCallback(async (jobId: number) => {
-    if (!requireAuthenticatedUser()) {
-      return;
-    }
+  const addFavorite = useCallback(
+    async (jobId: number) => {
+      if (!requireAuthenticatedUser()) {
+        return;
+      }
 
-    setFavorites((prev) => (prev.includes(jobId) ? prev : [...prev, jobId]));
+      setFavorites(prev => (prev.includes(jobId) ? prev : [...prev, jobId]));
 
-    try {
-      await jobsService.toggleFavorite(jobId, true);
-    } catch (error) {
-      setFavorites((prev) => prev.filter((id) => id !== jobId));
-      toast({
-        variant: 'destructive',
-        title: 'Error saving job',
-        description: 'This job could not be saved right now.',
-      });
-    }
-  }, [requireAuthenticatedUser, toast]);
+      try {
+        await jobsService.toggleFavorite(jobId, true);
+      } catch (error) {
+        setFavorites(prev => prev.filter(id => id !== jobId));
+        toast({
+          variant: 'destructive',
+          title: 'Error saving job',
+          description: 'This job could not be saved right now.',
+        });
+      }
+    },
+    [requireAuthenticatedUser, toast]
+  );
 
-  const removeFavorite = useCallback(async (jobId: number) => {
-    if (!requireAuthenticatedUser()) {
-      return;
-    }
+  const removeFavorite = useCallback(
+    async (jobId: number) => {
+      if (!requireAuthenticatedUser()) {
+        return;
+      }
 
-    const previousFavorites = favorites;
-    setFavorites((prev) => prev.filter((id) => id !== jobId));
+      const previousFavorites = favorites;
+      setFavorites(prev => prev.filter(id => id !== jobId));
 
-    try {
-      await jobsService.toggleFavorite(jobId, false);
-    } catch (error) {
-      setFavorites(previousFavorites);
-      toast({
-        variant: 'destructive',
-        title: 'Error updating saved jobs',
-        description: 'This saved job could not be updated right now.',
-      });
-    }
-  }, [favorites, requireAuthenticatedUser, toast]);
+      try {
+        await jobsService.toggleFavorite(jobId, false);
+      } catch (error) {
+        setFavorites(previousFavorites);
+        toast({
+          variant: 'destructive',
+          title: 'Error updating saved jobs',
+          description: 'This saved job could not be updated right now.',
+        });
+      }
+    },
+    [favorites, requireAuthenticatedUser, toast]
+  );
 
-  const toggleFavorite = useCallback(async (jobId: number) => {
-    if (!requireAuthenticatedUser()) {
-      return;
-    }
+  const toggleFavorite = useCallback(
+    async (jobId: number) => {
+      if (!requireAuthenticatedUser()) {
+        return;
+      }
 
-    if (favorites.includes(jobId)) {
-      await removeFavorite(jobId);
-      return;
-    }
+      if (favorites.includes(jobId)) {
+        await removeFavorite(jobId);
+        return;
+      }
 
-    await addFavorite(jobId);
-  }, [addFavorite, favorites, removeFavorite, requireAuthenticatedUser]);
+      await addFavorite(jobId);
+    },
+    [addFavorite, favorites, removeFavorite, requireAuthenticatedUser]
+  );
 
   // Check if a job is in favorites
-  const isFavorite = useCallback((jobId: number) => {
-    return favorites.includes(jobId);
-  }, [favorites]);
+  const isFavorite = useCallback(
+    (jobId: number) => {
+      return favorites.includes(jobId);
+    },
+    [favorites]
+  );
 
   return {
     favorites,
@@ -115,7 +127,7 @@ export const useJobFavorites = () => {
     addFavorite,
     removeFavorite,
     toggleFavorite,
-    isFavorite
+    isFavorite,
   };
 };
 

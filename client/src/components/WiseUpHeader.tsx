@@ -11,11 +11,7 @@ const WiseUpHeader: React.FC = () => {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Left side: Logo and Title */}
         <div className="flex items-center">
-          <img
-            src="/images/hero-logo.png"
-            alt="WorkWise SA Logo"
-            className="h-8 w-8 mr-2"
-          />
+          <img src="/images/hero-logo.png" alt="WorkWise SA Logo" className="h-8 w-8 mr-2" />
           <span className="font-bold text-xl text-blue-600">WiseUp</span>
         </div>
 

@@ -16,25 +16,24 @@ const MarketingRulePreview: React.FC<MarketingRulePreviewProps> = ({ selectedRul
 
   // Sample job listing data for preview
   const sampleJob: JobListingExample = {
-    title: "General Worker",
-    company: "ABC Manufacturing",
-    location: "Johannesburg, Gauteng",
-    jobType: "General Worker",
-    description: "Entry-level position for a general worker. No experience required. Opportunity to learn and grow in a supportive environment.",
+    title: 'General Worker',
+    company: 'ABC Manufacturing',
+    location: 'Johannesburg, Gauteng',
+    jobType: 'General Worker',
+    description:
+      'Entry-level position for a general worker. No experience required. Opportunity to learn and grow in a supportive environment.',
     contactInfo: {
-      email: "jobs@abcmanufacturing.co.za",
-      phone: "011-555-1234",
-      applyInstructions: "Send CV to jobs@abcmanufacturing.co.za or call 011-555-1234"
-    }
+      email: 'jobs@abcmanufacturing.co.za',
+      phone: '011-555-1234',
+      applyInstructions: 'Send CV to jobs@abcmanufacturing.co.za or call 011-555-1234',
+    },
   };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Marketing Rule Preview</CardTitle>
-        <CardDescription>
-          See how the rule affects a sample job listing
-        </CardDescription>
+        <CardDescription>See how the rule affects a sample job listing</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -47,9 +46,15 @@ const MarketingRulePreview: React.FC<MarketingRulePreviewProps> = ({ selectedRul
             <CardContent className="text-sm">
               <h3 className="font-bold text-base">{sampleJob.title}</h3>
               <div className="mt-2">
-                <p><span className="font-semibold">Company:</span> {sampleJob.company}</p>
-                <p><span className="font-semibold">Location:</span> {sampleJob.location}</p>
-                <p><span className="font-semibold">Job Type:</span> {sampleJob.jobType}</p>
+                <p>
+                  <span className="font-semibold">Company:</span> {sampleJob.company}
+                </p>
+                <p>
+                  <span className="font-semibold">Location:</span> {sampleJob.location}
+                </p>
+                <p>
+                  <span className="font-semibold">Job Type:</span> {sampleJob.jobType}
+                </p>
               </div>
               <p className="mt-2">{sampleJob.description}</p>
               <div className="mt-4 border-t pt-2 bg-yellow-50 p-2 rounded">
@@ -70,9 +75,15 @@ const MarketingRulePreview: React.FC<MarketingRulePreviewProps> = ({ selectedRul
             <CardContent className="text-sm">
               <h3 className="font-bold text-base">{sampleJob.title}</h3>
               <div className="mt-2">
-                <p><span className="font-semibold">Company:</span> {sampleJob.company}</p>
-                <p><span className="font-semibold">Location:</span> {sampleJob.location}</p>
-                <p><span className="font-semibold">Job Type:</span> {sampleJob.jobType}</p>
+                <p>
+                  <span className="font-semibold">Company:</span> {sampleJob.company}
+                </p>
+                <p>
+                  <span className="font-semibold">Location:</span> {sampleJob.location}
+                </p>
+                <p>
+                  <span className="font-semibold">Job Type:</span> {sampleJob.jobType}
+                </p>
               </div>
               <p className="mt-2">{sampleJob.description}</p>
               <div className="mt-4 border-t pt-2 bg-green-50 p-2 rounded">

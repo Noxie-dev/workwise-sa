@@ -1,30 +1,26 @@
-import { Router } from "express";
-import {
-  adEventSchema,
-  adPlacementSchema,
-  defaultAdSlots,
-} from "@shared/monetization";
-import { logger } from "../utils/logger";
-import { auth } from "../firebase";
-import { resolveAuthenticatedDatabaseUser } from "../services/authenticatedUser";
-import { entitlementService } from "../services/entitlementService";
+import { Router } from 'express';
+import { adEventSchema, adPlacementSchema, defaultAdSlots } from '@shared/monetization';
+import { logger } from '../utils/logger';
+import { auth } from '../firebase';
+import { resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
+import { entitlementService } from '../services/entitlementService';
 
 const router = Router();
 
 async function resolveOptionalUser(req: any) {
   const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) {
+  if (!authHeader?.startsWith('Bearer ')) {
     return null;
   }
 
-  const decoded = await auth.verifyIdToken(authHeader.split("Bearer ")[1]);
+  const decoded = await auth.verifyIdToken(authHeader.split('Bearer ')[1]);
   return resolveAuthenticatedDatabaseUser(decoded);
 }
 
-router.get("/slots/:placement", async (req, res, next) => {
+router.get('/slots/:placement', async (req, res, next) => {
   const parsedPlacement = adPlacementSchema.safeParse(req.params.placement);
   if (!parsedPlacement.success) {
-    return res.status(400).json({ message: "Invalid ad placement" });
+    return res.status(400).json({ message: 'Invalid ad placement' });
   }
 
   try {
@@ -41,16 +37,16 @@ router.get("/slots/:placement", async (req, res, next) => {
   }
 });
 
-router.post("/events", (req, res) => {
+router.post('/events', (req, res) => {
   const parsedEvent = adEventSchema.safeParse(req.body);
   if (!parsedEvent.success) {
     return res.status(400).json({
-      message: "Invalid ad event payload",
+      message: 'Invalid ad event payload',
       issues: parsedEvent.error.issues,
     });
   }
 
-  logger.info("Monetization event received", {
+  logger.info('Monetization event received', {
     placement: parsedEvent.data.placement,
     eventType: parsedEvent.data.eventType,
     creativeId: parsedEvent.data.creativeId,
@@ -60,7 +56,7 @@ router.post("/events", (req, res) => {
   return res.status(202).json({
     accepted: true,
     persisted: false,
-    message: "Event accepted for future analytics persistence",
+    message: 'Event accepted for future analytics persistence',
   });
 });
 

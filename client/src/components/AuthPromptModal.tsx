@@ -1,5 +1,11 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Lock, Eye, Users, Briefcase, Star, ArrowRight } from 'lucide-react';
@@ -22,7 +28,7 @@ const AuthPromptModal: React.FC<AuthPromptModalProps> = ({
   onClose,
   job,
   onSignUp,
-  onSignIn
+  onSignIn,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -46,7 +52,9 @@ const AuthPromptModal: React.FC<AuthPromptModalProps> = ({
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium text-sm truncate">{job.title}</h4>
-                  <p className="text-xs text-muted truncate">{job.company.name} • {job.location}</p>
+                  <p className="text-xs text-muted truncate">
+                    {job.company.name} • {job.location}
+                  </p>
                   <p className="text-xs text-gray-600 mt-1 line-clamp-2">{job.shortDescription}</p>
                 </div>
               </div>
@@ -81,15 +89,11 @@ const AuthPromptModal: React.FC<AuthPromptModalProps> = ({
           </div>
 
           <div className="flex flex-col space-y-3">
-            <Button 
-              onClick={onSignUp}
-              className="w-full bg-primary hover:bg-primary/90"
-              size="lg"
-            >
+            <Button onClick={onSignUp} className="w-full bg-primary hover:bg-primary/90" size="lg">
               Create Free Account
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
-            
+
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
@@ -98,13 +102,8 @@ const AuthPromptModal: React.FC<AuthPromptModalProps> = ({
                 <span className="bg-white px-2 text-muted">Or</span>
               </div>
             </div>
-            
-            <Button 
-              variant="outline" 
-              onClick={onSignIn}
-              className="w-full"
-              size="lg"
-            >
+
+            <Button variant="outline" onClick={onSignIn} className="w-full" size="lg">
               Sign In to Existing Account
             </Button>
           </div>

@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { Job, Company, Category } from "./schema";
+import { z } from 'zod';
+import { Job, Company, Category } from './schema';
 
 /**
  * Job Preview - Basic information shown to anonymous users

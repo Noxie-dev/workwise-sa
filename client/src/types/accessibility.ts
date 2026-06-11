@@ -4,21 +4,21 @@ export interface AccessibilitySettings {
   fontSize: 'small' | 'medium' | 'large' | 'extra-large';
   lineSpacing: 'normal' | 'looser';
   colorTheme: 'light' | 'dark' | 'high-contrast';
-  
+
   // Media & Interaction Controls
   reduceMotion: boolean;
   autoPlayMedia: boolean;
   captionsEnabled: boolean;
-  
+
   // Navigation & Input Preferences
   simplifiedUI: boolean;
   voiceNavigation: boolean;
   expandedTapTargets: boolean;
-  
+
   // Screen Reader & Semantic Support
   ariaAnnouncements: boolean;
   enhancedFocusOutlines: boolean;
-  
+
   // Reading Enhancements
   readingMode: boolean;
   textToSpeech: {
@@ -26,7 +26,7 @@ export interface AccessibilitySettings {
     speed: number; // 0.5 to 2.0
     voice: string;
   };
-  
+
   // Mobile-Specific
   oneHandedMode: boolean;
   gestureAlternatives: boolean;

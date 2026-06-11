@@ -15,17 +15,17 @@ interface UserContextType {
   // User data
   user: AppUser | null;
   firebaseUser: any;
-  
+
   // User state
   isLoading: boolean;
   isAuthenticated: boolean;
-  
+
   // User actions
   setUser: (user: AppUser | null) => void;
   setFirebaseUser: (firebaseUser: any) => void;
   updateUser: (updates: UserUpdate) => void;
   clearUser: () => void;
-  
+
   // Computed user properties
   userDisplayName: string;
   userInitials: string;
@@ -82,14 +82,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const userRole = useMemo(() => {
     if (!user) return 'Guest';
-    
+
     const roleMap: Record<string, string> = {
       user: 'User',
       admin: 'Administrator',
       moderator: 'Moderator',
-      employer: 'Employer'
+      employer: 'Employer',
     };
-    
+
     return roleMap[user.role] || 'User';
   }, [user]);
 
@@ -109,15 +109,15 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const updateUser = useCallback((updates: UserUpdate) => {
     setUserState(prevUser => {
       if (!prevUser) return null;
-      
+
       return {
         ...prevUser,
         ...updates,
         metadata: {
           ...prevUser.metadata,
-          ...updates.metadata
+          ...updates.metadata,
         },
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
     });
   }, []);
@@ -132,50 +132,49 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   // CONTEXT VALUE
   // ============================================================================
 
-  const contextValue: UserContextType = useMemo(() => ({
-    // User data
-    user,
-    firebaseUser,
-    
-    // User state
-    isLoading,
-    isAuthenticated,
-    
-    // User actions
-    setUser,
-    setFirebaseUser,
-    updateUser,
-    clearUser,
-    
-    // Computed user properties
-    userDisplayName,
-    userInitials,
-    isProfileComplete,
-    userRole
-  }), [
-    user,
-    firebaseUser,
-    isLoading,
-    isAuthenticated,
-    setUser,
-    setFirebaseUser,
-    updateUser,
-    clearUser,
-    userDisplayName,
-    userInitials,
-    isProfileComplete,
-    userRole
-  ]);
+  const contextValue: UserContextType = useMemo(
+    () => ({
+      // User data
+      user,
+      firebaseUser,
+
+      // User state
+      isLoading,
+      isAuthenticated,
+
+      // User actions
+      setUser,
+      setFirebaseUser,
+      updateUser,
+      clearUser,
+
+      // Computed user properties
+      userDisplayName,
+      userInitials,
+      isProfileComplete,
+      userRole,
+    }),
+    [
+      user,
+      firebaseUser,
+      isLoading,
+      isAuthenticated,
+      setUser,
+      setFirebaseUser,
+      updateUser,
+      clearUser,
+      userDisplayName,
+      userInitials,
+      isProfileComplete,
+      userRole,
+    ]
+  );
 
   // ============================================================================
   // RENDER
   // ============================================================================
 
-  return (
-    <UserContext.Provider value={contextValue}>
-      {children}
-    </UserContext.Provider>
-  );
+  return <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>;
 };
 
 // ============================================================================
@@ -184,11 +183,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
 export const useUser = (): UserContextType => {
   const context = useContext(UserContext);
-  
+
   if (!context) {
     throw new Error('useUser must be used within a UserProvider');
   }
-  
+
   return context;
 };
 
@@ -202,13 +201,16 @@ export const useUser = (): UserContextType => {
  */
 export const useUserData = () => {
   const { user, firebaseUser, isLoading, isAuthenticated } = useUser();
-  
-  return useMemo(() => ({
-    user,
-    firebaseUser,
-    isLoading,
-    isAuthenticated
-  }), [user, firebaseUser, isLoading, isAuthenticated]);
+
+  return useMemo(
+    () => ({
+      user,
+      firebaseUser,
+      isLoading,
+      isAuthenticated,
+    }),
+    [user, firebaseUser, isLoading, isAuthenticated]
+  );
 };
 
 /**
@@ -217,13 +219,16 @@ export const useUserData = () => {
  */
 export const useUserDisplay = () => {
   const { userDisplayName, userInitials, isProfileComplete, userRole } = useUser();
-  
-  return useMemo(() => ({
-    userDisplayName,
-    userInitials,
-    isProfileComplete,
-    userRole
-  }), [userDisplayName, userInitials, isProfileComplete, userRole]);
+
+  return useMemo(
+    () => ({
+      userDisplayName,
+      userInitials,
+      isProfileComplete,
+      userRole,
+    }),
+    [userDisplayName, userInitials, isProfileComplete, userRole]
+  );
 };
 
 /**
@@ -232,26 +237,23 @@ export const useUserDisplay = () => {
  */
 export const useProfileStatus = () => {
   const { isProfileComplete, user } = useUser();
-  
+
   const profileCompletionPercentage = useMemo(() => {
     if (!user) return 0;
-    
-    const requiredFields = [
-      user.displayName,
-      user.metadata?.location,
-      user.metadata?.bio
-    ];
-    
-    const completedFields = requiredFields.filter(field => 
-      field && field.trim().length > 0
-    ).length;
-    
+
+    const requiredFields = [user.displayName, user.metadata?.location, user.metadata?.bio];
+
+    const completedFields = requiredFields.filter(field => field && field.trim().length > 0).length;
+
     return Math.round((completedFields / requiredFields.length) * 100);
   }, [user]);
-  
-  return useMemo(() => ({
-    isProfileComplete,
-    profileCompletionPercentage,
-    needsCompletion: !isProfileComplete
-  }), [isProfileComplete, profileCompletionPercentage]);
+
+  return useMemo(
+    () => ({
+      isProfileComplete,
+      profileCompletionPercentage,
+      needsCompletion: !isProfileComplete,
+    }),
+    [isProfileComplete, profileCompletionPercentage]
+  );
 };

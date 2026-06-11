@@ -1,5 +1,14 @@
 import React from 'react';
-import { Eye, FileText, CheckCircle, AlertCircle, Clock, Users, DollarSign, MapPin } from 'lucide-react';
+import {
+  Eye,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  Users,
+  DollarSign,
+  MapPin,
+} from 'lucide-react';
 import { Card, CardContent } from '@/components/ui';
 import { JobFormValues } from '@/constants/formConstants';
 
@@ -10,24 +19,33 @@ interface SidePanelProps {
 const SidePanel: React.FC<SidePanelProps> = ({ formData }) => {
   const formatSalary = (min?: string | number, max?: string | number, isNegotiable?: boolean) => {
     if (!min && !max) return isNegotiable ? 'Negotiable' : 'Not specified';
-    if (min && max) return `R${Number(min).toLocaleString()} - R${Number(max).toLocaleString()}${isNegotiable ? ' (Negotiable)' : ''}`;
+    if (min && max)
+      return `R${Number(min).toLocaleString()} - R${Number(max).toLocaleString()}${isNegotiable ? ' (Negotiable)' : ''}`;
     if (min) return `From R${Number(min).toLocaleString()}${isNegotiable ? ' (Negotiable)' : ''}`;
     if (max) return `Up to R${Number(max).toLocaleString()}${isNegotiable ? ' (Negotiable)' : ''}`;
     return isNegotiable ? 'Negotiable' : 'Not specified';
   };
 
   const getCompletionPercentage = () => {
-    const requiredFields = ['title', 'category', 'jobType', 'description', 'companyName', 'contactName', 'contactEmail'];
+    const requiredFields = [
+      'title',
+      'category',
+      'jobType',
+      'description',
+      'companyName',
+      'contactName',
+      'contactEmail',
+    ];
     const completedFields = requiredFields.filter(field => {
       const value = formData[field as keyof JobFormValues];
       return value && value.toString().trim() !== '';
     });
-    
+
     // Add location check (either location or remote)
     if (formData.location?.trim() || formData.isRemote) {
       completedFields.push('location');
     }
-    
+
     const totalFields = requiredFields.length + 1; // +1 for location/remote
     return Math.round((completedFields.length / totalFields) * 100);
   };
@@ -48,17 +66,19 @@ const SidePanel: React.FC<SidePanelProps> = ({ formData }) => {
               <h4 className="font-medium text-sm">{formData.title || 'Job Title'}</h4>
               <p className="text-xs text-gray-600">{formData.companyName || 'Company Name'}</p>
             </div>
-            
+
             <div className="flex items-center gap-2 text-xs text-gray-600">
               <MapPin className="w-3 h-3" />
               <span>{formData.isRemote ? 'Remote' : formData.location || 'Location'}</span>
             </div>
-            
+
             <div className="flex items-center gap-2 text-xs text-gray-600">
               <DollarSign className="w-3 h-3" />
-              <span>{formatSalary(formData.salaryMin, formData.salaryMax, formData.isSalaryNegotiable)}</span>
+              <span>
+                {formatSalary(formData.salaryMin, formData.salaryMax, formData.isSalaryNegotiable)}
+              </span>
             </div>
-            
+
             <div className="flex items-center gap-2 text-xs text-gray-600">
               <Clock className="w-3 h-3" />
               <span>{formData.jobType || 'Job Type'}</span>
@@ -80,13 +100,15 @@ const SidePanel: React.FC<SidePanelProps> = ({ formData }) => {
               <span>{completionPercentage}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
+              <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${completionPercentage}%` }}
               />
             </div>
             <p className="text-xs text-gray-600">
-              {completionPercentage === 100 ? 'Ready to publish!' : 'Fill in all required fields to publish'}
+              {completionPercentage === 100
+                ? 'Ready to publish!'
+                : 'Fill in all required fields to publish'}
             </p>
           </div>
         </CardContent>

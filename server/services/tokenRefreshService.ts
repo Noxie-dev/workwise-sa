@@ -101,7 +101,7 @@ export class TokenRefreshService {
     rateLimitedAttempts: 0,
     rotatedTokens: 0,
     revokedTokens: 0,
-    successRate: 0
+    successRate: 0,
   };
   private refreshAttempts = new Map<string, RefreshAttempt[]>();
   private revokedTokens = new Set<string>();
@@ -112,19 +112,19 @@ export class TokenRefreshService {
         enabled: true,
         maxRefreshAttempts: 5,
         refreshTokenLifetime: 30 * 24 * 60 * 60, // 30 days
-        accessTokenLifetime: 60 * 60 // 1 hour
+        accessTokenLifetime: 60 * 60, // 1 hour
       },
       rateLimit: {
         maxRefreshAttemptsPerMinute: 10,
         maxRefreshAttemptsPerHour: 50,
         maxRefreshAttemptsPerDay: 200,
-        lockoutDuration: 15 * 60 // 15 minutes
+        lockoutDuration: 15 * 60, // 15 minutes
       },
       monitoring: {
         trackFailedAttempts: true,
         alertThreshold: 5,
-        retentionPeriod: 30 // 30 days
-      }
+        retentionPeriod: 30, // 30 days
+      },
     };
   }
 
@@ -147,7 +147,10 @@ export class TokenRefreshService {
 
     try {
       // Rate limiting check
-      const rateLimitResult = await this.checkRateLimit(requestInfo.ipAddress, requestInfo.userAgent);
+      const rateLimitResult = await this.checkRateLimit(
+        requestInfo.ipAddress,
+        requestInfo.userAgent
+      );
       if (!rateLimitResult.allowed) {
         this.stats.rateLimitedAttempts++;
         this.updateSuccessRate();
@@ -158,9 +161,9 @@ export class TokenRefreshService {
             message: 'Too many refresh attempts. Please try again later.',
             details: {
               retryAfter: rateLimitResult.retryAfter,
-              limit: rateLimitResult.limit
-            }
-          }
+              limit: rateLimitResult.limit,
+            },
+          },
         };
       }
 
@@ -176,7 +179,7 @@ export class TokenRefreshService {
         this.updateSuccessRate();
         return {
           success: false,
-          error: validationError
+          error: validationError,
         };
       }
 
@@ -186,7 +189,7 @@ export class TokenRefreshService {
       if (this.revokedTokens.has(tokenData.tokenId)) {
         await this.recordFailedAttempt(tokenData.userId, requestInfo, {
           code: 'TOKEN_REVOKED',
-          message: 'Refresh token has been revoked'
+          message: 'Refresh token has been revoked',
         });
         this.stats.failedAttempts++;
         this.updateSuccessRate();
@@ -194,8 +197,8 @@ export class TokenRefreshService {
           success: false,
           error: {
             code: 'TOKEN_REVOKED',
-            message: 'Refresh token has been revoked'
-          }
+            message: 'Refresh token has been revoked',
+          },
         };
       }
 
@@ -204,7 +207,7 @@ export class TokenRefreshService {
         await this.revokeToken(tokenData.tokenId, 'MAX_USAGE_EXCEEDED');
         await this.recordFailedAttempt(tokenData.userId, requestInfo, {
           code: 'TOKEN_EXHAUSTED',
-          message: 'Refresh token has exceeded maximum usage'
+          message: 'Refresh token has exceeded maximum usage',
         });
         this.stats.failedAttempts++;
         this.updateSuccessRate();
@@ -212,14 +215,14 @@ export class TokenRefreshService {
           success: false,
           error: {
             code: 'TOKEN_EXHAUSTED',
-            message: 'Refresh token has exceeded maximum usage'
-          }
+            message: 'Refresh token has exceeded maximum usage',
+          },
         };
       }
 
       // Generate new access token
       const accessToken = await this.generateAccessToken(tokenData.userId);
-      
+
       // Rotate refresh token if enabled
       let newRefreshToken: string | undefined;
       if (this.config.rotation.enabled) {
@@ -239,14 +242,13 @@ export class TokenRefreshService {
         success: true,
         accessToken,
         refreshToken: newRefreshToken,
-        expiresIn: this.config.rotation.accessTokenLifetime
+        expiresIn: this.config.rotation.accessTokenLifetime,
       };
-
     } catch (error) {
       logger.error('Token refresh error', { error: serializeError(error) });
       await this.recordFailedAttempt(null, requestInfo, {
         code: 'INTERNAL_ERROR',
-        message: 'Internal server error during token refresh'
+        message: 'Internal server error during token refresh',
       });
       this.stats.failedAttempts++;
       this.updateSuccessRate();
@@ -254,8 +256,8 @@ export class TokenRefreshService {
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
-          message: 'Internal server error during token refresh'
-        }
+          message: 'Internal server error during token refresh',
+        },
       };
     }
   }
@@ -266,15 +268,14 @@ export class TokenRefreshService {
   async revokeToken(tokenId: string, reason: string = 'MANUAL_REVOCATION'): Promise<void> {
     try {
       this.revokedTokens.add(tokenId);
-      
+
       // Remove from cache
       await cacheService.delete(`refresh_token:${tokenId}`);
-      
+
       // Log revocation
       logger.info(`Refresh token revoked: ${tokenId}, reason: ${reason}`);
-      
-      this.stats.revokedTokens++;
 
+      this.stats.revokedTokens++;
     } catch (error) {
       logger.error(`Error revoking token ${tokenId}`, { error: serializeError(error) });
     }
@@ -287,16 +288,17 @@ export class TokenRefreshService {
     try {
       // Get all active tokens for user
       const userTokens = await this.getUserActiveTokens(userId);
-      
+
       // Revoke each token
       for (const tokenId of userTokens) {
         await this.revokeToken(tokenId, reason);
       }
 
       logger.info(`All tokens revoked for user ${userId}, reason: ${reason}`);
-
     } catch (error) {
-      logger.error(`Error revoking all tokens for user ${userId}`, { error: serializeError(error) });
+      logger.error(`Error revoking all tokens for user ${userId}`, {
+        error: serializeError(error),
+      });
     }
   }
 
@@ -304,18 +306,21 @@ export class TokenRefreshService {
   // RATE LIMITING
   // ============================================================================
 
-  private async checkRateLimit(ipAddress: string, userAgent: string): Promise<{
+  private async checkRateLimit(
+    ipAddress: string,
+    userAgent: string
+  ): Promise<{
     allowed: boolean;
     retryAfter?: number;
     limit?: number;
   }> {
     const key = `refresh_limit:${ipAddress}`;
-    
+
     try {
       // Check current rate limit status
-      const attempts = await cacheService.get<number[]>(key) || [];
+      const attempts = (await cacheService.get<number[]>(key)) || [];
       const now = Date.now();
-      
+
       // Filter attempts within time windows
       const lastMinute = attempts.filter(t => now - t < 60 * 1000);
       const lastHour = attempts.filter(t => now - t < 60 * 60 * 1000);
@@ -326,7 +331,7 @@ export class TokenRefreshService {
         return {
           allowed: false,
           retryAfter: 60,
-          limit: this.config.rateLimit.maxRefreshAttemptsPerMinute
+          limit: this.config.rateLimit.maxRefreshAttemptsPerMinute,
         };
       }
 
@@ -334,7 +339,7 @@ export class TokenRefreshService {
         return {
           allowed: false,
           retryAfter: 3600,
-          limit: this.config.rateLimit.maxRefreshAttemptsPerHour
+          limit: this.config.rateLimit.maxRefreshAttemptsPerHour,
         };
       }
 
@@ -342,21 +347,20 @@ export class TokenRefreshService {
         return {
           allowed: false,
           retryAfter: 86400,
-          limit: this.config.rateLimit.maxRefreshAttemptsPerDay
+          limit: this.config.rateLimit.maxRefreshAttemptsPerDay,
         };
       }
 
       // Add current attempt
       attempts.push(now);
-      
+
       // Keep only recent attempts (last 24 hours)
       const recentAttempts = attempts.filter(t => now - t < 24 * 60 * 60 * 1000);
-      
+
       // Store updated attempts
       await cacheService.set(key, recentAttempts, { ttl: 24 * 60 * 60 });
 
       return { allowed: true };
-
     } catch (error) {
       logger.error('Rate limit check error', { error: serializeError(error) });
       // Allow on error to avoid blocking legitimate users
@@ -381,8 +385,8 @@ export class TokenRefreshService {
           valid: false,
           error: {
             code: 'TOKEN_REVOKED',
-            message: 'Refresh token has been revoked'
-          }
+            message: 'Refresh token has been revoked',
+          },
         };
       }
 
@@ -393,8 +397,8 @@ export class TokenRefreshService {
           valid: false,
           error: {
             code: 'TOKEN_NOT_FOUND',
-            message: 'Refresh token not found or expired'
-          }
+            message: 'Refresh token not found or expired',
+          },
         };
       }
 
@@ -405,8 +409,8 @@ export class TokenRefreshService {
           valid: false,
           error: {
             code: 'TOKEN_EXPIRED',
-            message: 'Refresh token has expired'
-          }
+            message: 'Refresh token has expired',
+          },
         };
       }
 
@@ -416,24 +420,23 @@ export class TokenRefreshService {
           valid: false,
           error: {
             code: 'TOKEN_REVOKED',
-            message: 'Refresh token has been revoked'
-          }
+            message: 'Refresh token has been revoked',
+          },
         };
       }
 
       return {
         valid: true,
-        data: tokenData
+        data: tokenData,
       };
-
     } catch (error) {
       logger.error('Token validation error', { error: serializeError(error) });
       return {
         valid: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: 'Error validating refresh token'
-        }
+          message: 'Error validating refresh token',
+        },
       };
     }
   }
@@ -443,11 +446,10 @@ export class TokenRefreshService {
       // Generate custom access token with Firebase Admin SDK
       const customToken = await admin.auth().createCustomToken(userId, {
         purpose: 'access_token',
-        issued_at: Date.now()
+        issued_at: Date.now(),
       });
 
       return customToken;
-
     } catch (error) {
       logger.error('Error generating access token', { error: serializeError(error) });
       throw new Error('Failed to generate access token');
@@ -462,33 +464,32 @@ export class TokenRefreshService {
       // Generate new refresh token
       const newTokenId = this.generateTokenId();
       const newToken = this.generateRefreshToken(newTokenId);
-      
+
       // Create new token data
       const newTokenData: RefreshTokenData = {
         userId: oldTokenData.userId,
         tokenId: newTokenId,
         issuedAt: Date.now(),
-        expiresAt: Date.now() + (this.config.rotation.refreshTokenLifetime * 1000),
+        expiresAt: Date.now() + this.config.rotation.refreshTokenLifetime * 1000,
         lastUsed: Date.now(),
         usageCount: 0,
         isRevoked: false,
         deviceInfo: {
           userAgent: requestInfo.userAgent,
           ipAddress: requestInfo.ipAddress,
-          deviceId: requestInfo.deviceId
-        }
+          deviceId: requestInfo.deviceId,
+        },
       };
 
       // Store new token
       await cacheService.set(`refresh_token:${newTokenId}`, newTokenData, {
-        ttl: this.config.rotation.refreshTokenLifetime
+        ttl: this.config.rotation.refreshTokenLifetime,
       });
 
       // Revoke old token
       await this.revokeToken(oldTokenData.tokenId, 'ROTATED');
 
       return newToken;
-
     } catch (error) {
       logger.error('Error rotating refresh token', { error: serializeError(error) });
       throw new Error('Failed to rotate refresh token');
@@ -501,9 +502,9 @@ export class TokenRefreshService {
       if (tokenData) {
         tokenData.usageCount++;
         tokenData.lastUsed = Date.now();
-        
+
         await cacheService.set(`refresh_token:${tokenId}`, tokenData, {
-          ttl: this.config.rotation.refreshTokenLifetime
+          ttl: this.config.rotation.refreshTokenLifetime,
         });
       }
     } catch (error) {
@@ -516,10 +517,12 @@ export class TokenRefreshService {
       // This would typically query a database for all active tokens
       // For now, we'll use a simplified approach with cache
       const userTokensKey = `user_tokens:${userId}`;
-      const tokens = await cacheService.get<string[]>(userTokensKey) || [];
+      const tokens = (await cacheService.get<string[]>(userTokensKey)) || [];
       return tokens;
     } catch (error) {
-      logger.error(`Error getting active tokens for user ${userId}`, { error: serializeError(error) });
+      logger.error(`Error getting active tokens for user ${userId}`, {
+        error: serializeError(error),
+      });
       return [];
     }
   }
@@ -541,7 +544,7 @@ export class TokenRefreshService {
       success: true,
       ipAddress: requestInfo.ipAddress,
       userAgent: requestInfo.userAgent,
-      tokenId
+      tokenId,
     };
 
     await this.storeRefreshAttempt(attempt);
@@ -560,7 +563,7 @@ export class TokenRefreshService {
       success: false,
       error: error.message,
       ipAddress: requestInfo.ipAddress,
-      userAgent: requestInfo.userAgent
+      userAgent: requestInfo.userAgent,
     };
 
     await this.storeRefreshAttempt(attempt);
@@ -572,18 +575,17 @@ export class TokenRefreshService {
   private async storeRefreshAttempt(attempt: RefreshAttempt): Promise<void> {
     try {
       const key = `refresh_attempts:${attempt.userId}`;
-      const attempts = await cacheService.get<RefreshAttempt[]>(key) || [];
-      
-      attempts.push(attempt);
-      
-      // Keep only recent attempts
-      const cutoff = Date.now() - (this.config.monitoring.retentionPeriod * 24 * 60 * 60 * 1000);
-      const recentAttempts = attempts.filter(a => a.timestamp > cutoff);
-      
-      await cacheService.set(key, recentAttempts, {
-        ttl: this.config.monitoring.retentionPeriod * 24 * 60 * 60
-      });
+      const attempts = (await cacheService.get<RefreshAttempt[]>(key)) || [];
 
+      attempts.push(attempt);
+
+      // Keep only recent attempts
+      const cutoff = Date.now() - this.config.monitoring.retentionPeriod * 24 * 60 * 60 * 1000;
+      const recentAttempts = attempts.filter(a => a.timestamp > cutoff);
+
+      await cacheService.set(key, recentAttempts, {
+        ttl: this.config.monitoring.retentionPeriod * 24 * 60 * 60,
+      });
     } catch (error) {
       logger.error('Error storing refresh attempt', { error: serializeError(error) });
     }
@@ -592,27 +594,26 @@ export class TokenRefreshService {
   private async checkSuspiciousActivity(ipAddress: string, userId: string | null): Promise<void> {
     try {
       const key = `failed_attempts:${ipAddress}`;
-      const attempts = await cacheService.get<number[]>(key) || [];
-      
+      const attempts = (await cacheService.get<number[]>(key)) || [];
+
       attempts.push(Date.now());
-      
+
       // Check if threshold exceeded
       const recentAttempts = attempts.filter(t => Date.now() - t < 60 * 60 * 1000); // Last hour
-      
+
       if (recentAttempts.length >= this.config.monitoring.alertThreshold) {
         logger.warn(`Suspicious refresh activity detected`, {
           ipAddress,
           userId,
           attempts: recentAttempts.length,
-          threshold: this.config.monitoring.alertThreshold
+          threshold: this.config.monitoring.alertThreshold,
         });
-        
+
         // Could trigger additional security measures here
         // e.g., temporary IP blocking, user notification, etc.
       }
-      
-      await cacheService.set(key, recentAttempts, { ttl: 60 * 60 });
 
+      await cacheService.set(key, recentAttempts, { ttl: 60 * 60 });
     } catch (error) {
       logger.error('Error checking suspicious activity', { error: serializeError(error) });
     }
@@ -631,9 +632,9 @@ export class TokenRefreshService {
     const payload = {
       id: tokenId,
       type: 'refresh',
-      iat: Math.floor(Date.now() / 1000)
+      iat: Math.floor(Date.now() / 1000),
     };
-    
+
     // In a real implementation, this would be signed with a secret
     return Buffer.from(JSON.stringify(payload)).toString('base64url');
   }
@@ -648,9 +649,10 @@ export class TokenRefreshService {
   }
 
   private updateSuccessRate(): void {
-    this.stats.successRate = this.stats.totalAttempts > 0 
-      ? (this.stats.successfulAttempts / this.stats.totalAttempts) * 100 
-      : 0;
+    this.stats.successRate =
+      this.stats.totalAttempts > 0
+        ? (this.stats.successfulAttempts / this.stats.totalAttempts) * 100
+        : 0;
   }
 
   // ============================================================================
@@ -671,8 +673,8 @@ export class TokenRefreshService {
     try {
       if (userId) {
         const key = `refresh_attempts:${userId}`;
-        const attempts = await cacheService.get<RefreshAttempt[]>(key) || [];
-        const cutoff = Date.now() - (hours * 60 * 60 * 1000);
+        const attempts = (await cacheService.get<RefreshAttempt[]>(key)) || [];
+        const cutoff = Date.now() - hours * 60 * 60 * 1000;
         return attempts.filter(a => !a.success && a.timestamp > cutoff);
       } else {
         // Get all failed attempts (would need database query in production)
@@ -695,7 +697,7 @@ export class TokenRefreshService {
       rateLimitedAttempts: 0,
       rotatedTokens: 0,
       revokedTokens: 0,
-      successRate: 0
+      successRate: 0,
     };
   }
 }

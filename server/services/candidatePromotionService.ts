@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
-import { db } from "../db";
-import { candidatePromotionState } from "@shared/schema";
-import { storage } from "../storage";
+import { eq } from 'drizzle-orm';
+import { db } from '../db';
+import { candidatePromotionState } from '@shared/schema';
+import { storage } from '../storage';
 
 const col = (column: unknown) => column as any;
 
@@ -9,7 +9,7 @@ function hasValue(value: unknown) {
   if (Array.isArray(value)) {
     return value.length > 0;
   }
-  return typeof value === "string" ? value.trim().length > 0 : Boolean(value);
+  return typeof value === 'string' ? value.trim().length > 0 : Boolean(value);
 }
 
 export class CandidatePromotionService {
@@ -49,12 +49,13 @@ export class CandidatePromotionService {
       visibilityMultiplier,
       profileStrength,
       active,
-      source: active ? "workwise_plus" : "system",
+      source: active ? 'workwise_plus' : 'system',
       updatedAt: new Date(),
     };
 
     if (existing) {
-      const [updated] = await db.update(candidatePromotionState)
+      const [updated] = await db
+        .update(candidatePromotionState)
         .set(values)
         .where(eq(col(candidatePromotionState.userId), userId))
         .returning();
@@ -62,7 +63,8 @@ export class CandidatePromotionService {
       return updated;
     }
 
-    const [created] = await db.insert(candidatePromotionState)
+    const [created] = await db
+      .insert(candidatePromotionState)
       .values({
         userId,
         ...values,

@@ -5,18 +5,20 @@ This guide covers the updated deployment process for WorkWise SA using the lates
 ## Prerequisites
 
 - Netlify CLI v23.1.3+ installed
-- Node.js 20+ 
+- Node.js 20+
 - Firebase project configured
 - Environment variables set up
 
 ## Quick Deployment
 
 ### Fast Deploy (Recommended for development)
+
 ```bash
 npm run deploy:fast
 ```
 
 ### Production Deploy
+
 ```bash
 npm run deploy:prod
 ```
@@ -44,11 +46,13 @@ NPM_FLAGS=--production=false
 ```
 
 ### Prepare Firebase Service Account
+
 ```bash
 npm run netlify:prepare
 ```
 
 This script will:
+
 - Read your Firebase service account key
 - Convert it to the format needed for Netlify
 - Display the environment variable value to copy
@@ -56,11 +60,13 @@ This script will:
 ## Build Process
 
 ### Optimized Build Command
+
 ```bash
 npm run netlify:build
 ```
 
 This runs:
+
 1. `copy-assets` - Copy static assets
 2. `build:client:optimized` - Build with Terser minification
 3. `netlify:post-build` - Post-build optimizations
@@ -83,6 +89,7 @@ This runs:
 - **External dependencies** properly configured
 
 ### Function Structure
+
 ```
 netlify/functions/
 ├── api.js          # Main API handler
@@ -95,6 +102,7 @@ netlify/functions/
 ## Security Enhancements
 
 ### Headers Applied
+
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: SAMEORIGIN`
 - `X-XSS-Protection: 1; mode=block`
@@ -102,6 +110,7 @@ netlify/functions/
 - `Permissions-Policy` for camera/microphone/geolocation
 
 ### Caching Strategy
+
 - **Static assets**: 1 year cache with immutable flag
 - **API responses**: No cache
 - **HTML**: Standard browser caching
@@ -109,6 +118,7 @@ netlify/functions/
 ## Monitoring & Debugging
 
 ### Deployment Verification
+
 ```bash
 netlify status
 netlify logs:deploy
@@ -116,7 +126,9 @@ netlify functions:list
 ```
 
 ### Build Information
+
 After deployment, check `/build-info.json` for:
+
 - Build timestamp
 - Node.js version
 - Git commit/branch info
@@ -125,12 +137,14 @@ After deployment, check `/build-info.json` for:
 ## Performance Optimizations
 
 ### Bundle Splitting
+
 - **React core**: Separate vendor chunk
 - **Firebase modules**: Split by service (auth, firestore, etc.)
 - **UI libraries**: Grouped by functionality
 - **Heavy libraries**: Isolated chunks (charts, PDF, etc.)
 
 ### Build Size Monitoring
+
 - Automatic size calculation and reporting
 - Warning for builds over 50MB
 - Bundle analysis available with `npm run build:analyze`
@@ -145,6 +159,7 @@ After deployment, check `/build-info.json` for:
 4. **Missing environment variables**: Verify all required vars are set
 
 ### Debug Commands
+
 ```bash
 # Check site status
 netlify status

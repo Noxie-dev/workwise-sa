@@ -7,27 +7,32 @@ The authentication module has been completely refactored to provide a more robus
 ## Key Improvements
 
 ### 1. **Centralized Type System**
+
 - All authentication types are now defined in `shared/auth-types.ts`
 - Consistent interfaces across client and server
 - Strong typing for better development experience
 
 ### 2. **Enhanced Security**
+
 - Proper role-based access control (RBAC)
 - Permission-based authorization
 - Token management and refresh
 - Input validation and sanitization
 
 ### 3. **Better Error Handling**
+
 - Standardized error codes and messages
 - Comprehensive error handling across all auth operations
 - User-friendly error messages with toast notifications
 
 ### 4. **Improved Architecture**
+
 - Separation of concerns between Firebase integration and business logic
 - Centralized auth service with adapter pattern
 - Enhanced middleware for server-side authentication
 
 ### 5. **Enhanced User Experience**
+
 - Loading states and proper feedback
 - Profile completion tracking
 - Email verification flow
@@ -58,12 +63,14 @@ server/middleware/
 ### 1. **Update Imports**
 
 **Before:**
+
 ```typescript
 import { useAuth } from '@/contexts/AuthContext';
 import { loginWithEmailPassword } from '@/services/authService';
 ```
 
 **After:**
+
 ```typescript
 import { useAuth } from '@/hooks/useEnhancedAuth';
 import { firebaseAuthAdapter } from '@shared/firebase-auth-adapter';
@@ -72,24 +79,21 @@ import { firebaseAuthAdapter } from '@shared/firebase-auth-adapter';
 ### 2. **Update Auth Context Usage**
 
 **Before:**
+
 ```typescript
 const { user, isAuthenticated, login } = useAuth();
 ```
 
 **After:**
+
 ```typescript
-const { 
-  user, 
-  isAuthenticated, 
-  loginWithToast,
-  hasPermission,
-  isAdmin 
-} = useAuth();
+const { user, isAuthenticated, loginWithToast, hasPermission, isAdmin } = useAuth();
 ```
 
 ### 3. **Update Auth Guards**
 
 **Before:**
+
 ```typescript
 <AuthGuard>
   <ProtectedContent />
@@ -97,8 +101,9 @@ const {
 ```
 
 **After:**
+
 ```typescript
-<EnhancedAuthGuard 
+<EnhancedAuthGuard
   requiredPermissions={['jobs:view']}
   requireCompleteProfile={true}
 >
@@ -109,22 +114,21 @@ const {
 ### 4. **Update Server Middleware**
 
 **Before:**
+
 ```typescript
 import { authenticate } from '../middleware/auth';
 ```
 
 **After:**
+
 ```typescript
-import { 
-  authenticate, 
-  requireAdmin, 
-  requirePermission 
-} from '../middleware/enhanced-auth';
+import { authenticate, requireAdmin, requirePermission } from '../middleware/enhanced-auth';
 ```
 
 ### 5. **Update Route Protection**
 
 **Before:**
+
 ```typescript
 app.get('/admin', authenticate, (req, res) => {
   // Admin route
@@ -132,14 +136,11 @@ app.get('/admin', authenticate, (req, res) => {
 ```
 
 **After:**
+
 ```typescript
-app.get('/admin', 
-  authenticate, 
-  requireAdmin, 
-  (req, res) => {
-    // Admin route
-  }
-);
+app.get('/admin', authenticate, requireAdmin, (req, res) => {
+  // Admin route
+});
 ```
 
 ## New Features
@@ -164,7 +165,7 @@ const canCreateJobs = hasPermission('jobs:create');
 </AdminGuard>
 
 // Content requiring specific permissions
-<EnhancedAuthGuard 
+<EnhancedAuthGuard
   requiredPermissions={['jobs:create', 'jobs:edit']}
   requireAllPermissions={true}
 >
@@ -194,29 +195,23 @@ await registerWithToast(userData);
 app.get('/admin/users', authenticate, requireAdmin, handler);
 
 // Require specific permissions
-app.post('/jobs', 
-  authenticate, 
-  requirePermission('jobs:create'), 
-  handler
-);
+app.post('/jobs', authenticate, requirePermission('jobs:create'), handler);
 
 // Require multiple permissions (ALL)
-app.put('/jobs/:id', 
-  authenticate, 
-  requireAllPermissions(['jobs:edit', 'jobs:view']), 
-  handler
-);
+app.put('/jobs/:id', authenticate, requireAllPermissions(['jobs:edit', 'jobs:view']), handler);
 ```
 
 ## Type Definitions
 
 ### User Roles
+
 - `user` - Regular user
 - `admin` - Administrator
 - `moderator` - Content moderator
 - `employer` - Job poster
 
 ### Permissions
+
 - `dashboard:view` - View dashboard
 - `profile:view` - View profile
 - `profile:edit` - Edit profile
@@ -242,19 +237,19 @@ The new system provides comprehensive error handling with standardized error cod
 
 ```typescript
 // Firebase Auth errors
-AUTH_ERROR_CODES.USER_NOT_FOUND
-AUTH_ERROR_CODES.WRONG_PASSWORD
-AUTH_ERROR_CODES.EMAIL_ALREADY_IN_USE
-AUTH_ERROR_CODES.WEAK_PASSWORD
-AUTH_ERROR_CODES.INVALID_EMAIL
-AUTH_ERROR_CODES.TOO_MANY_REQUESTS
+AUTH_ERROR_CODES.USER_NOT_FOUND;
+AUTH_ERROR_CODES.WRONG_PASSWORD;
+AUTH_ERROR_CODES.EMAIL_ALREADY_IN_USE;
+AUTH_ERROR_CODES.WEAK_PASSWORD;
+AUTH_ERROR_CODES.INVALID_EMAIL;
+AUTH_ERROR_CODES.TOO_MANY_REQUESTS;
 
 // Custom application errors
-AUTH_ERROR_CODES.INVALID_TOKEN
-AUTH_ERROR_CODES.TOKEN_EXPIRED
-AUTH_ERROR_CODES.INSUFFICIENT_PERMISSIONS
-AUTH_ERROR_CODES.PROFILE_INCOMPLETE
-AUTH_ERROR_CODES.EMAIL_NOT_VERIFIED
+AUTH_ERROR_CODES.INVALID_TOKEN;
+AUTH_ERROR_CODES.TOKEN_EXPIRED;
+AUTH_ERROR_CODES.INSUFFICIENT_PERMISSIONS;
+AUTH_ERROR_CODES.PROFILE_INCOMPLETE;
+AUTH_ERROR_CODES.EMAIL_NOT_VERIFIED;
 ```
 
 ## Security Improvements
@@ -303,6 +298,7 @@ The old auth system is marked as deprecated but still functional for backward co
 ## Support
 
 For questions or issues with the migration, please refer to:
+
 - Type definitions in `shared/auth-types.ts`
 - Example usage in the enhanced auth context and hooks
 - Server middleware examples in `server/middleware/enhanced-auth.ts`

@@ -28,7 +28,7 @@ import {
   Twitter,
   Facebook,
   Instagram,
-  Sparkles
+  Sparkles,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -39,7 +39,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 import { mockExtendedCompanies } from './Companies';
 import { mockJobs } from '@/services/mockData';
@@ -53,10 +59,10 @@ const CompanyProfile: React.FC = () => {
 
   // Find company by slug
   const company = mockExtendedCompanies.find(c => c.slug === slug);
-  
+
   // Mock company jobs
-  const companyJobs = mockJobs.filter(job => 
-    job.company.toLowerCase() === company?.name.toLowerCase()
+  const companyJobs = mockJobs.filter(
+    job => job.company.toLowerCase() === company?.name.toLowerCase()
   );
 
   if (!company) {
@@ -75,7 +81,10 @@ const CompanyProfile: React.FC = () => {
     <>
       <Helmet>
         <title>{company.name} - Company Profile | WorkWise SA</title>
-        <meta name="description" content={`Explore career opportunities at ${company.name}. ${company.description}`} />
+        <meta
+          name="description"
+          content={`Explore career opportunities at ${company.name}. ${company.description}`}
+        />
       </Helmet>
 
       <div className="min-h-screen bg-background">
@@ -117,14 +126,14 @@ const CompanyProfile: React.FC = () => {
                     )}
                   </div>
 
-                  <p className="text-xl text-white/80 mb-6 max-w-2xl">
-                    {company.description}
-                  </p>
+                  <p className="text-xl text-white/80 mb-6 max-w-2xl">{company.description}</p>
 
                   {/* Key Stats */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-yellow-400">{company.openPositions}</div>
+                      <div className="text-3xl font-bold text-yellow-400">
+                        {company.openPositions}
+                      </div>
                       <div className="text-sm text-white/70">Open Positions</div>
                     </div>
                     <div className="text-center">
@@ -135,35 +144,41 @@ const CompanyProfile: React.FC = () => {
                       <div className="text-sm text-white/70">Company Rating</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-yellow-400">{company.employeeCount}</div>
+                      <div className="text-3xl font-bold text-yellow-400">
+                        {company.employeeCount}
+                      </div>
                       <div className="text-sm text-white/70">Employees</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-orange-400">{company.growthRate}%</div>
+                      <div className="text-3xl font-bold text-orange-400">
+                        {company.growthRate}%
+                      </div>
                       <div className="text-sm text-white/70">Growth Rate</div>
                     </div>
                   </div>
 
                   {/* Action Buttons */}
                   <div className="flex flex-wrap gap-4">
-                    <Button 
-                      size="lg" 
+                    <Button
+                      size="lg"
                       className="bg-yellow-400 text-gray-900 hover:bg-yellow-500"
                       onClick={() => setIsFollowing(!isFollowing)}
                     >
-                      <Heart className={`h-5 w-5 mr-2 ${isFollowing ? 'fill-current text-red-500' : ''}`} />
+                      <Heart
+                        className={`h-5 w-5 mr-2 ${isFollowing ? 'fill-current text-red-500' : ''}`}
+                      />
                       {isFollowing ? 'Following' : 'Follow Company'}
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="lg"
                       className="bg-white/20 border-white/30 text-white hover:bg-white/30"
                     >
                       <Share2 className="h-5 w-5 mr-2" />
                       Share
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="lg"
                       className="bg-white/20 border-white/30 text-white hover:bg-white/30"
                     >
@@ -201,10 +216,8 @@ const CompanyProfile: React.FC = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <p className="text-gray-700 leading-relaxed">
-                        {company.description}
-                      </p>
-                      
+                      <p className="text-gray-700 leading-relaxed">{company.description}</p>
+
                       <div className="grid grid-cols-2 gap-4 pt-4">
                         <div className="flex items-center gap-2 text-sm">
                           <Calendar className="h-4 w-4 text-gray-500" />
@@ -234,7 +247,7 @@ const CompanyProfile: React.FC = () => {
                       </CardHeader>
                       <CardContent>
                         <div className="flex flex-wrap gap-2">
-                          {company.techStack.map((tech) => (
+                          {company.techStack.map(tech => (
                             <Badge key={tech} variant="secondary" className="px-3 py-1">
                               {tech}
                             </Badge>
@@ -252,7 +265,7 @@ const CompanyProfile: React.FC = () => {
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {company.benefits.map((benefit) => (
+                          {company.benefits.map(benefit => (
                             <div key={benefit} className="flex items-center gap-2">
                               <CheckCircle className="h-4 w-4 text-green-500" />
                               <span className="text-sm">{benefit}</span>
@@ -335,7 +348,7 @@ const CompanyProfile: React.FC = () => {
                       <Input
                         placeholder="Search jobs at this company..."
                         value={jobSearchQuery}
-                        onChange={(e) => setJobSearchQuery(e.target.value)}
+                        onChange={e => setJobSearchQuery(e.target.value)}
                         className="pl-10"
                       />
                     </div>
@@ -356,8 +369,11 @@ const CompanyProfile: React.FC = () => {
 
               {/* Jobs List */}
               <div className="space-y-4">
-                {companyJobs.map((job) => (
-                  <Card key={job.id} className="border-0 shadow-lg bg-card hover:shadow-xl transition-shadow">
+                {companyJobs.map(job => (
+                  <Card
+                    key={job.id}
+                    className="border-0 shadow-lg bg-card hover:shadow-xl transition-shadow"
+                  >
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
@@ -382,9 +398,7 @@ const CompanyProfile: React.FC = () => {
                               {job.postedDate}
                             </div>
                           </div>
-                          <p className="text-gray-700 mb-4 line-clamp-2">
-                            {job.description}
-                          </p>
+                          <p className="text-gray-700 mb-4 line-clamp-2">{job.description}</p>
                           <div className="flex flex-wrap gap-2">
                             {job.requirements?.slice(0, 3).map((req, index) => (
                               <Badge key={index} variant="outline" className="text-xs">
@@ -420,7 +434,7 @@ const CompanyProfile: React.FC = () => {
                   <CardContent>
                     {company.culture && (
                       <div className="space-y-4">
-                        {company.culture.map((value) => (
+                        {company.culture.map(value => (
                           <div key={value} className="flex items-center gap-3">
                             <Award className="h-5 w-5 text-blue-500" />
                             <span className="font-medium">{value}</span>
@@ -457,7 +471,9 @@ const CompanyProfile: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-green-600 mb-2">+{company.growthRate}%</div>
+                      <div className="text-3xl font-bold text-green-600 mb-2">
+                        +{company.growthRate}%
+                      </div>
                       <p className="text-sm text-muted-foreground">Growth in hiring this quarter</p>
                     </div>
                   </CardContent>
@@ -469,8 +485,12 @@ const CompanyProfile: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-primary mb-2">{company.glassdoorRating}/5</div>
-                      <p className="text-sm text-muted-foreground">Based on {company.reviews} reviews</p>
+                      <div className="text-3xl font-bold text-primary mb-2">
+                        {company.glassdoorRating}/5
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Based on {company.reviews} reviews
+                      </p>
                     </div>
                   </CardContent>
                 </Card>

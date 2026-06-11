@@ -52,7 +52,11 @@ const MarketingRulesList: React.FC<MarketingRulesListProps> = ({
   const [ruleToDelete, setRuleToDelete] = React.useState<string | null>(null);
 
   // Fetch marketing rules
-  const { data: rules = [], isLoading, isError } = useQuery({
+  const {
+    data: rules = [],
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['marketingRules'],
     queryFn: marketingRuleService.getRules,
   });
@@ -67,7 +71,7 @@ const MarketingRulesList: React.FC<MarketingRulesListProps> = ({
         description: 'Rule status has been updated successfully.',
       });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Error',
         description: `Failed to update rule status: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -87,7 +91,7 @@ const MarketingRulesList: React.FC<MarketingRulesListProps> = ({
       });
       setRuleToDelete(null);
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Error',
         description: `Failed to delete rule: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -101,11 +105,12 @@ const MarketingRulesList: React.FC<MarketingRulesListProps> = ({
     if (!searchQuery.trim()) return rules;
 
     const query = searchQuery.toLowerCase();
-    return rules.filter(rule =>
-      rule.ruleName.toLowerCase().includes(query) ||
-      rule.targetLocation.toLowerCase().includes(query) ||
-      rule.targetJobType.toLowerCase().includes(query) ||
-      rule.messageTemplate.toLowerCase().includes(query)
+    return rules.filter(
+      rule =>
+        rule.ruleName.toLowerCase().includes(query) ||
+        rule.targetLocation.toLowerCase().includes(query) ||
+        rule.targetJobType.toLowerCase().includes(query) ||
+        rule.messageTemplate.toLowerCase().includes(query)
     );
   }, [rules, searchQuery]);
 
@@ -159,23 +164,16 @@ const MarketingRulesList: React.FC<MarketingRulesListProps> = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRules.map((rule) => (
-                  <TableRow
-                    key={rule.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                  >
+                {filteredRules.map(rule => (
+                  <TableRow key={rule.id} className="cursor-pointer hover:bg-muted/50">
                     <TableCell className="font-medium">
                       {rule.ruleName}
                       <div className="text-xs text-muted-foreground">Created {rule.createdAt}</div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="text-sm">
-                          Location: {rule.targetLocation}
-                        </div>
-                        <div className="text-sm">
-                          Job Type: {rule.targetJobType}
-                        </div>
+                        <div className="text-sm">Location: {rule.targetLocation}</div>
+                        <div className="text-sm">Job Type: {rule.targetJobType}</div>
                       </div>
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate">
@@ -213,7 +211,7 @@ const MarketingRulesList: React.FC<MarketingRulesListProps> = ({
           )}
 
           {/* Delete Confirmation Dialog */}
-          <AlertDialog open={!!ruleToDelete} onOpenChange={(open) => !open && setRuleToDelete(null)}>
+          <AlertDialog open={!!ruleToDelete} onOpenChange={open => !open && setRuleToDelete(null)}>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -223,7 +221,10 @@ const MarketingRulesList: React.FC<MarketingRulesListProps> = ({
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteRule} className="bg-destructive text-destructive-foreground">
+                <AlertDialogAction
+                  onClick={handleDeleteRule}
+                  className="bg-destructive text-destructive-foreground"
+                >
                   Delete
                 </AlertDialogAction>
               </AlertDialogFooter>

@@ -66,4 +66,4 @@ export class AIService {
 }
 
 // Export a singleton instance
-export const aiService = AIService.getInstance(); 
+export const aiService = AIService.getInstance();

@@ -19,7 +19,7 @@ const requiredVars = [
   'VITE_FIREBASE_AUTH_DOMAIN',
   'VITE_FIREBASE_PROJECT_ID',
   'VITE_FIREBASE_STORAGE_BUCKET',
-  'VITE_FIREBASE_APP_ID'
+  'VITE_FIREBASE_APP_ID',
 ];
 
 // Optional Firebase configuration variables
@@ -27,7 +27,7 @@ const optionalVars = [
   'VITE_FIREBASE_MESSAGING_SENDER_ID',
   'VITE_USE_FIREBASE_EMULATORS',
   'VITE_AUTH_EMAIL_LINK_SIGN_IN_URL',
-  'VITE_AUTH_EMAIL_LINK_CONTINUE_URL'
+  'VITE_AUTH_EMAIL_LINK_CONTINUE_URL',
 ];
 
 console.log('Checking Firebase configuration...');

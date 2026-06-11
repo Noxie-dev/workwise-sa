@@ -56,7 +56,8 @@ async function runPostgresMigrations() {
 
     // Get list of migration files
     const migrationsDir = path.join(process.cwd(), 'migrations');
-    const migrationFiles = fs.readdirSync(migrationsDir)
+    const migrationFiles = fs
+      .readdirSync(migrationsDir)
       .filter(file => file.endsWith('.sql'))
       .sort(); // Sort to ensure migrations run in order
 
@@ -107,7 +108,8 @@ function runSqliteMigrations() {
 
   // Get list of migration files
   const migrationsDir = path.join(process.cwd(), 'migrations');
-  const migrationFiles = fs.readdirSync(migrationsDir)
+  const migrationFiles = fs
+    .readdirSync(migrationsDir)
     .filter(file => file.endsWith('.sql'))
     .sort(); // Sort to ensure migrations run in order
 

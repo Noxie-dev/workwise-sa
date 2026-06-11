@@ -21,42 +21,36 @@ vi.mock('@shared/firebase-auth-adapter', () => ({
     updateUserProfile: vi.fn(),
     getCurrentUser: vi.fn(),
     onAuthStateChanged: vi.fn(),
-  }
+  },
 }));
 
 // Mock toast hook
 vi.mock('@/hooks/use-toast', () => ({
   useToast: () => ({
-    toast: vi.fn()
-  })
+    toast: vi.fn(),
+  }),
 }));
 
 // Test component that uses the auth hook
 const TestComponent = () => {
   const auth = useAuth();
-  
+
   return (
     <div>
       <div data-testid="is-authenticated">{auth.isAuthenticated.toString()}</div>
       <div data-testid="is-admin">{auth.isAdmin.toString()}</div>
       <div data-testid="user-role">{auth.user?.role || 'none'}</div>
       <div data-testid="user-email">{auth.user?.email || 'none'}</div>
-      <button 
-        data-testid="login-btn" 
+      <button
+        data-testid="login-btn"
         onClick={() => auth.loginWithToast('test@example.com', 'password')}
       >
         Login
       </button>
-      <button 
-        data-testid="logout-btn" 
-        onClick={() => auth.logoutWithToast()}
-      >
+      <button data-testid="logout-btn" onClick={() => auth.logoutWithToast()}>
         Logout
       </button>
-      <button 
-        data-testid="permission-btn" 
-        onClick={() => auth.hasPermission('jobs:create')}
-      >
+      <button data-testid="permission-btn" onClick={() => auth.hasPermission('jobs:create')}>
         Check Permission
       </button>
     </div>
@@ -83,28 +77,28 @@ const mockUser: AppUser = {
       preferredCategories: [],
       preferredLocations: [],
       preferredJobTypes: [],
-      workMode: ['remote', 'on-site', 'hybrid']
+      workMode: ['remote', 'on-site', 'hybrid'],
     },
     experience: {
       yearsOfExperience: 0,
-      previousPositions: []
+      previousPositions: [],
     },
     education: {
       highestDegree: '',
       fieldOfStudy: '',
       institution: '',
-      additionalCertifications: []
+      additionalCertifications: [],
     },
     skills: [],
     engagementScore: 0,
-    notificationPreference: true
-  }
+    notificationPreference: true,
+  },
 };
 
 const mockAdminUser: AppUser = {
   ...mockUser,
   role: 'admin',
-  permissions: ['dashboard:view', 'profile:view', 'jobs:view', 'admin:view', 'admin:users']
+  permissions: ['dashboard:view', 'profile:view', 'jobs:view', 'admin:view', 'admin:users'],
 };
 
 describe('Enhanced Authentication System', () => {
@@ -137,7 +131,7 @@ describe('Enhanced Authentication System', () => {
       (firebaseAuthAdapter.loginWithEmailPassword as any).mockResolvedValue({
         success: true,
         user: mockUser,
-        data: { token: 'mock-token' }
+        data: { token: 'mock-token' },
       });
 
       (firebaseAuthAdapter.onAuthStateChanged as any).mockImplementation((callback: any) => {
@@ -168,8 +162,8 @@ describe('Enhanced Authentication System', () => {
         success: false,
         error: {
           code: 'auth/user-not-found',
-          message: 'User not found'
-        }
+          message: 'User not found',
+        },
       });
 
       render(
@@ -189,7 +183,7 @@ describe('Enhanced Authentication System', () => {
     it('should handle logout', async () => {
       (firebaseAuthAdapter.logout as any).mockResolvedValue({
         success: true,
-        message: 'Logged out successfully'
+        message: 'Logged out successfully',
       });
 
       (firebaseAuthAdapter.onAuthStateChanged as any).mockImplementation((callback: any) => {
@@ -250,7 +244,7 @@ describe('Enhanced Authentication System', () => {
     it('should handle user profile updates', async () => {
       (firebaseAuthAdapter.updateUserProfile as any).mockResolvedValue({
         success: true,
-        user: { ...mockUser, displayName: 'Updated Name' }
+        user: { ...mockUser, displayName: 'Updated Name' },
       });
 
       (firebaseAuthAdapter.onAuthStateChanged as any).mockImplementation((callback: any) => {
@@ -271,7 +265,7 @@ describe('Enhanced Authentication System', () => {
     it('should handle password reset', async () => {
       (firebaseAuthAdapter.resetPassword as any).mockResolvedValue({
         success: true,
-        message: 'Password reset email sent'
+        message: 'Password reset email sent',
       });
 
       render(
@@ -309,8 +303,8 @@ describe('Enhanced Authentication System', () => {
         success: false,
         error: {
           code: 'auth/wrong-password',
-          message: 'Invalid password'
-        }
+          message: 'Invalid password',
+        },
       });
 
       render(

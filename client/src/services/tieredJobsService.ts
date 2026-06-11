@@ -1,6 +1,13 @@
 // @ts-nocheck
 import apiClient from './apiClient';
-import { JobPreview, JobWithDetails, JobSearchParams, JobSearchResponse, JobApplication, JobApplicationInput } from '../../../shared/job-types';
+import {
+  JobPreview,
+  JobWithDetails,
+  JobSearchParams,
+  JobSearchResponse,
+  JobApplication,
+  JobApplicationInput,
+} from '../../../shared/job-types';
 import { auth } from '@/lib/firebase';
 import { mockJobs, mockCompanies, mockCategories } from '@/services/mockData';
 
@@ -11,14 +18,20 @@ const publicJobsBaseUrl = `${apiOrigin}/api`;
 const inferExperienceLevel = (title: string): JobPreview['experienceLevel'] => {
   const t = title.toLowerCase();
   if (t.includes('senior') || t.includes('lead') || t.includes('manager')) return 'senior';
-  if (t.includes('junior') || t.includes('intern') || t.includes('entry') || t.includes('assistant')) return 'entry';
+  if (
+    t.includes('junior') ||
+    t.includes('intern') ||
+    t.includes('entry') ||
+    t.includes('assistant')
+  )
+    return 'entry';
   return 'mid';
 };
 
 const toMockJobPreviews = (): JobPreview[] => {
-  return mockJobs.map((job) => {
-    const companyMatch = mockCompanies.find((company) => company.name === job.company);
-    const categoryMatch = mockCategories.find((category) => category.name === job.category);
+  return mockJobs.map(job => {
+    const companyMatch = mockCompanies.find(company => company.name === job.company);
+    const categoryMatch = mockCategories.find(category => category.name === job.category);
     const postedDate = new Date(job.postedDate);
     const description = job.description || '';
 
@@ -51,37 +64,38 @@ const buildMockJobPreviewsResponse = (params: JobSearchParams = {}): JobSearchRe
   let jobs = toMockJobPreviews();
 
   if (params.featured) {
-    jobs = jobs.filter((job) => job.featured);
+    jobs = jobs.filter(job => job.featured);
   }
 
   if (params.query) {
     const q = params.query.toLowerCase();
-    jobs = jobs.filter((job) =>
-      job.title.toLowerCase().includes(q) ||
-      job.company.name.toLowerCase().includes(q) ||
-      job.location.toLowerCase().includes(q) ||
-      job.category.name.toLowerCase().includes(q) ||
-      job.shortDescription.toLowerCase().includes(q),
+    jobs = jobs.filter(
+      job =>
+        job.title.toLowerCase().includes(q) ||
+        job.company.name.toLowerCase().includes(q) ||
+        job.location.toLowerCase().includes(q) ||
+        job.category.name.toLowerCase().includes(q) ||
+        job.shortDescription.toLowerCase().includes(q)
     );
   }
 
   if (params.location) {
     const location = params.location.toLowerCase();
-    jobs = jobs.filter((job) => job.location.toLowerCase().includes(location));
+    jobs = jobs.filter(job => job.location.toLowerCase().includes(location));
   }
 
   if (params.jobType) {
     const jobType = params.jobType.toLowerCase();
-    jobs = jobs.filter((job) => job.jobType.toLowerCase() === jobType);
+    jobs = jobs.filter(job => job.jobType.toLowerCase() === jobType);
   }
 
   if (params.workMode) {
     const workMode = params.workMode.toLowerCase();
-    jobs = jobs.filter((job) => job.workMode.toLowerCase() === workMode);
+    jobs = jobs.filter(job => job.workMode.toLowerCase() === workMode);
   }
 
   if (typeof params.categoryId === 'number') {
-    jobs = jobs.filter((job) => job.category.id === params.categoryId);
+    jobs = jobs.filter(job => job.category.id === params.categoryId);
   }
 
   const page = Math.max(params.page ?? 1, 1);
@@ -124,7 +138,7 @@ export const tieredJobsService = {
 
     try {
       const query = new URLSearchParams(
-        Object.fromEntries(Object.entries(params).map(([key, value]) => [key, String(value)])),
+        Object.fromEntries(Object.entries(params).map(([key, value]) => [key, String(value)]))
       );
       const response = await fetch(`${publicJobsBaseUrl}/job-previews?${query}`);
 
@@ -156,7 +170,7 @@ export const tieredJobsService = {
       const token = await user.getIdToken();
       const response = await fetch(`/api/jobs/${jobId}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -178,7 +192,9 @@ export const tieredJobsService = {
   /**
    * Apply for a job (authenticated access required)
    */
-  async applyForJob(applicationData: JobApplicationInput): Promise<{ applicationId: number; appliedAt: Date; message: string }> {
+  async applyForJob(
+    applicationData: JobApplicationInput
+  ): Promise<{ applicationId: number; appliedAt: Date; message: string }> {
     try {
       const user = auth.currentUser;
       if (!user) {
@@ -189,7 +205,7 @@ export const tieredJobsService = {
       const response = await fetch(`/api/jobs/${applicationData.jobId}/apply`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(applicationData),
@@ -220,7 +236,7 @@ export const tieredJobsService = {
       const token = await user.getIdToken();
       const response = await fetch('/api/job-applications', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -248,7 +264,7 @@ export const tieredJobsService = {
    */
   getCurrentUser() {
     return auth.currentUser;
-  }
+  },
 };
 
 export default tieredJobsService;

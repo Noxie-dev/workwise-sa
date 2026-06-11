@@ -1,11 +1,13 @@
 # Tiered Job Access Implementation Guide
 
 ## Overview
+
 This system allows anonymous users to browse basic job information but requires authentication for full job details and applications.
 
 ## Data Structure
 
 ### 1. Jobs Collection (Public Preview)
+
 **Collection**: `jobs`
 **Access**: Public read, admin write
 **Contains**: Basic job information for browsing
@@ -30,6 +32,7 @@ interface JobPreview {
 ```
 
 ### 2. Job Details Collection (Authenticated Only)
+
 **Collection**: `job_details`
 **Access**: Authenticated users only
 **Contains**: Full job specifications
@@ -60,6 +63,7 @@ interface JobDetails {
 ```
 
 ### 3. Job Applications Collection
+
 **Collection**: `job_applications`
 **Access**: User's own applications + admin
 **Contains**: Application data
@@ -125,9 +129,9 @@ export const JobSearch: React.FC<JobSearchProps> = ({ showAuthPrompt = true }) =
   return (
     <div className="job-search">
       {jobs.map(job => (
-        <JobPreviewCard 
-          key={job.id} 
-          job={job} 
+        <JobPreviewCard
+          key={job.id}
+          job={job}
           onClick={() => handleJobClick(job.id)}
           showAuthPrompt={!user && showAuthPrompt}
         />
@@ -147,10 +151,10 @@ interface JobPreviewCardProps {
   showAuthPrompt: boolean;
 }
 
-export const JobPreviewCard: React.FC<JobPreviewCardProps> = ({ 
-  job, 
-  onClick, 
-  showAuthPrompt 
+export const JobPreviewCard: React.FC<JobPreviewCardProps> = ({
+  job,
+  onClick,
+  showAuthPrompt
 }) => {
   return (
     <div className="job-card" onClick={onClick}>
@@ -158,28 +162,28 @@ export const JobPreviewCard: React.FC<JobPreviewCardProps> = ({
         <h3>{job.title}</h3>
         <span className="company">{job.company}</span>
       </div>
-      
+
       <div className="job-meta">
         <span>{job.location}</span>
         <span>{job.jobType}</span>
         <span>{job.experienceLevel}</span>
       </div>
-      
+
       <p className="short-description">{job.shortDescription}</p>
-      
+
       <div className="job-tags">
         {job.tags.slice(0, 3).map(tag => (
           <span key={tag} className="tag">{tag}</span>
         ))}
       </div>
-      
+
       {showAuthPrompt && (
         <div className="auth-prompt">
           <p>Sign up to view full details and apply</p>
           <button className="btn-primary">View Full Job</button>
         </div>
       )}
-      
+
       {!showAuthPrompt && (
         <button className="btn-secondary">View Details</button>
       )}
@@ -268,9 +272,9 @@ interface AuthGuardProps {
   fallback?: React.ReactNode;
 }
 
-export const AuthGuard: React.FC<AuthGuardProps> = ({ 
-  children, 
-  fallback 
+export const AuthGuard: React.FC<AuthGuardProps> = ({
+  children,
+  fallback
 }) => {
   const { user, loading } = useAuth();
 
@@ -295,7 +299,8 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
 export async function GET(request: Request) {
   try {
     // Return only preview data - no sensitive information
-    const jobs = await db.collection('jobs')
+    const jobs = await db
+      .collection('jobs')
       .where('active', '==', true)
       .orderBy('postedDate', 'desc')
       .limit(50)
@@ -303,7 +308,7 @@ export async function GET(request: Request) {
 
     const jobPreviews = jobs.docs.map(doc => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
     }));
 
     return Response.json(jobPreviews);
@@ -333,9 +338,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     }
 
     // Fetch full job details
-    const jobDetails = await db.collection('job_details')
-      .doc(params.id)
-      .get();
+    const jobDetails = await db.collection('job_details').doc(params.id).get();
 
     if (!jobDetails.exists) {
       return Response.json({ error: 'Job not found' }, { status: 404 });
@@ -343,7 +346,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     return Response.json({
       id: jobDetails.id,
-      ...jobDetails.data()
+      ...jobDetails.data(),
     });
   } catch (error) {
     return Response.json({ error: 'Failed to fetch job details' }, { status: 500 });
@@ -354,6 +357,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 ## User Experience Flow
 
 ### Anonymous User Journey:
+
 1. **Browse Jobs**: See job titles, companies, locations, basic info
 2. **Click Job**: Prompted to sign up/login to view full details
 3. **Auth Prompt**: "Sign up to see full job description and apply"
@@ -361,6 +365,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 5. **Full Access**: View complete job details and apply
 
 ### Authenticated User Journey:
+
 1. **Browse Jobs**: See same preview cards
 2. **Click Job**: Direct access to full job details
 3. **View Details**: Complete job description, requirements, benefits

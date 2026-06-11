@@ -28,7 +28,8 @@ export default function ReferencesContent() {
         </div>
       </div>
       <Tip>
-        In South Africa, references are typically checked, so ensure your references can speak positively about your work ethic and performance.
+        In South Africa, references are typically checked, so ensure your references can speak
+        positively about your work ethic and performance.
       </Tip>
     </div>
   );

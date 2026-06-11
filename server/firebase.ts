@@ -20,7 +20,8 @@ async function initializeFirebase() {
   const projectId = await secretManager.getSecret('FIREBASE_PROJECT_ID');
   const storageBucket = await secretManager.getSecret('FIREBASE_STORAGE_BUCKET');
   const serviceAccountPath =
-    process.env.GOOGLE_APPLICATION_CREDENTIALS || path.resolve(__dirname, '../service-account.json');
+    process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+    path.resolve(__dirname, '../service-account.json');
 
   if (fs.existsSync(serviceAccountPath)) {
     const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
@@ -62,9 +63,11 @@ function assertFirebaseReady<T>(service: T | null, serviceName: string): T {
 }
 
 export const auth = {
-  verifyIdToken: async (token: string) => assertFirebaseReady(authInstance, 'Firebase Auth').verifyIdToken(token),
+  verifyIdToken: async (token: string) =>
+    assertFirebaseReady(authInstance, 'Firebase Auth').verifyIdToken(token),
   getUser: async (uid: string) => assertFirebaseReady(authInstance, 'Firebase Auth').getUser(uid),
-  getUserByEmail: async (email: string) => assertFirebaseReady(authInstance, 'Firebase Auth').getUserByEmail(email),
+  getUserByEmail: async (email: string) =>
+    assertFirebaseReady(authInstance, 'Firebase Auth').getUserByEmail(email),
 };
 
 export const db = new Proxy({} as admin.firestore.Firestore, {
@@ -88,7 +91,12 @@ export const storage = new Proxy({} as admin.storage.Storage, {
  * @returns True if real Firebase services are being used, false if using mocks
  */
 export function isFirebaseInitialized(): boolean {
-  return firebaseApp !== null && authInstance !== null && firestoreInstance !== null && storageInstance !== null;
+  return (
+    firebaseApp !== null &&
+    authInstance !== null &&
+    firestoreInstance !== null &&
+    storageInstance !== null
+  );
 }
 
 /**
@@ -114,9 +122,11 @@ async function initializeFirebaseServices(maxRetries = 3, retryDelay = 2000): Pr
       lastError = error as Error;
       initializationError = lastError;
       retries++;
-      
+
       if (retries < maxRetries) {
-        logger.warn(`Firebase initialization failed, retrying (${retries}/${maxRetries})`, { error });
+        logger.warn(`Firebase initialization failed, retrying (${retries}/${maxRetries})`, {
+          error,
+        });
         await new Promise(resolve => setTimeout(resolve, retryDelay));
       }
     }
@@ -126,7 +136,7 @@ async function initializeFirebaseServices(maxRetries = 3, retryDelay = 2000): Pr
   logger.error('All Firebase initialization attempts failed', {
     error: lastError,
     retries,
-    maxRetries
+    maxRetries,
   });
 }
 

@@ -29,7 +29,8 @@ const smoothAnimation = (
   onComplete?: () => void
 ): (() => void) => {
   // Detect if we're running on a low-performance device
-  const isLowPerformance = typeof window !== 'undefined' &&
+  const isLowPerformance =
+    typeof window !== 'undefined' &&
     (window.innerWidth < 640 || navigator.hardwareConcurrency <= 4);
 
   // Adjust duration based on device capability and animation distance
@@ -44,9 +45,7 @@ const smoothAnimation = (
 
   // Cubic easing function - smoother acceleration and deceleration
   const easeInOutCubic = (t: number): number => {
-    return t < 0.5
-      ? 4 * t * t * t
-      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   };
 
   const animate = (currentTime: number): void => {
@@ -100,8 +99,7 @@ const throttle = <T extends (...args: any[]) => any>(
   let lastRan: number = 0;
   const { leading = true, trailing = true } = options;
 
-  return function(this: any, ...args: Parameters<T>): void {
-    const context = this;
+  return function (this: any, ...args: Parameters<T>): void {
     const now = Date.now();
 
     if (!lastRan && !leading) {
@@ -117,13 +115,13 @@ const throttle = <T extends (...args: any[]) => any>(
       }
 
       lastRan = now;
-      func.apply(context, args);
+      func.apply(this, args);
     } else if (!lastFunc && trailing) {
       // Schedule a trailing call
       lastFunc = setTimeout(() => {
         lastRan = !leading ? 0 : Date.now();
         lastFunc = undefined;
-        func.apply(context, args);
+        func.apply(this, args);
       }, remaining);
     }
   };
@@ -146,7 +144,7 @@ export function useFAQWheel() {
 
   // Refs
   const autoRotateRef = useRef<NodeJS.Timeout | null>(null);
-  const touchStartRef = useRef<{ x: number, y: number } | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   // Hooks
   const isMobile = useIsMobile();
@@ -158,7 +156,7 @@ export function useFAQWheel() {
   const {
     data: faqItems = [],
     isLoading,
-    error
+    error,
   } = useQuery<FAQItem[]>({
     queryKey: ['faqs'],
     queryFn: () => faqService.getFAQs(),
@@ -170,18 +168,21 @@ export function useFAQWheel() {
    * Handle smooth rotation with cubic easing
    * Memoized to prevent recreating on every render
    */
-  const smoothRotate = useCallback((targetRotation: number): void => {
-    setIsAnimating(true);
+  const smoothRotate = useCallback(
+    (targetRotation: number): void => {
+      setIsAnimating(true);
 
-    smoothAnimation(
-      rotation,
-      targetRotation,
-      (value) => {
-        setRotation(value);
-      },
-      () => setIsAnimating(false)
-    );
-  }, [rotation]);
+      smoothAnimation(
+        rotation,
+        targetRotation,
+        value => {
+          setRotation(value);
+        },
+        () => setIsAnimating(false)
+      );
+    },
+    [rotation]
+  );
 
   /**
    * Handle manual rotation with throttling to prevent rapid firing
@@ -189,49 +190,56 @@ export function useFAQWheel() {
    * Uses enhanced throttle with leading edge execution only
    * Supports faster rotation with shift key
    */
-  const handleRotate = useCallback(throttle(
-    (direction: 'left' | 'right', isFast: boolean = false): void => {
-      // Calculate new rotation with momentum - faster with shift key or consecutive clicks
-      const baseRotation = 45;
-      const fastMultiplier = isFast ? 2 : 1; // Double rotation speed when shift key is pressed
-      const rotationAmount = direction === 'left' ? -baseRotation * fastMultiplier : baseRotation * fastMultiplier;
-      const newRotation = rotation + rotationAmount;
+  const handleRotate = useCallback(
+    throttle(
+      (direction: 'left' | 'right', isFast: boolean = false): void => {
+        // Calculate new rotation with momentum - faster with shift key or consecutive clicks
+        const baseRotation = 45;
+        const fastMultiplier = isFast ? 2 : 1; // Double rotation speed when shift key is pressed
+        const rotationAmount =
+          direction === 'left' ? -baseRotation * fastMultiplier : baseRotation * fastMultiplier;
+        const newRotation = rotation + rotationAmount;
 
-      // Force stop any existing animation by setting isAnimating to false first
-      setIsAnimating(false);
+        // Force stop any existing animation by setting isAnimating to false first
+        setIsAnimating(false);
 
-      // Apply smooth animation with cubic easing
-      setTimeout(() => {
-        smoothRotate(newRotation);
-      }, 10);
+        // Apply smooth animation with cubic easing
+        setTimeout(() => {
+          smoothRotate(newRotation);
+        }, 10);
 
-      // Provide haptic feedback on mobile devices if supported
-      if (isMobile && 'vibrate' in navigator) {
-        try {
-          navigator.vibrate(10); // Subtle vibration (10ms)
-        } catch (e) {
-          // Ignore errors if vibration is not supported
+        // Provide haptic feedback on mobile devices if supported
+        if (isMobile && 'vibrate' in navigator) {
+          try {
+            navigator.vibrate(10); // Subtle vibration (10ms)
+          } catch (e) {
+            // Ignore errors if vibration is not supported
+          }
         }
-      }
-    },
-    300, // Faster response time
-    { leading: true, trailing: false } // Only execute on the leading edge
-  ), [rotation, smoothRotate, isMobile]);
+      },
+      300, // Faster response time
+      { leading: true, trailing: false } // Only execute on the leading edge
+    ),
+    [rotation, smoothRotate, isMobile]
+  );
 
   /**
    * Handle question selection
    * Stops auto-rotation when viewing a question
    */
-  const handleQuestionClick = useCallback((index: number): void => {
-    // Stop auto-rotation when viewing a question
-    if (isAutoRotating && autoRotateRef.current) {
-      clearInterval(autoRotateRef.current);
-      setIsAutoRotating(false);
-    }
+  const handleQuestionClick = useCallback(
+    (index: number): void => {
+      // Stop auto-rotation when viewing a question
+      if (isAutoRotating && autoRotateRef.current) {
+        clearInterval(autoRotateRef.current);
+        setIsAutoRotating(false);
+      }
 
-    setSelectedQuestion(faqItems[index]);
-    setIsModalOpen(true);
-  }, [isAutoRotating, faqItems]);
+      setSelectedQuestion(faqItems[index]);
+      setIsModalOpen(true);
+    },
+    [isAutoRotating, faqItems]
+  );
 
   /**
    * Close the modal
@@ -277,104 +285,116 @@ export function useFAQWheel() {
    * Calculate positions for each FAQ item in the wheel
    * Uses trigonometry to position items in a circle with improved spacing
    */
-  const getItemPosition = useCallback((index: number, totalItems: number): ItemPosition => {
-    // Ensure rotation is properly applied
-    const angle = (index * (360 / totalItems) + rotation) % 360;
-    const radian = angle * (Math.PI / 180);
+  const getItemPosition = useCallback(
+    (index: number, totalItems: number): ItemPosition => {
+      // Ensure rotation is properly applied
+      const angle = (index * (360 / totalItems) + rotation) % 360;
+      const radian = angle * (Math.PI / 180);
 
-    // Wheel dimensions - Adjust radius based on screen size and number of items
-    // Make the wheel more compact while maintaining readability
-    const baseRadius = isMobile ? 140 : 200; // Reduced radius for more compact layout
+      // Wheel dimensions - Adjust radius based on screen size and number of items
+      // Make the wheel more compact while maintaining readability
+      const baseRadius = isMobile ? 140 : 200; // Reduced radius for more compact layout
 
-    // Adjust radius slightly based on number of items to prevent overlapping
-    const wheelRadius = totalItems > 6 ? baseRadius : baseRadius * 0.9;
+      // Adjust radius slightly based on number of items to prevent overlapping
+      const wheelRadius = totalItems > 6 ? baseRadius : baseRadius * 0.9;
 
-    const centerX = "50%"; // Center horizontally using percentages
-    const centerY = "50%"; // Center vertically using percentages
+      const centerX = '50%'; // Center horizontally using percentages
+      const centerY = '50%'; // Center vertically using percentages
 
-    // Calculate position using trigonometry
-    const x = `calc(${centerX} + ${Math.cos(radian) * wheelRadius}px)`;
-    const y = `calc(${centerY} + ${Math.sin(radian) * wheelRadius}px)`;
+      // Calculate position using trigonometry
+      const x = `calc(${centerX} + ${Math.cos(radian) * wheelRadius}px)`;
+      const y = `calc(${centerY} + ${Math.sin(radian) * wheelRadius}px)`;
 
-    return {
-      x,
-      y,
-      rotation: angle
-    };
-  }, [rotation, isMobile]);
+      return {
+        x,
+        y,
+        rotation: angle,
+      };
+    },
+    [rotation, isMobile]
+  );
 
   /**
    * Handle touch start event for mobile swipe
    * Improved to prevent default behavior and capture touch position more reliably
    */
-  const handleTouchStart = useCallback((e: React.TouchEvent): void => {
-    // Prevent default behavior to avoid scrolling while swiping
-    if (isMobile) {
-      e.preventDefault();
-    }
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent): void => {
+      // Prevent default behavior to avoid scrolling while swiping
+      if (isMobile) {
+        e.preventDefault();
+      }
 
-    // Store the initial touch position
-    touchStartRef.current = {
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY
-    };
-  }, [isMobile]);
+      // Store the initial touch position
+      touchStartRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
+    },
+    [isMobile]
+  );
 
   /**
    * Handle touch move event for mobile swipe
    * Added to provide more responsive feedback during swipe
    */
-  const handleTouchMove = useCallback((e: React.TouchEvent): void => {
-    // Skip if no starting position or not on mobile
-    if (!touchStartRef.current || !isMobile) return;
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent): void => {
+      // Skip if no starting position or not on mobile
+      if (!touchStartRef.current || !isMobile) return;
 
-    // Prevent default to avoid scrolling
-    e.preventDefault();
-  }, [isMobile]);
+      // Prevent default to avoid scrolling
+      e.preventDefault();
+    },
+    [isMobile]
+  );
 
   /**
    * Handle touch end event for mobile swipe
    * Improved with better threshold detection and more responsive feedback
    */
-  const handleTouchEnd = useCallback((e: React.TouchEvent): void => {
-    // Skip if no starting position
-    if (!touchStartRef.current) return;
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent): void => {
+      // Skip if no starting position
+      if (!touchStartRef.current) return;
 
-    // Get the final touch position
-    const touchEnd = {
-      x: e.changedTouches[0].clientX,
-      y: e.changedTouches[0].clientY
-    };
+      // Get the final touch position
+      const touchEnd = {
+        x: e.changedTouches[0].clientX,
+        y: e.changedTouches[0].clientY,
+      };
 
-    // Calculate the swipe distance
-    const deltaX = touchEnd.x - touchStartRef.current.x;
-    const deltaY = touchEnd.y - touchStartRef.current.y;
+      // Calculate the swipe distance
+      const deltaX = touchEnd.x - touchStartRef.current.x;
+      const deltaY = touchEnd.y - touchStartRef.current.y;
 
-    // Only process horizontal swipes (ignore vertical swipes)
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      // Use a smaller threshold on mobile for better responsiveness
-      const swipeThreshold = isMobile ? 30 : 50;
+      // Only process horizontal swipes (ignore vertical swipes)
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Use a smaller threshold on mobile for better responsiveness
+        const swipeThreshold = isMobile ? 30 : 50;
 
-      // Determine swipe direction if the swipe is significant enough
-      if (Math.abs(deltaX) > swipeThreshold) {
-        // Swipe right = rotate left, swipe left = rotate right
-        // The direction is reversed to feel more natural
-        handleRotate(deltaX > 0 ? 'left' : 'right');
+        // Determine swipe direction if the swipe is significant enough
+        if (Math.abs(deltaX) > swipeThreshold) {
+          // Swipe right = rotate left, swipe left = rotate right
+          // The direction is reversed to feel more natural
+          handleRotate(deltaX > 0 ? 'left' : 'right');
 
-        // Provide haptic feedback on successful swipe if supported
-        if (isMobile && 'vibrate' in navigator) {
-          try {
-            navigator.vibrate(5); // Very subtle vibration
-          } catch (e) {
-            // Ignore errors if vibration is not supported
+          // Provide haptic feedback on successful swipe if supported
+          if (isMobile && 'vibrate' in navigator) {
+            try {
+              navigator.vibrate(5); // Very subtle vibration
+            } catch (e) {
+              // Ignore errors if vibration is not supported
+            }
           }
         }
       }
-    }
 
-    // Reset touch start position
-    touchStartRef.current = null;
-  }, [handleRotate, isMobile]);
+      // Reset touch start position
+      touchStartRef.current = null;
+    },
+    [handleRotate, isMobile]
+  );
 
   /**
    * Handle keyboard navigation
@@ -424,7 +444,7 @@ export function useFAQWheel() {
       const initialRotationTimeout = setTimeout(() => {
         // Calculate optimal initial rotation based on number of items
         // This helps position the first item at the top
-        const optimalRotation = faqItems.length > 0 ? (360 / faqItems.length) / 2 : 22.5;
+        const optimalRotation = faqItems.length > 0 ? 360 / faqItems.length / 2 : 22.5;
 
         // Apply direct rotation first for immediate effect
         setRotation(optimalRotation);
@@ -466,7 +486,7 @@ export function useFAQWheel() {
     handleTouchStart,
     handleTouchMove, // Add the new touch move handler
     handleTouchEnd,
-    isMobile
+    isMobile,
   };
 }
 

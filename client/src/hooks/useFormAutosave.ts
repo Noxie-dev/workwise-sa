@@ -6,10 +6,10 @@ export const useFormAutosave = (formData: any, formId: string) => {
     const saveTimeout = setTimeout(() => {
       localStorage.setItem(`job-form-draft-${formId}`, JSON.stringify(formData));
     }, 1000);
-    
+
     return () => clearTimeout(saveTimeout);
   }, [formData, formId]);
-  
+
   // Load from localStorage on initial render
   const loadSavedData = () => {
     const savedData = localStorage.getItem(`job-form-draft-${formId}`);
@@ -23,12 +23,12 @@ export const useFormAutosave = (formData: any, formId: string) => {
     }
     return null;
   };
-  
+
   // Clear saved data
   const clearSaved = () => {
     localStorage.removeItem(`job-form-draft-${formId}`);
   };
-  
+
   return { loadSavedData, clearSaved };
 };
 

@@ -21,7 +21,7 @@ interface UseLazyVideoResult {
 
 /**
  * Custom hook for lazy loading videos with IntersectionObserver
- * 
+ *
  * Handles loading videos only when they enter the viewport,
  * with support for mobile optimization, error handling,
  * and autoplay on visibility.
@@ -58,22 +58,20 @@ export function useLazyVideo({
 
     // Set up intersection observer to detect when video is in viewport
     const observer = new IntersectionObserver(
-      (entries) => {
+      entries => {
         const [entry] = entries;
         setIsVisible(entry.isIntersecting);
-        
+
         if (entry.isIntersecting) {
           if (!isLoaded && !isLoading) {
             setIsLoading(true);
-            
+
             // For mobile, load lower quality version if available
-            const videoSrc = isMobile && src.includes('720p') 
-              ? src.replace('720p', '480p')
-              : src;
-            
+            const videoSrc = isMobile && src.includes('720p') ? src.replace('720p', '480p') : src;
+
             videoRef.current!.src = videoSrc;
           }
-          
+
           // Auto-play when visible if enabled
           if (autoPlayOnVisible && videoRef.current && isLoaded) {
             videoRef.current.play().catch(err => {
@@ -89,11 +87,11 @@ export function useLazyVideo({
     );
 
     observer.observe(videoRef.current);
-    
+
     const video = videoRef.current;
     video.addEventListener('loadeddata', handleLoad);
     video.addEventListener('error', handleError);
-    
+
     return () => {
       observer.disconnect();
       if (video) {

@@ -1,4 +1,3 @@
-
 import React, { memo } from 'react';
 import { useLazyVideo } from '../hooks/useLazyVideo';
 
@@ -76,7 +75,11 @@ export const LazyVideo: React.FC<LazyVideoProps> = ({
       {isLoading && !isLoaded && !isError && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-50 rounded-lg">
           {loadingContent || (
-            <div className="animate-pulse rounded-full h-8 w-8 bg-primary opacity-75" role="status" aria-label="Loading video"></div>
+            <div
+              className="animate-pulse rounded-full h-8 w-8 bg-primary opacity-75"
+              role="status"
+              aria-label="Loading video"
+            ></div>
           )}
         </div>
       )}

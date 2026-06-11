@@ -95,7 +95,6 @@ const Home = () => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       initParticles();
-
     };
 
     const initParticles = () => {

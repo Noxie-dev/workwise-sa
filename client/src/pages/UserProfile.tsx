@@ -143,8 +143,6 @@ const UserProfile = () => {
     setActiveImageIndex(prev => (prev - 1 + profileImages.length) % profileImages.length);
   };
 
-
-
   if (loading) {
     return <div className="flex items-center justify-center h-64">Loading...</div>;
   }
@@ -266,8 +264,8 @@ const UserProfile = () => {
                   </span>
                 )}
               </Button>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="outline"
                 onClick={() => setShowAccessibilitySettings(true)}
                 aria-label="Open accessibility and user settings"
@@ -290,9 +288,9 @@ const UserProfile = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Profile Completion Tracker */}
                 <div className="md:col-span-3">
-                  <ProfileCompletionTracker 
+                  <ProfileCompletionTracker
                     profile={profile}
-                    onSectionClick={(sectionId) => {
+                    onSectionClick={sectionId => {
                       // Navigate to profile setup with specific section
                       console.log('Navigate to section:', sectionId);
                     }}
@@ -337,12 +335,14 @@ const UserProfile = () => {
                       </div>
                     </div>
                     <p className="text-gray-700 mb-6">{profile.personal?.bio}</p>
-                    
+
                     {professionalImage && (
                       <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <div className="flex items-center gap-2 text-sm text-blue-700">
                           <Briefcase className="h-4 w-4" />
-                          <span className="font-medium">Professional image available for recruiters</span>
+                          <span className="font-medium">
+                            Professional image available for recruiters
+                          </span>
                         </div>
                       </div>
                     )}
@@ -402,7 +402,7 @@ const UserProfile = () => {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   {/* Professional Image Quick Access */}
                   {professionalImage && (
                     <Card>
@@ -424,7 +424,7 @@ const UserProfile = () => {
                       </CardContent>
                     </Card>
                   )}
-                  
+
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex justify-between items-center mb-4">
@@ -480,7 +480,10 @@ const UserProfile = () => {
                       <div className="space-y-4">
                         {(profile.recentActivity || []).length > 0 ? (
                           (profile.recentActivity || []).map((activity: any, index: number) => (
-                            <div key={index} className="flex items-start border-b pb-4 last:border-0">
+                            <div
+                              key={index}
+                              className="flex items-start border-b pb-4 last:border-0"
+                            >
                               <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-4 flex-shrink-0">
                                 {activity.icon ? (
                                   <activity.icon className="h-5 w-5 text-blue-600" />
@@ -498,7 +501,9 @@ const UserProfile = () => {
                           <div className="text-center py-8">
                             <Clock className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                             <p className="text-gray-500">No recent activity</p>
-                            <p className="text-sm text-gray-400">Start applying for jobs to see your activity here</p>
+                            <p className="text-sm text-gray-400">
+                              Start applying for jobs to see your activity here
+                            </p>
                           </div>
                         )}
                       </div>
@@ -577,10 +582,9 @@ const UserProfile = () => {
                           <div>
                             <p className="font-medium text-gray-900">Professional Image</p>
                             <p className="text-sm text-gray-600">
-                              {professionalImage 
-                                ? 'Available for recruiters to view' 
-                                : 'Add a professional image for recruiters'
-                              }
+                              {professionalImage
+                                ? 'Available for recruiters to view'
+                                : 'Add a professional image for recruiters'}
                             </p>
                           </div>
                         </div>
@@ -605,7 +609,7 @@ const UserProfile = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-6">
                     <Button>Update Preferences</Button>
                   </div>
@@ -621,18 +625,14 @@ const UserProfile = () => {
             <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
               <div className="p-4 border-b flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Update Profile Image</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowImageUpload(false)}
-                >
+                <Button variant="ghost" size="sm" onClick={() => setShowImageUpload(false)}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
               <div className="p-4">
                 <ProfileImageUpload
                   currentImageUrl={profileImages[activeImageIndex]}
-                  onImageUpdate={(newImageUrl) => {
+                  onImageUpdate={newImageUrl => {
                     setProfileImages(prev => [newImageUrl, ...prev.slice(1)]);
                     setShowImageUpload(false);
                   }}
@@ -648,18 +648,14 @@ const UserProfile = () => {
             <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
               <div className="p-4 border-b flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Professional Image</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowProfessionalUpload(false)}
-                >
+                <Button variant="ghost" size="sm" onClick={() => setShowProfessionalUpload(false)}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
               <div className="p-4">
                 <ProfessionalImageUpload
                   currentImageUrl={professionalImage || undefined}
-                  onImageUpdate={(newImageUrl) => {
+                  onImageUpdate={newImageUrl => {
                     setProfessionalImage(newImageUrl);
                     setShowProfessionalUpload(false);
                   }}
@@ -685,7 +681,7 @@ const UserProfile = () => {
             profile={profile}
             isOpen={showEditModal}
             onClose={() => setShowEditModal(false)}
-            onSave={(updatedProfile) => {
+            onSave={updatedProfile => {
               setProfile(updatedProfile);
             }}
             userId={currentUser?.uid || ''}
@@ -699,9 +695,7 @@ const UserProfile = () => {
         />
 
         {/* Mobile Accessibility FAB */}
-        <MobileAccessibilityFab
-          onOpenSettings={() => setShowAccessibilitySettings(true)}
-        />
+        <MobileAccessibilityFab onOpenSettings={() => setShowAccessibilitySettings(true)} />
       </main>
     </>
   );

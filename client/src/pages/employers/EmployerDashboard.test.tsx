@@ -59,7 +59,7 @@ describe('EmployerDashboard Component', () => {
     return render(
       <QueryClientProvider client={queryClient}>
         <EmployerDashboard />
-      </QueryClientProvider>,
+      </QueryClientProvider>
     );
   };
 
@@ -92,7 +92,11 @@ describe('EmployerDashboard Component', () => {
         ],
       },
       recentActivity: [
-        { title: 'New Application', description: 'John Doe applied for Software Developer', timestamp: '10 min ago' },
+        {
+          title: 'New Application',
+          description: 'John Doe applied for Software Developer',
+          timestamp: '10 min ago',
+        },
       ],
     });
 
@@ -105,7 +109,7 @@ describe('EmployerDashboard Component', () => {
         applications: 10,
         views: 500,
         postedDate: '2025-07-01',
-        status: 'active'
+        status: 'active',
       },
       {
         id: 'job2',
@@ -115,7 +119,7 @@ describe('EmployerDashboard Component', () => {
         applications: 5,
         views: 200,
         postedDate: '2025-07-05',
-        status: 'paused'
+        status: 'paused',
       },
     ]);
 
@@ -220,7 +224,7 @@ describe('EmployerDashboard Component', () => {
 
   it('shows a dashboard error state when the overview query fails', async () => {
     (employerDashboardService.fetchEmployerDashboard as any).mockRejectedValueOnce(
-      new Error('Failed to load employer dashboard'),
+      new Error('Failed to load employer dashboard')
     );
 
     renderDashboard();
@@ -229,5 +233,4 @@ describe('EmployerDashboard Component', () => {
       expect(screen.getByText('Failed to load employer dashboard')).toBeInTheDocument();
     });
   });
-
 });

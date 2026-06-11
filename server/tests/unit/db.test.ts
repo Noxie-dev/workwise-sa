@@ -7,8 +7,8 @@ const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 // Mock the secretManager
 vi.mock('../../services/secretManager', () => ({
   secretManager: {
-    getSecret: vi.fn().mockResolvedValue('sqlite:./test.db')
-  }
+    getSecret: vi.fn().mockResolvedValue('sqlite:./test.db'),
+  },
 }));
 
 describe('Database Module', () => {

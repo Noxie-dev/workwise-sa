@@ -9,12 +9,12 @@ export const INITIAL_FORM_STATE = {
   salaryMin: '',
   salaryMax: '',
   isSalaryNegotiable: false,
-  
+
   // Job Description
   description: '',
   responsibilities: '',
   requirements: '',
-  
+
   // Company Info
   companyName: '',
   companyLogo: null as File | null,
@@ -23,17 +23,17 @@ export const INITIAL_FORM_STATE = {
   contactEmail: '',
   contactPhone: '',
   website: '',
-  
+
   // Application Settings
   howToApply: 'email', // 'email' | 'url' | 'custom'
   applicationEmail: '',
   applicationUrl: '',
   customInstructions: '',
-  
+
   // Additional Settings
   isConfidential: false,
   isDraft: false,
-  screenerQuestions: []
+  screenerQuestions: [],
 };
 
 export type JobFormValues = typeof INITIAL_FORM_STATE;

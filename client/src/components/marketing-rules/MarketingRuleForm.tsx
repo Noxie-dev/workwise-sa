@@ -128,14 +128,12 @@ const MarketingRuleForm: React.FC<MarketingRuleFormProps> = ({
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                     <div className="space-y-0.5">
                       <FormLabel>Active Status</FormLabel>
-                      <FormDescription>
-                        Enable or disable this marketing rule
-                      </FormDescription>
+                      <FormDescription>Enable or disable this marketing rule</FormDescription>
                     </div>
                     <FormControl>
                       <Switch
                         checked={field.value === 'Active'}
-                        onCheckedChange={(checked) => {
+                        onCheckedChange={checked => {
                           field.onChange(checked ? 'Active' : 'Inactive');
                         }}
                       />
@@ -161,10 +159,7 @@ const MarketingRuleForm: React.FC<MarketingRuleFormProps> = ({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Targeted Location</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select location" />
@@ -199,10 +194,7 @@ const MarketingRuleForm: React.FC<MarketingRuleFormProps> = ({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Targeted Job Type</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select job type" />
@@ -252,7 +244,7 @@ const MarketingRuleForm: React.FC<MarketingRuleFormProps> = ({
                     <Input
                       placeholder="Add demographic (e.g., Entry-level, Graduate)"
                       value={newDemographic}
-                      onChange={(e) => setNewDemographic(e.target.value)}
+                      onChange={e => setNewDemographic(e.target.value)}
                       onKeyDown={handleKeyDown}
                       className="flex-1"
                     />
@@ -310,7 +302,8 @@ const MarketingRuleForm: React.FC<MarketingRuleFormProps> = ({
 
               <TabsContent value="advanced" className="space-y-4 pt-4">
                 <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                  Advanced rule behavior is currently managed by the backend policy layer. Use targeting and content to configure the active rule inputs for this runtime.
+                  Advanced rule behavior is currently managed by the backend policy layer. Use
+                  targeting and content to configure the active rule inputs for this runtime.
                 </div>
               </TabsContent>
             </Tabs>

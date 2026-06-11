@@ -1,14 +1,7 @@
 import React, { useState } from 'react';
 import { WiseUpItem } from '../types';
 import VideoPlayer from './VideoPlayer';
-import {
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  ChevronUp,
-  ChevronDown
-} from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface MediaPanelProps {
   currentItem: WiseUpItem | null;
@@ -47,7 +40,7 @@ const MediaPanel: React.FC<MediaPanelProps> = ({
   onNext,
   onPrevious,
   isNextDisabled,
-  isPreviousDisabled
+  isPreviousDisabled,
 }) => {
   const [videoError, setVideoError] = useState<MediaError | null>(null);
 
@@ -134,26 +127,18 @@ const MediaPanel: React.FC<MediaPanelProps> = ({
                   <button
                     className="bg-yellow-500 hover:bg-yellow-400 text-white p-3 rounded-full transition-colors duration-200"
                     onClick={onTogglePlay}
-                    aria-label={isPlaying ? "Pause" : "Play"}
+                    aria-label={isPlaying ? 'Pause' : 'Play'}
                   >
-                    {isPlaying ? (
-                      <Pause className="h-5 w-5" />
-                    ) : (
-                      <Play className="h-5 w-5" />
-                    )}
+                    {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
                   </button>
 
                   {/* Mute/Unmute Button */}
                   <button
                     className="bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-colors duration-200"
                     onClick={onToggleMute}
-                    aria-label={isMuted ? "Unmute" : "Mute"}
+                    aria-label={isMuted ? 'Unmute' : 'Mute'}
                   >
-                    {isMuted ? (
-                      <VolumeX className="h-5 w-5" />
-                    ) : (
-                      <Volume2 className="h-5 w-5" />
-                    )}
+                    {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                   </button>
                 </div>
 

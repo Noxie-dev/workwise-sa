@@ -1,16 +1,21 @@
 // @ts-nocheck
 import {
-  type User, type InsertUser,
-  type Category, type InsertCategory,
-  type Company, type InsertCompany,
-  type Job, type InsertJob,
-  type File, type InsertFile,
-  type JobWithCompany
-} from "@shared/schema";
-import { db } from "./firebase";
-import { log } from "./vite";
-import { IStorage } from "./storage";
-import { FieldValue, Timestamp } from "firebase-admin/firestore";
+  type User,
+  type InsertUser,
+  type Category,
+  type InsertCategory,
+  type Company,
+  type InsertCompany,
+  type Job,
+  type InsertJob,
+  type File,
+  type InsertFile,
+  type JobWithCompany,
+} from '@shared/schema';
+import { db } from './firebase';
+import { log } from './vite';
+import { IStorage } from './storage';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 
 /**
  * Firestore implementation of the storage interface.
@@ -30,7 +35,7 @@ export class FirestoreStorage implements IStorage {
     const data = doc.data();
     return {
       id: parseInt(doc.id), // Convert string ID to number to match original schema
-      ...data
+      ...data,
     } as unknown as T;
   }
 
@@ -39,7 +44,7 @@ export class FirestoreStorage implements IStorage {
       const data = doc.data();
       return {
         id: parseInt(doc.id), // Convert string ID to number
-        ...data
+        ...data,
       } as unknown as T;
     });
   }
@@ -70,14 +75,14 @@ export class FirestoreStorage implements IStorage {
     // Create the user with the ID
     const userWithTimestamp = {
       ...insertUser,
-      createdAt: Timestamp.now()
+      createdAt: Timestamp.now(),
     };
 
     await this.usersCollection.doc(nextId.toString()).set(userWithTimestamp);
 
     return {
       id: nextId,
-      ...userWithTimestamp
+      ...userWithTimestamp,
     } as unknown as User;
   }
 
@@ -113,7 +118,7 @@ export class FirestoreStorage implements IStorage {
 
     return {
       id: nextId,
-      ...insertCategory
+      ...insertCategory,
     } as Category;
   }
 
@@ -149,7 +154,7 @@ export class FirestoreStorage implements IStorage {
 
     return {
       id: nextId,
-      ...insertCompany
+      ...insertCompany,
     } as Company;
   }
 
@@ -160,9 +165,7 @@ export class FirestoreStorage implements IStorage {
   }
 
   async getJobsWithCompanies(): Promise<JobWithCompany[]> {
-    const snapshot = await this.jobsCollection
-      .orderBy('createdAt', 'desc')
-      .get();
+    const snapshot = await this.jobsCollection.orderBy('createdAt', 'desc').get();
 
     const jobs = this.convertDocs<Job>(snapshot);
 
@@ -173,7 +176,7 @@ export class FirestoreStorage implements IStorage {
       if (company) {
         result.push({
           ...job,
-          company
+          company,
         });
       }
     }
@@ -196,7 +199,7 @@ export class FirestoreStorage implements IStorage {
       if (company) {
         result.push({
           ...job,
-          company
+          company,
         });
       }
     }
@@ -210,17 +213,13 @@ export class FirestoreStorage implements IStorage {
   }
 
   async getJobsByCompany(companyId: number): Promise<Job[]> {
-    const snapshot = await this.jobsCollection
-      .where('companyId', '==', companyId)
-      .get();
+    const snapshot = await this.jobsCollection.where('companyId', '==', companyId).get();
 
     return this.convertDocs<Job>(snapshot);
   }
 
   async getJobsByCategory(categoryId: number): Promise<Job[]> {
-    const snapshot = await this.jobsCollection
-      .where('categoryId', '==', categoryId)
-      .get();
+    const snapshot = await this.jobsCollection.where('categoryId', '==', categoryId).get();
 
     return this.convertDocs<Job>(snapshot);
   }
@@ -237,9 +236,10 @@ export class FirestoreStorage implements IStorage {
     const jobs = this.convertDocs<Job>(snapshot);
     const searchQuery = query.toLowerCase();
 
-    const filteredJobs = jobs.filter(job =>
-      job.title.toLowerCase().includes(searchQuery) ||
-      job.description.toLowerCase().includes(searchQuery)
+    const filteredJobs = jobs.filter(
+      job =>
+        job.title.toLowerCase().includes(searchQuery) ||
+        job.description.toLowerCase().includes(searchQuery)
     );
 
     // Fetch the associated companies
@@ -249,19 +249,21 @@ export class FirestoreStorage implements IStorage {
       if (company) {
         result.push({
           ...job,
-          company
+          company,
         });
       }
     }
 
     // Sort by createdAt (descending)
     return result.sort((a, b) => {
-      const dateA = a.createdAt instanceof Timestamp
-        ? a.createdAt.toDate().getTime()
-        : new Date(a.createdAt).getTime();
-      const dateB = b.createdAt instanceof Timestamp
-        ? b.createdAt.toDate().getTime()
-        : new Date(b.createdAt).getTime();
+      const dateA =
+        a.createdAt instanceof Timestamp
+          ? a.createdAt.toDate().getTime()
+          : new Date(a.createdAt).getTime();
+      const dateB =
+        b.createdAt instanceof Timestamp
+          ? b.createdAt.toDate().getTime()
+          : new Date(b.createdAt).getTime();
       return dateB - dateA;
     });
   }
@@ -279,14 +281,14 @@ export class FirestoreStorage implements IStorage {
 
     const jobWithTimestamp = {
       ...insertJob,
-      createdAt: Timestamp.now()
+      createdAt: Timestamp.now(),
     };
 
     await this.jobsCollection.doc(nextId.toString()).set(jobWithTimestamp);
 
     return {
       id: nextId,
-      ...jobWithTimestamp
+      ...jobWithTimestamp,
     } as Job;
   }
 
@@ -297,17 +299,13 @@ export class FirestoreStorage implements IStorage {
   }
 
   async getFilesByUser(userId: number): Promise<File[]> {
-    const snapshot = await this.filesCollection
-      .where('userId', '==', userId)
-      .get();
+    const snapshot = await this.filesCollection.where('userId', '==', userId).get();
 
     return this.convertDocs<File>(snapshot);
   }
 
   async getFilesByType(fileType: string): Promise<File[]> {
-    const snapshot = await this.filesCollection
-      .where('fileType', '==', fileType)
-      .get();
+    const snapshot = await this.filesCollection.where('fileType', '==', fileType).get();
 
     return this.convertDocs<File>(snapshot);
   }
@@ -326,14 +324,14 @@ export class FirestoreStorage implements IStorage {
     const fileWithTimestamp = {
       ...insertFile,
       createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now()
+      updatedAt: Timestamp.now(),
     };
 
     await this.filesCollection.doc(nextId.toString()).set(fileWithTimestamp);
 
     return {
       id: nextId,
-      ...fileWithTimestamp
+      ...fileWithTimestamp,
     } as File;
   }
 
@@ -360,9 +358,33 @@ export class FirestoreStorage implements IStorage {
       log('Initializing database with sample data...');
 
       // Add categories for entry-level jobs
-      const categoryIcons = ['shopping-cart', 'user', 'shield', 'gas-pump', 'baby', 'broom', 'seedling'];
-      const categoryNames = ['Retail', 'General Worker', 'Security', 'Petrol Attendant', 'Childcare', 'Cleaning', 'Landscaping'];
-      const categorySlugs = ['retail', 'general-worker', 'security', 'petrol-attendant', 'childcare', 'cleaning', 'landscaping'];
+      const categoryIcons = [
+        'shopping-cart',
+        'user',
+        'shield',
+        'gas-pump',
+        'baby',
+        'broom',
+        'seedling',
+      ];
+      const categoryNames = [
+        'Retail',
+        'General Worker',
+        'Security',
+        'Petrol Attendant',
+        'Childcare',
+        'Cleaning',
+        'Landscaping',
+      ];
+      const categorySlugs = [
+        'retail',
+        'general-worker',
+        'security',
+        'petrol-attendant',
+        'childcare',
+        'cleaning',
+        'landscaping',
+      ];
       const categoryJobCounts = [350, 420, 280, 190, 230, 310, 175];
 
       // Create categories
@@ -378,9 +400,33 @@ export class FirestoreStorage implements IStorage {
       }
 
       // Add companies hiring for entry-level jobs
-      const companyNames = ['Shoprite', 'Pick n Pay', 'Securitas', 'Engen', 'Sasol', 'Spar', 'Checkers'];
-      const companyLocations = ['Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Soweto', 'Port Elizabeth', 'Bloemfontein'];
-      const companySlugs = ['shoprite', 'pick-n-pay', 'securitas', 'engen', 'sasol', 'spar', 'checkers'];
+      const companyNames = [
+        'Shoprite',
+        'Pick n Pay',
+        'Securitas',
+        'Engen',
+        'Sasol',
+        'Spar',
+        'Checkers',
+      ];
+      const companyLocations = [
+        'Johannesburg',
+        'Cape Town',
+        'Durban',
+        'Pretoria',
+        'Soweto',
+        'Port Elizabeth',
+        'Bloemfontein',
+      ];
+      const companySlugs = [
+        'shoprite',
+        'pick-n-pay',
+        'securitas',
+        'engen',
+        'sasol',
+        'spar',
+        'checkers',
+      ];
       const companyOpenPositions = [45, 38, 52, 29, 31, 42, 33];
       const companyLogos = Array(7).fill('default-logo.svg');
 
@@ -405,7 +451,7 @@ export class FirestoreStorage implements IStorage {
         'Petrol Attendant',
         'Domestic Worker',
         'Cleaner',
-        'Gardener/Landscaper'
+        'Gardener/Landscaper',
       ];
 
       const jobDescriptions = [
@@ -415,11 +461,27 @@ export class FirestoreStorage implements IStorage {
         'Petrol attendants needed for busy service station. Responsibilities include fueling vehicles, checking oil/water levels, and basic customer service.',
         'Seeking reliable domestic workers for housekeeping duties including cleaning, laundry, and basic cooking.',
         'Commercial cleaners required for office buildings. Morning and evening shifts available.',
-        'Experienced gardeners needed for residential properties. Duties include lawn maintenance, plant care, and general outdoor upkeep.'
+        'Experienced gardeners needed for residential properties. Duties include lawn maintenance, plant care, and general outdoor upkeep.',
       ];
 
-      const jobTypes = ['Full-time', 'Full-time', 'Shift Work', 'Shift Work', 'Full-time', 'Part-time', 'Full-time'];
-      const workModes = ['On-site', 'On-site', 'On-site', 'On-site', 'On-site', 'On-site', 'On-site'];
+      const jobTypes = [
+        'Full-time',
+        'Full-time',
+        'Shift Work',
+        'Shift Work',
+        'Full-time',
+        'Part-time',
+        'Full-time',
+      ];
+      const workModes = [
+        'On-site',
+        'On-site',
+        'On-site',
+        'On-site',
+        'On-site',
+        'On-site',
+        'On-site',
+      ];
       const salaries = [
         'R5,000 - R7,000/month',
         'R5,500 - R8,000/month',
@@ -427,7 +489,7 @@ export class FirestoreStorage implements IStorage {
         'R5,500 - R7,500/month',
         'R4,500 - R7,000/month',
         'R4,000 - R6,000/month',
-        'R5,000 - R8,000/month'
+        'R5,000 - R8,000/month',
       ];
 
       // Create jobs
@@ -452,4 +514,3 @@ export class FirestoreStorage implements IStorage {
     }
   }
 }
-

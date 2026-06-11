@@ -26,19 +26,16 @@ export const createTestQueryClient = () =>
  */
 export function createWrapper() {
   const testQueryClient = createTestQueryClient();
-  
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={testQueryClient}>{children}</QueryClientProvider>
-  );
+
+  return function ({ children }: { children: React.ReactNode }) {
+    return <QueryClientProvider client={testQueryClient}>{children}</QueryClientProvider>;
+  };
 }
 
 /**
  * Custom render function that includes the QueryClientProvider
  */
-export function renderWithClient(
-  ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
-) {
+export function renderWithClient(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
   return render(ui, {
     wrapper: createWrapper(),
     ...options,

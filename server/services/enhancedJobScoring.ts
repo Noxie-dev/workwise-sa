@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from '../db';
 import {
   users,
   jobs,
@@ -7,9 +7,9 @@ import {
   userSessions,
   Job,
   User,
-  UserJobPreference
-} from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+  UserJobPreference,
+} from '@shared/schema';
+import { eq, and } from 'drizzle-orm';
 
 // -------------------------------------------------------------------------------------
 // CONSTANTS & TYPES
@@ -21,11 +21,11 @@ import { eq, and } from "drizzle-orm";
  * The sum of all weights equals 1.0 (100%).
  */
 const DEFAULT_WEIGHTS = {
-  category: 0.35,  // Category matching (max 35 points)
-  location: 0.25,  // Location matching (max 25 points)
-  skills: 0.20,    // Skills matching (max 20 points)
+  category: 0.35, // Category matching (max 35 points)
+  location: 0.25, // Location matching (max 25 points)
+  skills: 0.2, // Skills matching (max 20 points)
   interaction: 0.15, // Interaction history (max 15 points)
-  content: 0.05    // Content engagement (max 5 points)
+  content: 0.05, // Content engagement (max 5 points)
 };
 
 /**
@@ -33,9 +33,9 @@ const DEFAULT_WEIGHTS = {
  * Calibrated for a 0-100 scale.
  */
 const TIER_THRESHOLDS = {
-  low: 30,      // Score < 30 = Low
-  medium: 55,   // Score 30-54 = Medium
-  high: 75      // Score 55-74 = High; Score >= 75 = Premium
+  low: 30, // Score < 30 = Low
+  medium: 55, // Score 30-54 = Medium
+  high: 75, // Score 55-74 = High; Score >= 75 = Premium
 };
 
 /**
@@ -101,10 +101,10 @@ function computeOverallScore(
  * @returns The engagement tier (Low, Medium, High, Premium)
  */
 function getEngagementTier(score: number): string {
-  if (score >= TIER_THRESHOLDS.high) return "Premium";
-  if (score >= TIER_THRESHOLDS.medium) return "High";
-  if (score >= TIER_THRESHOLDS.low) return "Medium";
-  return "Low";
+  if (score >= TIER_THRESHOLDS.high) return 'Premium';
+  if (score >= TIER_THRESHOLDS.medium) return 'High';
+  if (score >= TIER_THRESHOLDS.low) return 'Medium';
+  return 'Low';
 }
 
 /**
@@ -156,9 +156,10 @@ function computeSkillsMatch(userSkills: string[], jobSkills: string[]): number {
 
   // Find common skills using case-insensitive partial matching
   const common = userSkills.filter(skill =>
-    jobSkills.some(jobSkill =>
-      jobSkill.toLowerCase().includes(skill.toLowerCase()) ||
-      skill.toLowerCase().includes(jobSkill.toLowerCase())
+    jobSkills.some(
+      jobSkill =>
+        jobSkill.toLowerCase().includes(skill.toLowerCase()) ||
+        skill.toLowerCase().includes(jobSkill.toLowerCase())
     )
   );
 
@@ -216,10 +217,10 @@ function computeInteractionScore(history: UserInteractionHistory): number {
   const maxScore = 15;
 
   // Adjusted weights for different interaction types
-  const viewWeight = 0.2;       // 5 views = 1 point
-  const applicationWeight = 5;  // 1 application = 5 points
-  const saveWeight = 1;         // 1 save = 1 point
-  const shareWeight = 2;        // 1 share = 2 points
+  const viewWeight = 0.2; // 5 views = 1 point
+  const applicationWeight = 5; // 1 application = 5 points
+  const saveWeight = 1; // 1 save = 1 point
+  const shareWeight = 2; // 1 share = 2 points
 
   // Video points: 0.5 points per 30 minutes watched (clearer calculation)
   const videoPoints = Math.min(5, (history.videoWatchDurationSec / 1800) * 0.5);
@@ -247,13 +248,12 @@ function computeInteractionScore(history: UserInteractionHistory): number {
  */
 async function getUserPreferences(userId: number): Promise<UserPreferences | null> {
   try {
-    const [userPreference] = await db.select()
+    const [userPreference] = await db
+      .select()
       .from(userJobPreferences)
       .where(eq(userJobPreferences.userId, userId));
 
-    const [userData] = await db.select()
-      .from(users)
-      .where(eq(users.id, userId));
+    const [userData] = await db.select().from(users).where(eq(users.id, userId));
 
     // If neither user data nor preferences exist, return null
     if (!userData && !userPreference) {
@@ -263,16 +263,21 @@ async function getUserPreferences(userId: number): Promise<UserPreferences | nul
 
     const rawSkills = userData?.skills as unknown;
     const skills = Array.isArray(rawSkills)
-      ? rawSkills.filter((skill): skill is string => typeof skill === "string" && skill.trim().length > 0)
-      : rawSkills && typeof rawSkills === "object" && Array.isArray((rawSkills as any).skills)
-        ? (rawSkills as any).skills.filter((skill: unknown): skill is string => typeof skill === "string" && skill.trim().length > 0)
+      ? rawSkills.filter(
+          (skill): skill is string => typeof skill === 'string' && skill.trim().length > 0
+        )
+      : rawSkills && typeof rawSkills === 'object' && Array.isArray((rawSkills as any).skills)
+        ? (rawSkills as any).skills.filter(
+            (skill: unknown): skill is string =>
+              typeof skill === 'string' && skill.trim().length > 0
+          )
         : [];
 
     return {
       preferredCategories: (userPreference?.preferredCategories as number[]) || [],
       preferredLocations: (userPreference?.preferredLocations as string[]) || [],
       skills,
-      willingToRelocate: userPreference?.willingToRelocate || userData?.willingToRelocate || false
+      willingToRelocate: userPreference?.willingToRelocate || userData?.willingToRelocate || false,
     };
   } catch (error) {
     console.error(`Error fetching user preferences for user ID ${userId}:`, error);
@@ -288,7 +293,8 @@ async function getUserPreferences(userId: number): Promise<UserPreferences | nul
  */
 async function getUserInteractionHistory(userId: number): Promise<UserInteractionHistory | null> {
   try {
-    const interactions = await db.select()
+    const interactions = await db
+      .select()
       .from(userInteractions)
       .where(eq(userInteractions.userId, userId));
 
@@ -306,7 +312,7 @@ async function getUserInteractionHistory(userId: number): Promise<UserInteractio
       applications,
       saves,
       shares,
-      videoWatchDurationSec
+      videoWatchDurationSec,
     };
   } catch (error) {
     console.error(`Error fetching interaction history for user ID ${userId}:`, error);
@@ -324,22 +330,28 @@ async function getUserInteractionHistory(userId: number): Promise<UserInteractio
 async function computeContentEngagement(userId: number, jobCategoryId: number): Promise<number> {
   try {
     // Get video watch interactions for this category
-    const videoInteractions = await db.select()
+    const videoInteractions = await db
+      .select()
       .from(userInteractions)
-      .where(and(
-        eq(userInteractions.userId, userId),
-        eq(userInteractions.interactionType, 'video_watch'),
-        eq(userInteractions.categoryId, jobCategoryId)
-      ));
+      .where(
+        and(
+          eq(userInteractions.userId, userId),
+          eq(userInteractions.interactionType, 'video_watch'),
+          eq(userInteractions.categoryId, jobCategoryId)
+        )
+      );
 
     // Get other content interactions (e.g., article reads, course completions)
-    const contentInteractions = await db.select()
+    const contentInteractions = await db
+      .select()
       .from(userInteractions)
-      .where(and(
-        eq(userInteractions.userId, userId),
-        eq(userInteractions.interactionType, 'content_view'),
-        eq(userInteractions.categoryId, jobCategoryId)
-      ));
+      .where(
+        and(
+          eq(userInteractions.userId, userId),
+          eq(userInteractions.interactionType, 'content_view'),
+          eq(userInteractions.categoryId, jobCategoryId)
+        )
+      );
 
     // Calculate engagement score based on interaction counts
     const watchCount = videoInteractions.length;
@@ -375,7 +387,7 @@ export async function calculateEnhancedJobMatchScore(
     // Get user data and preferences using Promise.all for parallel execution
     const [userPrefs, interactionHistory] = await Promise.all([
       getUserPreferences(userId),
-      getUserInteractionHistory(userId)
+      getUserInteractionHistory(userId),
     ]);
 
     // Handle case where essential data is missing
@@ -385,12 +397,12 @@ export async function calculateEnhancedJobMatchScore(
     }
 
     // Check for category interaction history
-    const categoryInteractions = await db.select()
+    const categoryInteractions = await db
+      .select()
       .from(userInteractions)
-      .where(and(
-        eq(userInteractions.userId, userId),
-        eq(userInteractions.categoryId, job.categoryId)
-      ));
+      .where(
+        and(eq(userInteractions.userId, userId), eq(userInteractions.categoryId, job.categoryId))
+      );
 
     const hasHistoryWithCategory = categoryInteractions.length > 0;
 
@@ -412,11 +424,9 @@ export async function calculateEnhancedJobMatchScore(
 
     // 3. Skills Matching (20%)
     // Extract skills from job description using regex
-    const jobSkillsRaw = job.description
-      .match(/skills?:?\s*(.*?)(?:\.|\n|$)/i)?.[1]?.split(/,|\sand\s/) || [];
-    const jobSkills = jobSkillsRaw
-      .map(skill => skill.trim())
-      .filter(skill => skill.length > 2);
+    const jobSkillsRaw =
+      job.description.match(/skills?:?\s*(.*?)(?:\.|\n|$)/i)?.[1]?.split(/,|\sand\s/) || [];
+    const jobSkills = jobSkillsRaw.map(skill => skill.trim()).filter(skill => skill.length > 2);
 
     const skillsScore = computeSkillsMatch(userPrefs.skills, jobSkills);
 
@@ -449,7 +459,7 @@ export async function calculateEnhancedJobMatchScore(
     return {
       score: Math.round(overallScore), // Round to nearest integer
       tier,
-      matchingFactors
+      matchingFactors,
     };
   } catch (error) {
     console.error('Error in enhanced job matching:', error);

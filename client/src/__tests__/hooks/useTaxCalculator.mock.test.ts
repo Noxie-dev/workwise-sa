@@ -10,15 +10,17 @@ describe('useTaxCalculator mock', () => {
       medical: 0.0175,
       groupLife: 0.0075,
       retirement: 0.05,
-      ...deductionRates
+      ...deductionRates,
     };
 
     // Calculate deductions
-    const uif = activeDeductions.uif ? Math.min(annualGross / 12 * rates.uif, 177.12) * 12 : 0;
+    const uif = activeDeductions.uif ? Math.min((annualGross / 12) * rates.uif, 177.12) * 12 : 0;
     const pension = activeDeductions.pension ? Math.min(annualGross * rates.pension, 350000) : 0;
     const medical = activeDeductions.medical ? annualGross * rates.medical : 0;
     const groupLife = activeDeductions.groupLife ? annualGross * rates.groupLife : 0;
-    const retirement = activeDeductions.retirement ? Math.min(annualGross * rates.retirement, 350000) : 0;
+    const retirement = activeDeductions.retirement
+      ? Math.min(annualGross * rates.retirement, 350000)
+      : 0;
 
     // Total deductions
     const totalDeductions = uif + pension + medical + groupLife + retirement;
@@ -32,7 +34,8 @@ describe('useTaxCalculator mock', () => {
       incomeTax = 40500 + (taxableIncome - 226000) * 0.26;
     } else if (taxableIncome > 91250) {
       incomeTax = 16425 + (taxableIncome - 91250) * 0.31;
-    } else if (taxableIncome > 87300) { // Tax threshold
+    } else if (taxableIncome > 87300) {
+      // Tax threshold
       incomeTax = taxableIncome * 0.18;
     }
 
@@ -61,7 +64,7 @@ describe('useTaxCalculator mock', () => {
       takeHomePay,
       effectiveTaxRate,
       monthlyGross,
-      monthlyTakeHome
+      monthlyTakeHome,
     };
   };
 

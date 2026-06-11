@@ -23,10 +23,10 @@ export class ApiError extends Error {
   statusCode: number;
   type: ErrorType;
   details?: any;
-  
+
   constructor(
-    message: string, 
-    statusCode: number = 500, 
+    message: string,
+    statusCode: number = 500,
     type: ErrorType = ErrorType.INTERNAL,
     details?: any
   ) {
@@ -35,11 +35,11 @@ export class ApiError extends Error {
     this.type = type;
     this.details = details;
     this.name = this.constructor.name;
-    
+
     // Capture stack trace
     Error.captureStackTrace(this, this.constructor);
   }
-  
+
   /**
    * Convert to a response object
    */
@@ -48,8 +48,8 @@ export class ApiError extends Error {
       error: {
         type: this.type,
         message: this.message,
-        ...(this.details ? { details: this.details } : {})
-      }
+        ...(this.details ? { details: this.details } : {}),
+      },
     };
   }
 }
@@ -65,34 +65,33 @@ export const Errors = {
   badRequest: (message: string = 'Bad request', details?: any) =>
     new ApiError(message, 400, ErrorType.VALIDATION, details),
 
-  forbidden: (message: string = 'Forbidden') =>
-    new ApiError(message, 403, ErrorType.AUTHORIZATION),
+  forbidden: (message: string = 'Forbidden') => new ApiError(message, 403, ErrorType.AUTHORIZATION),
 
   unauthorized: (message: string = 'Unauthorized') =>
     new ApiError(message, 401, ErrorType.AUTHENTICATION),
 
-  validation: (message: string, details?: any) => 
+  validation: (message: string, details?: any) =>
     new ApiError(message, 400, ErrorType.VALIDATION, details),
-    
-  authentication: (message: string = 'Authentication required') => 
+
+  authentication: (message: string = 'Authentication required') =>
     new ApiError(message, 401, ErrorType.AUTHENTICATION),
-    
-  authorization: (message: string = 'Permission denied') => 
+
+  authorization: (message: string = 'Permission denied') =>
     new ApiError(message, 403, ErrorType.AUTHORIZATION),
-    
-  notFound: (message: string = 'Resource not found') => 
+
+  notFound: (message: string = 'Resource not found') =>
     new ApiError(message, 404, ErrorType.NOT_FOUND),
-    
-  conflict: (message: string = 'Resource already exists') => 
+
+  conflict: (message: string = 'Resource already exists') =>
     new ApiError(message, 409, ErrorType.CONFLICT),
-    
-  internal: (message: string = 'Internal server error') => 
+
+  internal: (message: string = 'Internal server error') =>
     new ApiError(message, 500, ErrorType.INTERNAL),
-    
-  externalService: (message: string, details?: any) => 
+
+  externalService: (message: string, details?: any) =>
     new ApiError(message, 502, ErrorType.EXTERNAL_SERVICE, details),
-    
-  database: (message: string, details?: any) => 
+
+  database: (message: string, details?: any) =>
     new ApiError(message, 500, ErrorType.DATABASE, details),
 };
 
@@ -100,16 +99,17 @@ export const Errors = {
  * Request ID middleware to add a unique ID to each request
  */
 export const requestIdMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const requestId = req.headers['x-request-id'] || 
-                   req.headers['x-correlation-id'] || 
-                   `req-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-                   
+  const requestId =
+    req.headers['x-request-id'] ||
+    req.headers['x-correlation-id'] ||
+    `req-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+
   // Add request ID to request object
   (req as any).requestId = requestId;
-  
+
   // Add request ID to response headers
   res.setHeader('X-Request-ID', requestId as string);
-  
+
   next();
 };
 
@@ -119,21 +119,21 @@ export const requestIdMiddleware = (req: Request, res: Response, next: NextFunct
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   // Get request ID
   const requestId = (req as any).requestId || 'unknown';
-  
+
   // Handle Zod validation errors
   if (err instanceof ZodError) {
     const apiError = Errors.validation('Validation error', err.issues);
-    
+
     logger.warn('Validation error', {
       requestId,
       path: req.path,
       method: req.method,
       errors: err.issues,
     });
-    
+
     return res.status(apiError.statusCode).json(apiError.toResponse());
   }
-  
+
   // Handle API errors
   if (err instanceof ApiError) {
     // Log based on severity - use bound methods to preserve context
@@ -158,15 +158,15 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
         ...(err.stack ? { stack: err.stack } : {}),
       });
     }
-    
+
     return res.status(err.statusCode).json(err.toResponse());
   }
-  
+
   // Handle unknown errors by attempting to infer type and wrapping in ApiError
   let inferredStatusCode = err.statusCode || err.status || 500;
   let inferredErrorType: ErrorType = ErrorType.INTERNAL;
   let inferredMessage = err.message || 'Internal server error';
-  let inferredDetails = err.details;
+  const inferredDetails = err.details;
 
   // Attempt to infer error type based on status code or common error names
   if (inferredStatusCode === 400) {
@@ -196,7 +196,10 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
     inferredMessage,
     inferredStatusCode,
     inferredErrorType,
-    inferredDetails || (process.env.NODE_ENV !== 'production' ? { originalError: err.message, stack: err.stack } : undefined)
+    inferredDetails ||
+      (process.env.NODE_ENV !== 'production'
+        ? { originalError: err.message, stack: err.stack }
+        : undefined)
   );
 
   logger.error('Unhandled error caught by generic handler', {
@@ -206,14 +209,15 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
     type: apiError.type,
     statusCode: apiError.statusCode,
     error: err.message, // Original error message for logging
-    stack: err.stack,   // Original stack for logging
+    stack: err.stack, // Original stack for logging
     ...(apiError.details ? { details: apiError.details } : {}),
   });
 
   const isProduction = process.env.NODE_ENV === 'production';
-  const responseError = isProduction && apiError.statusCode >= 500
-    ? Errors.internal('Internal server error') // Generic message for 5xx in production
-    : apiError; // Use the inferred or original ApiError for response
+  const responseError =
+    isProduction && apiError.statusCode >= 500
+      ? Errors.internal('Internal server error') // Generic message for 5xx in production
+      : apiError; // Use the inferred or original ApiError for response
 
   return res.status(responseError.statusCode).json(responseError.toResponse());
 };

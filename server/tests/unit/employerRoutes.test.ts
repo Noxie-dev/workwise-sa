@@ -64,7 +64,7 @@ function createMockResponse() {
 
 function getRouteHandlers(path: string, method: string) {
   const layer = router.stack.find(
-    (entry: any) => entry.route?.path === path && entry.route.methods?.[method],
+    (entry: any) => entry.route?.path === path && entry.route.methods?.[method]
   );
 
   if (!layer) {
@@ -126,20 +126,30 @@ describe('employer routes', () => {
     selectResults.push([], []);
     insertResults.push(
       [{ id: 3, name: 'Acme', slug: 'acme', logo: null, location: 'Cape Town' }],
-      [{ id: 4, name: 'Retail Assistant', slug: 'retail-assistant', icon: 'briefcase', jobCount: 0 }],
-      [{
-        id: 55,
-        title: 'Retail Assistant',
-        description: 'Help customers on the shop floor.',
-        location: 'Cape Town',
-        salary: 'Negotiable',
-        jobType: 'full-time',
-        workMode: 'On-site',
-        companyId: 3,
-        categoryId: 4,
-        status: 'draft',
-        createdAt: new Date('2026-03-25T00:00:00Z'),
-      }],
+      [
+        {
+          id: 4,
+          name: 'Retail Assistant',
+          slug: 'retail-assistant',
+          icon: 'briefcase',
+          jobCount: 0,
+        },
+      ],
+      [
+        {
+          id: 55,
+          title: 'Retail Assistant',
+          description: 'Help customers on the shop floor.',
+          location: 'Cape Town',
+          salary: 'Negotiable',
+          jobType: 'full-time',
+          workMode: 'On-site',
+          companyId: 3,
+          categoryId: 4,
+          status: 'draft',
+          createdAt: new Date('2026-03-25T00:00:00Z'),
+        },
+      ]
     );
 
     const response = await invokeRoute({

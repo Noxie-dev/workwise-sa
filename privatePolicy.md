@@ -1,13 +1,13 @@
 <img src="https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png" class="logo" width="120"/>
 
-# improve my privacy policy for my South African entry level job posting platform, tailor it for the South African market and please make sure the privacy policy does not  open up for valnerability. Privacy Policy
+# improve my privacy policy for my South African entry level job posting platform, tailor it for the South African market and please make sure the privacy policy does not open up for valnerability. Privacy Policy
 
 Effective Date: [Insert Date]
 
 1. Introduction
-WorkWise SA ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our job search platform and services.
+   WorkWise SA ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our job search platform and services.
 2. Information We Collect
-Personal Information:
+   Personal Information:
 
 Name, email address, phone number
 CV/Resume details and work history
@@ -23,7 +23,7 @@ Device information and IP addresses
 Cookies and tracking technologies
 
 3. How We Use Your Information
-We use your information to:
+   We use your information to:
 
 Provide job matching and career services
 Process job applications and communications
@@ -33,7 +33,7 @@ Provide customer support
 Comply with legal obligations
 
 4. Information Sharing
-We may share your information with:
+   We may share your information with:
 
 Employers when you apply for jobs
 Service providers and business partners
@@ -41,9 +41,9 @@ Legal authorities when required by law
 Other users as part of our platform features
 
 5. Data Security
-We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.
+   We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.
 6. Your Rights
-You have the right to:
+   You have the right to:
 
 Access and update your personal information
 Delete your account and data
@@ -51,7 +51,7 @@ Object to certain processing activities
 Withdraw consent where applicable
 
 7. Contact Information
-For privacy concerns, contact us at: privacy@workwisesa.co.za
+   For privacy concerns, contact us at: privacy@workwisesa.co.za
 
 Certainly! Here’s an improved, robust, and South Africa-tailored privacy policy for your entry-level job posting platform. This version is compliant with the Protection of Personal Information Act (POPIA) and addresses local market expectations, while minimising legal vulnerabilities.
 
@@ -78,7 +78,6 @@ We may collect and process the following personal information:
 - Profile photo (optional)
 - Other information you voluntarily provide
 
-
 ### Usage Information
 
 We may collect:
@@ -87,7 +86,6 @@ We may collect:
 - Platform usage patterns and preferences
 - Device type, browser, and IP address
 - Cookies and similar tracking technologies (see our Cookie Policy for details)
-
 
 ## 3. How We Use Your Information
 
@@ -153,4 +151,3 @@ If you have questions, concerns, or requests regarding your privacy or this poli
 ---
 
 **Tip:** Always consult with a South African legal professional for compliance with POPIA and other local laws before publishing your policy.
-

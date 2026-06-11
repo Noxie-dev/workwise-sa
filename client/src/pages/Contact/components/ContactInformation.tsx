@@ -19,7 +19,7 @@ const ContactInformation = ({ contactMethods }: ContactInformationProps) => {
     <Card>
       <CardContent className="p-6">
         <h2 className="text-2xl font-semibold mb-6">Get in Touch</h2>
-        
+
         <div className="space-y-6">
           {contactMethods.map((method, index) => {
             const IconComponent = method.icon;
@@ -66,4 +66,3 @@ const ContactInformation = ({ contactMethods }: ContactInformationProps) => {
 };
 
 export default ContactInformation;
-

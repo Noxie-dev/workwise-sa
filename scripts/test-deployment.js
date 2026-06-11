@@ -12,20 +12,20 @@ const SITE_URL = 'https://beamish-sawine-64ddd4.netlify.app';
 console.log('🧪 Testing deployed Netlify site...\n');
 
 // Helper function to make HTTP requests
-const makeRequest = (url) => {
+const makeRequest = url => {
   return new Promise((resolve, reject) => {
-    const request = https.get(url, (response) => {
+    const request = https.get(url, response => {
       let data = '';
-      response.on('data', chunk => data += chunk);
+      response.on('data', chunk => (data += chunk));
       response.on('end', () => {
         resolve({
           statusCode: response.statusCode,
           headers: response.headers,
-          body: data
+          body: data,
         });
       });
     });
-    
+
     request.on('error', reject);
     request.setTimeout(10000, () => {
       request.destroy();
@@ -39,26 +39,26 @@ const tests = [
     name: 'Homepage loads',
     url: SITE_URL,
     expectedStatus: 200,
-    expectedContent: ['WorkWise', 'html']
+    expectedContent: ['WorkWise', 'html'],
   },
   {
     name: 'API endpoint responds',
     url: `${SITE_URL}/api`,
     expectedStatus: 200,
-    expectedContent: ['WorkWise SA API', 'version']
+    expectedContent: ['WorkWise SA API', 'version'],
   },
   {
     name: 'Build info available',
     url: `${SITE_URL}/build-info.json`,
     expectedStatus: 200,
-    expectedContent: ['buildTime', 'nodeVersion']
+    expectedContent: ['buildTime', 'nodeVersion'],
   },
   {
     name: 'Static assets load',
     url: `${SITE_URL}/assets`,
     expectedStatus: [200, 404], // 404 is ok for directory listing
-    expectedContent: null
-  }
+    expectedContent: null,
+  },
 ];
 
 let passed = 0;
@@ -70,16 +70,16 @@ for (const test of tests) {
   try {
     console.log(`🔍 ${test.name}...`);
     const response = await makeRequest(test.url);
-    
+
     // Check status code
-    const expectedStatuses = Array.isArray(test.expectedStatus) 
-      ? test.expectedStatus 
+    const expectedStatuses = Array.isArray(test.expectedStatus)
+      ? test.expectedStatus
       : [test.expectedStatus];
-    
+
     if (!expectedStatuses.includes(response.statusCode)) {
       throw new Error(`Expected status ${test.expectedStatus}, got ${response.statusCode}`);
     }
-    
+
     // Check content if specified
     if (test.expectedContent) {
       for (const content of test.expectedContent) {
@@ -88,25 +88,20 @@ for (const test of tests) {
         }
       }
     }
-    
+
     // Check security headers
-    const securityHeaders = [
-      'x-content-type-options',
-      'x-frame-options',
-      'x-xss-protection'
-    ];
-    
-    const missingHeaders = securityHeaders.filter(header => 
-      !response.headers[header] && !response.headers[header.toLowerCase()]
+    const securityHeaders = ['x-content-type-options', 'x-frame-options', 'x-xss-protection'];
+
+    const missingHeaders = securityHeaders.filter(
+      header => !response.headers[header] && !response.headers[header.toLowerCase()]
     );
-    
+
     if (missingHeaders.length > 0) {
       console.warn(`   ⚠️  Missing security headers: ${missingHeaders.join(', ')}`);
     }
-    
+
     console.log(`   ✅ Passed (${response.statusCode})`);
     passed++;
-    
   } catch (error) {
     console.error(`   ❌ Failed: ${error.message}`);
     failed++;
@@ -135,7 +130,7 @@ try {
   const start = Date.now();
   await makeRequest(SITE_URL);
   const loadTime = Date.now() - start;
-  
+
   if (loadTime < 2000) {
     console.log(`   ✅ Fast load time: ${loadTime}ms`);
   } else if (loadTime < 5000) {

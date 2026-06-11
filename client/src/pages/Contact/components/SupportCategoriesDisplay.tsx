@@ -12,7 +12,9 @@ interface SupportCategoriesDisplayProps {
   supportCategories: SupportCategory[];
 }
 
-const SupportCategoriesDisplay: React.FC<SupportCategoriesDisplayProps> = ({ supportCategories }) => {
+const SupportCategoriesDisplay: React.FC<SupportCategoriesDisplayProps> = ({
+  supportCategories,
+}) => {
   return (
     <div className="mb-12">
       <h2 className="text-2xl font-semibold text-center mb-8">How Can We Help You?</h2>
@@ -47,4 +49,3 @@ const SupportCategoriesDisplay: React.FC<SupportCategoriesDisplayProps> = ({ sup
 };
 
 export default SupportCategoriesDisplay;
-

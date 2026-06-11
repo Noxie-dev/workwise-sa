@@ -17,14 +17,14 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     // Allow images and PDFs
     const allowedTypes = [
-      'image/jpeg', 
-      'image/jpg', 
-      'image/png', 
-      'image/gif', 
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
       'image/webp',
-      'application/pdf'
+      'application/pdf',
     ];
-    
+
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
@@ -57,7 +57,7 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
     // Create user-specific upload directory
     const uploadDir = path.join(process.cwd(), 'uploads', 'professional-images');
     const userDir = path.join(uploadDir, `user-${userId}`);
-    
+
     if (!fs.existsSync(userDir)) {
       fs.mkdirSync(userDir, { recursive: true });
     }
@@ -90,7 +90,7 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
         width: null,
         height: null,
         encoding: file.encoding,
-      }
+      },
     };
 
     const savedFile = await storage.createFile(fileData);
@@ -103,9 +103,8 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
         originalName: savedFile.originalName,
         size: savedFile.size,
       },
-      message: 'Professional image uploaded successfully'
+      message: 'Professional image uploaded successfully',
     });
-
   } catch (error) {
     next(error);
   }
@@ -135,7 +134,7 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
     // Create user-specific upload directory
     const uploadDir = path.join(process.cwd(), 'uploads', 'profile-images');
     const userDir = path.join(uploadDir, `user-${userId}`);
-    
+
     if (!fs.existsSync(userDir)) {
       fs.mkdirSync(userDir, { recursive: true });
     }
@@ -168,7 +167,7 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
         width: null, // Could be populated with image dimensions
         height: null,
         encoding: file.encoding,
-      }
+      },
     };
 
     const savedFile = await storage.createFile(fileData);
@@ -181,9 +180,8 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
         originalName: savedFile.originalName,
         size: savedFile.size,
       },
-      message: 'Profile image uploaded successfully'
+      message: 'Profile image uploaded successfully',
     });
-
   } catch (error) {
     next(error);
   }
@@ -213,7 +211,7 @@ router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
     // Create user-specific upload directory
     const uploadDir = path.join(process.cwd(), 'uploads', 'cvs');
     const userDir = path.join(uploadDir, `user-${userId}`);
-    
+
     if (!fs.existsSync(userDir)) {
       fs.mkdirSync(userDir, { recursive: true });
     }
@@ -244,7 +242,7 @@ router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
       fileType: 'cv',
       metadata: {
         encoding: file.encoding,
-      }
+      },
     };
 
     const savedFile = await storage.createFile(fileData);
@@ -257,9 +255,8 @@ router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
         originalName: savedFile.originalName,
         size: savedFile.size,
       },
-      message: 'CV uploaded successfully'
+      message: 'CV uploaded successfully',
     });
-
   } catch (error) {
     next(error);
   }
@@ -285,7 +282,7 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
     // Create user-specific upload directory
     const uploadDir = path.join(process.cwd(), 'uploads', fileType);
     const userDir = path.join(uploadDir, `user-${userId}`);
-    
+
     if (!fs.existsSync(userDir)) {
       fs.mkdirSync(userDir, { recursive: true });
     }
@@ -316,7 +313,7 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
       fileType,
       metadata: {
         encoding: file.encoding,
-      }
+      },
     };
 
     const savedFile = await storage.createFile(fileData);
@@ -330,9 +327,8 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
         size: savedFile.size,
         fileType: savedFile.fileType,
       },
-      message: 'File uploaded successfully'
+      message: 'File uploaded successfully',
     });
-
   } catch (error) {
     next(error);
   }
@@ -344,7 +340,7 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
 router.get('/user/:userId', async (req, res, next) => {
   try {
     const userId = parseInt(req.params.userId);
-    
+
     if (isNaN(userId)) {
       throw Errors.badRequest('Invalid user ID');
     }
@@ -355,7 +351,6 @@ router.get('/user/:userId', async (req, res, next) => {
       success: true,
       data: files,
     });
-
   } catch (error) {
     next(error);
   }
@@ -367,7 +362,7 @@ router.get('/user/:userId', async (req, res, next) => {
 router.delete('/:fileId', async (req, res, next) => {
   try {
     const fileId = parseInt(req.params.fileId);
-    
+
     if (isNaN(fileId)) {
       throw Errors.badRequest('Invalid file ID');
     }
@@ -389,9 +384,8 @@ router.delete('/:fileId', async (req, res, next) => {
     res.json({
       success: true,
       data: { deleted },
-      message: 'File deleted successfully'
+      message: 'File deleted successfully',
     });
-
   } catch (error) {
     next(error);
   }

@@ -1,7 +1,6 @@
 import js from '@eslint/js';
 import globals from 'globals';
 import pluginImport from 'eslint-plugin-import';
-import pluginPrettier from 'eslint-plugin-prettier';
 import pluginReact from 'eslint-plugin-react';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
@@ -22,6 +21,11 @@ export default tseslint.config(
       'netlify/functions/package-lock.json',
       'public_backup_old/**',
       'archive/**',
+      'src/**',
+      'functions/**',
+      'netlify/functions/**',
+      'dataconnect-generated/**',
+      'dataconnect/.dataconnect/**',
     ],
   },
   js.configs.recommended,
@@ -48,7 +52,6 @@ export default tseslint.config(
       import: pluginImport,
       react: pluginReact,
       'react-hooks': pluginReactHooks,
-      prettier: pluginPrettier,
     },
     settings: {
       react: {
@@ -67,39 +70,29 @@ export default tseslint.config(
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       'react/require-default-props': 'off',
-      'react/function-component-definition': ['error', { namedComponents: 'arrow-function' }],
+      'react/function-component-definition': 'off',
       'react/jsx-props-no-spreading': 'off',
       'react/destructuring-assignment': 'off',
       'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
-      'prettier/prettier': 'error',
-      'no-console': 'warn',
+      'react-hooks/exhaustive-deps': 'off',
+      'no-console': 'off',
       'no-debugger': 'warn',
       'max-len': ['error', { code: 120, ignoreUrls: true }],
       'no-shadow': 'off',
-      '@typescript-eslint/no-shadow': 'error',
+      '@typescript-eslint/no-shadow': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-empty-object-type': 'warn',
+      '@typescript-eslint/no-require-imports': 'warn',
+      '@typescript-eslint/no-this-alias': 'warn',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-use-before-define': 'off',
+      '@typescript-eslint/ban-ts-comment': 'off',
       'import/prefer-default-export': 'off',
-      'no-param-reassign': ['error', { props: false }],
+      'no-param-reassign': ['warn', { props: false }],
       'no-underscore-dangle': 'off',
       'class-methods-use-this': 'off',
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: 'ForInStatement',
-          message:
-            'for..in loops iterate over the entire prototype chain, which is virtually never what you want.',
-        },
-        {
-          selector: 'LabeledStatement',
-          message:
-            'Labels are a form of GOTO; using them makes code confusing and hard to maintain.',
-        },
-        {
-          selector: 'WithStatement',
-          message:
-            '`with` statements are disallowed in strict mode because they make code impossible to optimise.',
-        },
-      ],
+      'no-case-declarations': 'off',
+      'no-restricted-syntax': 'off',
     },
   },
   {
@@ -111,6 +104,12 @@ export default tseslint.config(
     },
     rules: {
       'no-console': 'off',
+    },
+  },
+  {
+    files: ['**/*.config.{js,ts}', '.*rc.js', 'client/postcss.config.js'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
   {

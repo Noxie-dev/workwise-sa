@@ -1,20 +1,20 @@
-import { pgTable, text, serial, integer, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-import { relations } from "drizzle-orm";
-import { z } from "zod";
-import { users } from "./schema";
+import { pgTable, text, serial, integer, timestamp, boolean, jsonb } from 'drizzle-orm/pg-core';
+import { createInsertSchema } from 'drizzle-zod';
+import { relations } from 'drizzle-orm';
+import { z } from 'zod';
+import { users } from './schema';
 
 // WiseUp content items schema
-export const wiseup_content = pgTable("wiseup_content", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  creator: jsonb("creator").notNull(), // JSON with name and avatar
-  video: text("video").notNull(),
-  description: text("description").notNull(),
-  resources: jsonb("resources"), // JSON array of resources
-  tags: jsonb("tags"), // JSON array of tags
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+export const wiseup_content = pgTable('wiseup_content', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  creator: jsonb('creator').notNull(), // JSON with name and avatar
+  video: text('video').notNull(),
+  description: text('description').notNull(),
+  resources: jsonb('resources'), // JSON array of resources
+  tags: jsonb('tags'), // JSON array of tags
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 export const insertWiseUpContentSchema = createInsertSchema(wiseup_content).pick({
@@ -27,18 +27,18 @@ export const insertWiseUpContentSchema = createInsertSchema(wiseup_content).pick
 });
 
 // WiseUp ad items schema
-export const wiseup_ads = pgTable("wiseup_ads", {
-  id: serial("id").primaryKey(),
-  advertiser: text("advertiser").notNull(),
-  title: text("title").notNull(),
-  video: text("video").notNull(),
-  cta: text("cta").notNull(),
-  description: text("description").notNull(),
-  notes: text("notes"),
-  targetInterests: jsonb("target_interests"), // JSON array of interests for targeting
-  active: boolean("active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+export const wiseup_ads = pgTable('wiseup_ads', {
+  id: serial('id').primaryKey(),
+  advertiser: text('advertiser').notNull(),
+  title: text('title').notNull(),
+  video: text('video').notNull(),
+  cta: text('cta').notNull(),
+  description: text('description').notNull(),
+  notes: text('notes'),
+  targetInterests: jsonb('target_interests'), // JSON array of interests for targeting
+  active: boolean('active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 export const insertWiseUpAdSchema = createInsertSchema(wiseup_ads).pick({
@@ -53,12 +53,12 @@ export const insertWiseUpAdSchema = createInsertSchema(wiseup_ads).pick({
 });
 
 // WiseUp bookmarks schema
-export const wiseup_bookmarks = pgTable("wiseup_bookmarks", {
-  id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(), // Firebase UID
-  wiseUpItemId: text("wiseup_item_id").notNull(),
-  itemType: text("item_type").notNull(), // 'content' or 'ad'
-  bookmarkedAt: timestamp("bookmarked_at").defaultNow(),
+export const wiseup_bookmarks = pgTable('wiseup_bookmarks', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(), // Firebase UID
+  wiseUpItemId: text('wiseup_item_id').notNull(),
+  itemType: text('item_type').notNull(), // 'content' or 'ad'
+  bookmarkedAt: timestamp('bookmarked_at').defaultNow(),
 });
 
 export const insertWiseUpBookmarkSchema = createInsertSchema(wiseup_bookmarks).pick({
@@ -68,12 +68,12 @@ export const insertWiseUpBookmarkSchema = createInsertSchema(wiseup_bookmarks).p
 });
 
 // WiseUp ad impressions schema
-export const wiseup_ad_impressions = pgTable("wiseup_ad_impressions", {
-  id: serial("id").primaryKey(),
-  adId: integer("ad_id").notNull(),
-  userId: text("user_id").notNull(), // Firebase UID or 'anonymous'
-  timestamp: timestamp("timestamp").defaultNow(),
-  platform: text("platform").default("web"),
+export const wiseup_ad_impressions = pgTable('wiseup_ad_impressions', {
+  id: serial('id').primaryKey(),
+  adId: integer('ad_id').notNull(),
+  userId: text('user_id').notNull(), // Firebase UID or 'anonymous'
+  timestamp: timestamp('timestamp').defaultNow(),
+  platform: text('platform').default('web'),
 });
 
 export const insertWiseUpAdImpressionSchema = createInsertSchema(wiseup_ad_impressions).pick({
@@ -83,13 +83,13 @@ export const insertWiseUpAdImpressionSchema = createInsertSchema(wiseup_ad_impre
 });
 
 // WiseUp user progress schema
-export const wiseup_user_progress = pgTable("wiseup_user_progress", {
-  id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(), // Firebase UID
-  contentId: integer("content_id").notNull(),
-  progress: integer("progress").default(0), // 0-100 percentage
-  completed: boolean("completed").default(false),
-  lastWatched: timestamp("last_watched").defaultNow(),
+export const wiseup_user_progress = pgTable('wiseup_user_progress', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(), // Firebase UID
+  contentId: integer('content_id').notNull(),
+  progress: integer('progress').default(0), // 0-100 percentage
+  completed: boolean('completed').default(false),
+  lastWatched: timestamp('last_watched').defaultNow(),
 });
 
 export const insertWiseUpUserProgressSchema = createInsertSchema(wiseup_user_progress).pick({

@@ -15,7 +15,8 @@ const rootDir = path.join(__dirname, '..');
 console.log('🔧 Preparing Netlify deployment configuration...\n');
 
 // Path to service account key file
-const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+const serviceAccountPath =
+  process.env.GOOGLE_APPLICATION_CREDENTIALS ||
   path.join(rootDir, 'workwise-sa-project-firebase-adminsdk-fbsvc-727ba80ab5.json');
 
 // Check if service account file exists
@@ -23,7 +24,9 @@ if (!fs.existsSync(serviceAccountPath)) {
   console.error(`❌ Service account key file not found at: ${serviceAccountPath}`);
   console.error('Please generate a service account key from the Firebase console');
   console.error('and save it to the root directory of your project.');
-  console.error('Then set GOOGLE_APPLICATION_CREDENTIALS environment variable to point to this file.');
+  console.error(
+    'Then set GOOGLE_APPLICATION_CREDENTIALS environment variable to point to this file.'
+  );
   process.exit(1);
 }
 
@@ -47,7 +50,9 @@ try {
   console.log('📋 Firebase Configuration:');
   console.log('─'.repeat(30));
   console.log(`FIREBASE_PROJECT_ID=${serviceAccountData.project_id || 'workwise-sa-project'}`);
-  console.log(`FIREBASE_STORAGE_BUCKET=${serviceAccountData.project_id || 'workwise-sa-project'}.appspot.com`);
+  console.log(
+    `FIREBASE_STORAGE_BUCKET=${serviceAccountData.project_id || 'workwise-sa-project'}.appspot.com`
+  );
   console.log('\nFIREBASE_SERVICE_ACCOUNT');
   console.log('Value (copy entire JSON):');
   console.log(serviceAccountJson);
@@ -70,8 +75,12 @@ try {
   console.log('\n📋 Client-side Variables:');
   console.log('─'.repeat(30));
   console.log(`VITE_FIREBASE_PROJECT_ID=${serviceAccountData.project_id || 'workwise-sa-project'}`);
-  console.log(`VITE_FIREBASE_AUTH_DOMAIN=${serviceAccountData.project_id || 'workwise-sa-project'}.firebaseapp.com`);
-  console.log(`VITE_FIREBASE_STORAGE_BUCKET=${serviceAccountData.project_id || 'workwise-sa-project'}.appspot.com`);
+  console.log(
+    `VITE_FIREBASE_AUTH_DOMAIN=${serviceAccountData.project_id || 'workwise-sa-project'}.firebaseapp.com`
+  );
+  console.log(
+    `VITE_FIREBASE_STORAGE_BUCKET=${serviceAccountData.project_id || 'workwise-sa-project'}.appspot.com`
+  );
   console.log('VITE_USE_FIREBASE_EMULATORS=false');
   console.log('VITE_API_URL=https://beamish-sawine-64ddd4.netlify.app');
 
@@ -114,9 +123,8 @@ VITE_API_URL=https://beamish-sawine-64ddd4.netlify.app
   console.log('□ Security headers configured in netlify.toml');
 
   console.log('\n🚀 Ready for deployment! Run:');
-  console.log('   npm run deploy:fast    # For quick deployment');
-  console.log('   npm run deploy:prod    # For production deployment');
-
+  console.log('   pnpm run deploy:fast    # For quick deployment');
+  console.log('   pnpm run deploy:prod    # For production deployment');
 } catch (error) {
   console.error('❌ Error processing service account key:', error.message);
   if (error.name === 'SyntaxError') {

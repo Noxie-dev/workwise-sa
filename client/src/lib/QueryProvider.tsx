@@ -29,18 +29,14 @@ interface QueryProviderProps {
 /**
  * QueryProvider component that wraps the application with React Query's QueryClientProvider
  */
-export const QueryProvider: React.FC<QueryProviderProps> = ({ 
-  children, 
-  options = defaultQueryClientOptions 
+export const QueryProvider: React.FC<QueryProviderProps> = ({
+  children,
+  options = defaultQueryClientOptions,
 }) => {
   // Create a client
   const [queryClient] = React.useState(() => new QueryClient(options));
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 };
 
 export default QueryProvider;

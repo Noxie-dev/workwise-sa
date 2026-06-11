@@ -72,7 +72,7 @@ interface MobileNavProps {
 
 const MobileNav = ({ navigationItems, currentPath }: MobileNavProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const handleLinkClick = useCallback(() => {
     setIsOpen(false);
   }, []);
@@ -102,9 +102,9 @@ const MobileNav = ({ navigationItems, currentPath }: MobileNavProps) => {
               <X className="h-5 w-5" />
             </Button>
           </div>
-          
+
           <nav className="flex flex-col space-y-4">
-            {navigationItems.map((item) => (
+            {navigationItems.map(item => (
               <NavLink
                 key={item.id}
                 href={item.href}
@@ -115,7 +115,7 @@ const MobileNav = ({ navigationItems, currentPath }: MobileNavProps) => {
               />
             ))}
           </nav>
-          
+
           <div className="border-t pt-4 space-y-4">
             <AdminButton variant="outline" className="w-full" />
             <UserMenu className="w-full" />
@@ -138,17 +138,13 @@ interface DesktopNavProps {
 const DesktopNav = ({ navigationItems, currentPath }: DesktopNavProps) => (
   <nav className="hidden md:flex items-center space-x-8">
     <ul className="flex items-center space-x-6">
-      {navigationItems.map((item) => (
+      {navigationItems.map(item => (
         <li key={item.id}>
-          <NavLink
-            href={item.href}
-            label={item.label}
-            isActive={currentPath === item.href}
-          />
+          <NavLink href={item.href} label={item.label} isActive={currentPath === item.href} />
         </li>
       ))}
     </ul>
-    
+
     <div className="flex items-center space-x-3 ml-6 border-l border-border pl-6">
       <AdminButton variant="outline" />
       <UserMenu />
@@ -162,10 +158,10 @@ const DesktopNav = ({ navigationItems, currentPath }: DesktopNavProps) => (
  */
 const Header = () => {
   const [location] = useLocation();
-  
+
   // Memoize current path to prevent unnecessary re-renders
   const currentPath = useMemo(() => location, [location]);
-  
+
   return (
     <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-border">
       <div className="container mx-auto px-4 py-3">
@@ -176,16 +172,10 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <DesktopNav
-            navigationItems={navigationItems}
-            currentPath={currentPath}
-          />
+          <DesktopNav navigationItems={navigationItems} currentPath={currentPath} />
 
           {/* Mobile Navigation */}
-          <MobileNav
-            navigationItems={navigationItems}
-            currentPath={currentPath}
-          />
+          <MobileNav navigationItems={navigationItems} currentPath={currentPath} />
         </div>
       </div>
     </header>

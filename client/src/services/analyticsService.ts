@@ -37,7 +37,11 @@ export const analyticsService = {
   /**
    * Track an analytics event
    */
-  async trackEvent(eventType: AnalyticsEventType, userId: string | undefined, data: Record<string, any> = {}): Promise<void> {
+  async trackEvent(
+    eventType: AnalyticsEventType,
+    userId: string | undefined,
+    data: Record<string, any> = {}
+  ): Promise<void> {
     const event: AnalyticsEvent = {
       eventType,
       userId,
@@ -62,7 +66,11 @@ export const analyticsService = {
   /**
    * Track a page view
    */
-  trackPageView(userId: string | undefined, pageName: string, additionalData: Record<string, any> = {}): void {
+  trackPageView(
+    userId: string | undefined,
+    pageName: string,
+    additionalData: Record<string, any> = {}
+  ): void {
     this.trackEvent(AnalyticsEventType.PAGE_VIEW, userId, {
       pageName,
       ...additionalData,
@@ -110,7 +118,12 @@ export const analyticsService = {
   /**
    * Track chart interaction
    */
-  trackChartInteraction(userId: string | undefined, chartType: string, interactionType: string, detail?: string): void {
+  trackChartInteraction(
+    userId: string | undefined,
+    chartType: string,
+    interactionType: string,
+    detail?: string
+  ): void {
     this.trackEvent(AnalyticsEventType.CHART_INTERACTION, userId, {
       chartType,
       interactionType,
@@ -121,7 +134,12 @@ export const analyticsService = {
   /**
    * Track data export
    */
-  trackExportData(userId: string | undefined, dataType: string, format: string, filters?: Record<string, any>): void {
+  trackExportData(
+    userId: string | undefined,
+    dataType: string,
+    format: string,
+    filters?: Record<string, any>
+  ): void {
     this.trackEvent(AnalyticsEventType.EXPORT_DATA, userId, {
       dataType,
       format,
@@ -132,7 +150,13 @@ export const analyticsService = {
   /**
    * Track pagination
    */
-  trackPagination(userId: string | undefined, page: number, pageSize: number, totalItems: number, context: string): void {
+  trackPagination(
+    userId: string | undefined,
+    page: number,
+    pageSize: number,
+    totalItems: number,
+    context: string
+  ): void {
     this.trackEvent(AnalyticsEventType.PAGINATION, userId, {
       page,
       pageSize,
@@ -144,7 +168,11 @@ export const analyticsService = {
   /**
    * Track visualization toggle
    */
-  trackVisualizationToggle(userId: string | undefined, visualizationType: string, newState: string): void {
+  trackVisualizationToggle(
+    userId: string | undefined,
+    visualizationType: string,
+    newState: string
+  ): void {
     this.trackEvent(AnalyticsEventType.VISUALIZATION_TOGGLE, userId, {
       visualizationType,
       newState,
@@ -154,7 +182,12 @@ export const analyticsService = {
   /**
    * Track notification interaction
    */
-  trackNotificationInteraction(userId: string | undefined, notificationType: string, action: string, notificationId?: string): void {
+  trackNotificationInteraction(
+    userId: string | undefined,
+    notificationType: string,
+    action: string,
+    notificationId?: string
+  ): void {
     this.trackEvent(AnalyticsEventType.NOTIFICATION_INTERACTION, userId, {
       notificationType,
       action,
@@ -175,7 +208,11 @@ export const analyticsService = {
   /**
    * Track dashboard widget view
    */
-  trackDashboardWidgetView(userId: string | undefined, widgetName: string, visibleTimeInSeconds: number): void {
+  trackDashboardWidgetView(
+    userId: string | undefined,
+    widgetName: string,
+    visibleTimeInSeconds: number
+  ): void {
     this.trackEvent(AnalyticsEventType.DASHBOARD_WIDGET_VIEW, userId, {
       widgetName,
       visibleTimeInSeconds,

@@ -32,7 +32,7 @@ function createMockResponse() {
 
 function getRouteHandler(path: string, method: 'post') {
   const layer = v1Router.stack.find(
-    (entry: any) => entry.route?.path === path && entry.route.methods?.[method],
+    (entry: any) => entry.route?.path === path && entry.route.methods?.[method]
   );
 
   if (!layer) {

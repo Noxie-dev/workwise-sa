@@ -1,22 +1,22 @@
-import { Router } from "express";
-import { z } from "zod";
-import { eq } from "drizzle-orm";
-import { db } from "../db";
-import { auth } from "../firebase";
-import { verifyFirebaseToken } from "../middleware/auth";
-import { Errors } from "../middleware/errorHandler";
-import { validate } from "../middleware/validation";
-import { resolveAuthenticatedDatabaseUser } from "../services/authenticatedUser";
-import { billingService } from "../services/billingService";
-import { entitlementService } from "../services/entitlementService";
-import { proInterest } from "@shared/schema";
+import { Router } from 'express';
+import { z } from 'zod';
+import { eq } from 'drizzle-orm';
+import { db } from '../db';
+import { auth } from '../firebase';
+import { verifyFirebaseToken } from '../middleware/auth';
+import { Errors } from '../middleware/errorHandler';
+import { validate } from '../middleware/validation';
+import { resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
+import { billingService } from '../services/billingService';
+import { entitlementService } from '../services/entitlementService';
+import { proInterest } from '@shared/schema';
 
 const router = Router();
 const col = (column: unknown) => column as any;
 
 const checkoutSchema = z.object({
   body: z.object({
-    planCode: z.literal("workwise_plus").default("workwise_plus"),
+    planCode: z.literal('workwise_plus').default('workwise_plus'),
   }),
 });
 
@@ -30,15 +30,15 @@ const proInterestSchema = z.object({
 
 async function resolveOptionalUser(req: any) {
   const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) {
+  if (!authHeader?.startsWith('Bearer ')) {
     return null;
   }
 
-  const decoded = await auth.verifyIdToken(authHeader.split("Bearer ")[1]);
+  const decoded = await auth.verifyIdToken(authHeader.split('Bearer ')[1]);
   return resolveAuthenticatedDatabaseUser(decoded);
 }
 
-router.get("/plans", async (_req, res, next) => {
+router.get('/plans', async (_req, res, next) => {
   try {
     res.json({ plans: await billingService.getPlans() });
   } catch (error) {
@@ -46,7 +46,7 @@ router.get("/plans", async (_req, res, next) => {
   }
 });
 
-router.get("/subscription", verifyFirebaseToken, async (req, res, next) => {
+router.get('/subscription', verifyFirebaseToken, async (req, res, next) => {
   try {
     const dbUser = await resolveAuthenticatedDatabaseUser((req as any).user);
     const subscription = await billingService.getCurrentSubscription(dbUser.id);
@@ -59,11 +59,11 @@ router.get("/subscription", verifyFirebaseToken, async (req, res, next) => {
   }
 });
 
-router.post("/checkout", verifyFirebaseToken, validate(checkoutSchema), async (req, res, next) => {
+router.post('/checkout', verifyFirebaseToken, validate(checkoutSchema), async (req, res, next) => {
   try {
-    const planCode = req.body.planCode || "workwise_plus";
-    if (planCode !== "workwise_plus") {
-      throw Errors.validation("Only WorkWise Plus checkout is available in Phase 1");
+    const planCode = req.body.planCode || 'workwise_plus';
+    if (planCode !== 'workwise_plus') {
+      throw Errors.validation('Only WorkWise Plus checkout is available in Phase 1');
     }
 
     const dbUser = await resolveAuthenticatedDatabaseUser((req as any).user);
@@ -79,7 +79,7 @@ router.post("/checkout", verifyFirebaseToken, validate(checkoutSchema), async (r
   }
 });
 
-router.post("/subscriptions/cancel", verifyFirebaseToken, async (req, res, next) => {
+router.post('/subscriptions/cancel', verifyFirebaseToken, async (req, res, next) => {
   try {
     const dbUser = await resolveAuthenticatedDatabaseUser((req as any).user);
     const subscription = await billingService.cancelCurrentSubscription(dbUser.id);
@@ -92,16 +92,16 @@ router.post("/subscriptions/cancel", verifyFirebaseToken, async (req, res, next)
   }
 });
 
-router.post("/payfast/itn", async (req, res, next) => {
+router.post('/payfast/itn', async (req, res, next) => {
   try {
     await billingService.handlePayfastItn(req.body || {});
-    res.status(200).send("OK");
+    res.status(200).send('OK');
   } catch (error) {
     next(error);
   }
 });
 
-router.post("/pro-interest", validate(proInterestSchema), async (req, res, next) => {
+router.post('/pro-interest', validate(proInterestSchema), async (req, res, next) => {
   try {
     const dbUser = await resolveOptionalUser(req);
     const existing = await db
@@ -114,7 +114,7 @@ router.post("/pro-interest", validate(proInterestSchema), async (req, res, next)
       await db.insert(proInterest).values({
         userId: dbUser?.id,
         email: req.body.email,
-        source: req.body.source || "plus_page",
+        source: req.body.source || 'plus_page',
         metadata: req.body.metadata,
       });
     }

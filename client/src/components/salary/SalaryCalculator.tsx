@@ -15,7 +15,7 @@ import ResultsCard from './ResultsCard';
 import {
   professionalIndustryAverages,
   lowLevelJobAverages,
-  allIndustryAverages
+  allIndustryAverages,
 } from '@/data/salaryData';
 
 // --- Constants ---
@@ -30,7 +30,7 @@ const taxBrackets2024 = [
   { min: 512801, max: 673000, rate: 0.36, baseAmount: 121475 },
   { min: 673001, max: 857900, rate: 0.39, baseAmount: 179147 },
   { min: 857901, max: 1817000, rate: 0.41, baseAmount: 251258 },
-  { min: 1817001, max: Infinity, rate: 0.45, baseAmount: 644489 }
+  { min: 1817001, max: Infinity, rate: 0.45, baseAmount: 644489 },
 ];
 
 // UIF
@@ -47,17 +47,26 @@ const MTC_RATES = {
 
 // Common deductions
 const commonDeductions = [
-  { id: "pension", name: "Pension Fund", defaultRate: 0.075, mandatory: false },
-  { id: "medical", name: "Medical Aid", defaultRate: 0.06, mandatory: false },
-  { id: "groupLife", name: "Group Life Insurance", defaultRate: 0.01, mandatory: false },
-  { id: "retirement", name: "Retirement Annuity", defaultRate: 0.05, mandatory: false },
+  { id: 'pension', name: 'Pension Fund', defaultRate: 0.075, mandatory: false },
+  { id: 'medical', name: 'Medical Aid', defaultRate: 0.06, mandatory: false },
+  { id: 'groupLife', name: 'Group Life Insurance', defaultRate: 0.01, mandatory: false },
+  { id: 'retirement', name: 'Retirement Annuity', defaultRate: 0.05, mandatory: false },
 ];
 
-const PIE_CHART_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#FF7F50'];
+const PIE_CHART_COLORS = [
+  '#0088FE',
+  '#00C49F',
+  '#FFBB28',
+  '#FF8042',
+  '#8884d8',
+  '#82ca9d',
+  '#FF7F50',
+];
 
 // --- Helper Functions ---
 const formatCurrency = (value: number, currency = SA_CURRENCY, locale = SA_LOCALE) => {
-  if (typeof value !== 'number' || isNaN(value)) return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(0);
+  if (typeof value !== 'number' || isNaN(value))
+    return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(0);
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: currency,
@@ -68,7 +77,7 @@ const formatCurrency = (value: number, currency = SA_CURRENCY, locale = SA_LOCAL
 const IndustryComparisonTabContent = lazy(() => import('./IndustryComparisonTabContent'));
 
 // --- Main App Component ---
-function SalaryCalculator() {
+const SalaryCalculator = () => {
   const [amount, setAmount] = useState<number | string>(50000); // Default example amount
   const [inputType, setInputType] = useState('monthly'); // Default to monthly
 
@@ -85,16 +94,22 @@ function SalaryCalculator() {
   // Always use entry-level job data for industry dropdown
   const industryData = useMemo(() => lowLevelJobAverages, []);
 
-  const initialDeductionRates = commonDeductions.reduce((acc, curr) => {
-    acc[curr.id] = curr.defaultRate;
-    return acc;
-  }, {} as Record<string, number>);
+  const initialDeductionRates = commonDeductions.reduce(
+    (acc, curr) => {
+      acc[curr.id] = curr.defaultRate;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
   const [deductionRates, setDeductionRates] = useState(initialDeductionRates);
 
-  const initialActiveDeductions = commonDeductions.reduce((acc, curr) => {
-    acc[curr.id] = !curr.mandatory; // By default, enable non-mandatory ones for demo
-    return acc;
-  }, {} as Record<string, boolean>);
+  const initialActiveDeductions = commonDeductions.reduce(
+    (acc, curr) => {
+      acc[curr.id] = !curr.mandatory; // By default, enable non-mandatory ones for demo
+      return acc;
+    },
+    {} as Record<string, boolean>
+  );
   const [activeDeductions, setActiveDeductions] = useState(initialActiveDeductions);
   const [medicalAidMembers, setMedicalAidMembers] = useState(1); // Default to 1 member for MTC
 
@@ -118,7 +133,7 @@ function SalaryCalculator() {
     if (industry && experience && industryData[industry] && industryData[industry][experience]) {
       const averageSalary = industryData[industry][experience];
       setAmount(averageSalary);
-      setInputType("monthly");
+      setInputType('monthly');
     }
   }, [industry, experience, industryData]);
 
@@ -126,18 +141,18 @@ function SalaryCalculator() {
     if (!industry || !industryData[industry]) return [];
 
     const data = ['entry', 'mid', 'senior'].map(level => {
-        const gross = industryData[industry][level];
-        return {
-            name: `${level.charAt(0).toUpperCase() + level.slice(1)} Level`,
-            Gross: gross,
-            Net: gross * 0.75, // Simplified estimate for demo
-        };
+      const gross = industryData[industry][level];
+      return {
+        name: `${level.charAt(0).toUpperCase() + level.slice(1)} Level`,
+        Gross: gross,
+        Net: gross * 0.75, // Simplified estimate for demo
+      };
     });
 
     data.unshift({
-        name: "Your Salary",
-        Gross: calculatedAmounts.monthly,
-        Net: taxDetails.netIncome
+      name: 'Your Salary',
+      Gross: calculatedAmounts.monthly,
+      Net: taxDetails.netIncome,
     });
     return data;
   }, [industry, calculatedAmounts.monthly, taxDetails.netIncome, industryData]);
@@ -168,9 +183,17 @@ function SalaryCalculator() {
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
       <header className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-[#163b6d]">South African Salary Calculator</h1>
-        <p className="text-muted-foreground">Estimate your net pay, tax, and compare with industry benchmarks for all job levels (2024/2025 Tax Year).</p>
-        <p className="text-sm text-muted-foreground mt-1">Now includes data for entry-level jobs, general workers, and service positions with minimum wage comparisons.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-[#163b6d]">
+          South African Salary Calculator
+        </h1>
+        <p className="text-muted-foreground">
+          Estimate your net pay, tax, and compare with industry benchmarks for all job levels
+          (2024/2025 Tax Year).
+        </p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Now includes data for entry-level jobs, general workers, and service positions with
+          minimum wage comparisons.
+        </p>
       </header>
 
       <Tabs defaultValue="calculator" className="w-full">
@@ -236,7 +259,14 @@ function SalaryCalculator() {
         </TabsContent>
 
         <TabsContent value="comparison" className="mt-6">
-          <Suspense fallback={<div className="text-center p-10"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>Loading Comparison...</div>}>
+          <Suspense
+            fallback={
+              <div className="text-center p-10">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                Loading Comparison...
+              </div>
+            }
+          >
             <IndustryComparisonTabContent
               industry={industry}
               comparisonData={industryComparisonData}
@@ -248,11 +278,14 @@ function SalaryCalculator() {
         </TabsContent>
       </Tabs>
       <footer className="text-center text-xs text-muted-foreground mt-8">
-        <p>© {new Date().getFullYear()} Salary Calculator. For estimation purposes only. Consult a financial advisor for professional advice.</p>
+        <p>
+          © {new Date().getFullYear()} Salary Calculator. For estimation purposes only. Consult a
+          financial advisor for professional advice.
+        </p>
         <p>Tax brackets and MTC rates for 2024/2025 tax year.</p>
       </footer>
     </div>
   );
-}
+};
 
 export default SalaryCalculator;

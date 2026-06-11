@@ -1,24 +1,12 @@
 import React from 'react';
-import { 
-  Card, 
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle 
-} from '@/components/ui/card';
-import { 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger
+  AccordionTrigger,
 } from '@/components/ui/accordion';
-import {
-  AlertCircle,
-  Sparkles,
-  Globe,
-  Lightbulb,
-  Info
-} from 'lucide-react';
+import { AlertCircle, Sparkles, Globe, Lightbulb, Info } from 'lucide-react';
 
 export const AiGenerationTips: React.FC = () => {
   return (
@@ -28,9 +16,7 @@ export const AiGenerationTips: React.FC = () => {
           <Sparkles className="mr-2 h-4 w-4" />
           AI-Powered CV Builder Tips
         </CardTitle>
-        <CardDescription>
-          Get the most out of our AI features
-        </CardDescription>
+        <CardDescription>Get the most out of our AI features</CardDescription>
       </CardHeader>
       <CardContent>
         <Accordion type="single" collapsible className="w-full">
@@ -50,7 +36,7 @@ export const AiGenerationTips: React.FC = () => {
               </ul>
             </AccordionContent>
           </AccordionItem>
-          
+
           <AccordionItem value="item-2">
             <AccordionTrigger className="text-sm py-2">
               <div className="flex items-center">
@@ -67,7 +53,7 @@ export const AiGenerationTips: React.FC = () => {
               </ul>
             </AccordionContent>
           </AccordionItem>
-          
+
           <AccordionItem value="item-3">
             <AccordionTrigger className="text-sm py-2">
               <div className="flex items-center">
@@ -85,7 +71,7 @@ export const AiGenerationTips: React.FC = () => {
               </ul>
             </AccordionContent>
           </AccordionItem>
-          
+
           <AccordionItem value="item-4">
             <AccordionTrigger className="text-sm py-2">
               <div className="flex items-center">
@@ -117,37 +103,43 @@ export const SamplePrompts: React.FC = () => {
           <Lightbulb className="mr-2 h-4 w-4" />
           Example Prompts for AI Generation
         </CardTitle>
-        <CardDescription>
-          Sample inputs that work well with our AI
-        </CardDescription>
+        <CardDescription>Sample inputs that work well with our AI</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
           <div className="border-l-4 border-blue-300 pl-3">
             <h4 className="text-sm font-medium">For Cashier Position:</h4>
             <p className="text-sm text-gray-600">
-              "Managed cash register operations, processed customer transactions accurately, and maintained a balanced drawer. Provided friendly customer service and resolved payment issues."
+              "Managed cash register operations, processed customer transactions accurately, and
+              maintained a balanced drawer. Provided friendly customer service and resolved payment
+              issues."
             </p>
           </div>
-          
+
           <div className="border-l-4 border-green-300 pl-3">
             <h4 className="text-sm font-medium">For Security Guard:</h4>
             <p className="text-sm text-gray-600">
-              "Monitored premises, conducted regular security patrols, and maintained detailed incident reports. Ensured compliance with safety protocols and responded to emergency situations."
+              "Monitored premises, conducted regular security patrols, and maintained detailed
+              incident reports. Ensured compliance with safety protocols and responded to emergency
+              situations."
             </p>
           </div>
-          
+
           <div className="border-l-4 border-amber-300 pl-3">
             <h4 className="text-sm font-medium">For Domestic Worker:</h4>
             <p className="text-sm text-gray-600">
-              "Maintained household cleanliness, organized living spaces, and managed daily cleaning schedules. Handled laundry, meal preparation, and special cleaning projects as needed."
+              "Maintained household cleanliness, organized living spaces, and managed daily cleaning
+              schedules. Handled laundry, meal preparation, and special cleaning projects as
+              needed."
             </p>
           </div>
-          
+
           <div className="border-l-4 border-purple-300 pl-3">
             <h4 className="text-sm font-medium">For General Worker:</h4>
             <p className="text-sm text-gray-600">
-              "Performed various maintenance tasks, assisted with inventory management, and supported team operations. Maintained workspace organization and followed all safety procedures."
+              "Performed various maintenance tasks, assisted with inventory management, and
+              supported team operations. Maintained workspace organization and followed all safety
+              procedures."
             </p>
           </div>
         </div>

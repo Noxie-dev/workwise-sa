@@ -56,7 +56,7 @@ class Logger {
    */
   private getLogLevelFromEnv(): LogLevel {
     const envLevel = process.env.LOG_LEVEL?.toLowerCase();
-    
+
     switch (envLevel) {
       case 'debug':
         return LogLevel.DEBUG;
@@ -87,7 +87,7 @@ class Logger {
 
       // Create write stream
       this.logStream = fs.createWriteStream(this.config.logFilePath, { flags: 'a' });
-      
+
       // Handle process exit
       process.on('exit', () => {
         if (this.logStream) {
@@ -107,18 +107,18 @@ class Logger {
     try {
       if (fs.existsSync(this.config.logFilePath)) {
         const stats = fs.statSync(this.config.logFilePath);
-        
+
         if (stats.size >= this.config.logFileMaxSize) {
           // Rotate log files
           for (let i = this.config.logFileRotation - 1; i > 0; i--) {
             const oldPath = `${this.config.logFilePath}.${i}`;
             const newPath = `${this.config.logFilePath}.${i + 1}`;
-            
+
             if (fs.existsSync(oldPath)) {
               fs.renameSync(oldPath, newPath);
             }
           }
-          
+
           // Rename current log file
           fs.renameSync(this.config.logFilePath, `${this.config.logFilePath}.1`);
         }
@@ -145,7 +145,12 @@ class Logger {
   /**
    * Write log entry to configured outputs
    */
-  private log(level: LogLevel, levelName: string, message: string, meta?: Record<string, any>): void {
+  private log(
+    level: LogLevel,
+    levelName: string,
+    message: string,
+    meta?: Record<string, any>
+  ): void {
     // Skip if log level is higher than configured level
     if (level > this.config.level) {
       return;
@@ -155,10 +160,15 @@ class Logger {
 
     // Write to console
     if (this.config.enableConsole) {
-      const consoleMethod = level === LogLevel.ERROR ? 'error' : 
-                           level === LogLevel.WARN ? 'warn' : 
-                           level === LogLevel.DEBUG ? 'debug' : 'log';
-      
+      const consoleMethod =
+        level === LogLevel.ERROR
+          ? 'error'
+          : level === LogLevel.WARN
+            ? 'warn'
+            : level === LogLevel.DEBUG
+              ? 'debug'
+              : 'log';
+
       console[consoleMethod](formattedEntry);
     }
 
@@ -201,7 +211,7 @@ class Logger {
    */
   updateConfig(config: Partial<LoggerConfig>): void {
     this.config = { ...this.config, ...config };
-    
+
     // Reinitialize file logging if enabled
     if (this.config.enableFile && !this.logStream) {
       this.initializeFileLogging();

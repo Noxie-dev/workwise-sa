@@ -1,13 +1,27 @@
 // @ts-nocheck
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useLocation } from 'wouter';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
@@ -17,16 +31,18 @@ import { signUpWithEmail, signInWithGoogle } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { createTestUser } from '@/utils/test-user';
 
-const formSchema = insertUserSchema.extend({
-  confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
-  willingToRelocate: z.boolean().prefault(false),
-  agreeTerms: z.literal(true, {
-    error: () => 'You must agree to the terms and conditions',
-  }),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const formSchema = insertUserSchema
+  .extend({
+    confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
+    willingToRelocate: z.boolean().prefault(false),
+    agreeTerms: z.literal(true, {
+      error: () => 'You must agree to the terms and conditions',
+    }),
+  })
+  .refine(data => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -35,12 +51,6 @@ const Register = () => {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
-
-  // Redirect if already logged in
-  if (isAuthenticated) {
-    navigate('/profile');
-    return null;
-  }
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -57,32 +67,45 @@ const Register = () => {
     },
   });
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/profile');
+    }
+  }, [isAuthenticated, navigate]);
+
+  if (isAuthenticated) {
+    return null;
+  }
+
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
       await signInWithGoogle();
       navigate('/profile-setup');
     } catch (error: any) {
-      let errorMessage = "Failed to sign in with Google. Please try again.";
+      let errorMessage = 'Failed to sign in with Google. Please try again.';
 
       // Handle specific Firebase error codes
       if (error.code === 'auth/operation-not-allowed') {
-        errorMessage = "Google sign-in is not enabled. Please try another method or contact support.";
+        errorMessage =
+          'Google sign-in is not enabled. Please try another method or contact support.';
       } else if (error.code === 'auth/popup-closed-by-user') {
-        errorMessage = "Sign-in popup was closed. Please try again.";
+        errorMessage = 'Sign-in popup was closed. Please try again.';
       } else if (error.code === 'auth/cancelled-popup-request') {
-        errorMessage = "Multiple popup requests were made. Please try again.";
+        errorMessage = 'Multiple popup requests were made. Please try again.';
       } else if (error.code === 'auth/popup-blocked') {
-        errorMessage = "Sign-in popup was blocked by your browser. Please allow popups for this site.";
+        errorMessage =
+          'Sign-in popup was blocked by your browser. Please allow popups for this site.';
       } else if (error.code === 'firebase/unavailable-config') {
-        errorMessage = "Firebase registration is in demo mode. Add Firebase keys to client/.env or start the emulators.";
+        errorMessage =
+          'Firebase registration is in demo mode. Add Firebase keys to client/.env or start the emulators.';
       }
 
-      console.error("Google sign-in error:", error.code, error.message);
+      console.error('Google sign-in error:', error.code, error.message);
 
       toast({
-        variant: "destructive",
-        title: "Registration Failed",
+        variant: 'destructive',
+        title: 'Registration Failed',
         description: errorMessage,
       });
     } finally {
@@ -91,72 +114,73 @@ const Register = () => {
   };
 
   const onSubmit = async (data: FormValues) => {
-    console.log("Form submitted with data:", { ...data, password: "***", confirmPassword: "***" });
+    console.log('Form submitted with data:', { ...data, password: '***', confirmPassword: '***' });
     setIsLoading(true);
 
     try {
-      console.log("Validating form data...");
+      console.log('Validating form data...');
       // Remove confirmPassword and agreeTerms before sending to API
       const { confirmPassword, agreeTerms, ...userData } = data;
 
-      console.log("Attempting to create user with Firebase...");
-      console.log("Firebase config available:", !!import.meta.env.VITE_FIREBASE_API_KEY);
-      
+      console.log('Attempting to create user with Firebase...');
+      console.log('Firebase config available:', !!import.meta.env.VITE_FIREBASE_API_KEY);
+
       // Create user with Firebase
       const user = await signUpWithEmail(userData.email, userData.password, userData.name);
-      console.log("User created successfully:", user?.uid);
+      console.log('User created successfully:', user?.uid);
 
       // Store additional user data in your database if needed
       // This could be implemented later to save other user details
-      console.log("Registration successful, showing toast notification");
+      console.log('Registration successful, showing toast notification');
 
       toast({
-        title: "Registration Successful",
+        title: 'Registration Successful',
         description: "Your account has been created. Now let's set up your profile.",
       });
 
       // Add a small delay to ensure state is updated before redirect
-      console.log("Redirecting to profile setup page in 500ms...");
+      console.log('Redirecting to profile setup page in 500ms...');
       setTimeout(() => {
-        console.log("Executing redirect now");
+        console.log('Executing redirect now');
         // Force redirect to profile setup page
         window.location.href = '/profile-setup';
       }, 500);
     } catch (error: any) {
-      let errorMessage = "Failed to create account. Please try again.";
+      let errorMessage = 'Failed to create account. Please try again.';
       let actionLink = null;
 
-      console.error("Registration error details:", {
+      console.error('Registration error details:', {
         code: error.code,
         message: error.message,
         stack: error.stack,
-        fullError: error
+        fullError: error,
       });
 
       // Handle specific Firebase error codes
       if (error.code === 'auth/email-already-in-use') {
-        errorMessage = "This email is already registered. Please try logging in instead.";
+        errorMessage = 'This email is already registered. Please try logging in instead.';
         actionLink = '/login';
       } else if (error.code === 'auth/weak-password') {
-        errorMessage = "The password is too weak. Please choose a stronger password.";
+        errorMessage = 'The password is too weak. Please choose a stronger password.';
       } else if (error.code === 'auth/invalid-email') {
-        errorMessage = "The email address is invalid. Please enter a valid email.";
+        errorMessage = 'The email address is invalid. Please enter a valid email.';
       } else if (error.code === 'auth/network-request-failed') {
-        errorMessage = "Network error. Please check your internet connection.";
+        errorMessage = 'Network error. Please check your internet connection.';
       } else if (error.code === 'auth/operation-not-allowed') {
-        errorMessage = "This sign-up method is not enabled. Please try another method.";
+        errorMessage = 'This sign-up method is not enabled. Please try another method.';
       } else if (error.code === 'auth/internal-error') {
-        errorMessage = "An internal error occurred. This could be due to Firebase emulator issues.";
-        console.error("Firebase internal error. Check if emulators are running correctly.");
+        errorMessage = 'An internal error occurred. This could be due to Firebase emulator issues.';
+        console.error('Firebase internal error. Check if emulators are running correctly.');
       } else if (error.code === 'firebase/unavailable-config') {
-        errorMessage = "Firebase registration is in demo mode. Add Firebase keys to client/.env or start the emulators.";
+        errorMessage =
+          'Firebase registration is in demo mode. Add Firebase keys to client/.env or start the emulators.';
       }
 
-      console.error("Registration error:", error.code, error.message);
+      console.error('Registration error:', error.code, error.message);
 
       toast({
-        variant: "destructive",
-        title: "Registration Failed",
+        variant: 'destructive',
+        title: 'Registration Failed',
         description: (
           <div>
             {errorMessage}
@@ -171,7 +195,7 @@ const Register = () => {
         ),
       });
     } finally {
-      console.log("Form submission process completed");
+      console.log('Form submission process completed');
       setIsLoading(false);
     }
   };
@@ -180,7 +204,10 @@ const Register = () => {
     <>
       <Helmet>
         <title>Register | WorkWise SA</title>
-        <meta name="description" content="Create a WorkWise SA account to apply for jobs, save your favorite listings, and get personalized job recommendations." />
+        <meta
+          name="description"
+          content="Create a WorkWise SA account to apply for jobs, save your favorite listings, and get personalized job recommendations."
+        />
       </Helmet>
 
       <main className="flex-grow bg-light flex items-center justify-center py-10">
@@ -307,10 +334,7 @@ const Register = () => {
                   render={({ field }) => (
                     <FormItem className="flex items-start space-x-2 space-y-0">
                       <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel className="text-sm font-normal cursor-pointer">
@@ -328,14 +352,18 @@ const Register = () => {
                   render={({ field }) => (
                     <FormItem className="flex items-start space-x-2 space-y-0">
                       <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel className="text-sm font-normal cursor-pointer">
-                          I agree to the <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link> and <Link href="/privacy-policy" className="text-primary hover:underline">Privacy Policy</Link>
+                          I agree to the{' '}
+                          <Link href="/terms" className="text-primary hover:underline">
+                            Terms of Service
+                          </Link>{' '}
+                          and{' '}
+                          <Link href="/privacy-policy" className="text-primary hover:underline">
+                            Privacy Policy
+                          </Link>
                         </FormLabel>
                         <FormMessage />
                       </div>
@@ -344,7 +372,7 @@ const Register = () => {
                 />
 
                 <Button type="submit" className="w-full bg-primary" disabled={isLoading}>
-                  {isLoading ? "Creating account..." : "Create Account"}
+                  {isLoading ? 'Creating account...' : 'Create Account'}
                 </Button>
               </form>
             </Form>
@@ -373,37 +401,45 @@ const Register = () => {
                 Log in
               </Link>
             </p>
-            
+
             {/* Debug button - only visible in development */}
             {import.meta.env.DEV && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <p className="text-xs text-gray-500 mb-2">Development Tools</p>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     className="text-xs"
                     onClick={() => {
                       console.log('Firebase config:', {
                         apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? '✅ Set' : '❌ Missing',
-                        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ? '✅ Set' : '❌ Missing',
-                        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ? '✅ Set' : '❌ Missing',
-                        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ? '✅ Set' : '❌ Missing',
-                        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ? '✅ Set' : '❌ Missing',
+                        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN
+                          ? '✅ Set'
+                          : '❌ Missing',
+                        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID
+                          ? '✅ Set'
+                          : '❌ Missing',
+                        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET
+                          ? '✅ Set'
+                          : '❌ Missing',
+                        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID
+                          ? '✅ Set'
+                          : '❌ Missing',
                         appId: import.meta.env.VITE_FIREBASE_APP_ID ? '✅ Set' : '❌ Missing',
-                        useEmulators: import.meta.env.VITE_USE_FIREBASE_EMULATORS
+                        useEmulators: import.meta.env.VITE_USE_FIREBASE_EMULATORS,
                       });
-                      
+
                       toast({
-                        title: "Firebase Config Check",
+                        title: 'Firebase Config Check',
                         description: `Emulators: ${import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true' ? 'Enabled' : 'Disabled'}. Check console for details.`,
                       });
                     }}
                   >
                     Check Firebase Config
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     className="text-xs"
                     onClick={() => {
@@ -412,8 +448,8 @@ const Register = () => {
                   >
                     Firebase Diagnostics
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     className="text-xs"
                     onClick={async () => {
@@ -421,23 +457,23 @@ const Register = () => {
                         const result = await createTestUser();
                         if (result.success) {
                           toast({
-                            title: "Test User Created",
+                            title: 'Test User Created',
                             description: `Email: ${result.credentials.email}, Password: ${result.credentials.password}`,
                           });
                           console.log('Test user credentials:', result.credentials);
                         } else {
                           toast({
-                            variant: "destructive",
-                            title: "Test User Creation Failed",
-                            description: result.error?.message || "Unknown error",
+                            variant: 'destructive',
+                            title: 'Test User Creation Failed',
+                            description: result.error?.message || 'Unknown error',
                           });
                         }
                       } catch (error) {
                         console.error('Error creating test user:', error);
                         toast({
-                          variant: "destructive",
-                          title: "Error",
-                          description: "Failed to create test user. See console for details.",
+                          variant: 'destructive',
+                          title: 'Error',
+                          description: 'Failed to create test user. See console for details.',
                         });
                       }
                     }}

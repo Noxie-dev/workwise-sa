@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 describe('LoadingScreen Component Mock', () => {
   // Mock the LoadingScreen component functionality
-  const createLoadingScreen = (props) => {
+  const createLoadingScreen = props => {
     const {
       message = 'Loading...',
       fullPage = true,

@@ -19,7 +19,11 @@ const normalizeCategoriesResponse = (payload: Category[] | CategoryResponse): Ca
 };
 
 const CategoriesSection = () => {
-  const { data: categories, isLoading, error } = useQuery<Category[]>({
+  const {
+    data: categories,
+    isLoading,
+    error,
+  } = useQuery<Category[]>({
     queryKey: ['/api/categories'],
     queryFn: async () => {
       const useMockPublicData = import.meta.env.VITE_USE_MOCK_PUBLIC_DATA !== 'false';
@@ -39,26 +43,27 @@ const CategoriesSection = () => {
 
         throw error;
       }
-    }
+    },
   });
 
   const normalizedCategories = categories?.map(category => ({
     ...category,
     jobCount: category.jobCount ?? (category as Category & { count?: number }).count ?? 0,
-    icon: category.icon || 'briefcase'
+    icon: category.icon || 'briefcase',
   }));
 
-  const renderCategorySkeleton = () => (
-    Array(5).fill(0).map((_, i) => (
-      <div key={i} className="bg-light rounded-lg p-4 text-center">
-        <div className="flex flex-col items-center">
-          <Skeleton className="h-14 w-14 rounded-full mb-3" />
-          <Skeleton className="h-5 w-24 mb-1" />
-          <Skeleton className="h-4 w-16" />
+  const renderCategorySkeleton = () =>
+    Array(5)
+      .fill(0)
+      .map((_, i) => (
+        <div key={i} className="bg-light rounded-lg p-4 text-center">
+          <div className="flex flex-col items-center">
+            <Skeleton className="h-14 w-14 rounded-full mb-3" />
+            <Skeleton className="h-5 w-24 mb-1" />
+            <Skeleton className="h-4 w-16" />
+          </div>
         </div>
-      </div>
-    ))
-  );
+      ));
 
   if (error) {
     return (
@@ -83,16 +88,14 @@ const CategoriesSection = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {isLoading ? renderCategorySkeleton() : (
-            Array.isArray(normalizedCategories) && normalizedCategories.length > 0 ? (
-              normalizedCategories.map((category) => (
-                <CategoryCard key={category.id} category={category} />
-              ))
-            ) : (
-              <div className="col-span-full text-center text-gray-500">
-                No categories found.
-              </div>
-            )
+          {isLoading ? (
+            renderCategorySkeleton()
+          ) : Array.isArray(normalizedCategories) && normalizedCategories.length > 0 ? (
+            normalizedCategories.map(category => (
+              <CategoryCard key={category.id} category={category} />
+            ))
+          ) : (
+            <div className="col-span-full text-center text-gray-500">No categories found.</div>
           )}
         </div>
       </div>

@@ -15,18 +15,18 @@ interface PermissionsContextType {
   // Permission data
   permissions: Permission[];
   role: UserRole | null;
-  
+
   // Permission actions
   setPermissions: (permissions: Permission[], role: UserRole) => void;
   clearPermissions: () => void;
-  
+
   // Permission checks
   hasPermission: (permission: Permission) => boolean;
   hasAnyPermission: (permissions: Permission[]) => boolean;
   hasAllPermissions: (permissions: Permission[]) => boolean;
   hasRole: (role: UserRole) => boolean;
   hasAnyRole: (roles: UserRole[]) => boolean;
-  
+
   // Computed permission properties
   isAdmin: boolean;
   isModerator: boolean;
@@ -83,76 +83,90 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
   // PERMISSION CHECKS
   // ============================================================================
 
-  const hasPermission = useCallback((permission: Permission): boolean => {
-    return permissions.includes(permission);
-  }, [permissions]);
+  const hasPermission = useCallback(
+    (permission: Permission): boolean => {
+      return permissions.includes(permission);
+    },
+    [permissions]
+  );
 
-  const hasAnyPermission = useCallback((permissionList: Permission[]): boolean => {
-    return permissionList.some(permission => permissions.includes(permission));
-  }, [permissions]);
+  const hasAnyPermission = useCallback(
+    (permissionList: Permission[]): boolean => {
+      return permissionList.some(permission => permissions.includes(permission));
+    },
+    [permissions]
+  );
 
-  const hasAllPermissions = useCallback((permissionList: Permission[]): boolean => {
-    return permissionList.every(permission => permissions.includes(permission));
-  }, [permissions]);
+  const hasAllPermissions = useCallback(
+    (permissionList: Permission[]): boolean => {
+      return permissionList.every(permission => permissions.includes(permission));
+    },
+    [permissions]
+  );
 
-  const hasRole = useCallback((checkRole: UserRole): boolean => {
-    return role === checkRole;
-  }, [role]);
+  const hasRole = useCallback(
+    (checkRole: UserRole): boolean => {
+      return role === checkRole;
+    },
+    [role]
+  );
 
-  const hasAnyRole = useCallback((roleList: UserRole[]): boolean => {
-    return role !== null && roleList.includes(role);
-  }, [role]);
+  const hasAnyRole = useCallback(
+    (roleList: UserRole[]): boolean => {
+      return role !== null && roleList.includes(role);
+    },
+    [role]
+  );
 
   // ============================================================================
   // CONTEXT VALUE
   // ============================================================================
 
-  const contextValue: PermissionsContextType = useMemo(() => ({
-    // Permission data
-    permissions,
-    role,
-    
-    // Permission actions
-    setPermissions,
-    clearPermissions,
-    
-    // Permission checks
-    hasPermission,
-    hasAnyPermission,
-    hasAllPermissions,
-    hasRole,
-    hasAnyRole,
-    
-    // Computed permission properties
-    isAdmin,
-    isModerator,
-    isEmployer,
-    isUser
-  }), [
-    permissions,
-    role,
-    setPermissions,
-    clearPermissions,
-    hasPermission,
-    hasAnyPermission,
-    hasAllPermissions,
-    hasRole,
-    hasAnyRole,
-    isAdmin,
-    isModerator,
-    isEmployer,
-    isUser
-  ]);
+  const contextValue: PermissionsContextType = useMemo(
+    () => ({
+      // Permission data
+      permissions,
+      role,
+
+      // Permission actions
+      setPermissions,
+      clearPermissions,
+
+      // Permission checks
+      hasPermission,
+      hasAnyPermission,
+      hasAllPermissions,
+      hasRole,
+      hasAnyRole,
+
+      // Computed permission properties
+      isAdmin,
+      isModerator,
+      isEmployer,
+      isUser,
+    }),
+    [
+      permissions,
+      role,
+      setPermissions,
+      clearPermissions,
+      hasPermission,
+      hasAnyPermission,
+      hasAllPermissions,
+      hasRole,
+      hasAnyRole,
+      isAdmin,
+      isModerator,
+      isEmployer,
+      isUser,
+    ]
+  );
 
   // ============================================================================
   // RENDER
   // ============================================================================
 
-  return (
-    <PermissionsContext.Provider value={contextValue}>
-      {children}
-    </PermissionsContext.Provider>
-  );
+  return <PermissionsContext.Provider value={contextValue}>{children}</PermissionsContext.Provider>;
 };
 
 // ============================================================================
@@ -161,11 +175,11 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
 
 export const usePermissions = (): PermissionsContextType => {
   const context = useContext(PermissionsContext);
-  
+
   if (!context) {
     throw new Error('usePermissions must be used within a PermissionsProvider');
   }
-  
+
   return context;
 };
 
@@ -179,14 +193,17 @@ export const usePermissions = (): PermissionsContextType => {
  */
 export const useRole = () => {
   const { role, isAdmin, isModerator, isEmployer, isUser } = usePermissions();
-  
-  return useMemo(() => ({
-    role,
-    isAdmin,
-    isModerator,
-    isEmployer,
-    isUser
-  }), [role, isAdmin, isModerator, isEmployer, isUser]);
+
+  return useMemo(
+    () => ({
+      role,
+      isAdmin,
+      isModerator,
+      isEmployer,
+      isUser,
+    }),
+    [role, isAdmin, isModerator, isEmployer, isUser]
+  );
 };
 
 /**
@@ -195,7 +212,7 @@ export const useRole = () => {
  */
 export const usePermissionCheck = (permission: Permission) => {
   const { hasPermission } = usePermissions();
-  
+
   return useMemo(() => hasPermission(permission), [hasPermission, permission]);
 };
 
@@ -205,11 +222,14 @@ export const usePermissionCheck = (permission: Permission) => {
  */
 export const useMultiplePermissionCheck = (permissionList: Permission[]) => {
   const { hasAnyPermission, hasAllPermissions } = usePermissions();
-  
-  return useMemo(() => ({
-    hasAny: hasAnyPermission(permissionList),
-    hasAll: hasAllPermissions(permissionList)
-  }), [hasAnyPermission, hasAllPermissions, permissionList]);
+
+  return useMemo(
+    () => ({
+      hasAny: hasAnyPermission(permissionList),
+      hasAll: hasAllPermissions(permissionList),
+    }),
+    [hasAnyPermission, hasAllPermissions, permissionList]
+  );
 };
 
 /**
@@ -218,15 +238,18 @@ export const useMultiplePermissionCheck = (permissionList: Permission[]) => {
  */
 export const useAdminPermissions = () => {
   const { isAdmin, hasPermission } = usePermissions();
-  
-  return useMemo(() => ({
-    isAdmin,
-    canManageUsers: hasPermission('admin:users'),
-    canManageSettings: hasPermission('admin:settings'),
-    canViewAnalytics: hasPermission('admin:analytics'),
-    canManageContent: hasPermission('admin:content'),
-    canManageSecurity: hasPermission('admin:security')
-  }), [isAdmin, hasPermission]);
+
+  return useMemo(
+    () => ({
+      isAdmin,
+      canManageUsers: hasPermission('admin:users'),
+      canManageSettings: hasPermission('admin:settings'),
+      canViewAnalytics: hasPermission('admin:analytics'),
+      canManageContent: hasPermission('admin:content'),
+      canManageSecurity: hasPermission('admin:security'),
+    }),
+    [isAdmin, hasPermission]
+  );
 };
 
 /**
@@ -235,14 +258,17 @@ export const useAdminPermissions = () => {
  */
 export const useEmployerPermissions = () => {
   const { isEmployer, hasPermission } = usePermissions();
-  
-  return useMemo(() => ({
-    isEmployer,
-    canCreateJobs: hasPermission('jobs:create'),
-    canEditJobs: hasPermission('jobs:edit'),
-    canDeleteJobs: hasPermission('jobs:delete'),
-    canSendNotifications: hasPermission('notifications:send')
-  }), [isEmployer, hasPermission]);
+
+  return useMemo(
+    () => ({
+      isEmployer,
+      canCreateJobs: hasPermission('jobs:create'),
+      canEditJobs: hasPermission('jobs:edit'),
+      canDeleteJobs: hasPermission('jobs:delete'),
+      canSendNotifications: hasPermission('notifications:send'),
+    }),
+    [isEmployer, hasPermission]
+  );
 };
 
 /**
@@ -251,14 +277,17 @@ export const useEmployerPermissions = () => {
  */
 export const useJobPermissions = () => {
   const { hasPermission } = usePermissions();
-  
-  return useMemo(() => ({
-    canViewJobs: hasPermission('jobs:view'),
-    canApplyToJobs: hasPermission('jobs:apply'),
-    canCreateJobs: hasPermission('jobs:create'),
-    canEditJobs: hasPermission('jobs:edit'),
-    canDeleteJobs: hasPermission('jobs:delete')
-  }), [hasPermission]);
+
+  return useMemo(
+    () => ({
+      canViewJobs: hasPermission('jobs:view'),
+      canApplyToJobs: hasPermission('jobs:apply'),
+      canCreateJobs: hasPermission('jobs:create'),
+      canEditJobs: hasPermission('jobs:edit'),
+      canDeleteJobs: hasPermission('jobs:delete'),
+    }),
+    [hasPermission]
+  );
 };
 
 /**
@@ -267,9 +296,12 @@ export const useJobPermissions = () => {
  */
 export const useProfilePermissions = () => {
   const { hasPermission } = usePermissions();
-  
-  return useMemo(() => ({
-    canViewProfile: hasPermission('profile:view'),
-    canEditProfile: hasPermission('profile:edit')
-  }), [hasPermission]);
+
+  return useMemo(
+    () => ({
+      canViewProfile: hasPermission('profile:view'),
+      canEditProfile: hasPermission('profile:edit'),
+    }),
+    [hasPermission]
+  );
 };

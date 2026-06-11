@@ -1,14 +1,14 @@
-import { FormEvent, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, CreditCard, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
-import { useEntitlements } from "@/hooks/useEntitlements";
-import { apiRequest } from "@/lib/queryClient";
+import { FormEvent, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Check, CreditCard, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEntitlements } from '@/hooks/useEntitlements';
+import { apiRequest } from '@/lib/queryClient';
 
 type BillingPlan = {
   code: string;
@@ -20,23 +20,23 @@ type BillingPlan = {
 };
 
 async function fetchPlans(): Promise<BillingPlan[]> {
-  const response = await fetch("/api/billing/plans");
+  const response = await fetch('/api/billing/plans');
   if (!response.ok) {
-    throw new Error("Failed to load plans");
+    throw new Error('Failed to load plans');
   }
   const payload = await response.json();
   return payload.plans || [];
 }
 
 function submitPayfastForm(actionUrl: string, fields: Record<string, string>) {
-  const form = document.createElement("form");
-  form.method = "POST";
+  const form = document.createElement('form');
+  form.method = 'POST';
   form.action = actionUrl;
-  form.style.display = "none";
+  form.style.display = 'none';
 
   Object.entries(fields).forEach(([name, value]) => {
-    const input = document.createElement("input");
-    input.type = "hidden";
+    const input = document.createElement('input');
+    input.type = 'hidden';
     input.name = name;
     input.value = value;
     form.appendChild(input);
@@ -51,36 +51,38 @@ export default function Billing() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: entitlements } = useEntitlements();
-  const [waitlistEmail, setWaitlistEmail] = useState(currentUser?.email || "");
+  const [waitlistEmail, setWaitlistEmail] = useState(currentUser?.email || '');
 
   const { data: plans = [] } = useQuery({
-    queryKey: ["billing-plans"],
+    queryKey: ['billing-plans'],
     queryFn: fetchPlans,
   });
-  const plusPlan = plans.find((plan) => plan.code === "workwise_plus");
+  const plusPlan = plans.find(plan => plan.code === 'workwise_plus');
 
   const checkoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/billing/checkout", { planCode: "workwise_plus" });
+      const response = await apiRequest('POST', '/api/billing/checkout', {
+        planCode: 'workwise_plus',
+      });
       return response.json();
     },
-    onSuccess: (checkout) => {
+    onSuccess: checkout => {
       submitPayfastForm(checkout.actionUrl, checkout.fields);
     },
     onError: (error: Error) => {
       toast({
-        title: "Checkout unavailable",
+        title: 'Checkout unavailable',
         description: error.message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
 
   const waitlistMutation = useMutation({
     mutationFn: async (email: string) => {
-      const response = await apiRequest("POST", "/api/billing/pro-interest", {
+      const response = await apiRequest('POST', '/api/billing/pro-interest', {
         email,
-        source: "billing_page",
+        source: 'billing_page',
       });
       return response.json();
     },
@@ -89,13 +91,13 @@ export default function Billing() {
         title: "You're on the Pro waitlist",
         description: "We'll let you know when WorkWise Pro opens.",
       });
-      queryClient.invalidateQueries({ queryKey: ["entitlements"] });
+      queryClient.invalidateQueries({ queryKey: ['entitlements'] });
     },
     onError: (error: Error) => {
       toast({
-        title: "Could not join waitlist",
+        title: 'Could not join waitlist',
         description: error.message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
@@ -136,11 +138,11 @@ export default function Billing() {
 
             <ul className="grid gap-3 text-sm text-slate-700">
               {[
-                "Unlimited AI CV generation",
-                "Unlimited AI cover-letter generation",
-                "No ads across supported placements",
-                "Candidate Promotion Lite",
-              ].map((item) => (
+                'Unlimited AI CV generation',
+                'Unlimited AI cover-letter generation',
+                'No ads across supported placements',
+                'Candidate Promotion Lite',
+              ].map(item => (
                 <li key={item} className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-emerald-600" />
                   {item}
@@ -150,14 +152,18 @@ export default function Billing() {
 
             <Button
               className="w-full"
-              disabled={!currentUser || checkoutMutation.isPending || entitlements?.workwisePlusActive}
+              disabled={
+                !currentUser || checkoutMutation.isPending || entitlements?.workwisePlusActive
+              }
               onClick={() => checkoutMutation.mutate()}
             >
               <CreditCard className="mr-2 h-4 w-4" />
-              {entitlements?.workwisePlusActive ? "Plus Active" : "Subscribe with PayFast"}
+              {entitlements?.workwisePlusActive ? 'Plus Active' : 'Subscribe with PayFast'}
             </Button>
             {!currentUser && (
-              <p className="text-xs text-slate-500">Sign in before subscribing to attach Plus to your account.</p>
+              <p className="text-xs text-slate-500">
+                Sign in before subscribing to attach Plus to your account.
+              </p>
             )}
           </CardContent>
         </Card>
@@ -167,10 +173,22 @@ export default function Billing() {
             <CardTitle className="text-lg">Current Access</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-slate-700">
-            <p>AI CV generations left: {entitlements?.hasUnlimitedAiCv ? "Unlimited" : entitlements?.remainingFreeCvGenerations ?? 0}</p>
-            <p>AI cover letters left: {entitlements?.hasUnlimitedAiCoverLetters ? "Unlimited" : entitlements?.remainingFreeCoverLetterGenerations ?? 0}</p>
-            <p>Ads: {entitlements?.adsEnabled ? "Enabled" : "Disabled"}</p>
-            <p>Promotion Lite: {entitlements?.candidatePromotionLite ? "Enabled" : "Not enabled"}</p>
+            <p>
+              AI CV generations left:{' '}
+              {entitlements?.hasUnlimitedAiCv
+                ? 'Unlimited'
+                : (entitlements?.remainingFreeCvGenerations ?? 0)}
+            </p>
+            <p>
+              AI cover letters left:{' '}
+              {entitlements?.hasUnlimitedAiCoverLetters
+                ? 'Unlimited'
+                : (entitlements?.remainingFreeCoverLetterGenerations ?? 0)}
+            </p>
+            <p>Ads: {entitlements?.adsEnabled ? 'Enabled' : 'Disabled'}</p>
+            <p>
+              Promotion Lite: {entitlements?.candidatePromotionLite ? 'Enabled' : 'Not enabled'}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -188,7 +206,7 @@ export default function Billing() {
               <Input
                 type="email"
                 value={waitlistEmail}
-                onChange={(event) => setWaitlistEmail(event.target.value)}
+                onChange={event => setWaitlistEmail(event.target.value)}
                 placeholder="you@example.com"
               />
               <Button type="submit" disabled={waitlistMutation.isPending}>
@@ -196,7 +214,9 @@ export default function Billing() {
               </Button>
             </form>
           </div>
-          <Badge variant="outline" className="justify-center py-2">Coming Soon</Badge>
+          <Badge variant="outline" className="justify-center py-2">
+            Coming Soon
+          </Badge>
         </CardContent>
       </Card>
     </main>

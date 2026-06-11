@@ -1,64 +1,66 @@
 import { HelmetProvider } from 'react-helmet-async';
 import { Route, Switch, Redirect } from 'wouter';
 import { Suspense, lazy } from 'react';
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { EnhancedAuthProvider } from "@/contexts/EnhancedAuthContext";
-import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import "@/styles/accessibility.css";
+import { queryClient } from './lib/queryClient';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/toaster';
+import { EnhancedAuthProvider } from '@/contexts/EnhancedAuthContext';
+import { AccessibilityProvider } from '@/contexts/AccessibilityContext';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import '@/styles/accessibility.css';
 
 // Core pages that should load immediately
-import NotFound from "@/pages/not-found";
-import HomeSimple from "@/pages/HomeSimple";
-import Login from "@/pages/Login";
-import Register from "@/pages/Register";
-import EmailLinkLogin from "@/pages/EmailLinkLogin";
-import EmailSignInComplete from "@/pages/EmailSignInComplete";
+import NotFound from '@/pages/not-found';
+import HomeSimple from '@/pages/HomeSimple';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import EmailLinkLogin from '@/pages/EmailLinkLogin';
+import EmailSignInComplete from '@/pages/EmailSignInComplete';
 
 // Lazy load heavy components
-const Home = lazy(() => import("@/pages/Home"));
-const Jobs = lazy(() => import("@/pages/Jobs"));
-const JobDetails = lazy(() => import("@/pages/JobDetails"));
-const Companies = lazy(() => import("@/pages/Companies"));
-const CompanyProfile = lazy(() => import("@/pages/CompanyProfile"));
-const Resources = lazy(() => import("@/pages/Resources"));
-const WiseUpPage = lazy(() => import("@/pages/WiseUp/WiseUpPage"));
-const CVBuilder = lazy(() => import("@/pages/CVBuilder"));
-const UserProfile = lazy(() => import("@/pages/UserProfile"));
-const ProfileSetup = lazy(() => import("@/pages/ProfileSetup"));
-const MarketingRulesPage = lazy(() => import("@/pages/MarketingRulesPage"));
-const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
-const AdminSettings = lazy(() => import("@/pages/admin/SettingsPage"));
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const FAQWheelPage = lazy(() => import("@/pages/FAQWheelPage"));
+const Home = lazy(() => import('@/pages/Home'));
+const Jobs = lazy(() => import('@/pages/Jobs'));
+const JobDetails = lazy(() => import('@/pages/JobDetails'));
+const Companies = lazy(() => import('@/pages/Companies'));
+const CompanyProfile = lazy(() => import('@/pages/CompanyProfile'));
+const Resources = lazy(() => import('@/pages/Resources'));
+const WiseUpPage = lazy(() => import('@/pages/WiseUp/WiseUpPage'));
+const CVBuilder = lazy(() => import('@/pages/CVBuilder'));
+const UserProfile = lazy(() => import('@/pages/UserProfile'));
+const ProfileSetup = lazy(() => import('@/pages/ProfileSetup'));
+const MarketingRulesPage = lazy(() => import('@/pages/MarketingRulesPage'));
+const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
+const AdminSettings = lazy(() => import('@/pages/admin/SettingsPage'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const FAQWheelPage = lazy(() => import('@/pages/FAQWheelPage'));
 
 // Lazy load resource pages
-const CVTemplates = lazy(() => import("@/pages/resources/CVTemplates"));
-const InterviewTipsPage = lazy(() => import("@/pages/resources/InterviewTipsPage"));
-const SalaryGuide = lazy(() => import("@/pages/resources/SalaryGuide"));
-const CVBuilderHelp = lazy(() => import("@/pages/resources/CVBuilderHelp"));
+const CVTemplates = lazy(() => import('@/pages/resources/CVTemplates'));
+const InterviewTipsPage = lazy(() => import('@/pages/resources/InterviewTipsPage'));
+const SalaryGuide = lazy(() => import('@/pages/resources/SalaryGuide'));
+const CVBuilderHelp = lazy(() => import('@/pages/resources/CVBuilderHelp'));
 
 // Lazy load employer pages
-const PostJob = lazy(() => import("@/pages/employers/PostJob"));
-const Solutions = lazy(() => import("@/pages/employers/Solutions"));
-const Pricing = lazy(() => import("@/pages/employers/Pricing"));
-const SuccessStories = lazy(() => import("@/pages/employers/SuccessStories"));
-const EmployerDashboard = lazy(() => import("@/pages/employers/EmployerDashboard"));
+const PostJob = lazy(() => import('@/pages/employers/PostJob'));
+const Solutions = lazy(() => import('@/pages/employers/Solutions'));
+const Pricing = lazy(() => import('@/pages/employers/Pricing'));
+const SuccessStories = lazy(() => import('@/pages/employers/SuccessStories'));
+const EmployerDashboard = lazy(() => import('@/pages/employers/EmployerDashboard'));
 
 // Lazy load legal pages
-const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
-const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
-const Terms = lazy(() => import("@/pages/Terms"));
+const TermsOfService = lazy(() => import('@/pages/TermsOfService'));
+const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
+const Terms = lazy(() => import('@/pages/Terms'));
 
 // Lazy load test pages
-const UITest = lazy(() => import("@/components/ui-test").then(module => ({ default: module.UITest })));
-const TestPage = lazy(() => import("@/pages/TestPage"));
-const FooterTest = lazy(() => import("@/pages/FooterTest"));
-const ColorTest = lazy(() => import("@/pages/ColorTest"));
-const SimpleTest = lazy(() => import("@/pages/SimpleTest"));
+const UITest = lazy(() =>
+  import('@/components/ui-test').then(module => ({ default: module.UITest }))
+);
+const TestPage = lazy(() => import('@/pages/TestPage'));
+const FooterTest = lazy(() => import('@/pages/FooterTest'));
+const ColorTest = lazy(() => import('@/pages/ColorTest'));
+const SimpleTest = lazy(() => import('@/pages/SimpleTest'));
 
 // Loading component
 const PageLoader = () => (
@@ -67,7 +69,7 @@ const PageLoader = () => (
   </div>
 );
 
-function Router() {
+const Router = () => {
   return (
     <>
       <Header />
@@ -132,9 +134,9 @@ function Router() {
       <Footer />
     </>
   );
-}
+};
 
-function App() {
+const App = () => {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
@@ -147,6 +149,6 @@ function App() {
       </QueryClientProvider>
     </HelmetProvider>
   );
-}
+};
 
 export default App;

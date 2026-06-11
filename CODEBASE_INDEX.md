@@ -21,6 +21,7 @@ workwise-sa/
 ## 🎯 Frontend (Client)
 
 ### Core Application Files
+
 - **Entry Points**
   - `client/src/main.tsx` - Main application entry point (1.6KB)
   - `client/src/App.tsx` - Root application component (7.2KB)
@@ -28,6 +29,7 @@ workwise-sa/
   - `client/index.html` - HTML template
 
 ### Key Components & Structure
+
 - **Components** (`client/src/components/`)
   - Layout components (Header, Footer, Sidebar)
   - Navigation and routing components
@@ -65,12 +67,14 @@ workwise-sa/
   - Library configurations and utilities
 
 ### Testing & Development
+
 - `client/src/setupTests.ts` - Test setup configuration (2.2KB)
 - `client/src/__tests__/` - Test files directory
 - `client/src/__mocks__/` - Mock files directory
 - `client/src/queryClient.js` - React Query client (122B)
 
 ### Configuration Files
+
 - `client/package.json` - Frontend dependencies and scripts
 - `client/tsconfig.json` - TypeScript configuration
 - `client/vite.config.ts` - Vite build configuration
@@ -81,6 +85,7 @@ workwise-sa/
 ## 🖥️ Backend (Server)
 
 ### Core Server Files
+
 - **Main Files**
   - `server/wiseup.ts` - WiseUp main logic (7.3KB)
   - `server/websocket.ts` - WebSocket server (6.1KB)
@@ -90,12 +95,14 @@ workwise-sa/
   - `server/jobRecommendation.ts` - Job recommendation system (20KB)
 
 ### API & Routes
+
 - **Routes**
   - `server/routes.ts` - Main API routes (12KB)
   - `server/recommendationRoutes.ts` - Recommendation routes (6.8KB)
   - `server/routes/` - Additional route definitions
 
 ### Services & Middleware
+
 - **Services** (`server/services/`)
   - Business logic services
 - **Middleware** (`server/middleware/`)
@@ -104,20 +111,24 @@ workwise-sa/
   - Utility functions
 
 ### Database & Storage
+
 - **Database**
   - `server/db.ts` - Database connection (1.4KB)
   - `server/migrations.ts` - Migration management (2.4KB)
   - `server/migrations/` - Migration files directory
 
 ### AI & External Services
+
 - `server/ai.ts` - AI service integration (4.3KB)
 - `server/anthropic.ts` - Anthropic AI integration (6.1KB)
 - `server/firebase.ts` - Firebase configuration (5.3KB)
 
 ### File Management
+
 - `server/fileService.ts` - File handling service (3.5KB)
 
 ### Configuration Files
+
 - `server/package.json` - Backend dependencies and scripts
 - `server/tsconfig.json` - TypeScript configuration
 - `server/vite.ts` - Vite configuration for server (2.3KB)
@@ -126,11 +137,13 @@ workwise-sa/
 ## 🔥 Firebase Functions
 
 ### Cloud Functions
+
 - **Entry Points**
   - `functions/index.js` - Main functions entry point
   - `functions/package.json` - Functions dependencies
 
 ### Configuration
+
 - `firebase.json` - Firebase project configuration
 - `firestore.rules` - Firestore security rules
 - `storage.rules` - Storage security rules
@@ -138,6 +151,7 @@ workwise-sa/
 ## 🔗 Shared Code
 
 ### Types & Schemas
+
 - `shared/schema.ts` - Shared data schemas (9.4KB)
 - `shared/wiseup-schema.ts` - WiseUp-specific schemas (4.0KB)
 - `shared/job-types.ts` - Job-related type definitions (3.0KB)
@@ -145,6 +159,7 @@ workwise-sa/
 ## 🗄️ Database
 
 ### Schema & Migrations
+
 - `database/schema-optimization.sql` - Database optimization scripts
 - `migrations/` - Database migration files
   - `0001_add_files_table.sql` - Files table migration
@@ -154,6 +169,7 @@ workwise-sa/
   - `0005_update_users_table.sql` - Users table update
 
 ### Database Files
+
 - `database.db` - SQLite database file
 - `workwise.db` - Alternative database file
 - `test.db` - Test database file
@@ -161,48 +177,57 @@ workwise-sa/
 ## 🛠️ Scripts & Tools
 
 ### Development & Container Scripts
+
 - `scripts/dev-container.sh` - Development container management (1.4KB)
 
 ### Validation & Security Scripts
+
 - `scripts/validate-firebase.js` - Firebase configuration validation (7.2KB)
 - `scripts/validate-netlify-config.js` - Netlify config validation (5.1KB)
 - `scripts/validate-security.js` - Security validation (4.0KB)
 - `scripts/sanitize-env.js` - Environment variable sanitization (4.8KB)
 
 ### Build & Optimization Scripts
+
 - `scripts/vite-bundle-analyzer.js` - Bundle analysis (2.0KB)
 - `scripts/optimize-build.js` - Build optimization (908B)
 - `scripts/analyze-bundle.js` - Bundle analysis (2.0KB)
 
 ### Deployment Scripts
+
 - `scripts/firebase-deploy.js` - Firebase deployment (3.7KB)
 - `scripts/netlify-post-build.js` - Netlify post-build (3.9KB)
 - `scripts/prepare-netlify-deploy.js` - Netlify deployment prep (5.4KB)
 - `scripts/fast-deploy.js` - Quick deployment (1.9KB)
 
 ### Testing & Development Scripts
+
 - `scripts/test-auth-persistence.js` - Auth persistence testing (3.8KB)
 - `scripts/test-deployment.js` - Deployment testing (4.2KB)
 - `scripts/test-email-link-auth.js` - Email auth testing (3.3KB)
 - `scripts/create-test-users.js` - Test user creation (3.2KB)
 
 ### Database Scripts
+
 - `scripts/generate-migration.ts` - Migration generation (705B)
 - `scripts/generate-migrations.ts` - Multiple migration generation (925B)
 - `scripts/run-migrations.js` - Migration execution (4.8KB)
 - `scripts/run-migrations.ts` - TypeScript migration runner (1.9KB)
 
 ### Firebase & Emulator Scripts
+
 - `scripts/start-with-emulator-check.js` - Emulator startup (3.7KB)
 - `scripts/check-emulators.js` - Emulator status check (1.6KB)
 - `scripts/check-firebase-config.js` - Firebase config check (2.5KB)
 
 ### Environment Scripts
+
 - `scripts/setup-production-env.js` - Production environment setup (2.6KB)
 
 ## 📚 Documentation
 
 ### Project Documentation
+
 - `README.md` - Main project readme
 - `DEV_CONTAINER_README.md` - Development container guide
 - `CODEBASE_INDEX.md` - This comprehensive codebase index
@@ -219,36 +244,42 @@ workwise-sa/
 - `TIERED_JOB_ACCESS_IMPLEMENTATION.md` - Job access implementation
 
 ### Implementation Plans
+
 - `docs/implementation-plans/` - Detailed implementation plans
 - `docs/guides/` - Development guides
 
 ## 🧪 Testing
 
 ### Test Configuration
+
 - `jest.config.js` - Jest testing configuration
 - `vitest.config.ts` - Vitest configuration
 - `playwright.config.ts` - Playwright E2E testing
 - `tests/e2e/` - End-to-end tests
 
 ### Test Files
+
 - `test-*.js` - Various test scripts
 - `tests/` - Test directory structure
 
 ## 🚀 Deployment & Infrastructure
 
 ### Deployment Configurations
+
 - `netlify.toml` - Netlify deployment configuration
 - `netlify/functions/` - Netlify serverless functions
 - `firebase.json` - Firebase configuration
 - `lighthouserc.json` - Lighthouse CI configuration
 
 ### Environment Files
+
 - `.env` - Environment variables
 - `requirements.txt` - Python dependencies (for scrapers)
 
 ## 🔍 Search & Navigation
 
 ### Key Search Terms
+
 - **Authentication**: `auth`, `login`, `signup`, `firebase`
 - **Jobs**: `job`, `career`, `employment`, `wiseup`
 - **Profile**: `profile`, `user`, `account`, `settings`
@@ -258,6 +289,7 @@ workwise-sa/
 - **UI Components**: `component`, `ui`, `layout`, `form`
 
 ### File Type Patterns
+
 - **React Components**: `*.tsx`, `*.jsx`
 - **TypeScript**: `*.ts`
 - **JavaScript**: `*.js`
@@ -269,6 +301,7 @@ workwise-sa/
 ## 📊 Code Statistics
 
 ### File Counts by Type
+
 - **TypeScript/TSX**: ~350 files (React components, utilities)
 - **JavaScript**: ~50 files (scripts, configurations)
 - **Configuration**: ~20 files (package.json, config files)
@@ -277,6 +310,7 @@ workwise-sa/
 - **Styles**: ~5 files (CSS, Tailwind config)
 
 ### Main Technologies
+
 - **Frontend**: React 18, TypeScript, Tailwind CSS, Vite
 - **Backend**: Node.js, Express, TypeScript
 - **Database**: SQLite, Prisma, Firebase Firestore
@@ -287,6 +321,7 @@ workwise-sa/
 ## 🎯 Development Workflow
 
 ### Getting Started
+
 1. **Setup**: Use development container (`./scripts/dev-container.sh start`)
 2. **Install**: Dependencies are pre-installed in container
 3. **Develop**: Use VS Code Dev Containers for best experience
@@ -295,6 +330,7 @@ workwise-sa/
 6. **Deploy**: Use Netlify for frontend, Firebase for backend
 
 ### Key Commands
+
 ```bash
 # Development
 ./scripts/dev-container.sh start
@@ -317,21 +353,25 @@ npm run test:e2e
 ## 🔧 Key Features & Components
 
 ### Job Management System
+
 - Job distribution and recommendation algorithms
 - AI-powered job matching
 - Tiered access control system
 
 ### File Management
+
 - File upload and storage services
 - Firebase Storage integration
 - File processing and validation
 
 ### AI Integration
+
 - Anthropic AI integration
 - Job recommendation AI
 - Content analysis and processing
 
 ### Authentication & Security
+
 - Firebase Authentication
 - Email link authentication
 - Role-based access control

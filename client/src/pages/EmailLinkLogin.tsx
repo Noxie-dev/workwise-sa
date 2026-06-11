@@ -4,9 +4,23 @@ import { Link, useLocation } from 'wouter';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { sendSignInLink, signInWithGoogle } from '@/lib/firebase';
@@ -47,26 +61,29 @@ const EmailLinkLogin = () => {
       await signInWithGoogle();
       navigate('/profile-setup');
     } catch (error: any) {
-      let errorMessage = "Failed to sign in with Google. Please try again.";
+      let errorMessage = 'Failed to sign in with Google. Please try again.';
 
       // Handle specific Firebase error codes
       if (error.code === 'auth/operation-not-allowed') {
-        errorMessage = "Google sign-in is not enabled. Please try another method or contact support.";
+        errorMessage =
+          'Google sign-in is not enabled. Please try another method or contact support.';
       } else if (error.code === 'auth/popup-closed-by-user') {
-        errorMessage = "Sign-in popup was closed. Please try again.";
+        errorMessage = 'Sign-in popup was closed. Please try again.';
       } else if (error.code === 'auth/cancelled-popup-request') {
-        errorMessage = "Multiple popup requests were made. Please try again.";
+        errorMessage = 'Multiple popup requests were made. Please try again.';
       } else if (error.code === 'auth/popup-blocked') {
-        errorMessage = "Sign-in popup was blocked by your browser. Please allow popups for this site.";
+        errorMessage =
+          'Sign-in popup was blocked by your browser. Please allow popups for this site.';
       } else if (error.code === 'firebase/unavailable-config') {
-        errorMessage = "Firebase login is in demo mode. Add Firebase keys to client/.env or start the emulators.";
+        errorMessage =
+          'Firebase login is in demo mode. Add Firebase keys to client/.env or start the emulators.';
       }
 
-      console.error("Google sign-in error:", error.code, error.message);
+      console.error('Google sign-in error:', error.code, error.message);
 
       toast({
-        variant: "destructive",
-        title: "Login Failed",
+        variant: 'destructive',
+        title: 'Login Failed',
         description: errorMessage,
       });
     } finally {
@@ -82,30 +99,33 @@ const EmailLinkLogin = () => {
       setEmailSent(true);
       setSentToEmail(data.email);
       toast({
-        title: "Email Sent",
-        description: "A sign-in link has been sent to your email address.",
+        title: 'Email Sent',
+        description: 'A sign-in link has been sent to your email address.',
       });
     } catch (error: any) {
-      let errorMessage = "Failed to send sign-in link. Please try again.";
+      let errorMessage = 'Failed to send sign-in link. Please try again.';
 
       // Handle specific Firebase error codes
       if (error.code === 'auth/invalid-email') {
-        errorMessage = "The email address is not valid.";
+        errorMessage = 'The email address is not valid.';
       } else if (error.code === 'auth/network-request-failed') {
-        errorMessage = "Network error. Please check your internet connection.";
+        errorMessage = 'Network error. Please check your internet connection.';
       } else if (error.code === 'auth/operation-not-allowed') {
-        errorMessage = "Email link sign-in is not enabled. Please try another method or contact support.";
+        errorMessage =
+          'Email link sign-in is not enabled. Please try another method or contact support.';
       } else if (error.code === 'auth/unauthorized-domain') {
-        errorMessage = "This domain is not authorized for email link sign-in. Please try another method.";
+        errorMessage =
+          'This domain is not authorized for email link sign-in. Please try another method.';
       } else if (error.code === 'firebase/unavailable-config') {
-        errorMessage = "Email-link sign-in is in demo mode. Add Firebase keys to client/.env or start the emulators.";
+        errorMessage =
+          'Email-link sign-in is in demo mode. Add Firebase keys to client/.env or start the emulators.';
       }
 
-      console.error("Email link error:", error.code, error.message);
+      console.error('Email link error:', error.code, error.message);
 
       toast({
-        variant: "destructive",
-        title: "Email Link Failed",
+        variant: 'destructive',
+        title: 'Email Link Failed',
         description: errorMessage,
       });
     } finally {
@@ -117,7 +137,10 @@ const EmailLinkLogin = () => {
     <>
       <Helmet>
         <title>Passwordless Login | WorkWise SA</title>
-        <meta name="description" content="Login to WorkWise SA with a secure email link - no password required!" />
+        <meta
+          name="description"
+          content="Login to WorkWise SA with a secure email link - no password required!"
+        />
       </Helmet>
 
       <main className="flex-grow bg-light flex items-center justify-center py-10">
@@ -141,8 +164,8 @@ const EmailLinkLogin = () => {
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Check your email</AlertTitle>
                 <AlertDescription>
-                  We've sent a sign-in link to <strong>{sentToEmail}</strong>.
-                  Click the link in the email to sign in to your account.
+                  We've sent a sign-in link to <strong>{sentToEmail}</strong>. Click the link in the
+                  email to sign in to your account.
                 </AlertDescription>
               </Alert>
             ) : (
@@ -162,7 +185,7 @@ const EmailLinkLogin = () => {
                     )}
                   />
                   <Button type="submit" className="w-full bg-primary" disabled={isLoading}>
-                    {isLoading ? "Sending link..." : "Send sign-in link"}
+                    {isLoading ? 'Sending link...' : 'Send sign-in link'}
                   </Button>
                 </form>
               </Form>

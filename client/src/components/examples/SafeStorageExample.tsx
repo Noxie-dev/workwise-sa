@@ -7,32 +7,32 @@ import { useClientOnly } from '../../hooks/useClientOnly';
  * Example component demonstrating safe localStorage usage
  * Prevents hydration mismatches when accessing browser storage APIs
  */
-export function SafeStorageExample() {
+export const SafeStorageExample = () => {
   const [value, setValue] = useState('');
   const isClient = useClientOnly();
-  
+
   const handleSave = () => {
     safeLocalStorage.setItem('example-key', value);
   };
-  
+
   const handleLoad = () => {
     const stored = safeLocalStorage.getItem('example-key', '');
     setValue(stored || '');
   };
-  
+
   return (
     <div className="space-y-4 p-4 border rounded-lg">
       <h3 className="text-lg font-semibold">Safe Storage Example</h3>
-      
+
       <div className="space-y-2">
         <input
           type="text"
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={e => setValue(e.target.value)}
           placeholder="Enter some text"
           className="w-full p-2 border rounded"
         />
-        
+
         <div className="space-x-2">
           <button
             onClick={handleSave}
@@ -41,7 +41,7 @@ export function SafeStorageExample() {
           >
             Save to LocalStorage
           </button>
-          
+
           <button
             onClick={handleLoad}
             className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
@@ -50,8 +50,12 @@ export function SafeStorageExample() {
             Load from LocalStorage
           </button>
         </div>
-        
-        <ClientOnly fallback={<p className="text-gray-500">Storage operations will be available on client...</p>}>
+
+        <ClientOnly
+          fallback={
+            <p className="text-gray-500">Storage operations will be available on client...</p>
+          }
+        >
           <p className="text-sm text-gray-600">
             Current stored value: {safeLocalStorage.getItem('example-key', 'None')}
           </p>
@@ -59,5 +63,4 @@ export function SafeStorageExample() {
       </div>
     </div>
   );
-}
-
+};

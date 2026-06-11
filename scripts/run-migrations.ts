@@ -17,12 +17,12 @@ async function runMigrations() {
   // Ensure migrations folder exists
   if (!fs.existsSync(migrationsFolder)) {
     logger.error(`Migrations folder not found at ${migrationsFolder}`);
-    logger.info('Run "npm run db:generate" to generate migrations first');
+    logger.info('Run "pnpm run db:generate" to generate migrations first');
     process.exit(1);
   }
 
   try {
-    const migrationModule = await import('../server/utils/sqlMigrations.ts') as any;
+    const migrationModule = (await import('../server/utils/sqlMigrations.ts')) as any;
     const runSqlMigrations =
       migrationModule.runSqlMigrations ?? migrationModule.default?.runSqlMigrations;
     if (!runSqlMigrations) {
@@ -33,7 +33,7 @@ async function runMigrations() {
     logger.info(`Running ${connectionType} migrations...`);
     const result = await runSqlMigrations({ connectionString, migrationsFolder, logger });
     logger.info(
-      `${connectionType} migrations completed successfully (${result.applied.length} applied, ${result.skipped.length} skipped)`,
+      `${connectionType} migrations completed successfully (${result.applied.length} applied, ${result.skipped.length} skipped)`
     );
   } catch (error) {
     logger.error('Migration failed', { error });

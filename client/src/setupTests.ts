@@ -20,7 +20,7 @@ const mockIntersectionObserver = jest.fn();
 mockIntersectionObserver.mockReturnValue({
   observe: () => null,
   unobserve: () => null,
-  disconnect: () => null
+  disconnect: () => null,
 });
 window.IntersectionObserver = mockIntersectionObserver;
 
@@ -29,7 +29,7 @@ const mockResizeObserver = jest.fn();
 mockResizeObserver.mockReturnValue({
   observe: () => null,
   unobserve: () => null,
-  disconnect: () => null
+  disconnect: () => null,
 });
 window.ResizeObserver = mockResizeObserver;
 
@@ -44,11 +44,11 @@ global.fetch = jest.fn();
 const localStorageMock = (() => {
   let store = {};
   return {
-    getItem: jest.fn((key) => store[key] || null),
+    getItem: jest.fn(key => store[key] || null),
     setItem: jest.fn((key, value) => {
       store[key] = value.toString();
     }),
-    removeItem: jest.fn((key) => {
+    removeItem: jest.fn(key => {
       delete store[key];
     }),
     clear: jest.fn(() => {
@@ -66,11 +66,11 @@ Object.defineProperty(window, 'localStorage', {
 const sessionStorageMock = (() => {
   let store = {};
   return {
-    getItem: jest.fn((key) => store[key] || null),
+    getItem: jest.fn(key => store[key] || null),
     setItem: jest.fn((key, value) => {
       store[key] = value.toString();
     }),
-    removeItem: jest.fn((key) => {
+    removeItem: jest.fn(key => {
       delete store[key];
     }),
     clear: jest.fn(() => {

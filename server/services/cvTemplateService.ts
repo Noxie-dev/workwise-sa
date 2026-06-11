@@ -53,11 +53,13 @@ export async function generateCVPDF(data: CVData): Promise<Buffer> {
       // Header with personal info
       doc.fontSize(24).font('Helvetica-Bold').text(data.personalInfo.fullName, { align: 'center' });
       doc.moveDown(0.5);
-      doc.fontSize(10).font('Helvetica').text([
-        data.personalInfo.email,
-        data.personalInfo.phone,
-        data.personalInfo.address
-      ].join(' | '), { align: 'center' });
+      doc
+        .fontSize(10)
+        .font('Helvetica')
+        .text(
+          [data.personalInfo.email, data.personalInfo.phone, data.personalInfo.address].join(' | '),
+          { align: 'center' }
+        );
       doc.moveDown();
 
       // Professional Summary
@@ -71,8 +73,13 @@ export async function generateCVPDF(data: CVData): Promise<Buffer> {
       doc.moveDown(0.5);
       data.experience.forEach(exp => {
         doc.fontSize(12).font('Helvetica-Bold').text(exp.jobTitle);
-        doc.fontSize(10).font('Helvetica').text(`${exp.employer}${exp.location ? `, ${exp.location}` : ''}`);
-        doc.fontSize(10).font('Helvetica-Oblique')
+        doc
+          .fontSize(10)
+          .font('Helvetica')
+          .text(`${exp.employer}${exp.location ? `, ${exp.location}` : ''}`);
+        doc
+          .fontSize(10)
+          .font('Helvetica-Oblique')
           .text(`${exp.startDate} - ${exp.isCurrentJob ? 'Present' : exp.endDate}`);
         doc.fontSize(10).font('Helvetica').text(exp.description);
         doc.moveDown();
@@ -83,7 +90,10 @@ export async function generateCVPDF(data: CVData): Promise<Buffer> {
       doc.moveDown(0.5);
       data.education.forEach(edu => {
         doc.fontSize(12).font('Helvetica-Bold').text(edu.degree);
-        doc.fontSize(10).font('Helvetica').text(`${edu.school}${edu.location ? `, ${edu.location}` : ''}`);
+        doc
+          .fontSize(10)
+          .font('Helvetica')
+          .text(`${edu.school}${edu.location ? `, ${edu.location}` : ''}`);
         doc.fontSize(10).font('Helvetica-Oblique').text(edu.graduationDate);
         doc.moveDown();
       });
@@ -99,8 +109,7 @@ export async function generateCVPDF(data: CVData): Promise<Buffer> {
         doc.fontSize(14).font('Helvetica-Bold').text('Languages');
         doc.moveDown(0.5);
         data.languages.forEach(lang => {
-          doc.fontSize(10).font('Helvetica')
-            .text(`${lang.language} - ${lang.proficiency}`);
+          doc.fontSize(10).font('Helvetica').text(`${lang.language} - ${lang.proficiency}`);
         });
         doc.moveDown();
       }
@@ -111,10 +120,8 @@ export async function generateCVPDF(data: CVData): Promise<Buffer> {
         doc.moveDown(0.5);
         data.references.forEach(ref => {
           doc.fontSize(10).font('Helvetica-Bold').text(ref.name);
-          doc.fontSize(10).font('Helvetica')
-            .text(`${ref.position}, ${ref.company}`);
-          doc.fontSize(10).font('Helvetica')
-            .text(`${ref.email} | ${ref.phone}`);
+          doc.fontSize(10).font('Helvetica').text(`${ref.position}, ${ref.company}`);
+          doc.fontSize(10).font('Helvetica').text(`${ref.email} | ${ref.phone}`);
           doc.moveDown();
         });
       }

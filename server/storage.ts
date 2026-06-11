@@ -1,18 +1,37 @@
 import {
-  users, type User, type InsertUser,
-  categories, type Category, type InsertCategory,
-  companies, type Company, type InsertCompany,
-  jobs, type Job, type InsertJob,
-  jobIngestRecords, type JobIngestRecord, type InsertJobIngestRecord,
-  userFavoriteJobs, type UserFavoriteJob,
-  files, type File, type InsertFile,
-  jobApplications, type JobApplication, type InsertJobApplication,
-  userInteractions, type UserInteraction, type InsertUserInteraction,
-  userNotifications, type UserNotification, type InsertUserNotification,
-  type JobWithCompany
-} from "@shared/schema";
-import { db, getSqliteConnection, isSqliteDatabase } from "./db";
-import { eq, like, or, desc, and, count, inArray, asc } from "drizzle-orm";
+  users,
+  type User,
+  type InsertUser,
+  categories,
+  type Category,
+  type InsertCategory,
+  companies,
+  type Company,
+  type InsertCompany,
+  jobs,
+  type Job,
+  type InsertJob,
+  jobIngestRecords,
+  type JobIngestRecord,
+  type InsertJobIngestRecord,
+  userFavoriteJobs,
+  type UserFavoriteJob,
+  files,
+  type File,
+  type InsertFile,
+  jobApplications,
+  type JobApplication,
+  type InsertJobApplication,
+  userInteractions,
+  type UserInteraction,
+  type InsertUserInteraction,
+  userNotifications,
+  type UserNotification,
+  type InsertUserNotification,
+  type JobWithCompany,
+} from '@shared/schema';
+import { db, getSqliteConnection, isSqliteDatabase } from './db';
+import { eq, like, or, desc, and, count, inArray, asc } from 'drizzle-orm';
 
 export interface IStorage {
   // User methods
@@ -49,15 +68,21 @@ export interface IStorage {
   getJobsByCategory(categoryId: number): Promise<Job[]>;
   searchJobs(query: string): Promise<JobWithCompany[]>;
   createJob(job: InsertJob): Promise<Job>;
-  getJobIngestRecordBySource(sourceSite: string, externalId: string): Promise<JobIngestRecord | undefined>;
+  getJobIngestRecordBySource(
+    sourceSite: string,
+    externalId: string
+  ): Promise<JobIngestRecord | undefined>;
   getJobIngestRecordByFingerprint(fingerprint: string): Promise<JobIngestRecord | undefined>;
   createJobIngestRecord(record: InsertJobIngestRecord): Promise<JobIngestRecord>;
-  getUserFavoriteJobs(userId: number, options: {
-    page: number;
-    limit: number;
-    sortBy: string;
-    sortOrder: 'asc' | 'desc';
-  }): Promise<{ jobs: JobWithCompany[]; total: number }>;
+  getUserFavoriteJobs(
+    userId: number,
+    options: {
+      page: number;
+      limit: number;
+      sortBy: string;
+      sortOrder: 'asc' | 'desc';
+    }
+  ): Promise<{ jobs: JobWithCompany[]; total: number }>;
   isJobFavorited(userId: number, jobId: number): Promise<boolean>;
   addJobToFavorites(userId: number, jobId: number): Promise<UserFavoriteJob>;
   removeJobFromFavorites(userId: number, jobId: number): Promise<boolean>;
@@ -71,32 +96,45 @@ export interface IStorage {
   deleteFile(id: number): Promise<boolean>;
 
   // Job Application methods
-  createJobApplication(application: Omit<InsertJobApplication, 'id' | 'appliedAt' | 'updatedAt'>): Promise<JobApplication>;
+  createJobApplication(
+    application: Omit<InsertJobApplication, 'id' | 'appliedAt' | 'updatedAt'>
+  ): Promise<JobApplication>;
   getJobApplication(id: number): Promise<JobApplication | undefined>;
   getJobApplicationByUserAndJob(userId: number, jobId: number): Promise<JobApplication | undefined>;
-  getJobApplicationsByUser(userId: number, options: {
-    page: number;
-    limit: number;
-    status?: string;
-    jobId?: number;
-    sortBy: string;
-    sortOrder: 'asc' | 'desc';
-  }): Promise<{ applications: JobApplication[]; total: number }>;
-  getJobApplicationsByJob(jobId: number, options: {
-    page: number;
-    limit: number;
-    status?: string;
-    sortBy: string;
-    sortOrder: 'asc' | 'desc';
-  }): Promise<{ applications: JobApplication[]; total: number }>;
-  updateJobApplication(id: number, updates: Partial<Omit<JobApplication, 'id' | 'userId' | 'jobId' | 'appliedAt'>>): Promise<JobApplication>;
+  getJobApplicationsByUser(
+    userId: number,
+    options: {
+      page: number;
+      limit: number;
+      status?: string;
+      jobId?: number;
+      sortBy: string;
+      sortOrder: 'asc' | 'desc';
+    }
+  ): Promise<{ applications: JobApplication[]; total: number }>;
+  getJobApplicationsByJob(
+    jobId: number,
+    options: {
+      page: number;
+      limit: number;
+      status?: string;
+      sortBy: string;
+      sortOrder: 'asc' | 'desc';
+    }
+  ): Promise<{ applications: JobApplication[]; total: number }>;
+  updateJobApplication(
+    id: number,
+    updates: Partial<Omit<JobApplication, 'id' | 'userId' | 'jobId' | 'appliedAt'>>
+  ): Promise<JobApplication>;
   deleteJobApplication(id: number): Promise<boolean>;
 
   // User Interaction methods
   createUserInteraction(interaction: Omit<InsertUserInteraction, 'id'>): Promise<UserInteraction>;
-  
+
   // User Notification methods
-  createUserNotification(notification: Omit<InsertUserNotification, 'id' | 'createdAt'>): Promise<UserNotification>;
+  createUserNotification(
+    notification: Omit<InsertUserNotification, 'id' | 'createdAt'>
+  ): Promise<UserNotification>;
 
   // Profile methods
   getUserProfile(userId: number): Promise<any>;
@@ -111,7 +149,9 @@ export interface IStorage {
 import { ApiError, Errors, ErrorType } from './middleware/errorHandler';
 
 function asRecord(value: unknown): Record<string, any> {
-  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, any> : {};
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, any>)
+    : {};
 }
 
 function profileSection(value: unknown, fallback: Record<string, any>) {
@@ -130,12 +170,16 @@ function mergeProfileSection(current: unknown, updates: unknown) {
 
 function extractSkillArray(skills: unknown): string[] {
   if (Array.isArray(skills)) {
-    return skills.filter((skill): skill is string => typeof skill === 'string' && skill.trim().length > 0);
+    return skills.filter(
+      (skill): skill is string => typeof skill === 'string' && skill.trim().length > 0
+    );
   }
 
   const skillsRecord = asRecord(skills);
   if (Array.isArray(skillsRecord.skills)) {
-    return skillsRecord.skills.filter((skill: unknown): skill is string => typeof skill === 'string' && skill.trim().length > 0);
+    return skillsRecord.skills.filter(
+      (skill: unknown): skill is string => typeof skill === 'string' && skill.trim().length > 0
+    );
   }
 
   return [];
@@ -192,7 +236,8 @@ export class DatabaseStorage {
       const [user] = await db.insert(users).values(insertUser).returning();
       return user;
     } catch (error: any) {
-      if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === '23505') { // SQLite and PostgreSQL unique violation
+      if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === '23505') {
+        // SQLite and PostgreSQL unique violation
         throw Errors.conflict(`User with username '${insertUser.username}' already exists.`);
       }
       throw Errors.database(`Failed to create user: ${error.message}`, error);
@@ -201,10 +246,7 @@ export class DatabaseStorage {
 
   async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
     try {
-      const [updatedUser] = await db.update(users)
-        .set(updates)
-        .where(eq(users.id, id))
-        .returning();
+      const [updatedUser] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
       return updatedUser;
     } catch (error: any) {
       if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === '23505') {
@@ -315,9 +357,9 @@ export class DatabaseStorage {
       // Use the included relations to join with companies
       const jobsWithCompanies = await db.query.jobs.findMany({
         with: {
-          company: true
+          company: true,
         },
-        orderBy: [desc(jobs.createdAt)]
+        orderBy: [desc(jobs.createdAt)],
       });
 
       return jobsWithCompanies as JobWithCompany[];
@@ -330,10 +372,10 @@ export class DatabaseStorage {
     try {
       const featuredJobs = await db.query.jobs.findMany({
         with: {
-          company: true
+          company: true,
         },
         where: eq(jobs.isFeatured, true),
-        orderBy: [desc(jobs.createdAt)]
+        orderBy: [desc(jobs.createdAt)],
       });
 
       return featuredJobs as JobWithCompany[];
@@ -377,13 +419,10 @@ export class DatabaseStorage {
 
       const searchResults = await db.query.jobs.findMany({
         with: {
-          company: true
+          company: true,
         },
-        where: or(
-          like(jobs.title, searchQuery),
-          like(jobs.description, searchQuery)
-        ),
-        orderBy: [desc(jobs.createdAt)]
+        where: or(like(jobs.title, searchQuery), like(jobs.description, searchQuery)),
+        orderBy: [desc(jobs.createdAt)],
       });
 
       return searchResults as JobWithCompany[];
@@ -453,7 +492,12 @@ export class DatabaseStorage {
       const [record] = await db
         .select()
         .from(jobIngestRecords)
-        .where(and(eq(jobIngestRecords.sourceSite, sourceSite), eq(jobIngestRecords.externalId, externalId)));
+        .where(
+          and(
+            eq(jobIngestRecords.sourceSite, sourceSite),
+            eq(jobIngestRecords.externalId, externalId)
+          )
+        );
       return record;
     } catch (error: any) {
       throw Errors.database(`Failed to get job ingest record by source: ${error.message}`, error);
@@ -468,7 +512,10 @@ export class DatabaseStorage {
         .where(eq(jobIngestRecords.fingerprint, fingerprint));
       return record;
     } catch (error: any) {
-      throw Errors.database(`Failed to get job ingest record by fingerprint: ${error.message}`, error);
+      throw Errors.database(
+        `Failed to get job ingest record by fingerprint: ${error.message}`,
+        error
+      );
     }
   }
 
@@ -479,19 +526,19 @@ export class DatabaseStorage {
         const createdAt =
           insertRecord.createdAt instanceof Date
             ? insertRecord.createdAt.toISOString()
-            : insertRecord.createdAt ?? new Date().toISOString();
+            : (insertRecord.createdAt ?? new Date().toISOString());
         const updatedAt =
           insertRecord.updatedAt instanceof Date
             ? insertRecord.updatedAt.toISOString()
-            : insertRecord.updatedAt ?? new Date().toISOString();
+            : (insertRecord.updatedAt ?? new Date().toISOString());
         const postedAt =
           insertRecord.postedAt instanceof Date
             ? insertRecord.postedAt.toISOString()
-            : insertRecord.postedAt ?? null;
+            : (insertRecord.postedAt ?? null);
         const metadata =
           insertRecord.metadata && typeof insertRecord.metadata !== 'string'
             ? JSON.stringify(insertRecord.metadata)
-            : insertRecord.metadata ?? null;
+            : (insertRecord.metadata ?? null);
 
         const result = sqlite
           .prepare(
@@ -534,21 +581,22 @@ export class DatabaseStorage {
         .insert(jobIngestRecords)
         .values({
           ...insertRecord,
-          postedAt: insertRecord.postedAt instanceof Date
-            ? insertRecord.postedAt.toISOString()
-            : insertRecord.postedAt ?? null,
+          postedAt:
+            insertRecord.postedAt instanceof Date
+              ? insertRecord.postedAt.toISOString()
+              : (insertRecord.postedAt ?? null),
           metadata:
             insertRecord.metadata && typeof insertRecord.metadata !== 'string'
               ? JSON.stringify(insertRecord.metadata)
-              : insertRecord.metadata ?? null,
+              : (insertRecord.metadata ?? null),
           createdAt:
             insertRecord.createdAt instanceof Date
               ? insertRecord.createdAt.toISOString()
-              : insertRecord.createdAt ?? new Date().toISOString(),
+              : (insertRecord.createdAt ?? new Date().toISOString()),
           updatedAt:
             insertRecord.updatedAt instanceof Date
               ? insertRecord.updatedAt.toISOString()
-              : insertRecord.updatedAt ?? new Date().toISOString(),
+              : (insertRecord.updatedAt ?? new Date().toISOString()),
         })
         .returning();
       return record;
@@ -572,20 +620,22 @@ export class DatabaseStorage {
         .select()
         .from(userFavoriteJobs)
         .where(eq(userFavoriteJobs.userId, userId))
-        .orderBy(sortOrder === 'asc' ? asc(userFavoriteJobs.createdAt) : desc(userFavoriteJobs.createdAt));
+        .orderBy(
+          sortOrder === 'asc' ? asc(userFavoriteJobs.createdAt) : desc(userFavoriteJobs.createdAt)
+        );
 
       if (favoriteRows.length === 0) {
         return { jobs: [], total: 0 };
       }
 
-      const jobIds = favoriteRows.map((row) => row.jobId);
+      const jobIds = favoriteRows.map(row => row.jobId);
       const favoriteJobs = await db.query.jobs.findMany({
         with: { company: true },
         where: inArray(jobs.id, jobIds),
       });
 
       const favoriteCreatedAtByJobId = new Map(
-        favoriteRows.map((row) => [row.jobId, row.createdAt ? new Date(row.createdAt).getTime() : 0]),
+        favoriteRows.map(row => [row.jobId, row.createdAt ? new Date(row.createdAt).getTime() : 0])
       );
 
       const sortedJobs = [...(favoriteJobs as JobWithCompany[])].sort((left, right) => {
@@ -611,7 +661,9 @@ export class DatabaseStorage {
 
         const leftCreatedAt = Number(favoriteCreatedAtByJobId.get(left.id) ?? 0);
         const rightCreatedAt = Number(favoriteCreatedAtByJobId.get(right.id) ?? 0);
-        return sortOrder === 'asc' ? leftCreatedAt - rightCreatedAt : rightCreatedAt - leftCreatedAt;
+        return sortOrder === 'asc'
+          ? leftCreatedAt - rightCreatedAt
+          : rightCreatedAt - leftCreatedAt;
       });
 
       const offset = (page - 1) * limit;
@@ -648,7 +700,11 @@ export class DatabaseStorage {
         .returning();
       return favorite;
     } catch (error: any) {
-      if (error.code === 'SQLITE_CONSTRAINT_PRIMARYKEY' || error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === '23505') {
+      if (
+        error.code === 'SQLITE_CONSTRAINT_PRIMARYKEY' ||
+        error.code === 'SQLITE_CONSTRAINT_UNIQUE' ||
+        error.code === '23505'
+      ) {
         const [favorite] = await db
           .select()
           .from(userFavoriteJobs)
@@ -720,7 +776,15 @@ export class DatabaseStorage {
 
   async createFile(insertFile: InsertFile): Promise<File> {
     try {
-      const [file] = await db.insert(files).values(insertFile).returning();
+      const now = new Date();
+      const [file] = await db
+        .insert(files)
+        .values({
+          ...insertFile,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning();
       return file;
     } catch (error: any) {
       throw Errors.database(`Failed to create file: ${error.message}`, error);
@@ -730,20 +794,25 @@ export class DatabaseStorage {
   async deleteFile(id: number): Promise<boolean> {
     try {
       const result = await db.delete(files).where(eq(files.id, id));
-      return result.count > 0;
+      return (result?.count ?? result?.changes ?? 0) > 0;
     } catch (error: any) {
       throw Errors.database(`Failed to delete file: ${error.message}`, error);
     }
   }
 
   // Job Application methods
-  async createJobApplication(application: Omit<InsertJobApplication, 'id' | 'appliedAt' | 'updatedAt'>): Promise<JobApplication> {
+  async createJobApplication(
+    application: Omit<InsertJobApplication, 'id' | 'appliedAt' | 'updatedAt'>
+  ): Promise<JobApplication> {
     try {
-      const [jobApplication] = await db.insert(jobApplications).values({
-        ...application,
-        appliedAt: new Date(),
-        updatedAt: new Date(),
-      }).returning();
+      const [jobApplication] = await db
+        .insert(jobApplications)
+        .values({
+          ...application,
+          appliedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
       return jobApplication;
     } catch (error: any) {
       throw Errors.database(`Failed to create job application: ${error.message}`, error);
@@ -752,31 +821,45 @@ export class DatabaseStorage {
 
   async getJobApplication(id: number): Promise<JobApplication | undefined> {
     try {
-      const [application] = await db.select().from(jobApplications).where(eq(jobApplications.id, id));
+      const [application] = await db
+        .select()
+        .from(jobApplications)
+        .where(eq(jobApplications.id, id));
       return application;
     } catch (error: any) {
       throw Errors.database(`Failed to get job application by ID: ${error.message}`, error);
     }
   }
 
-  async getJobApplicationByUserAndJob(userId: number, jobId: number): Promise<JobApplication | undefined> {
+  async getJobApplicationByUserAndJob(
+    userId: number,
+    jobId: number
+  ): Promise<JobApplication | undefined> {
     try {
-      const [application] = await db.select().from(jobApplications)
+      const [application] = await db
+        .select()
+        .from(jobApplications)
         .where(and(eq(jobApplications.userId, userId), eq(jobApplications.jobId, jobId)));
       return application;
     } catch (error: any) {
-      throw Errors.database(`Failed to get job application by user and job: ${error.message}`, error);
+      throw Errors.database(
+        `Failed to get job application by user and job: ${error.message}`,
+        error
+      );
     }
   }
 
-  async getJobApplicationsByUser(userId: number, options: {
-    page: number;
-    limit: number;
-    status?: string;
-    jobId?: number;
-    sortBy: string;
-    sortOrder: 'asc' | 'desc';
-  }): Promise<{ applications: JobApplication[]; total: number }> {
+  async getJobApplicationsByUser(
+    userId: number,
+    options: {
+      page: number;
+      limit: number;
+      status?: string;
+      jobId?: number;
+      sortBy: string;
+      sortOrder: 'asc' | 'desc';
+    }
+  ): Promise<{ applications: JobApplication[]; total: number }> {
     try {
       const { page, limit, status, jobId, sortBy, sortOrder } = options;
       const offset = (page - 1) * limit;
@@ -793,16 +876,19 @@ export class DatabaseStorage {
       const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];
 
       // Get total count
-      const [totalResult] = await db.select({ count: count() })
+      const [totalResult] = await db
+        .select({ count: count() })
         .from(jobApplications)
         .where(whereClause);
       const total = totalResult.count;
 
       // Get applications with sorting
-      const sortColumn = (jobApplications as Record<string, any>)[sortBy] ?? jobApplications.appliedAt;
+      const sortColumn =
+        (jobApplications as Record<string, any>)[sortBy] ?? jobApplications.appliedAt;
       const orderByClause = sortOrder === 'desc' ? desc(sortColumn) : sortColumn;
 
-      const applications = await db.select()
+      const applications = await db
+        .select()
         .from(jobApplications)
         .where(whereClause)
         .orderBy(orderByClause)
@@ -815,13 +901,16 @@ export class DatabaseStorage {
     }
   }
 
-  async getJobApplicationsByJob(jobId: number, options: {
-    page: number;
-    limit: number;
-    status?: string;
-    sortBy: string;
-    sortOrder: 'asc' | 'desc';
-  }): Promise<{ applications: JobApplication[]; total: number }> {
+  async getJobApplicationsByJob(
+    jobId: number,
+    options: {
+      page: number;
+      limit: number;
+      status?: string;
+      sortBy: string;
+      sortOrder: 'asc' | 'desc';
+    }
+  ): Promise<{ applications: JobApplication[]; total: number }> {
     try {
       const { page, limit, status, sortBy, sortOrder } = options;
       const offset = (page - 1) * limit;
@@ -835,16 +924,19 @@ export class DatabaseStorage {
       const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];
 
       // Get total count
-      const [totalResult] = await db.select({ count: count() })
+      const [totalResult] = await db
+        .select({ count: count() })
         .from(jobApplications)
         .where(whereClause);
       const total = totalResult.count;
 
       // Get applications with sorting
-      const sortColumn = (jobApplications as Record<string, any>)[sortBy] ?? jobApplications.appliedAt;
+      const sortColumn =
+        (jobApplications as Record<string, any>)[sortBy] ?? jobApplications.appliedAt;
       const orderByClause = sortOrder === 'desc' ? desc(sortColumn) : sortColumn;
 
-      const applications = await db.select()
+      const applications = await db
+        .select()
         .from(jobApplications)
         .where(whereClause)
         .orderBy(orderByClause)
@@ -857,9 +949,13 @@ export class DatabaseStorage {
     }
   }
 
-  async updateJobApplication(id: number, updates: Partial<Omit<JobApplication, 'id' | 'userId' | 'jobId' | 'appliedAt'>>): Promise<JobApplication> {
+  async updateJobApplication(
+    id: number,
+    updates: Partial<Omit<JobApplication, 'id' | 'userId' | 'jobId' | 'appliedAt'>>
+  ): Promise<JobApplication> {
     try {
-      const [updatedApplication] = await db.update(jobApplications)
+      const [updatedApplication] = await db
+        .update(jobApplications)
         .set({ ...updates, updatedAt: new Date() })
         .where(eq(jobApplications.id, id))
         .returning();
@@ -879,7 +975,9 @@ export class DatabaseStorage {
   }
 
   // User Interaction methods
-  async createUserInteraction(interaction: Omit<InsertUserInteraction, 'id'>): Promise<UserInteraction> {
+  async createUserInteraction(
+    interaction: Omit<InsertUserInteraction, 'id'>
+  ): Promise<UserInteraction> {
     try {
       const [userInteraction] = await db.insert(userInteractions).values(interaction).returning();
       return userInteraction;
@@ -889,12 +987,17 @@ export class DatabaseStorage {
   }
 
   // User Notification methods
-  async createUserNotification(notification: Omit<InsertUserNotification, 'id' | 'createdAt'>): Promise<UserNotification> {
+  async createUserNotification(
+    notification: Omit<InsertUserNotification, 'id' | 'createdAt'>
+  ): Promise<UserNotification> {
     try {
-      const [userNotification] = await db.insert(userNotifications).values({
-        ...notification,
-        createdAt: new Date(),
-      }).returning();
+      const [userNotification] = await db
+        .insert(userNotifications)
+        .values({
+          ...notification,
+          createdAt: new Date(),
+        })
+        .returning();
       return userNotification;
     } catch (error: any) {
       throw Errors.database(`Failed to create user notification: ${error.message}`, error);
@@ -916,28 +1019,28 @@ export class DatabaseStorage {
       const cvFile = userFiles.find(f => f.fileType === 'cv');
 
       const education = profileSection(user.education, {
-        highestEducation: "",
-        schoolName: "",
-        yearCompleted: "",
-        achievements: "",
-        additionalCourses: "",
+        highestEducation: '',
+        schoolName: '',
+        yearCompleted: '',
+        achievements: '',
+        additionalCourses: '',
       });
       const experience = profileSection(user.experience, {
         hasExperience: false,
         currentlyEmployed: false,
-        jobTitle: "",
-        employer: "",
-        startDate: "",
-        endDate: "",
-        jobDescription: "",
-        previousExperience: "",
-        volunteerWork: "",
-        references: "",
+        jobTitle: '',
+        employer: '',
+        startDate: '',
+        endDate: '',
+        jobDescription: '',
+        previousExperience: '',
+        volunteerWork: '',
+        references: '',
       });
       const skills = profileSection(user.skills, {
         skills: extractSkillArray(user.skills),
-        customSkills: "",
-        languages: ["English"],
+        customSkills: '',
+        languages: ['English'],
         hasDriversLicense: false,
         hasTransport: false,
         cvUpload: cvFile?.fileUrl,
@@ -955,9 +1058,9 @@ export class DatabaseStorage {
         email: user.email,
         personal: {
           fullName: user.name || user.username,
-          phoneNumber: user.phoneNumber || "",
-          location: user.location || "",
-          bio: user.bio || "",
+          phoneNumber: user.phoneNumber || '',
+          location: user.location || '',
+          bio: user.bio || '',
           profilePicture: profileImage?.fileUrl,
           professionalImage: professionalImage?.fileUrl,
         },
@@ -969,7 +1072,8 @@ export class DatabaseStorage {
         },
         preferences,
         // Additional profile metadata
-        memberSince: user.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+        memberSince:
+          user.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
         engagementScore: user.engagementScore || 0,
         applications: {
           current: 0,
@@ -1050,9 +1154,33 @@ export class DatabaseStorage {
       }
 
       // Add categories for entry-level jobs
-      const categoryIcons = ['shopping-cart', 'user', 'shield', 'gas-pump', 'baby', 'broom', 'seedling'];
-      const categoryNames = ['Retail', 'General Worker', 'Security', 'Petrol Attendant', 'Childcare', 'Cleaning', 'Landscaping'];
-      const categorySlugs = ['retail', 'general-worker', 'security', 'petrol-attendant', 'childcare', 'cleaning', 'landscaping'];
+      const categoryIcons = [
+        'shopping-cart',
+        'user',
+        'shield',
+        'gas-pump',
+        'baby',
+        'broom',
+        'seedling',
+      ];
+      const categoryNames = [
+        'Retail',
+        'General Worker',
+        'Security',
+        'Petrol Attendant',
+        'Childcare',
+        'Cleaning',
+        'Landscaping',
+      ];
+      const categorySlugs = [
+        'retail',
+        'general-worker',
+        'security',
+        'petrol-attendant',
+        'childcare',
+        'cleaning',
+        'landscaping',
+      ];
       const categoryJobCounts = [350, 420, 280, 190, 230, 310, 175];
 
       // Create categories
@@ -1068,9 +1196,33 @@ export class DatabaseStorage {
       }
 
       // Add companies hiring for entry-level jobs
-      const companyNames = ['Shoprite', 'Pick n Pay', 'Securitas', 'Engen', 'Sasol', 'Checkers', 'Spar'];
-      const companyLocations = ['Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Soweto', 'Port Elizabeth', 'Bloemfontein'];
-      const companySlugs = ['shoprite', 'pick-n-pay', 'securitas', 'engen', 'sasol', 'checkers', 'spar'];
+      const companyNames = [
+        'Shoprite',
+        'Pick n Pay',
+        'Securitas',
+        'Engen',
+        'Sasol',
+        'Checkers',
+        'Spar',
+      ];
+      const companyLocations = [
+        'Johannesburg',
+        'Cape Town',
+        'Durban',
+        'Pretoria',
+        'Soweto',
+        'Port Elizabeth',
+        'Bloemfontein',
+      ];
+      const companySlugs = [
+        'shoprite',
+        'pick-n-pay',
+        'securitas',
+        'engen',
+        'sasol',
+        'checkers',
+        'spar',
+      ];
       const companyOpenPositions = [45, 38, 52, 29, 31, 42, 33];
       const companyLogos = Array(7).fill('default-logo.svg');
 
@@ -1095,7 +1247,7 @@ export class DatabaseStorage {
         'Petrol Attendant',
         'Domestic Worker',
         'Cleaner',
-        'Gardener/Landscaper'
+        'Gardener/Landscaper',
       ];
 
       const jobDescriptions = [
@@ -1105,11 +1257,27 @@ export class DatabaseStorage {
         'Petrol attendants needed for busy service station. Responsibilities include fueling vehicles, checking oil/water levels, and basic customer service.',
         'Seeking reliable domestic workers for housekeeping duties including cleaning, laundry, and basic cooking.',
         'Commercial cleaners required for office buildings. Morning and evening shifts available.',
-        'Experienced gardeners needed for residential properties. Duties include lawn maintenance, plant care, and general outdoor upkeep.'
+        'Experienced gardeners needed for residential properties. Duties include lawn maintenance, plant care, and general outdoor upkeep.',
       ];
 
-      const jobTypes = ['Full-time', 'Full-time', 'Shift Work', 'Shift Work', 'Full-time', 'Part-time', 'Full-time'];
-      const workModes = ['On-site', 'On-site', 'On-site', 'On-site', 'On-site', 'On-site', 'On-site'];
+      const jobTypes = [
+        'Full-time',
+        'Full-time',
+        'Shift Work',
+        'Shift Work',
+        'Full-time',
+        'Part-time',
+        'Full-time',
+      ];
+      const workModes = [
+        'On-site',
+        'On-site',
+        'On-site',
+        'On-site',
+        'On-site',
+        'On-site',
+        'On-site',
+      ];
       const salaries = [
         'R5,000 - R7,000/month',
         'R5,500 - R8,000/month',
@@ -1117,7 +1285,7 @@ export class DatabaseStorage {
         'R5,500 - R7,500/month',
         'R4,500 - R7,000/month',
         'R4,000 - R6,000/month',
-        'R5,000 - R8,000/month'
+        'R5,000 - R8,000/month',
       ];
 
       // Create jobs

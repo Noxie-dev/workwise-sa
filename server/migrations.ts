@@ -15,11 +15,11 @@ export async function runMigrations(): Promise<void> {
     // Ensure migrations folder exists
     if (!fs.existsSync(migrationsFolder)) {
       logger.warn(`Migrations folder not found at ${migrationsFolder}`);
-      
+
       // Create migrations folder if it doesn't exist
       fs.mkdirSync(migrationsFolder, { recursive: true });
       logger.info(`Created migrations folder at ${migrationsFolder}`);
-      
+
       // No migrations to run yet
       return;
     }
@@ -31,7 +31,9 @@ export async function runMigrations(): Promise<void> {
       return;
     }
 
-    logger.info('Running database migrations', { connectionType: connectionString.startsWith('sqlite') ? 'SQLite' : 'PostgreSQL' });
+    logger.info('Running database migrations', {
+      connectionType: connectionString.startsWith('sqlite') ? 'SQLite' : 'PostgreSQL',
+    });
 
     const result = await runSqlMigrations({ connectionString, migrationsFolder, logger });
     logger.info('Database migrations completed successfully', {

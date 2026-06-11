@@ -54,8 +54,8 @@ interface JobsSectionProps {
  * @param className - Additional CSS classes
  */
 const JobsSection: React.FC<JobsSectionProps> = ({
-  title = "Featured Opportunities",
-  subtitle = "Discover top employment opportunities from leading companies in South Africa",
+  title = 'Featured Opportunities',
+  subtitle = 'Discover top employment opportunities from leading companies in South Africa',
   maxDisplay = 6,
   filter,
   className,
@@ -72,7 +72,11 @@ const JobsSection: React.FC<JobsSectionProps> = ({
   }, [filter]);
 
   // Fetch jobs data with React Query
-  const { data: jobsResponse, isLoading, error } = useQuery<ApiResponse<ApiJob[]>>({
+  const {
+    data: jobsResponse,
+    isLoading,
+    error,
+  } = useQuery<ApiResponse<ApiJob[]>>({
     queryKey,
     queryFn: async () => {
       try {
@@ -99,7 +103,7 @@ const JobsSection: React.FC<JobsSectionProps> = ({
         // Return error response structure
         return {
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         };
       }
     },
@@ -120,7 +124,7 @@ const JobsSection: React.FC<JobsSectionProps> = ({
           logo: apiJob.companyLogo,
           location: apiJob.location,
           slug: apiJob.company.toLowerCase().replace(/\\s+/g, '-'),
-          openPositions: 1
+          openPositions: 1,
         };
 
         // Map to JobWithCompany format
@@ -137,48 +141,59 @@ const JobsSection: React.FC<JobsSectionProps> = ({
           isFeatured: apiJob.isFeatured,
           createdAt: new Date(apiJob.postedDate),
           requirements: apiJob.requirements,
-          company: company
+          company: company,
         } as JobWithCompany;
       })
       .slice(0, maxDisplay); // Only take the number we want to display
   }, [jobsResponse, maxDisplay]);
 
   // Handle favorite toggle with callback
-  const handleFavoriteToggle = useCallback((jobId: number, isFavorite: boolean) => {
-    toggleFavorite(jobId);
-  }, [toggleFavorite]);
+  const handleFavoriteToggle = useCallback(
+    (jobId: number, isFavorite: boolean) => {
+      toggleFavorite(jobId);
+    },
+    [toggleFavorite]
+  );
 
   // Render skeleton loaders for jobs
-  const renderJobSkeletons = useCallback(() => (
-    Array(maxDisplay).fill(0).map((_, i) => (
-      <div key={i} className="bg-white rounded-lg shadow-card overflow-hidden" data-testid="job-skeleton">
-        <div className="p-4 border-b border-border">
-          <div className="flex justify-between items-start">
-            <div className="flex items-center">
-              <Skeleton className="w-12 h-12 rounded-md mr-3" />
-              <div>
-                <Skeleton className="h-5 w-40 mb-2" />
-                <Skeleton className="h-4 w-32" />
+  const renderJobSkeletons = useCallback(
+    () =>
+      Array(maxDisplay)
+        .fill(0)
+        .map((_, i) => (
+          <div
+            key={i}
+            className="bg-white rounded-lg shadow-card overflow-hidden"
+            data-testid="job-skeleton"
+          >
+            <div className="p-4 border-b border-border">
+              <div className="flex justify-between items-start">
+                <div className="flex items-center">
+                  <Skeleton className="w-12 h-12 rounded-md mr-3" />
+                  <div>
+                    <Skeleton className="h-5 w-40 mb-2" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                </div>
+                <Skeleton className="h-8 w-8 rounded-full" />
               </div>
             </div>
-            <Skeleton className="h-8 w-8 rounded-full" />
-          </div>
-        </div>
-        <div className="p-4">
-          <div className="mb-3">
-            <div className="flex gap-2">
-              <Skeleton className="h-5 w-16 rounded-full" />
-              <Skeleton className="h-5 w-16 rounded-full" />
+            <div className="p-4">
+              <div className="mb-3">
+                <div className="flex gap-2">
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-4 w-20" />
+              </div>
             </div>
           </div>
-          <div className="flex justify-between items-center">
-            <Skeleton className="h-5 w-24" />
-            <Skeleton className="h-4 w-20" />
-          </div>
-        </div>
-      </div>
-    ))
-  ), [maxDisplay]);
+        )),
+    [maxDisplay]
+  );
 
   // Render error state
   if (error || jobsResponse?.success === false) {
@@ -207,21 +222,21 @@ const JobsSection: React.FC<JobsSectionProps> = ({
 
         <ErrorBoundary>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="jobs-grid">
-            {isLoading ? renderJobSkeletons() : (
-              jobs.length > 0 ? (
-                jobs.map((job) => (
-                  <JobCard
-                    key={job.id}
-                    job={job}
-                    initialFavoriteState={favorites.includes(job.id)}
-                    onFavoriteToggle={handleFavoriteToggle}
-                  />
-                ))
-              ) : (
-                <div className="col-span-full text-center py-10">
-                  <p className="text-muted">No jobs found matching your criteria.</p>
-                </div>
-              )
+            {isLoading ? (
+              renderJobSkeletons()
+            ) : jobs.length > 0 ? (
+              jobs.map(job => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  initialFavoriteState={favorites.includes(job.id)}
+                  onFavoriteToggle={handleFavoriteToggle}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-10">
+                <p className="text-muted">No jobs found matching your criteria.</p>
+              </div>
             )}
           </div>
         </ErrorBoundary>

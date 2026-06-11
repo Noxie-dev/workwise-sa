@@ -21,7 +21,7 @@ export const employerDashboardService = {
     status?: string
   ): Promise<EmployerDashboard> {
     const response = await apiClient.get<EmployerDashboard>('/employer/dashboard', {
-      params: { userId, dateRange, status }
+      params: { userId, dateRange, status },
     });
     return response.data;
   },
@@ -29,12 +29,9 @@ export const employerDashboardService = {
   /**
    * Get list of jobs for an employer
    */
-  async fetchEmployerJobs(
-    userId: string,
-    status: string
-  ): Promise<EmployerJobSummary[]> {
+  async fetchEmployerJobs(userId: string, status: string): Promise<EmployerJobSummary[]> {
     const response = await apiClient.get<EmployerJobSummary[]>('/employer/jobs', {
-      params: { userId, status }
+      params: { userId, status },
     });
     return response.data;
   },
@@ -59,8 +56,15 @@ export const employerDashboardService = {
     return response.data;
   },
 
-  async updateEmployerJobStatus(jobId: string, status: EmployerJobStatus): Promise<{ success: boolean; jobId: string; status: EmployerJobStatus }> {
-    const response = await apiClient.patch<{ success: boolean; jobId: string; status: EmployerJobStatus }>(`/employer/jobs/${jobId}/status`, { status });
+  async updateEmployerJobStatus(
+    jobId: string,
+    status: EmployerJobStatus
+  ): Promise<{ success: boolean; jobId: string; status: EmployerJobStatus }> {
+    const response = await apiClient.patch<{
+      success: boolean;
+      jobId: string;
+      status: EmployerJobStatus;
+    }>(`/employer/jobs/${jobId}/status`, { status });
     return response.data;
   },
 
@@ -70,9 +74,11 @@ export const employerDashboardService = {
   exportDashboardData(data: any, filename: string = 'employer-dashboard.csv'): void {
     // Convert data to CSV for download
     let csvContent = 'Job Title,Views,Applications\n';
-    data.charts.jobPerformance.forEach((item: { jobTitle: string, views: number, applications: number }) => {
-      csvContent += `${item.jobTitle},${item.views},${item.applications}\n`;
-    });
+    data.charts.jobPerformance.forEach(
+      (item: { jobTitle: string; views: number; applications: number }) => {
+        csvContent += `${item.jobTitle},${item.views},${item.applications}\n`;
+      }
+    );
 
     // Create download link
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -84,5 +90,5 @@ export const employerDashboardService = {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }
+  },
 };

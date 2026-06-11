@@ -39,12 +39,12 @@ describe('useFormAutosave', () => {
     const formData = { title: 'Test Job', description: 'Test Description' };
     const formId = 'test-form';
     const key = `job-form-draft-${formId}`;
-    
+
     // Simulate the hook's behavior
     const saveTimeout = setTimeout(() => {
       localStorage.setItem(key, JSON.stringify(formData));
     }, 1000);
-    
+
     // Verify that localStorage.setItem hasn't been called yet
     expect(localStorageMock.setItem).not.toHaveBeenCalled();
 
@@ -52,11 +52,8 @@ describe('useFormAutosave', () => {
     vi.advanceTimersByTime(1000);
 
     // Now localStorage.setItem should have been called
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      key,
-      JSON.stringify(formData)
-    );
-    
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(key, JSON.stringify(formData));
+
     // Clean up
     clearTimeout(saveTimeout);
   });
@@ -88,7 +85,7 @@ describe('useFormAutosave', () => {
 
     // Verify localStorage.getItem was called with the correct key
     expect(localStorageMock.getItem).toHaveBeenCalledWith(key);
-    
+
     // Verify the returned data matches what we set up
     expect(loadedData).toEqual(savedData);
   });
@@ -122,7 +119,7 @@ describe('useFormAutosave', () => {
 
     // Verify console.error was called
     expect(consoleSpy).toHaveBeenCalled();
-    
+
     // Verify null is returned on error
     expect(loadedData).toBeNull();
 

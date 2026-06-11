@@ -37,16 +37,17 @@ export const fileService = {
       const timestamp = Date.now();
       const uniqueFilename = `${timestamp}-${file.originalname}`;
       const fullPath = path.join(filePath, uniqueFilename);
-      
+
       // Move the file from temp upload location to final destination
       fs.copyFileSync(file.path, fullPath);
       fs.unlinkSync(file.path); // Remove the temp file
-      
+
       // Generate a URL for the file
-      const baseUrl = (await secretManager.getSecret('FILE_SERVE_URL')) || 'http://localhost:3001/uploads';
+      const baseUrl =
+        (await secretManager.getSecret('FILE_SERVE_URL')) || 'http://localhost:3001/uploads';
       const relativePath = path.relative(uploadDir, fullPath).replace(/\\/g, '/');
       const fileUrl = `${baseUrl}/${relativePath}`;
-      
+
       // Store file metadata in the database
       const fileData: InsertFile = {
         userId: userId || undefined,
@@ -58,10 +59,10 @@ export const fileService = {
         fileType,
         metadata: {
           encoding: file.encoding,
-          fieldname: file.fieldname
-        }
+          fieldname: file.fieldname,
+        },
       };
-      
+
       const savedFile = await storage.createFile(fileData);
       return savedFile;
     } catch (error) {
@@ -82,12 +83,12 @@ export const fileService = {
       if (!file) {
         throw new Error(`File with ID ${fileId} not found`);
       }
-      
+
       // Delete the file from filesystem
       if (fs.existsSync(file.storagePath)) {
         fs.unlinkSync(file.storagePath);
       }
-      
+
       // Delete metadata from database
       return await storage.deleteFile(fileId);
     } catch (error) {
@@ -112,5 +113,5 @@ export const fileService = {
    */
   async getFilesByType(fileType: string) {
     return await storage.getFilesByType(fileType);
-  }
+  },
 };

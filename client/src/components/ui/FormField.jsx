@@ -6,21 +6,15 @@ const FormField = ({ id, label, error, required, hint, children, className = '' 
       {label && (
         <label
           htmlFor={id}
-          className={`block text-sm font-medium ${
-            error ? 'text-red-600' : 'text-gray-700'
-          }`}
+          className={`block text-sm font-medium ${error ? 'text-red-600' : 'text-gray-700'}`}
         >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
       {children}
-      {hint && !error && (
-        <p className="text-xs text-gray-500">{hint}</p>
-      )}
-      {error && (
-        <p className="text-xs text-red-600">{error}</p>
-      )}
+      {hint && !error && <p className="text-xs text-gray-500">{hint}</p>}
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   );
 };

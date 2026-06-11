@@ -24,7 +24,9 @@ interface PricingTierProps {
 }
 
 const PricingTier: React.FC<PricingTierProps> = ({ tier, isPopular = false }) => (
-  <Card className={`relative flex flex-col justify-between ${isPopular ? 'border-primary shadow-lg scale-105' : 'border-border'}`}>
+  <Card
+    className={`relative flex flex-col justify-between ${isPopular ? 'border-primary shadow-lg scale-105' : 'border-border'}`}
+  >
     {isPopular && (
       <div className="absolute -top-4 left-1/2 -translate-x-1/2">
         <span className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
@@ -59,7 +61,7 @@ const PricingTier: React.FC<PricingTierProps> = ({ tier, isPopular = false }) =>
       </CardContent>
     </div>
     <CardFooter>
-      <Button 
+      <Button
         className={`w-full ${isPopular ? 'bg-primary hover:bg-primary/90' : 'bg-secondary hover:bg-secondary/90'}`}
         variant={isPopular ? 'default' : 'secondary'}
       >
@@ -72,54 +74,54 @@ const PricingTier: React.FC<PricingTierProps> = ({ tier, isPopular = false }) =>
 const Pricing = () => {
   const pricingTiers = [
     {
-      name: "Starter",
-      description: "Perfect for small businesses starting their recruitment journey",
-      price: "499",
-      period: "month",
-      buttonText: "Start Free Trial",
+      name: 'Starter',
+      description: 'Perfect for small businesses starting their recruitment journey',
+      price: '499',
+      period: 'month',
+      buttonText: 'Start Free Trial',
       features: [
-        { text: "Up to 5 active job postings", included: true },
-        { text: "Basic candidate filtering", included: true },
-        { text: "Email support", included: true },
-        { text: "Basic analytics", included: true },
-        { text: "CV database access", included: false },
-        { text: "Priority support", included: false },
-        { text: "Custom branding", included: false },
-        { text: "API access", included: false },
+        { text: 'Up to 5 active job postings', included: true },
+        { text: 'Basic candidate filtering', included: true },
+        { text: 'Email support', included: true },
+        { text: 'Basic analytics', included: true },
+        { text: 'CV database access', included: false },
+        { text: 'Priority support', included: false },
+        { text: 'Custom branding', included: false },
+        { text: 'API access', included: false },
       ],
     },
     {
-      name: "Professional",
-      description: "Ideal for growing companies with regular hiring needs",
-      price: "999",
-      period: "month",
-      buttonText: "Get Started",
+      name: 'Professional',
+      description: 'Ideal for growing companies with regular hiring needs',
+      price: '999',
+      period: 'month',
+      buttonText: 'Get Started',
       features: [
-        { text: "Up to 15 active job postings", included: true },
-        { text: "Advanced candidate filtering", included: true },
-        { text: "Priority email support", included: true },
-        { text: "Advanced analytics", included: true },
-        { text: "CV database access", included: true },
-        { text: "Candidate assessments", included: true },
-        { text: "Custom branding", included: false },
-        { text: "API access", included: false },
+        { text: 'Up to 15 active job postings', included: true },
+        { text: 'Advanced candidate filtering', included: true },
+        { text: 'Priority email support', included: true },
+        { text: 'Advanced analytics', included: true },
+        { text: 'CV database access', included: true },
+        { text: 'Candidate assessments', included: true },
+        { text: 'Custom branding', included: false },
+        { text: 'API access', included: false },
       ],
     },
     {
-      name: "Enterprise",
-      description: "Custom solutions for large organizations",
-      price: "2499",
-      period: "month",
-      buttonText: "Contact Sales",
+      name: 'Enterprise',
+      description: 'Custom solutions for large organizations',
+      price: '2499',
+      period: 'month',
+      buttonText: 'Contact Sales',
       features: [
-        { text: "Unlimited job postings", included: true },
-        { text: "Advanced candidate filtering", included: true },
-        { text: "24/7 priority support", included: true },
-        { text: "Custom analytics", included: true },
-        { text: "Unlimited CV database access", included: true },
-        { text: "Custom assessments", included: true },
-        { text: "Custom branding", included: true },
-        { text: "API access", included: true },
+        { text: 'Unlimited job postings', included: true },
+        { text: 'Advanced candidate filtering', included: true },
+        { text: '24/7 priority support', included: true },
+        { text: 'Custom analytics', included: true },
+        { text: 'Unlimited CV database access', included: true },
+        { text: 'Custom assessments', included: true },
+        { text: 'Custom branding', included: true },
+        { text: 'API access', included: true },
       ],
     },
   ];
@@ -138,7 +140,8 @@ const Pricing = () => {
               Simple, Transparent Pricing
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Choose the perfect plan for your recruitment needs. All plans include a 14-day free trial.
+              Choose the perfect plan for your recruitment needs. All plans include a 14-day free
+              trial.
             </p>
           </div>
         </header>
@@ -146,11 +149,7 @@ const Pricing = () => {
         <main className="container mx-auto px-4 py-16">
           <div className="grid md:grid-cols-3 gap-8 mb-16">
             {pricingTiers.map((tier, index) => (
-              <PricingTier 
-                key={index} 
-                tier={tier} 
-                isPopular={index === 1}
-              />
+              <PricingTier key={index} tier={tier} isPopular={index === 1} />
             ))}
           </div>
 
@@ -173,7 +172,8 @@ const Pricing = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    All features of your chosen plan are available during the 14-day trial period, with no credit card required.
+                    All features of your chosen plan are available during the 14-day trial period,
+                    with no credit card required.
                   </p>
                 </CardContent>
               </Card>
@@ -183,7 +183,8 @@ const Pricing = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle.
+                    Yes, you can upgrade or downgrade your plan at any time. Changes will be
+                    reflected in your next billing cycle.
                   </p>
                 </CardContent>
               </Card>
@@ -193,7 +194,8 @@ const Pricing = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Yes, we offer discounts for annual subscriptions and special rates for NGOs and educational institutions.
+                    Yes, we offer discounts for annual subscriptions and special rates for NGOs and
+                    educational institutions.
                   </p>
                 </CardContent>
               </Card>
@@ -203,7 +205,8 @@ const Pricing = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    We accept all major credit cards, EFT payments, and can arrange other payment methods for Enterprise clients.
+                    We accept all major credit cards, EFT payments, and can arrange other payment
+                    methods for Enterprise clients.
                   </p>
                 </CardContent>
               </Card>

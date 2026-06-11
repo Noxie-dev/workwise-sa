@@ -39,10 +39,10 @@ const JobSearch = ({ initialQuery = '', className = '' }: JobSearchProps) => {
                 className="pl-10 w-full"
                 data-testid="job-search-input"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button 
+            <Button
               type="submit"
               className="bg-primary text-white hover:bg-blue-600"
               data-testid="job-search-submit"

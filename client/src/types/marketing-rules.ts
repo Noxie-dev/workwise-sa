@@ -34,14 +34,14 @@ export interface MarketingRuleAnalyticsData {
 
 // Example Job Listing structure for Preview
 export interface JobListingExample {
-    title: string;
-    company: string;
-    location: string;
-    jobType: string;
-    description: string;
-    contactInfo?: {
-        email?: string;
-        phone?: string;
-        applyInstructions?: string;
-    };
+  title: string;
+  company: string;
+  location: string;
+  jobType: string;
+  description: string;
+  contactInfo?: {
+    email?: string;
+    phone?: string;
+    applyInstructions?: string;
+  };
 }

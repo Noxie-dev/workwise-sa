@@ -10,28 +10,86 @@ import path from 'path';
 function createTestImage(filename) {
   // Create a minimal PNG file (1x1 pixel)
   const pngData = Buffer.from([
-    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
-    0x00, 0x00, 0x00, 0x0D, // IHDR chunk length
-    0x49, 0x48, 0x44, 0x52, // IHDR
-    0x00, 0x00, 0x00, 0x01, // width: 1
-    0x00, 0x00, 0x00, 0x01, // height: 1
-    0x08, 0x02, 0x00, 0x00, 0x00, // bit depth, color type, compression, filter, interlace
-    0x90, 0x77, 0x53, 0xDE, // CRC
-    0x00, 0x00, 0x00, 0x0C, // IDAT chunk length
-    0x49, 0x44, 0x41, 0x54, // IDAT
-    0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // data
-    0xE2, 0x21, 0xBC, 0x33, // CRC
-    0x00, 0x00, 0x00, 0x00, // IEND chunk length
-    0x49, 0x45, 0x4E, 0x44, // IEND
-    0xAE, 0x42, 0x60, 0x82  // CRC
+    0x89,
+    0x50,
+    0x4e,
+    0x47,
+    0x0d,
+    0x0a,
+    0x1a,
+    0x0a, // PNG signature
+    0x00,
+    0x00,
+    0x00,
+    0x0d, // IHDR chunk length
+    0x49,
+    0x48,
+    0x44,
+    0x52, // IHDR
+    0x00,
+    0x00,
+    0x00,
+    0x01, // width: 1
+    0x00,
+    0x00,
+    0x00,
+    0x01, // height: 1
+    0x08,
+    0x02,
+    0x00,
+    0x00,
+    0x00, // bit depth, color type, compression, filter, interlace
+    0x90,
+    0x77,
+    0x53,
+    0xde, // CRC
+    0x00,
+    0x00,
+    0x00,
+    0x0c, // IDAT chunk length
+    0x49,
+    0x44,
+    0x41,
+    0x54, // IDAT
+    0x08,
+    0x99,
+    0x01,
+    0x01,
+    0x00,
+    0x00,
+    0x00,
+    0xff,
+    0xff,
+    0x00,
+    0x00,
+    0x00,
+    0x02,
+    0x00,
+    0x01, // data
+    0xe2,
+    0x21,
+    0xbc,
+    0x33, // CRC
+    0x00,
+    0x00,
+    0x00,
+    0x00, // IEND chunk length
+    0x49,
+    0x45,
+    0x4e,
+    0x44, // IEND
+    0xae,
+    0x42,
+    0x60,
+    0x82, // CRC
   ]);
-  
+
   fs.writeFileSync(filename, pngData);
   return {
     originalname: filename,
     mimetype: 'image/png',
     size: pngData.length,
-    buffer: pngData
+    buffer: pngData,
   };
 }
 
@@ -57,38 +115,32 @@ trailer<</Size 5/Root 1 0 R>>startxref 300 %%EOF`;
     originalname: filename,
     mimetype: 'application/pdf',
     size: pdfBuffer.length,
-    buffer: pdfBuffer
+    buffer: pdfBuffer,
   };
 }
 
 // Mock upload validation functions (based on the server code)
 function validateImageFile(file) {
-  const allowedTypes = [
-    'image/jpeg', 
-    'image/jpg', 
-    'image/png', 
-    'image/gif', 
-    'image/webp'
-  ];
-  
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+
   if (!file) {
     throw new Error('No file uploaded');
   }
-  
+
   if (!allowedTypes.includes(file.mimetype)) {
     throw new Error('Invalid file type. Only images (JPEG, PNG, GIF, WebP) are allowed.');
   }
-  
+
   if (!file.mimetype.startsWith('image/')) {
     throw new Error('File must be an image');
   }
-  
+
   // Check file size (10MB limit)
   const maxSize = 10 * 1024 * 1024;
   if (file.size > maxSize) {
     throw new Error('File size exceeds 10MB limit');
   }
-  
+
   return true;
 }
 
@@ -96,17 +148,17 @@ function validatePDFFile(file) {
   if (!file) {
     throw new Error('No file uploaded');
   }
-  
+
   if (file.mimetype !== 'application/pdf') {
     throw new Error('CV must be a PDF file');
   }
-  
+
   // Check file size (10MB limit)
   const maxSize = 10 * 1024 * 1024;
   if (file.size > maxSize) {
     throw new Error('File size exceeds 10MB limit');
   }
-  
+
   return true;
 }
 
@@ -123,10 +175,10 @@ function generateFilePath(fileType, userId, filename) {
 // Test functions
 function testFileValidation() {
   console.log('\n📋 Testing file validation...');
-  
+
   let passed = 0;
   let total = 0;
-  
+
   // Test 1: Valid PNG image
   total++;
   try {
@@ -141,7 +193,7 @@ function testFileValidation() {
       fs.unlinkSync('test-valid.png');
     }
   }
-  
+
   // Test 2: Invalid file type for image upload
   total++;
   try {
@@ -149,7 +201,7 @@ function testFileValidation() {
       originalname: 'test.txt',
       mimetype: 'text/plain',
       size: 100,
-      buffer: Buffer.from('test content')
+      buffer: Buffer.from('test content'),
     };
     validateImageFile(invalidFile);
     console.log('❌ Invalid file type validation should have failed');
@@ -157,7 +209,7 @@ function testFileValidation() {
     console.log('✅ Invalid file type correctly rejected');
     passed++;
   }
-  
+
   // Test 3: Valid PDF file
   total++;
   try {
@@ -172,7 +224,7 @@ function testFileValidation() {
       fs.unlinkSync('test-valid.pdf');
     }
   }
-  
+
   // Test 4: Invalid file type for PDF upload
   total++;
   try {
@@ -180,7 +232,7 @@ function testFileValidation() {
       originalname: 'test.jpg',
       mimetype: 'image/jpeg',
       size: 100,
-      buffer: Buffer.from('fake image')
+      buffer: Buffer.from('fake image'),
     };
     validatePDFFile(invalidPDF);
     console.log('❌ Invalid PDF type validation should have failed');
@@ -188,7 +240,7 @@ function testFileValidation() {
     console.log('✅ Invalid PDF type correctly rejected');
     passed++;
   }
-  
+
   // Test 5: File too large
   total++;
   try {
@@ -196,7 +248,7 @@ function testFileValidation() {
       originalname: 'large.png',
       mimetype: 'image/png',
       size: 15 * 1024 * 1024, // 15MB
-      buffer: Buffer.alloc(100)
+      buffer: Buffer.alloc(100),
     };
     validateImageFile(largeFile);
     console.log('❌ Large file validation should have failed');
@@ -204,16 +256,16 @@ function testFileValidation() {
     console.log('✅ Large file correctly rejected');
     passed++;
   }
-  
+
   return { passed, total };
 }
 
 function testFileNaming() {
   console.log('\n📝 Testing file naming and path generation...');
-  
+
   let passed = 0;
   let total = 0;
-  
+
   // Test 1: Profile image filename generation
   total++;
   try {
@@ -227,7 +279,7 @@ function testFileNaming() {
   } catch (error) {
     console.log(`❌ Profile image filename generation failed: ${error.message}`);
   }
-  
+
   // Test 2: CV filename generation
   total++;
   try {
@@ -241,12 +293,17 @@ function testFileNaming() {
   } catch (error) {
     console.log(`❌ CV filename generation failed: ${error.message}`);
   }
-  
+
   // Test 3: File path generation
   total++;
   try {
     const filePath = generateFilePath('profile-images', 'user789', 'profile-123456.png');
-    const expectedPath = path.join('uploads', 'profile-images', 'user-user789', 'profile-123456.png');
+    const expectedPath = path.join(
+      'uploads',
+      'profile-images',
+      'user-user789',
+      'profile-123456.png'
+    );
     if (filePath === expectedPath) {
       console.log(`✅ File path generated: ${filePath}`);
       passed++;
@@ -256,16 +313,16 @@ function testFileNaming() {
   } catch (error) {
     console.log(`❌ File path generation failed: ${error.message}`);
   }
-  
+
   return { passed, total };
 }
 
 function testProfileServiceLogic() {
   console.log('\n🔧 Testing profile service logic...');
-  
+
   let passed = 0;
   let total = 0;
-  
+
   // Test 1: Profile update with image
   total++;
   try {
@@ -273,21 +330,23 @@ function testProfileServiceLogic() {
       personal: {
         firstName: 'John',
         lastName: 'Doe',
-        email: 'john@example.com'
+        email: 'john@example.com',
       },
-      skills: ['JavaScript', 'React']
+      skills: ['JavaScript', 'React'],
     };
-    
+
     const profileImage = createTestImage('test-profile-logic.png');
-    
+
     // Simulate profile update logic
     const updateResult = {
       success: true,
       profileData: profileData,
-      profileImageUrl: profileImage ? 'https://storage.googleapis.com/bucket/profile-images/user-123/profile-123456.png' : null,
-      message: 'Profile updated successfully'
+      profileImageUrl: profileImage
+        ? 'https://storage.googleapis.com/bucket/profile-images/user-123/profile-123456.png'
+        : null,
+      message: 'Profile updated successfully',
     };
-    
+
     if (updateResult.success && updateResult.profileImageUrl) {
       console.log('✅ Profile update with image logic works');
       console.log(`   Profile image URL: ${updateResult.profileImageUrl}`);
@@ -302,12 +361,12 @@ function testProfileServiceLogic() {
       fs.unlinkSync('test-profile-logic.png');
     }
   }
-  
+
   // Test 2: CV scan simulation
   total++;
   try {
     const cvFile = createTestPDF('test-cv-logic.pdf');
-    
+
     // Simulate CV scan logic
     const scanResult = {
       success: true,
@@ -319,13 +378,13 @@ function testProfileServiceLogic() {
           {
             company: 'Tech Corp',
             position: 'Developer',
-            duration: '2020-2023'
-          }
-        ]
+            duration: '2020-2023',
+          },
+        ],
       },
-      message: 'CV scanned successfully'
+      message: 'CV scanned successfully',
     };
-    
+
     if (scanResult.success && scanResult.extractedData) {
       console.log('✅ CV scan logic works');
       console.log(`   Extracted name: ${scanResult.extractedData.name}`);
@@ -341,7 +400,7 @@ function testProfileServiceLogic() {
       fs.unlinkSync('test-cv-logic.pdf');
     }
   }
-  
+
   return { passed, total };
 }
 
@@ -350,23 +409,23 @@ function runUploadLogicTests() {
   console.log('🚀 Testing Profile Upload Logic');
   console.log('================================');
   console.log('This tests the core upload functionality without requiring servers.\n');
-  
+
   const results = [];
-  
+
   // Run all tests
   results.push(testFileValidation());
   results.push(testFileNaming());
   results.push(testProfileServiceLogic());
-  
+
   // Calculate totals
   const totalPassed = results.reduce((sum, result) => sum + result.passed, 0);
   const totalTests = results.reduce((sum, result) => sum + result.total, 0);
-  
+
   // Summary
   console.log('\n📊 Test Summary');
   console.log('================');
   console.log(`✅ Passed: ${totalPassed}/${totalTests} tests`);
-  
+
   if (totalPassed === totalTests) {
     console.log('\n🎉 All upload logic tests passed!');
     console.log('\n📝 What was tested:');
@@ -384,7 +443,7 @@ function runUploadLogicTests() {
   } else {
     console.log('\n⚠️  Some tests failed. Please check the implementation.');
   }
-  
+
   return totalPassed === totalTests;
 }
 

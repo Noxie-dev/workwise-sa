@@ -22,16 +22,16 @@ async function initializeAnthropic() {
 // Helper function to safely extract text from Claude's response
 function extractTextFromClaudeResponse(content: any[]): string {
   if (!content || content.length === 0) {
-    return "No content generated";
+    return 'No content generated';
   }
-  
+
   const firstBlock = content[0];
   if (typeof firstBlock === 'object' && firstBlock !== null && 'type' in firstBlock) {
     if (firstBlock.type === 'text' && 'text' in firstBlock) {
       return firstBlock.text;
     }
   }
-  
+
   // Fallback for when the structure is different than expected
   return JSON.stringify(content);
 }
@@ -42,10 +42,10 @@ function extractTextFromClaudeResponse(content: any[]): string {
 export async function generateProfessionalSummaryWithClaude(data: any): Promise<string> {
   try {
     const { name, skills, experience, education, language = 'English' } = data;
-    
+
     // Initialize Anthropic if not already done
     const anthropicClient = await initializeAnthropic();
-    
+
     // Create a prompt for Claude to generate a professional summary
     const prompt = `Generate a professional and concise CV summary for ${name} in ${language} language. 
     
@@ -67,21 +67,24 @@ Write in first person ("I am...").`;
 
     return extractTextFromClaudeResponse(message.content);
   } catch (error) {
-    console.error("Error generating professional summary with Claude:", error);
-    return "Unable to generate a professional summary. Please try again or write your own summary.";
+    console.error('Error generating professional summary with Claude:', error);
+    return 'Unable to generate a professional summary. Please try again or write your own summary.';
   }
 }
 
 /**
  * Generate a job description for CV/resume using Anthropic Claude
  */
-export async function generateJobDescriptionWithClaude(jobInfo: any, language: string = 'English'): Promise<string> {
+export async function generateJobDescriptionWithClaude(
+  jobInfo: any,
+  language: string = 'English'
+): Promise<string> {
   try {
     const { jobTitle, employer, description } = jobInfo;
-    
+
     // Initialize Anthropic if not already done
     const anthropicClient = await initializeAnthropic();
-    
+
     // Create a prompt for Claude to generate a job description
     const prompt = `Generate a professional and concise job description for a CV/resume in ${language} language, for the position of ${jobTitle} at ${employer}.
     
@@ -103,23 +106,26 @@ The description should:
 
     return extractTextFromClaudeResponse(message.content);
   } catch (error) {
-    console.error("Error generating job description with Claude:", error);
-    return "Unable to generate a job description. Please try again or write your own description.";
+    console.error('Error generating job description with Claude:', error);
+    return 'Unable to generate a job description. Please try again or write your own description.';
   }
 }
 
 /**
  * Translate text using Anthropic Claude
  */
-export async function translateTextWithClaude(text: string, targetLanguage: string): Promise<string> {
+export async function translateTextWithClaude(
+  text: string,
+  targetLanguage: string
+): Promise<string> {
   try {
     if (!text || text.trim() === '') {
       return '';
     }
-    
+
     // Initialize Anthropic if not already done
     const anthropicClient = await initializeAnthropic();
-    
+
     // Create a prompt for translation with Claude
     const prompt = `Translate the following text into ${targetLanguage} language. Maintain the professional tone and meaning:
     
@@ -147,32 +153,34 @@ export async function analyzeImage(base64Image: string): Promise<string> {
   try {
     // Initialize Anthropic if not already done
     const anthropicClient = await initializeAnthropic();
-    
+
     const response = await anthropicClient.messages.create({
-      model: "claude-3-7-sonnet-20250219",
+      model: 'claude-3-7-sonnet-20250219',
       max_tokens: 1000,
-      messages: [{
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: "Analyze this profile photo for a CV/resume. Comment on the professional appearance, background, lighting, and any suggestions for improvements to make it more suitable for a professional CV."
-          },
-          {
-            type: "image",
-            source: {
-              type: "base64",
-              media_type: "image/jpeg",
-              data: base64Image
-            }
-          }
-        ]
-      }]
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: 'Analyze this profile photo for a CV/resume. Comment on the professional appearance, background, lighting, and any suggestions for improvements to make it more suitable for a professional CV.',
+            },
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: 'image/jpeg',
+                data: base64Image,
+              },
+            },
+          ],
+        },
+      ],
     });
 
     return extractTextFromClaudeResponse(response.content);
   } catch (error) {
-    console.error("Error analyzing image:", error);
-    return "Unable to analyze the image. Please try again later.";
+    console.error('Error analyzing image:', error);
+    return 'Unable to analyze the image. Please try again later.';
   }
 }

@@ -7,7 +7,7 @@ import {
   userInteractions,
   userJobPreferences,
   JobWithCompany,
-  User
+  User,
 } from '@shared/schema';
 import { eq, and, desc, sql, inArray, or, like } from 'drizzle-orm';
 
@@ -59,13 +59,34 @@ export class MLJobMatchingService {
   private skillsEmbeddings: Map<string, number[]> = new Map();
   private jobVectors: Map<number, JobVector> = new Map();
   private userVectors: Map<number, UserVector> = new Map();
-  
+
   // Common skills for embedding (simplified approach)
   private commonSkills = [
-    'javascript', 'python', 'java', 'react', 'nodejs', 'sql', 'html', 'css',
-    'typescript', 'docker', 'kubernetes', 'aws', 'azure', 'mongodb', 'postgresql',
-    'machine learning', 'data analysis', 'project management', 'communication',
-    'teamwork', 'leadership', 'problem solving', 'agile', 'scrum', 'git'
+    'javascript',
+    'python',
+    'java',
+    'react',
+    'nodejs',
+    'sql',
+    'html',
+    'css',
+    'typescript',
+    'docker',
+    'kubernetes',
+    'aws',
+    'azure',
+    'mongodb',
+    'postgresql',
+    'machine learning',
+    'data analysis',
+    'project management',
+    'communication',
+    'teamwork',
+    'leadership',
+    'problem solving',
+    'agile',
+    'scrum',
+    'git',
   ];
 
   constructor() {
@@ -74,11 +95,15 @@ export class MLJobMatchingService {
 
   private extractUserSkills(skills: unknown): string[] {
     if (Array.isArray(skills)) {
-      return skills.filter((skill): skill is string => typeof skill === 'string' && skill.trim().length > 0);
+      return skills.filter(
+        (skill): skill is string => typeof skill === 'string' && skill.trim().length > 0
+      );
     }
 
     if (skills && typeof skills === 'object' && Array.isArray((skills as any).skills)) {
-      return (skills as any).skills.filter((skill: unknown): skill is string => typeof skill === 'string' && skill.trim().length > 0);
+      return (skills as any).skills.filter(
+        (skill: unknown): skill is string => typeof skill === 'string' && skill.trim().length > 0
+      );
     }
 
     return [];
@@ -102,18 +127,18 @@ export class MLJobMatchingService {
    */
   private skillsToVector(skills: string[]): number[] {
     const vector = new Array(this.commonSkills.length).fill(0);
-    
+
     skills.forEach(skill => {
       const skillLower = skill.toLowerCase();
-      const index = this.commonSkills.findIndex(commonSkill => 
-        commonSkill.includes(skillLower) || skillLower.includes(commonSkill)
+      const index = this.commonSkills.findIndex(
+        commonSkill => commonSkill.includes(skillLower) || skillLower.includes(commonSkill)
       );
-      
+
       if (index !== -1) {
         vector[index] = 1;
       }
     });
-    
+
     return vector;
   }
 
@@ -124,9 +149,9 @@ export class MLJobMatchingService {
     const dotProduct = vectorA.reduce((sum, a, i) => sum + a * vectorB[i], 0);
     const magnitudeA = Math.sqrt(vectorA.reduce((sum, a) => sum + a * a, 0));
     const magnitudeB = Math.sqrt(vectorB.reduce((sum, b) => sum + b * b, 0));
-    
+
     if (magnitudeA === 0 || magnitudeB === 0) return 0;
-    
+
     return dotProduct / (magnitudeA * magnitudeB);
   }
 
@@ -134,10 +159,8 @@ export class MLJobMatchingService {
    * Calculate Euclidean distance between two vectors
    */
   private euclideanDistance(vectorA: number[], vectorB: number[]): number {
-    const distance = Math.sqrt(
-      vectorA.reduce((sum, a, i) => sum + Math.pow(a - vectorB[i], 2), 0)
-    );
-    
+    const distance = Math.sqrt(vectorA.reduce((sum, a, i) => sum + Math.pow(a - vectorB[i], 2), 0));
+
     // Convert to similarity score (0-1, where 1 is most similar)
     return 1 / (1 + distance);
   }
@@ -152,12 +175,14 @@ export class MLJobMatchingService {
       if (!user) return null;
 
       // Get user preferences
-      const [preferences] = await db.select()
+      const [preferences] = await db
+        .select()
         .from(userJobPreferences)
         .where(eq(userJobPreferences.userId, userId));
 
       // Get user interactions for engagement analysis
-      const interactions = await db.select()
+      const interactions = await db
+        .select()
         .from(userInteractions)
         .where(eq(userInteractions.userId, userId));
 
@@ -185,7 +210,7 @@ export class MLJobMatchingService {
         categoryPreferences: (preferences?.preferredCategories as number[]) || [],
         experienceLevel,
         engagementScore,
-        lastActiveScore
+        lastActiveScore,
       };
 
       this.userVectors.set(userId, userVector);
@@ -202,7 +227,8 @@ export class MLJobMatchingService {
   async generateJobVector(jobId: number): Promise<JobVector | null> {
     try {
       // Get job with company data
-      const [jobData] = await db.select()
+      const [jobData] = await db
+        .select()
         .from(jobs)
         .innerJoin(companies, eq(jobs.companyId, companies.id))
         .where(eq(jobs.id, jobId));
@@ -210,16 +236,16 @@ export class MLJobMatchingService {
       if (!jobData) return null;
 
       const job = jobData.jobs;
-      
+
       // Extract skills from job description
       const skillsRequired = this.extractSkillsFromDescription(job.description);
-      
+
       // Calculate seniority level based on job title and description
       const seniorityLevel = this.calculateSeniorityLevel(job.title, job.description);
-      
+
       // Calculate popularity score based on interactions
       const popularityScore = await this.calculateJobPopularityScore(jobId);
-      
+
       // Calculate recency score
       const createdAt = new Date(job.createdAt).getTime();
       const now = Date.now();
@@ -233,7 +259,7 @@ export class MLJobMatchingService {
         categoryId: job.categoryId,
         seniorityLevel,
         popularityScore,
-        recentnessScore
+        recentnessScore,
       };
 
       this.jobVectors.set(jobId, jobVector);
@@ -250,20 +276,20 @@ export class MLJobMatchingService {
   private extractSkillsFromDescription(description: string): string[] {
     const extractedSkills: string[] = [];
     const descriptionLower = description.toLowerCase();
-    
+
     this.commonSkills.forEach(skill => {
       if (descriptionLower.includes(skill)) {
         extractedSkills.push(skill);
       }
     });
-    
+
     // Additional pattern matching for common skill patterns
     const skillPatterns = [
       /(?:experience with|knowledge of|proficient in|skilled in)\s+([^,.]+)/gi,
       /(?:technologies|tech stack|tools):\s*([^.]+)/gi,
-      /(?:required skills|must have|essential):\s*([^.]+)/gi
+      /(?:required skills|must have|essential):\s*([^.]+)/gi,
     ];
-    
+
     skillPatterns.forEach(pattern => {
       const matches = description.match(pattern);
       if (matches) {
@@ -277,7 +303,7 @@ export class MLJobMatchingService {
         });
       }
     });
-    
+
     return [...new Set(extractedSkills)]; // Remove duplicates
   }
 
@@ -286,25 +312,39 @@ export class MLJobMatchingService {
    */
   private calculateSeniorityLevel(title: string, description: string): number {
     const text = (title + ' ' + description).toLowerCase();
-    
+
     // Senior level indicators
-    if (text.includes('senior') || text.includes('lead') || text.includes('principal') || 
-        text.includes('architect') || text.includes('manager')) {
+    if (
+      text.includes('senior') ||
+      text.includes('lead') ||
+      text.includes('principal') ||
+      text.includes('architect') ||
+      text.includes('manager')
+    ) {
       return 0.8;
     }
-    
+
     // Mid level indicators
-    if (text.includes('mid') || text.includes('intermediate') || 
-        text.includes('experienced') || /\d+\+?\s*years/.test(text)) {
+    if (
+      text.includes('mid') ||
+      text.includes('intermediate') ||
+      text.includes('experienced') ||
+      /\d+\+?\s*years/.test(text)
+    ) {
       return 0.6;
     }
-    
+
     // Junior level indicators
-    if (text.includes('junior') || text.includes('entry') || text.includes('graduate') || 
-        text.includes('intern') || text.includes('trainee')) {
+    if (
+      text.includes('junior') ||
+      text.includes('entry') ||
+      text.includes('graduate') ||
+      text.includes('intern') ||
+      text.includes('trainee')
+    ) {
       return 0.2;
     }
-    
+
     // Default mid-level
     return 0.5;
   }
@@ -314,17 +354,18 @@ export class MLJobMatchingService {
    */
   private async calculateJobPopularityScore(jobId: number): Promise<number> {
     try {
-      const interactions = await db.select()
+      const interactions = await db
+        .select()
         .from(userInteractions)
         .where(eq(userInteractions.jobId, jobId));
-      
+
       const views = interactions.filter(i => i.interactionType === 'view').length;
       const applications = interactions.filter(i => i.interactionType === 'apply').length;
       const saves = interactions.filter(i => i.interactionType === 'save').length;
-      
+
       // Weighted popularity score
       const popularityScore = (views * 0.1 + applications * 2 + saves * 0.5) / 10;
-      
+
       return Math.min(1, popularityScore);
     } catch (error) {
       console.error('Error calculating job popularity:', error);
@@ -336,8 +377,8 @@ export class MLJobMatchingService {
    * Calculate match score between user and job vectors
    */
   private calculateMatchScore(
-    userVector: UserVector, 
-    jobVector: JobVector, 
+    userVector: UserVector,
+    jobVector: JobVector,
     algorithm: 'cosine' | 'euclidean' | 'hybrid'
   ): { score: number; confidence: number; reasons: string[] } {
     const reasons: string[] = [];
@@ -347,16 +388,16 @@ export class MLJobMatchingService {
     // 1. Skills similarity (40% weight)
     const jobSkillsVector = this.skillsToVector(jobVector.skillsRequired);
     let skillsSimilarity = 0;
-    
+
     if (algorithm === 'cosine' || algorithm === 'hybrid') {
       skillsSimilarity = this.cosineSimilarity(userVector.skillsVector, jobSkillsVector);
     } else {
       skillsSimilarity = this.euclideanDistance(userVector.skillsVector, jobSkillsVector);
     }
-    
+
     const skillsScore = skillsSimilarity * 40;
     totalScore += skillsScore;
-    
+
     if (skillsSimilarity > 0.7) {
       reasons.push('Strong skills match');
       confidence += 0.3;
@@ -366,13 +407,14 @@ export class MLJobMatchingService {
     }
 
     // 2. Location match (20% weight)
-    const locationMatch = userVector.locationPreferences.includes(jobVector.location) ||
-                         jobVector.location.toLowerCase() === 'remote' ||
-                         userVector.locationPreferences.includes('remote');
-    
+    const locationMatch =
+      userVector.locationPreferences.includes(jobVector.location) ||
+      jobVector.location.toLowerCase() === 'remote' ||
+      userVector.locationPreferences.includes('remote');
+
     const locationScore = locationMatch ? 20 : 5;
     totalScore += locationScore;
-    
+
     if (locationMatch) {
       reasons.push('Location preference match');
       confidence += 0.2;
@@ -382,7 +424,7 @@ export class MLJobMatchingService {
     const categoryMatch = userVector.categoryPreferences.includes(jobVector.categoryId);
     const categoryScore = categoryMatch ? 15 : 3;
     totalScore += categoryScore;
-    
+
     if (categoryMatch) {
       reasons.push('Category preference match');
       confidence += 0.15;
@@ -392,7 +434,7 @@ export class MLJobMatchingService {
     const experienceDiff = Math.abs(userVector.experienceLevel - jobVector.seniorityLevel);
     const experienceScore = (1 - experienceDiff) * 15;
     totalScore += experienceScore;
-    
+
     if (experienceDiff < 0.2) {
       reasons.push('Experience level alignment');
       confidence += 0.15;
@@ -408,11 +450,11 @@ export class MLJobMatchingService {
 
     // Normalize confidence score
     confidence = Math.min(1, confidence);
-    
+
     return {
       score: Math.min(100, totalScore),
       confidence,
-      reasons
+      reasons,
     };
   }
 
@@ -420,13 +462,13 @@ export class MLJobMatchingService {
    * Find matching jobs for a user using ML algorithms
    */
   async findMatchingJobs(
-    userId: number, 
+    userId: number,
     options: MLJobMatchingOptions = {
       algorithm: 'hybrid',
       includeHistoricalData: true,
       weightRecency: true,
       maxResults: 20,
-      minConfidence: 0.3
+      minConfidence: 0.3,
     }
   ): Promise<MatchResult[]> {
     try {
@@ -438,7 +480,8 @@ export class MLJobMatchingService {
       }
 
       // Get all available jobs
-      const allJobs = await db.select()
+      const allJobs = await db
+        .select()
         .from(jobs)
         .innerJoin(companies, eq(jobs.companyId, companies.id))
         .orderBy(desc(jobs.createdAt));
@@ -449,14 +492,14 @@ export class MLJobMatchingService {
       for (const jobData of allJobs) {
         const job = jobData.jobs;
         const company = jobData.companies;
-        
+
         // Generate job vector
         const jobVector = await this.generateJobVector(job.id);
         if (!jobVector) continue;
 
         // Calculate match score
         const matchResult = this.calculateMatchScore(userVector, jobVector, options.algorithm);
-        
+
         // Apply confidence filter
         if (matchResult.confidence < options.minConfidence) continue;
 
@@ -468,18 +511,15 @@ export class MLJobMatchingService {
           reasons: matchResult.reasons,
           job: {
             ...job,
-            company
-          }
+            company,
+          },
         };
 
         matchResults.push(result);
       }
 
       // Sort by score (descending) and limit results
-      return matchResults
-        .sort((a, b) => b.score - a.score)
-        .slice(0, options.maxResults);
-
+      return matchResults.sort((a, b) => b.score - a.score).slice(0, options.maxResults);
     } catch (error) {
       console.error('Error in ML job matching:', error);
       return [];
@@ -516,7 +556,6 @@ export class MLJobMatchingService {
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, limit)
         .map(s => s.userId);
-
     } catch (error) {
       console.error('Error finding similar users:', error);
       return [];
@@ -526,17 +565,21 @@ export class MLJobMatchingService {
   /**
    * Get collaborative filtering recommendations
    */
-  async getCollaborativeRecommendations(userId: number, limit: number = 10): Promise<MatchResult[]> {
+  async getCollaborativeRecommendations(
+    userId: number,
+    limit: number = 10
+  ): Promise<MatchResult[]> {
     try {
       // Find similar users
       const similarUsers = await this.findSimilarUsers(userId, 20);
-      
+
       if (similarUsers.length === 0) {
         return [];
       }
 
       // Get jobs that similar users have interacted with positively
-      const recommendedJobIds = await db.select()
+      const recommendedJobIds = await db
+        .select()
         .from(userInteractions)
         .where(
           and(
@@ -549,10 +592,13 @@ export class MLJobMatchingService {
         );
 
       // Get unique job IDs
-      const jobIds = [...new Set(recommendedJobIds
-        .filter(interaction => interaction.jobId)
-        .map(interaction => interaction.jobId!)
-      )] as number[];
+      const jobIds = [
+        ...new Set(
+          recommendedJobIds
+            .filter(interaction => interaction.jobId)
+            .map(interaction => interaction.jobId!)
+        ),
+      ] as number[];
 
       // Generate match results for these jobs
       const userVector = await this.generateUserVector(userId);
@@ -565,9 +611,10 @@ export class MLJobMatchingService {
         if (!jobVector) continue;
 
         const matchResult = this.calculateMatchScore(userVector, jobVector, 'hybrid');
-        
+
         // Get job details
-        const [jobData] = await db.select()
+        const [jobData] = await db
+          .select()
           .from(jobs)
           .innerJoin(companies, eq(jobs.companyId, companies.id))
           .where(eq(jobs.id, jobId));
@@ -580,14 +627,13 @@ export class MLJobMatchingService {
             reasons: [...matchResult.reasons, 'Similar users recommendation'],
             job: {
               ...jobData.jobs,
-              company: jobData.companies
-            }
+              company: jobData.companies,
+            },
           });
         }
       }
 
       return results.sort((a, b) => b.score - a.score);
-
     } catch (error) {
       console.error('Error in collaborative filtering:', error);
       return [];

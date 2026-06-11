@@ -12,25 +12,25 @@ const api = axios.create({
 
 // Add a request interceptor to include auth token if available
 api.interceptors.request.use(
-  (config) => {
+  config => {
     const token = localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  error => Promise.reject(error)
 );
 
 // Add a response interceptor to handle errors
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  response => response,
+  error => {
     // Handle specific error cases
     if (error.response) {
       // Server responded with a status code outside of 2xx range
       console.error('API Error:', error.response.status, error.response.data);
-      
+
       // Handle authentication errors
       if (error.response.status === 401) {
         // Redirect to login or refresh token
@@ -44,7 +44,7 @@ api.interceptors.response.use(
       // Something else happened while setting up the request
       console.error('API Error:', error.message);
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -58,7 +58,7 @@ export const endpoints = {
     logout: '/api/auth/logout',
     user: '/api/auth/user',
   },
-  
+
   // Job endpoints
   jobs: {
     list: '/api/jobs',
@@ -67,7 +67,7 @@ export const endpoints = {
     apply: (id: string) => `/api/jobs/${id}/apply`,
     search: '/api/jobs/search',
   },
-  
+
   // Job Application endpoints
   applications: {
     create: (jobId: string) => `/api/jobs/${jobId}/apply`,
@@ -77,25 +77,25 @@ export const endpoints = {
     delete: (id: string) => `/api/job-applications/${id}`,
     byJob: (jobId: string) => `/api/job-applications/job/${jobId}`,
   },
-  
+
   // Category endpoints
   categories: {
     list: '/api/categories',
   },
-  
+
   // Company endpoints
   companies: {
     list: '/api/companies',
     detail: (id: string) => `/api/companies/${id}`,
   },
-  
+
   // User profile endpoints
   profile: {
     get: '/api/profile',
     update: '/api/profile',
     uploadImage: '/api/profile/image',
   },
-  
+
   // CV endpoints
   cv: {
     generate: '/api/cv/generate',
@@ -104,7 +104,7 @@ export const endpoints = {
     translate: '/api/cv/translate',
     analyzeImage: '/api/cv/claude/analyze-image',
   },
-  
+
   // Recommendation endpoints
   recommendations: {
     jobs: '/api/recommendations/jobs',

@@ -59,7 +59,7 @@ export class BatchQueueManager {
     totalFailed: 0,
     totalBatches: 0,
     averageBatchSize: 0,
-    averageExecutionTime: 0
+    averageExecutionTime: 0,
   };
 
   constructor(config: Partial<BatchConfig> = {}) {
@@ -70,7 +70,7 @@ export class BatchQueueManager {
       retryDelay: 1000,
       enablePriority: true,
       enableDeduplication: true,
-      ...config
+      ...config,
     };
   }
 
@@ -81,14 +81,16 @@ export class BatchQueueManager {
   /**
    * Add operation to batch queue
    */
-  async addOperation(operation: Omit<BatchOperation, 'id' | 'timestamp' | 'retryCount'>): Promise<string> {
+  async addOperation(
+    operation: Omit<BatchOperation, 'id' | 'timestamp' | 'retryCount'>
+  ): Promise<string> {
     const operationId = this.generateOperationId();
     const fullOperation: BatchOperation = {
       ...operation,
       id: operationId,
       timestamp: Date.now(),
       retryCount: 0,
-      maxRetries: operation.maxRetries || this.config.maxRetries
+      maxRetries: operation.maxRetries || this.config.maxRetries,
     };
 
     // Deduplicate if enabled
@@ -119,7 +121,7 @@ export class BatchQueueManager {
 
     logger.debug(`Added operation ${operationId} to queue ${queueKey}`, {
       queueSize: queue.length,
-      priority: operation.priority
+      priority: operation.priority,
     });
 
     return operationId;
@@ -136,25 +138,25 @@ export class BatchQueueManager {
         processedCount: 0,
         failedCount: 0,
         errors: [],
-        executionTime: 0
+        executionTime: 0,
       };
     }
 
     const startTime = Date.now();
     const batchSize = Math.min(queue.length, this.config.maxBatchSize);
     const batch = queue.splice(0, batchSize);
-    
+
     logger.info(`Processing batch for ${queueKey}`, {
       batchSize,
-      remainingInQueue: queue.length
+      remainingInQueue: queue.length,
     });
 
     try {
       const result = await this.executeBatch(batch);
-      
+
       // Update stats
       this.updateStats(result, Date.now() - startTime);
-      
+
       // Reschedule if there are more operations
       if (queue.length > 0) {
         this.scheduleProcessing(queueKey);
@@ -163,19 +165,19 @@ export class BatchQueueManager {
       return result;
     } catch (error) {
       logger.error(`Batch processing failed for ${queueKey}`, { error: serializeError(error) });
-      
+
       // Retry failed operations
       await this.retryFailedOperations(batch);
-      
+
       return {
         success: false,
         processedCount: 0,
         failedCount: batch.length,
         errors: batch.map(op => ({
           operationId: op.id,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         })),
-        executionTime: Date.now() - startTime
+        executionTime: Date.now() - startTime,
       };
     }
   }
@@ -201,10 +203,12 @@ export class BatchQueueManager {
       } catch (error) {
         logger.error(`Failed to execute ${type} operations`, { error: serializeError(error) });
         failedCount += ops.length;
-        errors.push(...ops.map(op => ({
-          operationId: op.id,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        })));
+        errors.push(
+          ...ops.map(op => ({
+            operationId: op.id,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          }))
+        );
       }
     }
 
@@ -213,14 +217,17 @@ export class BatchQueueManager {
       processedCount,
       failedCount,
       errors,
-      executionTime: Date.now() - startTime
+      executionTime: Date.now() - startTime,
     };
   }
 
   /**
    * Execute operations of the same type
    */
-  private async executeOperationGroup(type: string, operations: BatchOperation[]): Promise<BatchResult> {
+  private async executeOperationGroup(
+    type: string,
+    operations: BatchOperation[]
+  ): Promise<BatchResult> {
     const startTime = Date.now();
     const errors: Array<{ operationId: string; error: string }> = [];
     let processedCount = 0;
@@ -250,10 +257,12 @@ export class BatchQueueManager {
     } catch (error) {
       logger.error(`Failed to execute ${type} operations`, { error: serializeError(error) });
       failedCount = operations.length;
-      errors.push(...operations.map(op => ({
-        operationId: op.id,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })));
+      errors.push(
+        ...operations.map(op => ({
+          operationId: op.id,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }))
+      );
     }
 
     return {
@@ -261,7 +270,7 @@ export class BatchQueueManager {
       processedCount,
       failedCount,
       errors,
-      executionTime: Date.now() - startTime
+      executionTime: Date.now() - startTime,
     };
   }
 
@@ -272,7 +281,7 @@ export class BatchQueueManager {
   private async executeBulkInsert(operations: BatchOperation[]): Promise<void> {
     // Group by table
     const tableGroups = new Map<string, BatchOperation[]>();
-    
+
     for (const op of operations) {
       if (!tableGroups.has(op.table)) {
         tableGroups.set(op.table, []);
@@ -284,7 +293,7 @@ export class BatchQueueManager {
     for (const [table, ops] of tableGroups.entries()) {
       const data = ops.map(op => op.data);
       await this.performBulkInsert(table, data);
-      
+
       // Invalidate cache for affected tables
       await this.invalidateTableCache(table);
     }
@@ -293,7 +302,7 @@ export class BatchQueueManager {
   private async executeBulkUpdate(operations: BatchOperation[]): Promise<void> {
     // Group by table
     const tableGroups = new Map<string, BatchOperation[]>();
-    
+
     for (const op of operations) {
       if (!tableGroups.has(op.table)) {
         tableGroups.set(op.table, []);
@@ -304,7 +313,7 @@ export class BatchQueueManager {
     // Execute bulk updates for each table
     for (const [table, ops] of tableGroups.entries()) {
       await this.performBulkUpdate(table, ops);
-      
+
       // Invalidate cache for affected tables
       await this.invalidateTableCache(table);
     }
@@ -313,7 +322,7 @@ export class BatchQueueManager {
   private async executeBulkDelete(operations: BatchOperation[]): Promise<void> {
     // Group by table
     const tableGroups = new Map<string, BatchOperation[]>();
-    
+
     for (const op of operations) {
       if (!tableGroups.has(op.table)) {
         tableGroups.set(op.table, []);
@@ -326,7 +335,7 @@ export class BatchQueueManager {
       const ids = ops.map(op => op.where?.id || op.data.id).filter(Boolean);
       if (ids.length > 0) {
         await this.performBulkDelete(table, ids);
-        
+
         // Invalidate cache for affected tables
         await this.invalidateTableCache(table);
       }
@@ -336,7 +345,7 @@ export class BatchQueueManager {
   private async executeBulkUpsert(operations: BatchOperation[]): Promise<void> {
     // Group by table
     const tableGroups = new Map<string, BatchOperation[]>();
-    
+
     for (const op of operations) {
       if (!tableGroups.has(op.table)) {
         tableGroups.set(op.table, []);
@@ -348,7 +357,7 @@ export class BatchQueueManager {
     for (const [table, ops] of tableGroups.entries()) {
       const data = ops.map(op => op.data);
       await this.performBulkUpsert(table, data);
-      
+
       // Invalidate cache for affected tables
       await this.invalidateTableCache(table);
     }
@@ -362,7 +371,7 @@ export class BatchQueueManager {
     // This would integrate with your actual database
     // For now, simulate the operation
     logger.info(`Bulk insert into ${table}`, { count: data.length });
-    
+
     // Simulate database operation
     await new Promise(resolve => setTimeout(resolve, Math.random() * 100));
   }
@@ -370,7 +379,7 @@ export class BatchQueueManager {
   private async performBulkUpdate(table: string, operations: BatchOperation[]): Promise<void> {
     // This would integrate with your actual database
     logger.info(`Bulk update on ${table}`, { count: operations.length });
-    
+
     // Simulate database operation
     await new Promise(resolve => setTimeout(resolve, Math.random() * 100));
   }
@@ -378,7 +387,7 @@ export class BatchQueueManager {
   private async performBulkDelete(table: string, ids: any[]): Promise<void> {
     // This would integrate with your actual database
     logger.info(`Bulk delete from ${table}`, { count: ids.length });
-    
+
     // Simulate database operation
     await new Promise(resolve => setTimeout(resolve, Math.random() * 100));
   }
@@ -386,7 +395,7 @@ export class BatchQueueManager {
   private async performBulkUpsert(table: string, data: any[]): Promise<void> {
     // This would integrate with your actual database
     logger.info(`Bulk upsert into ${table}`, { count: data.length });
-    
+
     // Simulate database operation
     await new Promise(resolve => setTimeout(resolve, Math.random() * 100));
   }
@@ -400,7 +409,9 @@ export class BatchQueueManager {
       await cacheService.invalidate(`${table}:*`);
       logger.debug(`Invalidated cache for table ${table}`);
     } catch (error) {
-      logger.error(`Failed to invalidate cache for table ${table}`, { error: serializeError(error) });
+      logger.error(`Failed to invalidate cache for table ${table}`, {
+        error: serializeError(error),
+      });
     }
   }
 
@@ -418,10 +429,10 @@ export class BatchQueueManager {
 
   private getPriorityValue(priority: string): number {
     const priorityMap = {
-      'CRITICAL': 4,
-      'HIGH': 3,
-      'NORMAL': 2,
-      'LOW': 1
+      CRITICAL: 4,
+      HIGH: 3,
+      NORMAL: 2,
+      LOW: 1,
     };
     return priorityMap[priority as keyof typeof priorityMap] || 2;
   }
@@ -429,29 +440,32 @@ export class BatchQueueManager {
   private findDuplicateOperation(operation: BatchOperation): BatchOperation | null {
     const queueKey = this.getQueueKey(operation.table, operation.type);
     const queue = this.queues.get(queueKey);
-    
+
     if (!queue) return null;
 
     // Simple deduplication based on table, type, and data hash
     const dataHash = JSON.stringify(operation.data);
-    
-    return queue.find(op => 
-      op.table === operation.table &&
-      op.type === operation.type &&
-      JSON.stringify(op.data) === dataHash
-    ) || null;
+
+    return (
+      queue.find(
+        op =>
+          op.table === operation.table &&
+          op.type === operation.type &&
+          JSON.stringify(op.data) === dataHash
+      ) || null
+    );
   }
 
   private groupOperationsByType(operations: BatchOperation[]): Map<string, BatchOperation[]> {
     const groups = new Map<string, BatchOperation[]>();
-    
+
     for (const op of operations) {
       if (!groups.has(op.type)) {
         groups.set(op.type, []);
       }
       groups.get(op.type)!.push(op);
     }
-    
+
     return groups;
   }
 
@@ -475,7 +489,7 @@ export class BatchQueueManager {
     for (const op of operations) {
       if (op.retryCount < op.maxRetries) {
         op.retryCount++;
-        
+
         // Add back to queue with delay
         setTimeout(() => {
           this.addOperation(op);
@@ -483,7 +497,7 @@ export class BatchQueueManager {
       } else {
         logger.error(`Operation ${op.id} exceeded max retries`, {
           retryCount: op.retryCount,
-          maxRetries: op.maxRetries
+          maxRetries: op.maxRetries,
         });
       }
     }
@@ -493,12 +507,12 @@ export class BatchQueueManager {
     this.stats.totalProcessed += result.processedCount;
     this.stats.totalFailed += result.failedCount;
     this.stats.totalBatches++;
-    
+
     // Update averages
     const totalOps = this.stats.totalProcessed + this.stats.totalFailed;
     this.stats.averageBatchSize = totalOps / this.stats.totalBatches;
-    this.stats.averageExecutionTime = 
-      (this.stats.averageExecutionTime * (this.stats.totalBatches - 1) + executionTime) / 
+    this.stats.averageExecutionTime =
+      (this.stats.averageExecutionTime * (this.stats.totalBatches - 1) + executionTime) /
       this.stats.totalBatches;
   }
 
@@ -513,14 +527,14 @@ export class BatchQueueManager {
     const queueStats = Array.from(this.queues.entries()).map(([key, queue]) => ({
       queueKey: key,
       size: queue.length,
-      oldestOperation: queue.length > 0 ? Math.min(...queue.map(op => op.timestamp)) : null
+      oldestOperation: queue.length > 0 ? Math.min(...queue.map(op => op.timestamp)) : null,
     }));
 
     return {
       ...this.stats,
       activeQueues: this.queues.size,
       queueStats,
-      isProcessing: this.isProcessing
+      isProcessing: this.isProcessing,
     };
   }
 
@@ -529,12 +543,12 @@ export class BatchQueueManager {
    */
   async flushAll(): Promise<BatchResult[]> {
     const results: BatchResult[] = [];
-    
+
     for (const queueKey of this.queues.keys()) {
       const result = await this.processBatch(queueKey);
       results.push(result);
     }
-    
+
     return results;
   }
 
@@ -543,13 +557,13 @@ export class BatchQueueManager {
    */
   clearAll(): void {
     this.queues.clear();
-    
+
     // Clear all timers
     for (const timer of this.timers.values()) {
       clearTimeout(timer);
     }
     this.timers.clear();
-    
+
     logger.info('All batch queues cleared');
   }
 
@@ -558,16 +572,16 @@ export class BatchQueueManager {
    */
   async shutdown(): Promise<void> {
     logger.info('Shutting down batch service...');
-    
+
     // Process remaining operations
     await this.flushAll();
-    
+
     // Clear timers
     for (const timer of this.timers.values()) {
       clearTimeout(timer);
     }
     this.timers.clear();
-    
+
     logger.info('Batch service shutdown complete');
   }
 }
@@ -579,78 +593,94 @@ export class BatchQueueManager {
 /**
  * Batch insert operations
  */
-export async function batchInsert(table: string, data: any[], priority: 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL' = 'NORMAL'): Promise<string[]> {
+export async function batchInsert(
+  table: string,
+  data: any[],
+  priority: 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL' = 'NORMAL'
+): Promise<string[]> {
   const operationIds: string[] = [];
-  
+
   for (const item of data) {
     const id = await batchQueue.addOperation({
       type: 'INSERT',
       table,
       data: item,
-      priority
+      priority,
     });
     operationIds.push(id);
   }
-  
+
   return operationIds;
 }
 
 /**
  * Batch update operations
  */
-export async function batchUpdate(table: string, updates: Array<{ where: any; data: any }>, priority: 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL' = 'NORMAL'): Promise<string[]> {
+export async function batchUpdate(
+  table: string,
+  updates: Array<{ where: any; data: any }>,
+  priority: 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL' = 'NORMAL'
+): Promise<string[]> {
   const operationIds: string[] = [];
-  
+
   for (const update of updates) {
     const id = await batchQueue.addOperation({
       type: 'UPDATE',
       table,
       data: update.data,
       where: update.where,
-      priority
+      priority,
     });
     operationIds.push(id);
   }
-  
+
   return operationIds;
 }
 
 /**
  * Batch delete operations
  */
-export async function batchDelete(table: string, ids: any[], priority: 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL' = 'NORMAL'): Promise<string[]> {
+export async function batchDelete(
+  table: string,
+  ids: any[],
+  priority: 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL' = 'NORMAL'
+): Promise<string[]> {
   const operationIds: string[] = [];
-  
+
   for (const id of ids) {
     const operationId = await batchQueue.addOperation({
       type: 'DELETE',
       table,
       data: { id },
       where: { id },
-      priority
+      priority,
     });
     operationIds.push(operationId);
   }
-  
+
   return operationIds;
 }
 
 /**
  * Batch upsert operations
  */
-export async function batchUpsert(table: string, data: any[], priority: 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL' = 'NORMAL'): Promise<string[]> {
+export async function batchUpsert(
+  table: string,
+  data: any[],
+  priority: 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL' = 'NORMAL'
+): Promise<string[]> {
   const operationIds: string[] = [];
-  
+
   for (const item of data) {
     const id = await batchQueue.addOperation({
       type: 'UPSERT',
       table,
       data: item,
-      priority
+      priority,
     });
     operationIds.push(id);
   }
-  
+
   return operationIds;
 }
 
@@ -664,5 +694,5 @@ export const batchQueue = new BatchQueueManager({
   maxRetries: 3,
   retryDelay: 1000,
   enablePriority: true,
-  enableDeduplication: true
+  enableDeduplication: true,
 });

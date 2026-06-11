@@ -79,20 +79,15 @@ const buildInfo = {
   arch: process.arch,
   commit: process.env.COMMIT_REF || 'unknown',
   branch: process.env.BRANCH || 'unknown',
-  buildId: process.env.BUILD_ID || 'unknown'
+  buildId: process.env.BUILD_ID || 'unknown',
 };
 
-fs.writeFileSync(
-  path.join(distPath, 'build-info.json'), 
-  JSON.stringify(buildInfo, null, 2)
-);
+fs.writeFileSync(path.join(distPath, 'build-info.json'), JSON.stringify(buildInfo, null, 2));
 console.log('✅ Generated build info');
 
 // Verify critical files exist
 const criticalFiles = ['index.html', 'assets'];
-const missingFiles = criticalFiles.filter(file => 
-  !fs.existsSync(path.join(distPath, file))
-);
+const missingFiles = criticalFiles.filter(file => !fs.existsSync(path.join(distPath, file)));
 
 if (missingFiles.length > 0) {
   console.error('❌ Missing critical files:', missingFiles);
@@ -100,10 +95,10 @@ if (missingFiles.length > 0) {
 }
 
 // Calculate build size
-const calculateSize = (dirPath) => {
+const calculateSize = dirPath => {
   let totalSize = 0;
   const files = fs.readdirSync(dirPath, { withFileTypes: true });
-  
+
   for (const file of files) {
     const filePath = path.join(dirPath, file.name);
     if (file.isDirectory()) {
@@ -112,7 +107,7 @@ const calculateSize = (dirPath) => {
       totalSize += fs.statSync(filePath).size;
     }
   }
-  
+
   return totalSize;
 };
 
@@ -121,7 +116,8 @@ const buildSizeMB = (buildSize / (1024 * 1024)).toFixed(2);
 
 console.log(`📊 Build size: ${buildSizeMB} MB`);
 
-if (buildSize > 50 * 1024 * 1024) { // 50MB warning
+if (buildSize > 50 * 1024 * 1024) {
+  // 50MB warning
   console.warn('⚠️  Build size is quite large. Consider optimizing assets.');
 }
 

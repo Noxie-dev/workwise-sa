@@ -52,11 +52,7 @@ export const commentsService = {
   /**
    * Add a comment to a specific content
    */
-  async addComment(
-    contentId: string,
-    user: User,
-    text: string
-  ): Promise<Comment> {
+  async addComment(contentId: string, user: User, text: string): Promise<Comment> {
     const response = await apiClient.post<Comment>(`/api/comments/${contentId}`, {
       text,
       userId: user.uid,

@@ -1,13 +1,13 @@
-import { storage } from "../storage";
-import { aiService } from "./aiService";
-import { aiServiceManager } from "./aiServiceManager";
-import { Errors } from "../middleware/errorHandler";
+import { storage } from '../storage';
+import { aiService } from './aiService';
+import { aiServiceManager } from './aiServiceManager';
+import { Errors } from '../middleware/errorHandler';
 
 function asArray<T = any>(value: unknown): T[] {
   if (Array.isArray(value)) {
     return value as T[];
   }
-  if (value && typeof value === "object") {
+  if (value && typeof value === 'object') {
     return [value as T];
   }
   return [];
@@ -16,7 +16,9 @@ function asArray<T = any>(value: unknown): T[] {
 function extractSkills(profile: any): string[] {
   const skills = profile?.skills?.skills;
   if (Array.isArray(skills)) {
-    return skills.filter((skill): skill is string => typeof skill === "string" && skill.trim().length > 0);
+    return skills.filter(
+      (skill): skill is string => typeof skill === 'string' && skill.trim().length > 0
+    );
   }
   return [];
 }
@@ -25,13 +27,13 @@ function normalizeExperience(profile: any) {
   const rawExperience = profile?.experience;
   const records = asArray(rawExperience).filter(Boolean);
   return records.map((item: any) => ({
-    jobTitle: item.jobTitle || item.title || "Previous role",
-    employer: item.employer || item.company || "Previous employer",
-    location: item.location || "",
-    startDate: item.startDate || "",
-    endDate: item.currentlyEmployed ? "" : item.endDate || "",
+    jobTitle: item.jobTitle || item.title || 'Previous role',
+    employer: item.employer || item.company || 'Previous employer',
+    location: item.location || '',
+    startDate: item.startDate || '',
+    endDate: item.currentlyEmployed ? '' : item.endDate || '',
     isCurrentJob: Boolean(item.currentlyEmployed || item.isCurrentJob),
-    description: item.jobDescription || item.description || item.previousExperience || "",
+    description: item.jobDescription || item.description || item.previousExperience || '',
   }));
 }
 
@@ -39,12 +41,12 @@ function normalizeEducation(profile: any) {
   const rawEducation = profile?.education;
   const records = asArray(rawEducation).filter(Boolean);
   return records.map((item: any) => ({
-    degree: item.degree || item.highestEducation || "Education",
-    school: item.school || item.schoolName || "School",
-    location: item.location || "",
-    graduationDate: item.graduationDate || item.yearCompleted || "",
-    achievements: item.achievements || "",
-    additionalCourses: item.additionalCourses || "",
+    degree: item.degree || item.highestEducation || 'Education',
+    school: item.school || item.schoolName || 'School',
+    location: item.location || '',
+    graduationDate: item.graduationDate || item.yearCompleted || '',
+    achievements: item.achievements || '',
+    additionalCourses: item.additionalCourses || '',
   }));
 }
 
@@ -53,19 +55,19 @@ function estimateTokens(text: string) {
 }
 
 export class AiDocumentGenerationService {
-  async generateCv(userId: number, language = "English") {
+  async generateCv(userId: number, language = 'English') {
     const profile = await storage.getUserProfile(userId);
     if (!profile) {
-      throw Errors.notFound("Profile not found");
+      throw Errors.notFound('Profile not found');
     }
 
     const skills = extractSkills(profile);
     const experience = normalizeExperience(profile);
     const education = normalizeEducation(profile);
-    const name = profile.personal?.fullName || "WorkWise candidate";
+    const name = profile.personal?.fullName || 'WorkWise candidate';
 
     if (skills.length === 0) {
-      throw Errors.validation("Add at least one skill before generating an AI CV");
+      throw Errors.validation('Add at least one skill before generating an AI CV');
     }
 
     const summaryResponse = await aiServiceManager.generateProfessionalSummary({
@@ -77,7 +79,7 @@ export class AiDocumentGenerationService {
     });
 
     if (!summaryResponse.success || !summaryResponse.data) {
-      throw Errors.externalService(summaryResponse.error || "AI summary generation failed");
+      throw Errors.externalService(summaryResponse.error || 'AI summary generation failed');
     }
 
     const enhancedExperience: typeof experience = [];
@@ -96,18 +98,19 @@ export class AiDocumentGenerationService {
 
       enhancedExperience.push({
         ...item,
-        description: descriptionResponse.success && descriptionResponse.data
-          ? descriptionResponse.data
-          : item.description,
+        description:
+          descriptionResponse.success && descriptionResponse.data
+            ? descriptionResponse.data
+            : item.description,
       });
     }
 
     const content = {
       personalInfo: {
         fullName: name,
-        email: profile.email || "",
-        phone: profile.personal?.phoneNumber || "",
-        address: profile.personal?.location || "",
+        email: profile.email || '',
+        phone: profile.personal?.phoneNumber || '',
+        address: profile.personal?.location || '',
       },
       professionalSummary: summaryResponse.data,
       experience: enhancedExperience,
@@ -116,7 +119,7 @@ export class AiDocumentGenerationService {
       languages: Array.isArray(profile.skills?.languages)
         ? profile.skills.languages.map((languageName: string) => ({
             language: languageName,
-            proficiency: "Intermediate",
+            proficiency: 'Intermediate',
           }))
         : [],
       references: [],
@@ -131,39 +134,39 @@ export class AiDocumentGenerationService {
     return {
       title: `${name} CV`,
       content,
-      model: summaryResponse.service || "ai-service-manager",
+      model: summaryResponse.service || 'ai-service-manager',
       tokens,
       costEstimateCents: Math.ceil(tokens / 1000),
     };
   }
 
-  async generateCoverLetter(userId: number, jobId: number, tone = "professional") {
+  async generateCoverLetter(userId: number, jobId: number, tone = 'professional') {
     const [profile, job] = await Promise.all([
       storage.getUserProfile(userId),
       storage.getJob(jobId),
     ]);
 
     if (!profile) {
-      throw Errors.notFound("Profile not found");
+      throw Errors.notFound('Profile not found');
     }
     if (!job) {
-      throw Errors.notFound("Job not found");
+      throw Errors.notFound('Job not found');
     }
 
     const company = await storage.getCompany(job.companyId);
-    const skills = extractSkills(profile).join(", ") || "transferable skills";
+    const skills = extractSkills(profile).join(', ') || 'transferable skills';
     const experience = normalizeExperience(profile)[0];
-    const prompt = `Write a ${tone} job-specific cover letter for ${profile.personal?.fullName || "a WorkWise SA candidate"} applying for ${job.title} at ${company?.name || "the employer"}.
+    const prompt = `Write a ${tone} job-specific cover letter for ${profile.personal?.fullName || 'a WorkWise SA candidate'} applying for ${job.title} at ${company?.name || 'the employer'}.
 
 Candidate profile:
-- Location: ${profile.personal?.location || "Not specified"}
+- Location: ${profile.personal?.location || 'Not specified'}
 - Skills: ${skills}
-- Recent experience: ${experience?.jobTitle || "Not specified"} at ${experience?.employer || "Not specified"}
-- Bio: ${profile.personal?.bio || "Not specified"}
+- Recent experience: ${experience?.jobTitle || 'Not specified'} at ${experience?.employer || 'Not specified'}
+- Bio: ${profile.personal?.bio || 'Not specified'}
 
 Job details:
 - Title: ${job.title}
-- Company: ${company?.name || "Employer"}
+- Company: ${company?.name || 'Employer'}
 - Location: ${job.location}
 - Type: ${job.jobType}
 - Work mode: ${job.workMode}
@@ -182,10 +185,10 @@ Return only the cover letter body. Keep it concise, sincere, and suitable for th
         job: {
           id: job.id,
           title: job.title,
-          company: company?.name || "",
+          company: company?.name || '',
         },
       },
-      model: process.env.GOOGLE_GENAI_MODEL || "gemini-1.5-flash",
+      model: process.env.GOOGLE_GENAI_MODEL || 'gemini-1.5-flash',
       tokens,
       costEstimateCents: Math.ceil(tokens / 1000),
       generationTimeMs: Date.now() - startedAt,

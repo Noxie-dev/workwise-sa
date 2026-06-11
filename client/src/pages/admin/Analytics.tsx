@@ -80,7 +80,9 @@ const AdminAnalytics: React.FC = () => {
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
           <ShieldAlert className="h-16 w-16 text-red-500 mb-4" />
           <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-          <p className="text-muted-foreground mb-6">You do not have permission to access this page.</p>
+          <p className="text-muted-foreground mb-6">
+            You do not have permission to access this page.
+          </p>
           <Button asChild>
             <Link href="/">Return to Home</Link>
           </Button>
@@ -128,7 +130,9 @@ const AdminAnalytics: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Users
+                </CardTitle>
                 <div className="flex items-center justify-between">
                   <CardDescription className="text-3xl font-bold">
                     {analytics.overview.totalUsers.toLocaleString()}
@@ -140,7 +144,9 @@ const AdminAnalytics: React.FC = () => {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Active Users</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Active Users
+                </CardTitle>
                 <div className="flex items-center justify-between">
                   <CardDescription className="text-3xl font-bold">
                     {analytics.overview.activeUsers.toLocaleString()}
@@ -152,7 +158,9 @@ const AdminAnalytics: React.FC = () => {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Job Listings</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Job Listings
+                </CardTitle>
                 <div className="flex items-center justify-between">
                   <CardDescription className="text-3xl font-bold">
                     {analytics.overview.jobListings.toLocaleString()}
@@ -164,7 +172,9 @@ const AdminAnalytics: React.FC = () => {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Applications</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Applications
+                </CardTitle>
                 <div className="flex items-center justify-between">
                   <CardDescription className="text-3xl font-bold">
                     {analytics.overview.applications.toLocaleString()}
@@ -182,17 +192,19 @@ const AdminAnalytics: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="h-[300px] flex items-end justify-between gap-2">
-                {(isLoading ? Array(7).fill(0) : analytics.userActivity.daily).map((value, index) => (
-                  <div key={index} className="relative group">
-                    <div
-                      className="w-12 bg-blue-500 rounded-t hover:bg-blue-600 transition-all"
-                      style={{ height: `${Math.min(100, value)}%` }}
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 text-center text-xs mt-1">
-                      Day {index + 1}
+                {(isLoading ? Array(7).fill(0) : analytics.userActivity.daily).map(
+                  (value, index) => (
+                    <div key={index} className="relative group">
+                      <div
+                        className="w-12 bg-blue-500 rounded-t hover:bg-blue-600 transition-all"
+                        style={{ height: `${Math.min(100, value)}%` }}
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 text-center text-xs mt-1">
+                        Day {index + 1}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             </CardContent>
           </Card>
@@ -206,17 +218,19 @@ const AdminAnalytics: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="h-[300px] flex items-end justify-between gap-2">
-                {(isLoading ? Array(6).fill(0) : analytics.userActivity.monthly).map((value, index) => (
-                  <div key={index} className="relative group">
-                    <div
-                      className="w-16 bg-green-500 rounded-t hover:bg-green-600 transition-all"
-                      style={{ height: `${Math.min(100, value)}%` }}
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 text-center text-xs mt-1">
-                      Month {index + 1}
+                {(isLoading ? Array(6).fill(0) : analytics.userActivity.monthly).map(
+                  (value, index) => (
+                    <div key={index} className="relative group">
+                      <div
+                        className="w-16 bg-green-500 rounded-t hover:bg-green-600 transition-all"
+                        style={{ height: `${Math.min(100, value)}%` }}
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 text-center text-xs mt-1">
+                        Month {index + 1}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             </CardContent>
           </Card>
@@ -234,7 +248,9 @@ const AdminAnalytics: React.FC = () => {
                   <div key={index} className="relative group">
                     <div
                       className="w-16 bg-purple-500 rounded-t hover:bg-purple-600 transition-all"
-                      style={{ height: `${Math.min(100, analytics.jobMetrics.counts[index] || 0)}%` }}
+                      style={{
+                        height: `${Math.min(100, analytics.jobMetrics.counts[index] || 0)}%`,
+                      }}
                     />
                     <div className="absolute bottom-0 left-0 right-0 text-center text-xs mt-1">
                       {category}
@@ -264,7 +280,7 @@ const AdminAnalytics: React.FC = () => {
                 value: analytics.conversionRates.interviewToHire,
                 color: 'text-orange-500',
               },
-            ].map((metric) => (
+            ].map(metric => (
               <Card key={metric.title}>
                 <CardHeader>
                   <CardTitle>{metric.title}</CardTitle>

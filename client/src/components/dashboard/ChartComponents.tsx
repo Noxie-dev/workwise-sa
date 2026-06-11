@@ -13,16 +13,13 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  Cell
+  Cell,
 } from 'recharts';
 
 // Export individual chart components
-export const JobCategoryBarChart = ({ data, colors }: { data: any[], colors: string[] }) => (
+export const JobCategoryBarChart = ({ data, colors }: { data: any[]; colors: string[] }) => (
   <ResponsiveContainer width="100%" height="100%">
-    <BarChart
-      data={data}
-      margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
-    >
+    <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 40 }}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis dataKey="category" angle={-45} textAnchor="end" height={70} />
       <YAxis />
@@ -37,7 +34,7 @@ export const JobCategoryBarChart = ({ data, colors }: { data: any[], colors: str
   </ResponsiveContainer>
 );
 
-export const JobLocationPieChart = ({ data, colors }: { data: any[], colors: string[] }) => (
+export const JobLocationPieChart = ({ data, colors }: { data: any[]; colors: string[] }) => (
   <ResponsiveContainer width="100%" height="100%">
     <PieChart>
       <Pie
@@ -48,13 +45,13 @@ export const JobLocationPieChart = ({ data, colors }: { data: any[], colors: str
         cy="50%"
         outerRadius={80}
         fill="#8884d8"
-        label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
       >
         {data.map((entry, index) => (
           <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
         ))}
       </Pie>
-      <Tooltip formatter={(value) => [`${value} jobs`, 'Count']} />
+      <Tooltip formatter={value => [`${value} jobs`, 'Count']} />
       <Legend />
     </PieChart>
   </ResponsiveContainer>
@@ -62,10 +59,7 @@ export const JobLocationPieChart = ({ data, colors }: { data: any[], colors: str
 
 export const ApplicationTrendsLineChart = ({ data }: { data: any[] }) => (
   <ResponsiveContainer width="100%" height="100%">
-    <LineChart
-      data={data}
-      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-    >
+    <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis dataKey="date" />
       <YAxis />
@@ -87,7 +81,7 @@ export const ApplicationTrendsLineChart = ({ data }: { data: any[] }) => (
 const ChartComponents = {
   JobCategoryBarChart,
   JobLocationPieChart,
-  ApplicationTrendsLineChart
+  ApplicationTrendsLineChart,
 };
 
 export default ChartComponents;

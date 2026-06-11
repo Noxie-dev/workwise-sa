@@ -25,7 +25,10 @@ export const useCompanyBySlug = (slug: string) => {
   });
 };
 
-export const useCompanyJobs = (companyId: number, params: { page?: number; limit?: number } = {}) => {
+export const useCompanyJobs = (
+  companyId: number,
+  params: { page?: number; limit?: number } = {}
+) => {
   return useQuery({
     queryKey: ['company-jobs', companyId, params],
     queryFn: () => companyService.getCompanyJobs(companyId, params),
@@ -94,10 +97,14 @@ export const useGenerateCompanySummary = () => {
 
 export const useGenerateCoverLetter = () => {
   return useMutation({
-    mutationFn: ({ companyId, jobId, userProfile }: { 
-      companyId: number; 
-      jobId: number; 
-      userProfile: any; 
+    mutationFn: ({
+      companyId,
+      jobId,
+      userProfile,
+    }: {
+      companyId: number;
+      jobId: number;
+      userProfile: any;
     }) => companyService.generateCoverLetter(companyId, jobId, userProfile),
   });
 };

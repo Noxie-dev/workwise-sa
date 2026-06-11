@@ -47,7 +47,7 @@ function createMockResponse() {
 
 function getRouteHandlers(path: string, method: string) {
   const layer = router.stack.find(
-    (entry: any) => entry.route?.path === path && entry.route.methods?.[method],
+    (entry: any) => entry.route?.path === path && entry.route.methods?.[method]
   );
 
   if (!layer) {
@@ -173,7 +173,7 @@ describe('profile routes', () => {
       expect.objectContaining({
         personal: { fullName: 'Updated Name' },
         preferences: { willingToRelocate: true },
-      }),
+      })
     );
   });
 

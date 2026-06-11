@@ -7,18 +7,18 @@ vi.mock('firebase-admin', () => ({
   apps: [],
   initializeApp: vi.fn().mockReturnValue({ name: 'mock-app' }),
   firestore: vi.fn().mockReturnValue({}),
-  storage: vi.fn().mockReturnValue({})
+  storage: vi.fn().mockReturnValue({}),
 }));
 
 // Mock the secretManager
 vi.mock('../../services/secretManager', () => ({
   secretManager: {
-    getSecret: vi.fn().mockImplementation((key) => {
+    getSecret: vi.fn().mockImplementation(key => {
       if (key === 'FIREBASE_PROJECT_ID') return 'test-project';
       if (key === 'FIREBASE_STORAGE_BUCKET') return 'test-bucket.appspot.com';
       return null;
-    })
-  }
+    }),
+  },
 }));
 
 describe('Firebase Module', () => {

@@ -6,7 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
@@ -25,14 +31,14 @@ import {
   Sliders,
   FileText,
   AlertTriangle,
-  Beaker
+  Beaker,
 } from 'lucide-react';
 import AdminLayout from '@/components/marketing-rules/AdminLayout';
 
 const SettingsPage: React.FC = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('general');
-  
+
   // Mock save function
   const handleSave = () => {
     toast({
@@ -55,7 +61,12 @@ const SettingsPage: React.FC = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs
+        defaultValue="general"
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
         <TabsList className="grid grid-cols-3 md:grid-cols-9 gap-2">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
@@ -93,15 +104,13 @@ const SettingsPage: React.FC = () => {
             <Beaker className="h-4 w-4" />
             <span className="hidden md:inline">Experimental</span>
           </TabsTrigger>
-        </TabsList>     
-   {/* 1. General Settings */}
+        </TabsList>
+        {/* 1. General Settings */}
         <TabsContent value="general" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Site Branding</CardTitle>
-              <CardDescription>
-                Configure your site branding and appearance
-              </CardDescription>
+              <CardDescription>Configure your site branding and appearance</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -116,40 +125,31 @@ const SettingsPage: React.FC = () => {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="primary-color">Primary Color</Label>
                 <div className="flex items-center gap-4">
-                  <Input 
-                    id="primary-color" 
-                    type="color" 
-                    defaultValue="#0066CC" 
-                    className="w-16 h-10" 
+                  <Input
+                    id="primary-color"
+                    type="color"
+                    defaultValue="#0066CC"
+                    className="w-16 h-10"
                   />
-                  <Input 
-                    type="text" 
-                    defaultValue="#0066CC" 
-                    className="w-32" 
-                  />
+                  <Input type="text" defaultValue="#0066CC" className="w-32" />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="header-text">Header Text</Label>
-                <Input 
-                  id="header-text" 
-                  defaultValue="WorkWise SA - Find Your Next Opportunity" 
-                />
+                <Input id="header-text" defaultValue="WorkWise SA - Find Your Next Opportunity" />
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Default Location/Region</CardTitle>
-              <CardDescription>
-                Set default region for new job rules
-              </CardDescription>
+              <CardDescription>Set default region for new job rules</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -172,14 +172,12 @@ const SettingsPage: React.FC = () => {
                 </Select>
               </div>
             </CardContent>
-          </Card>  
-        
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Default Job Type</CardTitle>
-              <CardDescription>
-                Select most common entry job types
-              </CardDescription>
+              <CardDescription>Select most common entry job types</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -210,7 +208,7 @@ const SettingsPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <div className="flex justify-end">
             <Button onClick={handleSave}>
               <Save className="h-4 w-4 mr-2" />
@@ -224,9 +222,7 @@ const SettingsPage: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>Manage Admins</CardTitle>
-              <CardDescription>
-                Add, remove, and manage admin permissions
-              </CardDescription>
+              <CardDescription>Add, remove, and manage admin permissions</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-4">
@@ -245,8 +241,8 @@ const SettingsPage: React.FC = () => {
                       <SelectItem value="analytics-viewer">Analytics Viewer</SelectItem>
                     </SelectContent>
                   </Select>
-                </div> 
-               
+                </div>
+
                 <div className="flex items-center justify-between p-3 bg-muted rounded-md">
                   <div>
                     <p className="font-medium">marketing@workwisesa.co.za</p>
@@ -264,7 +260,7 @@ const SettingsPage: React.FC = () => {
                   </Select>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-2 mt-4">
                 <Input placeholder="Enter email address" />
                 <Select defaultValue="rule-editor">
@@ -281,33 +277,41 @@ const SettingsPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Activity Logs</CardTitle>
-              <CardDescription>
-                View admin actions history
-              </CardDescription>
+              <CardDescription>View admin actions history</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 <div className="p-3 border-b">
                   <p className="text-sm font-medium">Marketing rule "Gauteng Retail" created</p>
-                  <p className="text-xs text-muted-foreground">By admin@workwisesa.co.za • 2 hours ago</p>
+                  <p className="text-xs text-muted-foreground">
+                    By admin@workwisesa.co.za • 2 hours ago
+                  </p>
                 </div>
                 <div className="p-3 border-b">
                   <p className="text-sm font-medium">Marketing rule "Cape Town Security" edited</p>
-                  <p className="text-xs text-muted-foreground">By marketing@workwisesa.co.za • Yesterday</p>
+                  <p className="text-xs text-muted-foreground">
+                    By marketing@workwisesa.co.za • Yesterday
+                  </p>
                 </div>
                 <div className="p-3 border-b">
-                  <p className="text-sm font-medium">New admin user added: analytics@workwisesa.co.za</p>
-                  <p className="text-xs text-muted-foreground">By admin@workwisesa.co.za • 3 days ago</p>
+                  <p className="text-sm font-medium">
+                    New admin user added: analytics@workwisesa.co.za
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    By admin@workwisesa.co.za • 3 days ago
+                  </p>
                 </div>
               </div>
-              <Button variant="outline" className="w-full mt-4">View All Activity</Button>
+              <Button variant="outline" className="w-full mt-4">
+                View All Activity
+              </Button>
             </CardContent>
-          </Card>      
-    
+          </Card>
+
           <div className="flex justify-end">
             <Button onClick={handleSave}>
               <Save className="h-4 w-4 mr-2" />
@@ -321,48 +325,56 @@ const SettingsPage: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>CTA Templates Manager</CardTitle>
-              <CardDescription>
-                Save and manage reusable call-to-action phrases
-              </CardDescription>
+              <CardDescription>Save and manage reusable call-to-action phrases</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="p-3 bg-muted rounded-md flex justify-between items-center">
                   <p>"No experience? No problem! Apply now."</p>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm">Edit</Button>
-                    <Button variant="ghost" size="sm">Delete</Button>
+                    <Button variant="ghost" size="sm">
+                      Edit
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      Delete
+                    </Button>
                   </div>
                 </div>
                 <div className="p-3 bg-muted rounded-md flex justify-between items-center">
                   <p>"Perfect for first-time job seekers! Click to apply."</p>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm">Edit</Button>
-                    <Button variant="ghost" size="sm">Delete</Button>
+                    <Button variant="ghost" size="sm">
+                      Edit
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      Delete
+                    </Button>
                   </div>
                 </div>
                 <div className="p-3 bg-muted rounded-md flex justify-between items-center">
                   <p>"Start your career today! Easy application process."</p>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm">Edit</Button>
-                    <Button variant="ghost" size="sm">Delete</Button>
+                    <Button variant="ghost" size="sm">
+                      Edit
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      Delete
+                    </Button>
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-2 mt-4">
                 <Input placeholder="Enter new CTA template" />
                 <Button>Add Template</Button>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Rule Automation Settings</CardTitle>
-              <CardDescription>
-                Configure automatic rule behavior
-              </CardDescription>
+              <CardDescription>Configure automatic rule behavior</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -374,7 +386,7 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <Switch id="auto-enable" defaultChecked />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="auto-deactivate">Auto-deactivate rules</Label>
@@ -384,28 +396,21 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <Switch id="auto-deactivate" />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="deactivate-days">Days until auto-deactivation</Label>
                 <div className="flex items-center gap-4">
-                  <Slider
-                    defaultValue={[30]}
-                    max={90}
-                    step={1}
-                    className="flex-1"
-                  />
+                  <Slider defaultValue={[30]} max={90} step={1} className="flex-1" />
                   <span className="w-12 text-center">30</span>
                 </div>
               </div>
             </CardContent>
-          </Card>     
-     
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Rule Priority System</CardTitle>
-              <CardDescription>
-                Configure how rules are prioritized
-              </CardDescription>
+              <CardDescription>Configure how rules are prioritized</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -425,7 +430,7 @@ const SettingsPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between mt-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="weight-system">Enable rule weight system</Label>
@@ -437,7 +442,7 @@ const SettingsPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <div className="flex justify-end">
             <Button onClick={handleSave}>
               <Save className="h-4 w-4 mr-2" />
@@ -451,9 +456,7 @@ const SettingsPage: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>CTA Impression Limit</CardTitle>
-              <CardDescription>
-                Cap how many times a CTA is shown per user/session
-              </CardDescription>
+              <CardDescription>Cap how many times a CTA is shown per user/session</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -465,20 +468,15 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <Switch id="enable-impression-limit" defaultChecked />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="impression-limit">Maximum impressions per user</Label>
                 <div className="flex items-center gap-4">
-                  <Slider
-                    defaultValue={[3]}
-                    max={10}
-                    step={1}
-                    className="flex-1"
-                  />
+                  <Slider defaultValue={[3]} max={10} step={1} className="flex-1" />
                   <span className="w-12 text-center">3</span>
                 </div>
-              </div> 
-             
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="impression-period">Reset period</Label>
                 <Select defaultValue="daily">
@@ -495,13 +493,11 @@ const SettingsPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Injection Placement Control</CardTitle>
-              <CardDescription>
-                Choose where CTAs appear in job listings
-              </CardDescription>
+              <CardDescription>Choose where CTAs appear in job listings</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -517,7 +513,7 @@ const SettingsPage: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="flex items-center justify-between mt-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="allow-rule-override">Allow rule-specific placement</Label>
@@ -527,7 +523,7 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <Switch id="allow-rule-override" defaultChecked />
               </div>
-              
+
               <div className="flex items-center justify-between mt-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="highlight-cta">Highlight CTAs</Label>
@@ -538,14 +534,12 @@ const SettingsPage: React.FC = () => {
                 <Switch id="highlight-cta" defaultChecked />
               </div>
             </CardContent>
-          </Card>       
-   
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Integration Channels</CardTitle>
-              <CardDescription>
-                Enable/disable platforms for CTA distribution
-              </CardDescription>
+              <CardDescription>Enable/disable platforms for CTA distribution</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -576,7 +570,7 @@ const SettingsPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <div className="flex justify-end">
             <Button onClick={handleSave}>
               <Save className="h-4 w-4 mr-2" />
@@ -590,9 +584,7 @@ const SettingsPage: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>Tracking Configurations</CardTitle>
-              <CardDescription>
-                Configure analytics tracking services
-              </CardDescription>
+              <CardDescription>Configure analytics tracking services</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -603,28 +595,30 @@ const SettingsPage: React.FC = () => {
                   </p>
                 </div>
                 <Switch id="google-analytics" defaultChecked />
-              </div>            
-  
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="ga-id">Google Analytics ID</Label>
-                <Input id="ga-id" placeholder="UA-XXXXXXXXX-X or G-XXXXXXXXXX" defaultValue="G-ABC123XYZ" />
+                <Input
+                  id="ga-id"
+                  placeholder="UA-XXXXXXXXX-X or G-XXXXXXXXXX"
+                  defaultValue="G-ABC123XYZ"
+                />
               </div>
-              
+
               <div className="flex items-center justify-between mt-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="mixpanel">Mixpanel</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Track user behavior with Mixpanel
-                  </p>
+                  <p className="text-sm text-muted-foreground">Track user behavior with Mixpanel</p>
                 </div>
                 <Switch id="mixpanel" />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="mixpanel-id">Mixpanel Project Token</Label>
                 <Input id="mixpanel-id" placeholder="Enter your Mixpanel token" />
               </div>
-              
+
               <div className="flex items-center justify-between mt-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="custom-events">Track custom events</Label>
@@ -636,13 +630,11 @@ const SettingsPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Export Frequency</CardTitle>
-              <CardDescription>
-                Set how often analytics data is exported
-              </CardDescription>
+              <CardDescription>Set how often analytics data is exported</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -659,7 +651,7 @@ const SettingsPage: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Export format</Label>
                 <Select defaultValue="csv">
@@ -672,21 +664,24 @@ const SettingsPage: React.FC = () => {
                     <SelectItem value="excel">Excel</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>  
-            
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="export-email">Email reports to</Label>
-                <Input id="export-email" type="email" placeholder="Enter email address" defaultValue="admin@workwisesa.co.za" />
+                <Input
+                  id="export-email"
+                  type="email"
+                  placeholder="Enter email address"
+                  defaultValue="admin@workwisesa.co.za"
+                />
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>CTR Threshold Alerts</CardTitle>
-              <CardDescription>
-                Get notified when CTR drops below threshold
-              </CardDescription>
+              <CardDescription>Get notified when CTR drops below threshold</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -698,27 +693,27 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <Switch id="enable-ctr-alerts" defaultChecked />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="ctr-threshold">CTR threshold percentage</Label>
                 <div className="flex items-center gap-4">
-                  <Slider
-                    defaultValue={[10]}
-                    max={30}
-                    step={1}
-                    className="flex-1"
-                  />
+                  <Slider defaultValue={[10]} max={30} step={1} className="flex-1" />
                   <span className="w-12 text-center">10%</span>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="alert-email">Send alerts to</Label>
-                <Input id="alert-email" type="email" placeholder="Enter email address" defaultValue="marketing@workwisesa.co.za" />
+                <Input
+                  id="alert-email"
+                  type="email"
+                  placeholder="Enter email address"
+                  defaultValue="marketing@workwisesa.co.za"
+                />
               </div>
             </CardContent>
           </Card>
-          
+
           <div className="flex justify-end">
             <Button onClick={handleSave}>
               <Save className="h-4 w-4 mr-2" />
@@ -732,9 +727,7 @@ const SettingsPage: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>2FA for Admins</CardTitle>
-              <CardDescription>
-                Configure two-factor authentication for admin users
-              </CardDescription>
+              <CardDescription>Configure two-factor authentication for admin users</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -745,8 +738,8 @@ const SettingsPage: React.FC = () => {
                   </p>
                 </div>
                 <Switch id="require-2fa" />
-              </div>     
-         
+              </div>
+
               <div className="space-y-2">
                 <Label>2FA method</Label>
                 <Select defaultValue="app">
@@ -760,7 +753,7 @@ const SettingsPage: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="flex items-center justify-between mt-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="remember-device">Remember device for 30 days</Label>
@@ -772,13 +765,11 @@ const SettingsPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>IP Whitelisting</CardTitle>
-              <CardDescription>
-                Only allow admin login from specific IPs
-              </CardDescription>
+              <CardDescription>Only allow admin login from specific IPs</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -790,15 +781,15 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <Switch id="enable-ip-whitelist" />
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Whitelisted IPs</Label>
-                <Textarea 
-                  placeholder="Enter IP addresses, one per line" 
+                <Textarea
+                  placeholder="Enter IP addresses, one per line"
                   className="min-h-[100px]"
                 />
               </div>
-              
+
               <div className="flex items-center justify-between mt-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="notify-ip-block">Notify on blocked attempts</Label>
@@ -809,14 +800,12 @@ const SettingsPage: React.FC = () => {
                 <Switch id="notify-ip-block" defaultChecked />
               </div>
             </CardContent>
-          </Card>  
-        
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Data Retention Settings</CardTitle>
-              <CardDescription>
-                Configure how long data is stored
-              </CardDescription>
+              <CardDescription>Configure how long data is stored</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -834,7 +823,7 @@ const SettingsPage: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="flex items-center justify-between mt-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="auto-delete">Auto-delete expired data</Label>
@@ -844,7 +833,7 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <Switch id="auto-delete" defaultChecked />
               </div>
-              
+
               <div className="flex items-center justify-between mt-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="privacy-mode">Privacy mode</Label>
@@ -856,7 +845,7 @@ const SettingsPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <div className="flex justify-end">
             <Button onClick={handleSave}>
               <Save className="h-4 w-4 mr-2" />
@@ -870,9 +859,7 @@ const SettingsPage: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>Bulk Rule Upload</CardTitle>
-              <CardDescription>
-                Import marketing rules in bulk
-              </CardDescription>
+              <CardDescription>Import marketing rules in bulk</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -887,8 +874,8 @@ const SettingsPage: React.FC = () => {
                     <SelectItem value="excel">Excel</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>  
-            
+              </div>
+
               <div className="space-y-2">
                 <Label>Upload file</Label>
                 <div className="flex items-center gap-4">
@@ -896,7 +883,7 @@ const SettingsPage: React.FC = () => {
                   <Button>Upload</Button>
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between mt-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="overwrite-existing">Overwrite existing rules</Label>
@@ -906,7 +893,7 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <Switch id="overwrite-existing" />
               </div>
-              
+
               <div className="flex items-center justify-between mt-4">
                 <div className="space-y-0.5">
                   <Label htmlFor="validate-import">Validate before import</Label>
@@ -918,13 +905,11 @@ const SettingsPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Backup Configurations</CardTitle>
-              <CardDescription>
-                Export system settings and rules for backup
-              </CardDescription>
+              <CardDescription>Export system settings and rules for backup</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -947,8 +932,8 @@ const SettingsPage: React.FC = () => {
                     <Label htmlFor="export-analytics">Analytics Data</Label>
                   </div>
                 </div>
-              </div>    
-          
+              </div>
+
               <div className="space-y-2">
                 <Label>Export format</Label>
                 <Select defaultValue="json">
@@ -962,14 +947,14 @@ const SettingsPage: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <Button className="mt-4">
                 <Download className="h-4 w-4 mr-2" />
                 Export Backup
               </Button>
             </CardContent>
           </Card>
-          
+
           <div className="flex justify-end">
             <Button onClick={handleSave}>
               <Save className="h-4 w-4 mr-2" />
@@ -983,9 +968,7 @@ const SettingsPage: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>Admin Alerts</CardTitle>
-              <CardDescription>
-                Configure notifications for system events
-              </CardDescription>
+              <CardDescription>Configure notifications for system events</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -1008,8 +991,8 @@ const SettingsPage: React.FC = () => {
                     <Label htmlFor="alert-rule-change">Rule changes</Label>
                   </div>
                 </div>
-              </div> 
-             
+              </div>
+
               <div className="space-y-2">
                 <Label>Notification channels</Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1031,20 +1014,23 @@ const SettingsPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="alert-email">Alert email recipients</Label>
-                <Input id="alert-email" type="text" placeholder="Enter email addresses (comma separated)" defaultValue="admin@workwisesa.co.za" />
+                <Input
+                  id="alert-email"
+                  type="text"
+                  placeholder="Enter email addresses (comma separated)"
+                  defaultValue="admin@workwisesa.co.za"
+                />
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Weekly Digest</CardTitle>
-              <CardDescription>
-                Configure weekly performance summary emails
-              </CardDescription>
+              <CardDescription>Configure weekly performance summary emails</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -1056,7 +1042,7 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <Switch id="enable-digest" defaultChecked />
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Send on day</Label>
                 <Select defaultValue="monday">
@@ -1073,18 +1059,18 @@ const SettingsPage: React.FC = () => {
                     <SelectItem value="sunday">Sunday</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>  
-            
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="digest-recipients">Digest recipients</Label>
-                <Textarea 
+                <Textarea
                   id="digest-recipients"
                   placeholder="Enter email addresses, one per line"
                   defaultValue="admin@workwisesa.co.za&#10;marketing@workwisesa.co.za"
                   className="min-h-[100px]"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Include in digest</Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1108,7 +1094,7 @@ const SettingsPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <div className="flex justify-end">
             <Button onClick={handleSave}>
               <Save className="h-4 w-4 mr-2" />
@@ -1123,28 +1109,24 @@ const SettingsPage: React.FC = () => {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div>
                 <CardTitle>Experimental Features</CardTitle>
-                <CardDescription>
-                  Enable beta and experimental features
-                </CardDescription>
+                <CardDescription>Enable beta and experimental features</CardDescription>
               </div>
               <AlertTriangle className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent className="pt-4">
               <p className="text-sm text-amber-500 mb-4">
                 Warning: These features are experimental and may not work as expected.
-              </p>    
-          
+              </p>
+
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="ab-testing">A/B Test Rules</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Enable split testing for CTAs
-                    </p>
+                    <p className="text-sm text-muted-foreground">Enable split testing for CTAs</p>
                   </div>
                   <Switch id="ab-testing" />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>A/B test variants</Label>
                   <Select defaultValue="2">
@@ -1158,7 +1140,7 @@ const SettingsPage: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="flex items-center justify-between mt-6">
                   <div className="space-y-0.5">
                     <Label htmlFor="ai-suggestions">Smart Suggestions</Label>
@@ -1168,7 +1150,7 @@ const SettingsPage: React.FC = () => {
                   </div>
                   <Switch id="ai-suggestions" />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>AI suggestion frequency</Label>
                   <Select defaultValue="weekly">
@@ -1182,7 +1164,7 @@ const SettingsPage: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="flex items-center justify-between mt-6">
                   <div className="space-y-0.5">
                     <Label htmlFor="auto-targeting">Smart Audience Targeting</Label>
@@ -1192,7 +1174,7 @@ const SettingsPage: React.FC = () => {
                   </div>
                   <Switch id="auto-targeting" />
                 </div>
-                
+
                 <div className="flex items-center justify-between mt-6">
                   <div className="space-y-0.5">
                     <Label htmlFor="dynamic-cta">Dynamic CTA Generation</Label>
@@ -1205,7 +1187,7 @@ const SettingsPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <div className="flex justify-end">
             <Button onClick={handleSave}>
               <Save className="h-4 w-4 mr-2" />

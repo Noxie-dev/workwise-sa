@@ -1,10 +1,10 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize the Google Generative AI with the API key
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
 
 // Use the Gemini Pro model
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
 type JobInfo = {
   jobTitle: string;
@@ -35,17 +35,17 @@ type ResumeData = {
 export async function generateProfessionalSummary(data: ResumeData): Promise<string> {
   try {
     const { name, skills, experience, education, language = 'English' } = data;
-    
+
     // Create a prompt for the AI to generate a professional summary
-    let prompt = `Generate a professional and concise CV summary for ${name} in ${language} language. 
-    
-Their skills include: ${skills.join(', ')}. 
+    const prompt = `Generate a professional and concise CV summary for ${name} in ${language} language.
+
+Their skills include: ${skills.join(', ')}.
 
 Their most recent work experience is: ${experience[0]?.jobTitle || 'N/A'} at ${experience[0]?.employer || 'N/A'}.
 
 Their highest education is: ${education[0]?.degree || 'N/A'} from ${education[0]?.school || 'N/A'}.
 
-The summary should be professional, highlight their skills and experience, and be appropriate for a job application. 
+The summary should be professional, highlight their skills and experience, and be appropriate for a job application.
 Keep it between 100-150 words and focus on their strengths and potential contribution to employers.
 Write in first person ("I am...").`;
 
@@ -53,24 +53,27 @@ Write in first person ("I am...").`;
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-    
+
     return text;
   } catch (error) {
-    console.error("Error generating professional summary:", error);
-    return "Unable to generate a professional summary. Please try again or write your own summary.";
+    console.error('Error generating professional summary:', error);
+    return 'Unable to generate a professional summary. Please try again or write your own summary.';
   }
 }
 
 /**
  * Generate a job description for CV/resume using Google's Gemini AI
  */
-export async function generateJobDescription(jobInfo: JobInfo, language: string = 'English'): Promise<string> {
+export async function generateJobDescription(
+  jobInfo: JobInfo,
+  language: string = 'English'
+): Promise<string> {
   try {
     const { jobTitle, employer, description } = jobInfo;
-    
+
     // Create a prompt for the AI to generate a job description
     const prompt = `Generate a professional and concise job description for a CV/resume in ${language} language, for the position of ${jobTitle} at ${employer}.
-    
+
 Here's some context about the job: ${description || 'No specific details provided.'}
 
 The description should:
@@ -85,11 +88,11 @@ The description should:
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-    
+
     return text;
   } catch (error) {
-    console.error("Error generating job description:", error);
-    return "Unable to generate a job description. Please try again or write your own description.";
+    console.error('Error generating job description:', error);
+    return 'Unable to generate a job description. Please try again or write your own description.';
   }
 }
 
@@ -100,22 +103,25 @@ The description should:
 export async function generateFullCV(data: ResumeData): Promise<string> {
   try {
     const { name, skills, experience, education, language = 'English' } = data;
-    
+
     // Create a prompt for generating a complete CV
     const prompt = `Generate a complete CV/resume for ${name} in ${language} language.
-    
+
 Their skills include: ${skills.join(', ')}.
 
 Their work experience:
-${experience.map(exp => 
-  `- ${exp.jobTitle} at ${exp.employer} (${exp.startDate} - ${exp.isCurrentJob ? 'Present' : exp.endDate})
+${experience
+  .map(
+    exp =>
+      `- ${exp.jobTitle} at ${exp.employer} (${exp.startDate} - ${exp.isCurrentJob ? 'Present' : exp.endDate})
    ${exp.description || 'No description provided.'}`
-).join('\n')}
+  )
+  .join('\n')}
 
 Their education:
-${education.map(edu => 
-  `- ${edu.degree} from ${edu.school}, graduated ${edu.graduationDate}`
-).join('\n')}
+${education
+  .map(edu => `- ${edu.degree} from ${edu.school}, graduated ${edu.graduationDate}`)
+  .join('\n')}
 
 The CV should be professional and formatted for a job application in South Africa. Focus on essential worker positions like cashiers, security guards, general workers, etc.`;
 
@@ -123,11 +129,11 @@ The CV should be professional and formatted for a job application in South Afric
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-    
+
     return text;
   } catch (error) {
-    console.error("Error generating full CV:", error);
-    return "Unable to generate a complete CV. Please try again or fill out the sections manually.";
+    console.error('Error generating full CV:', error);
+    return 'Unable to generate a complete CV. Please try again or fill out the sections manually.';
   }
 }
 
@@ -139,10 +145,10 @@ export async function translateText(text: string, targetLanguage: string): Promi
     if (!text || text.trim() === '') {
       return '';
     }
-    
+
     // Create a prompt for translation
     const prompt = `Translate the following text into ${targetLanguage} language. Maintain the professional tone and meaning:
-    
+
 ${text}
 
 The translation should sound natural and professional in ${targetLanguage}.`;
@@ -151,7 +157,7 @@ The translation should sound natural and professional in ${targetLanguage}.`;
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const translatedText = response.text();
-    
+
     return translatedText;
   } catch (error) {
     console.error(`Error translating text to ${targetLanguage}:`, error);

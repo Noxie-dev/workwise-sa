@@ -10,11 +10,11 @@ export interface SafeRenderProps {
   suppressHydrationWarning?: boolean;
 }
 
-export function SafeRender({ 
-  server, 
-  client, 
-  suppressHydrationWarning = true 
-}: SafeRenderProps) {
+export const SafeRender = ({
+  server,
+  client,
+  suppressHydrationWarning = true,
+}: SafeRenderProps) => {
   const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
@@ -22,24 +22,19 @@ export function SafeRender({
   }, []);
 
   return (
-    <div suppressHydrationWarning={suppressHydrationWarning}>
-      {isClient ? client : server}
-    </div>
+    <div suppressHydrationWarning={suppressHydrationWarning}>{isClient ? client : server}</div>
   );
-}
+};
 
 /**
  * Utility for safely accessing browser-only APIs
  * Returns fallback during SSR and actual value on client
  */
-export function safeBrowserAccess<T>(
-  accessor: () => T,
-  fallback: T
-): T {
+export function safeBrowserAccess<T>(accessor: () => T, fallback: T): T {
   if (typeof window === 'undefined') {
     return fallback;
   }
-  
+
   try {
     return accessor();
   } catch {
@@ -54,7 +49,7 @@ export const safeLocalStorage = {
   getItem: (key: string, fallback: string | null = null): string | null => {
     return safeBrowserAccess(() => localStorage.getItem(key), fallback);
   },
-  
+
   setItem: (key: string, value: string): void => {
     if (typeof window !== 'undefined') {
       try {
@@ -64,7 +59,7 @@ export const safeLocalStorage = {
       }
     }
   },
-  
+
   removeItem: (key: string): void => {
     if (typeof window !== 'undefined') {
       try {
@@ -73,7 +68,7 @@ export const safeLocalStorage = {
         console.warn('Failed to remove localStorage item:', error);
       }
     }
-  }
+  },
 };
 
 /**
@@ -83,7 +78,7 @@ export const safeSessionStorage = {
   getItem: (key: string, fallback: string | null = null): string | null => {
     return safeBrowserAccess(() => sessionStorage.getItem(key), fallback);
   },
-  
+
   setItem: (key: string, value: string): void => {
     if (typeof window !== 'undefined') {
       try {
@@ -93,7 +88,7 @@ export const safeSessionStorage = {
       }
     }
   },
-  
+
   removeItem: (key: string): void => {
     if (typeof window !== 'undefined') {
       try {
@@ -102,6 +97,5 @@ export const safeSessionStorage = {
         console.warn('Failed to remove sessionStorage item:', error);
       }
     }
-  }
+  },
 };
-

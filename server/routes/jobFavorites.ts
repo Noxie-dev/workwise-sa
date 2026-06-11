@@ -11,10 +11,13 @@ const router = Router();
 // Validation schemas
 const toggleFavoriteSchema = z.object({
   params: z.object({
-    jobId: z.string().transform(val => parseInt(val)).refine(val => !isNaN(val), {
-        error: 'Job ID must be a valid number'
-    }),
-  })
+    jobId: z
+      .string()
+      .transform(val => parseInt(val))
+      .refine(val => !isNaN(val), {
+        error: 'Job ID must be a valid number',
+      }),
+  }),
 });
 
 const getFavoritesSchema = z.object({
@@ -23,11 +26,12 @@ const getFavoritesSchema = z.object({
     limit: z.coerce.number().min(1).max(50).prefault(20),
     sortBy: z.enum(['createdAt', 'jobTitle', 'company', 'salary']).prefault('createdAt'),
     sortOrder: z.enum(['asc', 'desc']).prefault('desc'),
-  })
+  }),
 });
 
 // Get user's favorite jobs
-router.get('/favorites',
+router.get(
+  '/favorites',
   verifyFirebaseToken,
   validate(getFavoritesSchema),
   async (req, res, next) => {
@@ -62,7 +66,8 @@ router.get('/favorites',
 );
 
 // Check if job is favorited by user
-router.get('/:jobId/favorite',
+router.get(
+  '/:jobId/favorite',
   verifyFirebaseToken,
   validate(toggleFavoriteSchema),
   async (req, res, next) => {
@@ -90,7 +95,8 @@ router.get('/:jobId/favorite',
 );
 
 // Add job to favorites
-router.post('/:jobId/favorite',
+router.post(
+  '/:jobId/favorite',
   verifyFirebaseToken,
   validate(toggleFavoriteSchema),
   async (req, res, next) => {
@@ -139,7 +145,8 @@ router.post('/:jobId/favorite',
 );
 
 // Remove job from favorites
-router.delete('/:jobId/favorite',
+router.delete(
+  '/:jobId/favorite',
   verifyFirebaseToken,
   validate(toggleFavoriteSchema),
   async (req, res, next) => {
@@ -182,21 +189,18 @@ router.delete('/:jobId/favorite',
 );
 
 // Get favorite jobs count
-router.get('/favorites/count',
-  verifyFirebaseToken,
-  async (req, res, next) => {
-    try {
-      const dbUser = await resolveAuthenticatedDatabaseUser((req as any).user);
-      const userId = dbUser.id;
-      const count = await storage.getUserFavoriteJobsCount(userId);
+router.get('/favorites/count', verifyFirebaseToken, async (req, res, next) => {
+  try {
+    const dbUser = await resolveAuthenticatedDatabaseUser((req as any).user);
+    const userId = dbUser.id;
+    const count = await storage.getUserFavoriteJobsCount(userId);
 
-      res.json({
-        count,
-      });
-    } catch (error) {
-      next(error);
-    }
+    res.json({
+      count,
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 export default router;

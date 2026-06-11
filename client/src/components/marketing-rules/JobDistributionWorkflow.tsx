@@ -1,6 +1,6 @@
 // client/src/components/marketing-rules/JobDistributionWorkflow.tsx
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Database, Filter, MessageSquare, Share2 } from 'lucide-react';
 
 export const JobDistributionWorkflow: React.FC = () => {

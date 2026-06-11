@@ -1,25 +1,29 @@
 // @ts-nocheck
 import axios from 'axios';
 import { z } from 'zod';
-import { MarketingRule, MarketingRuleStats, MarketingRuleAnalyticsData } from '@/types/marketing-rules';
+import {
+  MarketingRule,
+  MarketingRuleStats,
+  MarketingRuleAnalyticsData,
+} from '@/types/marketing-rules';
 
 // Define the schema for marketing rules validation
 export const MarketingRuleSchema = z.object({
   id: z.string().optional(),
   ruleName: z.string().min(3, {
-      error: "Rule name must be at least 3 characters"
-}),
-  status: z.enum(["Active", "Inactive"]),
+    error: 'Rule name must be at least 3 characters',
+  }),
+  status: z.enum(['Active', 'Inactive']),
   targetLocation: z.string(),
   targetJobType: z.string(),
   targetDemographics: z.string().optional(),
   demographicTags: z.array(z.string()).optional(),
   ctaPreview: z.string().optional(),
   messageTemplate: z.string().min(5, {
-      error: "Message template must be at least 5 characters"
-}),
+    error: 'Message template must be at least 5 characters',
+  }),
   ctaLink: z.url({
-        error: "Must be a valid URL"
+    error: 'Must be a valid URL',
   }),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
@@ -39,59 +43,59 @@ export type RuleAnalytics = z.infer<typeof RuleAnalyticsSchema>;
 // Mock data for development - replace with actual API calls
 const MOCK_RULES: MarketingRule[] = [
   {
-    id: "1",
-    ruleName: "Gauteng Jobs",
-    status: "Active",
-    targetLocation: "Gauteng",
-    targetJobType: "All",
-    ctaPreview: "Apply on WorkwiseSA for exclusive access!",
-    messageTemplate: "Apply on WorkwiseSA for exclusive access!",
-    ctaLink: "https://www.workwisesa.co.za/jobs/gauteng",
+    id: '1',
+    ruleName: 'Gauteng Jobs',
+    status: 'Active',
+    targetLocation: 'Gauteng',
+    targetJobType: 'All',
+    ctaPreview: 'Apply on WorkwiseSA for exclusive access!',
+    messageTemplate: 'Apply on WorkwiseSA for exclusive access!',
+    ctaLink: 'https://www.workwisesa.co.za/jobs/gauteng',
     createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days ago
   },
   {
-    id: "2",
-    ruleName: "Security Jobs",
-    status: "Active",
-    targetLocation: "All",
-    targetJobType: "Security",
-    ctaPreview: "Click to view security clearance requirements",
-    messageTemplate: "Click to view security clearance requirements",
-    ctaLink: "https://www.workwisesa.co.za/jobs/security",
+    id: '2',
+    ruleName: 'Security Jobs',
+    status: 'Active',
+    targetLocation: 'All',
+    targetJobType: 'Security',
+    ctaPreview: 'Click to view security clearance requirements',
+    messageTemplate: 'Click to view security clearance requirements',
+    ctaLink: 'https://www.workwisesa.co.za/jobs/security',
     createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
   },
   {
-    id: "3",
-    ruleName: "Retail Summer Campaign",
-    status: "Active",
-    targetLocation: "Cape Town",
-    targetJobType: "Retail",
-    ctaPreview: "Summer retail positions - Apply now!",
-    messageTemplate: "Summer retail positions - Apply now!",
-    ctaLink: "https://www.workwisesa.co.za/jobs/retail-summer",
+    id: '3',
+    ruleName: 'Retail Summer Campaign',
+    status: 'Active',
+    targetLocation: 'Cape Town',
+    targetJobType: 'Retail',
+    ctaPreview: 'Summer retail positions - Apply now!',
+    messageTemplate: 'Summer retail positions - Apply now!',
+    ctaLink: 'https://www.workwisesa.co.za/jobs/retail-summer',
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
   },
   {
-    id: "4",
-    ruleName: "Entry-level Tech Jobs",
-    status: "Inactive",
-    targetLocation: "All",
-    targetJobType: "IT/Technology",
-    targetDemographics: "Entry-level, No experience, Graduate, Junior",
-    demographicTags: ["Entry-level", "No experience", "Graduate", "Junior"],
-    ctaPreview: "No experience? No problem! Click to learn more",
-    messageTemplate: "No experience? No problem! Click to learn more",
-    ctaLink: "https://www.workwisesa.co.za/tech-careers",
+    id: '4',
+    ruleName: 'Entry-level Tech Jobs',
+    status: 'Inactive',
+    targetLocation: 'All',
+    targetJobType: 'IT/Technology',
+    targetDemographics: 'Entry-level, No experience, Graduate, Junior',
+    demographicTags: ['Entry-level', 'No experience', 'Graduate', 'Junior'],
+    ctaPreview: 'No experience? No problem! Click to learn more',
+    messageTemplate: 'No experience? No problem! Click to learn more',
+    ctaLink: 'https://www.workwisesa.co.za/tech-careers',
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
   },
 ];
 
 // Mock analytics data
 const MOCK_ANALYTICS: RuleAnalytics[] = [
-  { ruleId: "1", views: 1500, clicks: 320, clickThroughRate: 21.3, trend: 5.2 },
-  { ruleId: "2", views: 1200, clicks: 280, clickThroughRate: 23.3, trend: 2.1 },
-  { ruleId: "3", views: 950, clicks: 245, clickThroughRate: 25.8, trend: 8.7 },
-  { ruleId: "4", views: 1071, clicks: 264, clickThroughRate: 24.6, trend: -1.3 },
+  { ruleId: '1', views: 1500, clicks: 320, clickThroughRate: 21.3, trend: 5.2 },
+  { ruleId: '2', views: 1200, clicks: 280, clickThroughRate: 23.3, trend: 2.1 },
+  { ruleId: '3', views: 950, clicks: 245, clickThroughRate: 25.8, trend: 8.7 },
+  { ruleId: '4', views: 1071, clicks: 264, clickThroughRate: 24.6, trend: -1.3 },
 ];
 
 // Mock analytics data for dashboard
@@ -103,11 +107,11 @@ const MOCK_ANALYTICS_DATA: MarketingRuleAnalyticsData = {
   clickThroughRate: 23.5,
   ctrChangePercent: -2.1,
   performanceByRule: [
-    { name: "Gauteng Jobs", clicks: 320 },
-    { name: "Security Jobs", clicks: 280 },
-    { name: "Retail Summer Campaign", clicks: 245 },
-    { name: "Entry-level Tech Jobs", clicks: 264 },
-  ]
+    { name: 'Gauteng Jobs', clicks: 320 },
+    { name: 'Security Jobs', clicks: 280 },
+    { name: 'Retail Summer Campaign', clicks: 245 },
+    { name: 'Entry-level Tech Jobs', clicks: 264 },
+  ],
 };
 
 // Marketing Rule Service

@@ -4,17 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Upload, 
-  Camera, 
-  X, 
-  Check, 
-  AlertCircle, 
+import {
+  Upload,
+  Camera,
+  X,
+  Check,
+  AlertCircle,
   Image as ImageIcon,
   Loader2,
   Eye,
   Briefcase,
-  Users
+  Users,
 } from 'lucide-react';
 import { fileUploadService } from '@/services/fileUploadService';
 import { profileService } from '@/services/profileService';
@@ -29,7 +29,7 @@ interface ProfessionalImageUploadProps {
 const ProfessionalImageUpload: React.FC<ProfessionalImageUploadProps> = ({
   currentImageUrl,
   onImageUpdate,
-  className = ''
+  className = '',
 }) => {
   const { currentUser } = useAuth();
   const [uploading, setUploading] = useState(false);
@@ -82,7 +82,7 @@ const ProfessionalImageUpload: React.FC<ProfessionalImageUploadProps> = ({
 
       // Upload to storage
       const imageUrl = await fileUploadService.uploadProfessionalImage(file, currentUser.uid);
-      
+
       // Update progress to 95%
       setUploadProgress(95);
 
@@ -93,7 +93,7 @@ const ProfessionalImageUpload: React.FC<ProfessionalImageUploadProps> = ({
 
       // Complete progress
       setUploadProgress(100);
-      
+
       // Show success and update parent component
       setSuccess(true);
       onImageUpdate(imageUrl);
@@ -103,7 +103,6 @@ const ProfessionalImageUpload: React.FC<ProfessionalImageUploadProps> = ({
         setSuccess(false);
         setUploadProgress(0);
       }, 3000);
-
     } catch (err: any) {
       setError(err.message || 'Failed to upload professional image');
       setUploadProgress(0);
@@ -132,7 +131,7 @@ const ProfessionalImageUpload: React.FC<ProfessionalImageUploadProps> = ({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    
+
     const file = e.dataTransfer.files[0];
     if (file) {
       handleFileSelect(file);
@@ -165,7 +164,9 @@ const ProfessionalImageUpload: React.FC<ProfessionalImageUploadProps> = ({
       )}
 
       {/* Upload Area */}
-      <Card className={`transition-all duration-200 ${dragOver ? 'border-blue-500 bg-blue-50' : ''}`}>
+      <Card
+        className={`transition-all duration-200 ${dragOver ? 'border-blue-500 bg-blue-50' : ''}`}
+      >
         <CardContent className="p-6">
           <div
             className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
@@ -181,7 +182,7 @@ const ProfessionalImageUpload: React.FC<ProfessionalImageUploadProps> = ({
                   <Briefcase className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
-              
+
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   Upload Professional Image
@@ -192,7 +193,7 @@ const ProfessionalImageUpload: React.FC<ProfessionalImageUploadProps> = ({
                 <p className="text-xs text-gray-400 mb-4">
                   This could be a formal headshot, full-body professional photo, or workplace image
                 </p>
-                
+
                 <div className="flex flex-col sm:flex-row gap-2 justify-center">
                   <Button
                     onClick={openFileDialog}

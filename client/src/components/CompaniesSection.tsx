@@ -19,7 +19,11 @@ const normalizeCompaniesResponse = (payload: Company[] | CompanyResponse): Compa
 };
 
 const CompaniesSection = () => {
-  const { data: companies, isLoading, error } = useQuery<Company[]>({
+  const {
+    data: companies,
+    isLoading,
+    error,
+  } = useQuery<Company[]>({
     queryKey: ['/api/companies'],
     queryFn: async () => {
       const useMockPublicData = import.meta.env.VITE_USE_MOCK_PUBLIC_DATA !== 'false';
@@ -39,24 +43,25 @@ const CompaniesSection = () => {
 
         throw error;
       }
-    }
+    },
   });
 
   const normalizedCompanies = companies?.map(company => ({
     ...company,
     slug: company.slug || company.name.toLowerCase().replace(/\s+/g, '-'),
-    openPositions: company.openPositions ?? 0
+    openPositions: company.openPositions ?? 0,
   }));
 
-  const renderCompanySkeleton = () => (
-    Array(6).fill(0).map((_, i) => (
-      <div key={i} className="w-40 flex flex-col items-center text-center">
-        <Skeleton className="w-20 h-20 rounded-full mb-3" />
-        <Skeleton className="h-4 w-24 mb-2" />
-        <Skeleton className="h-3 w-16" />
-      </div>
-    ))
-  );
+  const renderCompanySkeleton = () =>
+    Array(6)
+      .fill(0)
+      .map((_, i) => (
+        <div key={i} className="w-40 flex flex-col items-center text-center">
+          <Skeleton className="w-20 h-20 rounded-full mb-3" />
+          <Skeleton className="h-4 w-24 mb-2" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+      ));
 
   if (error) {
     return (
@@ -81,11 +86,11 @@ const CompaniesSection = () => {
         <div className="relative">
           <ScrollArea className="w-full pb-4 top-companies-slider touch-pan-x">
             <div className="flex space-x-4 md:space-x-6 min-w-max px-4 md:px-0">
-              {isLoading ? renderCompanySkeleton() : (
-                normalizedCompanies?.map((company) => (
-                  <CompanyCard key={company.id} company={company} />
-                ))
-              )}
+              {isLoading
+                ? renderCompanySkeleton()
+                : normalizedCompanies?.map(company => (
+                    <CompanyCard key={company.id} company={company} />
+                  ))}
             </div>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>

@@ -1,9 +1,13 @@
-import { WiseUpContentItem as ContentItem, WiseUpAdItem as AdItem, WiseUpFeedItem as WiseUpItem } from '@shared/wiseup-contracts';
+import {
+  WiseUpContentItem as ContentItem,
+  WiseUpAdItem as AdItem,
+  WiseUpFeedItem as WiseUpItem,
+} from '@shared/wiseup-contracts';
 import api from '@/lib/api';
 
 /**
  * WiseUp API Service
- * 
+ *
  * Handles all API calls related to the WiseUp learning platform
  */
 export class WiseUpApiService {
@@ -15,12 +19,12 @@ export class WiseUpApiService {
   public async getContent(maxItems: number = 10): Promise<ContentItem[]> {
     try {
       const response = await api.get<ContentItem[]>('/api/v1/wiseup/content', {
-        params: { limit: maxItems }
+        params: { limit: maxItems },
       });
-      
+
       return response.data.map(item => ({
         ...item,
-        type: 'content'
+        type: 'content',
       }));
     } catch (error) {
       console.error('Error fetching content:', error);
@@ -37,15 +41,15 @@ export class WiseUpApiService {
   public async getAds(maxItems: number = 5, userInterests: string[] = []): Promise<AdItem[]> {
     try {
       const response = await api.get<AdItem[]>('/api/v1/wiseup/ads', {
-        params: { 
+        params: {
           limit: maxItems,
-          interests: userInterests.join(',')
-        }
+          interests: userInterests.join(','),
+        },
       });
-      
+
       return response.data.map(item => ({
         ...item,
-        type: 'ad'
+        type: 'ad',
       }));
     } catch (error) {
       console.error('Error fetching ads:', error);
@@ -128,9 +132,9 @@ export class WiseUpApiService {
     try {
       const response = await api.post('/api/v1/wiseup/bookmarks', {
         wiseUpItemId: itemId,
-        itemType
+        itemType,
       });
-      
+
       return response.data;
     } catch (error) {
       console.error('Error adding bookmark:', error);
@@ -160,15 +164,15 @@ export class WiseUpApiService {
    * @returns Promise indicating success/failure
    */
   public async updateProgress(
-    contentId: number, 
-    progress: number, 
+    contentId: number,
+    progress: number,
     completed: boolean = false
   ): Promise<void> {
     try {
       await api.post('/api/v1/wiseup/progress', {
         contentId,
         progress,
-        completed
+        completed,
       });
     } catch (error) {
       console.error('Error updating progress:', error);

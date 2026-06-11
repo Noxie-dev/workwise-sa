@@ -1,11 +1,11 @@
-import type { Express } from "express";
-import { z } from "zod";
-import { insertUserSchema } from "@shared/schema";
-import { storage } from "../storage";
-import { validate } from "../middleware/validation";
-import { ApiError, ErrorType, Errors } from "../middleware/errorHandler";
-import { verifyFirebaseToken } from "../middleware/auth";
-import { resolveAuthenticatedDatabaseUser } from "../services/authenticatedUser";
+import type { Express } from 'express';
+import { z } from 'zod';
+import { insertUserSchema } from '@shared/schema';
+import { storage } from '../storage';
+import { validate } from '../middleware/validation';
+import { ApiError, ErrorType, Errors } from '../middleware/errorHandler';
+import { verifyFirebaseToken } from '../middleware/auth';
+import { resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
 
 const getCategorySchema = z.object({ params: z.object({ slug: z.string() }) });
 const getCompanySchema = z.object({ params: z.object({ slug: z.string() }) });
@@ -23,7 +23,7 @@ const applyForJobSchema = z.object({
 });
 
 export function registerPublicApiRoutes(app: Express) {
-  app.get("/api/categories", async (_req, res, next) => {
+  app.get('/api/categories', async (_req, res, next) => {
     try {
       res.json(await storage.getCategories());
     } catch (error) {
@@ -31,11 +31,11 @@ export function registerPublicApiRoutes(app: Express) {
     }
   });
 
-  app.get("/api/categories/:slug", validate(getCategorySchema), async (req, res, next) => {
+  app.get('/api/categories/:slug', validate(getCategorySchema), async (req, res, next) => {
     try {
       const category = await storage.getCategoryBySlug(req.params.slug);
       if (!category) {
-        throw Errors.notFound("Category not found");
+        throw Errors.notFound('Category not found');
       }
       res.json(category);
     } catch (error) {
@@ -43,7 +43,7 @@ export function registerPublicApiRoutes(app: Express) {
     }
   });
 
-  app.get("/api/companies", async (_req, res, next) => {
+  app.get('/api/companies', async (_req, res, next) => {
     try {
       res.json(await storage.getCompanies());
     } catch (error) {
@@ -51,11 +51,11 @@ export function registerPublicApiRoutes(app: Express) {
     }
   });
 
-  app.get("/api/companies/:slug", validate(getCompanySchema), async (req, res, next) => {
+  app.get('/api/companies/:slug', validate(getCompanySchema), async (req, res, next) => {
     try {
       const company = await storage.getCompanyBySlug(req.params.slug);
       if (!company) {
-        throw Errors.notFound("Company not found");
+        throw Errors.notFound('Company not found');
       }
       res.json(company);
     } catch (error) {
@@ -63,84 +63,84 @@ export function registerPublicApiRoutes(app: Express) {
     }
   });
 
-  app.get("/api/jobs", async (_req, res, next) => {
+  app.get('/api/jobs', async (_req, res, next) => {
     try {
       const jobs = await storage.getJobsWithCompanies();
-      res.json(jobs.filter((job) => job.status === "active"));
+      res.json(jobs.filter(job => job.status === 'active'));
     } catch (error) {
       next(error);
     }
   });
 
-  app.get("/api/jobs/featured", async (_req, res, next) => {
+  app.get('/api/jobs/featured', async (_req, res, next) => {
     try {
       const jobs = await storage.getFeaturedJobs();
-      res.json(jobs.filter((job) => job.status === "active"));
+      res.json(jobs.filter(job => job.status === 'active'));
     } catch (error) {
       next(error);
     }
   });
 
-  app.get("/api/jobs/search", validate(searchJobsSchema), async (req, res, next) => {
+  app.get('/api/jobs/search', validate(searchJobsSchema), async (req, res, next) => {
     try {
-      const query = (req.query.q as string) || "";
+      const query = (req.query.q as string) || '';
       const jobs = await storage.searchJobs(query);
-      res.json(jobs.filter((job) => job.status === "active"));
+      res.json(jobs.filter(job => job.status === 'active'));
     } catch (error) {
       next(error);
     }
   });
 
-  app.get("/api/jobs/company/:id", validate(getJobsByCompanySchema), async (req, res, next) => {
+  app.get('/api/jobs/company/:id', validate(getJobsByCompanySchema), async (req, res, next) => {
     try {
       const companyId = parseInt(req.params.id, 10);
       if (Number.isNaN(companyId)) {
-        throw Errors.validation("Invalid company ID");
+        throw Errors.validation('Invalid company ID');
       }
       const jobs = await storage.getJobsByCompany(companyId);
-      res.json(jobs.filter((job) => job.status === "active"));
+      res.json(jobs.filter(job => job.status === 'active'));
     } catch (error) {
       next(error);
     }
   });
 
-  app.get("/api/jobs/category/:id", validate(getJobsByCategorySchema), async (req, res, next) => {
+  app.get('/api/jobs/category/:id', validate(getJobsByCategorySchema), async (req, res, next) => {
     try {
       const categoryId = parseInt(req.params.id, 10);
       if (Number.isNaN(categoryId)) {
-        throw Errors.validation("Invalid category ID");
+        throw Errors.validation('Invalid category ID');
       }
       const jobs = await storage.getJobsByCategory(categoryId);
-      res.json(jobs.filter((job) => job.status === "active"));
+      res.json(jobs.filter(job => job.status === 'active'));
     } catch (error) {
       next(error);
     }
   });
 
-  app.get("/api/jobs/:id", validate(getJobSchema), async (req, res, next) => {
+  app.get('/api/jobs/:id', validate(getJobSchema), async (req, res, next) => {
     try {
       const jobId = parseInt(req.params.id, 10);
       if (Number.isNaN(jobId)) {
-        throw Errors.validation("Invalid job ID");
+        throw Errors.validation('Invalid job ID');
       }
 
       const job = await storage.getJob(jobId);
       if (!job) {
-        throw Errors.notFound("Job not found");
+        throw Errors.notFound('Job not found');
       }
-      if (job.status !== "active") {
-        throw Errors.notFound("Job not found");
+      if (job.status !== 'active') {
+        throw Errors.notFound('Job not found');
       }
 
       const company = await storage.getCompany(job.companyId);
       if (!company) {
-        throw Errors.notFound("Company not found");
+        throw Errors.notFound('Company not found');
       }
 
       const category = await storage.getCategory(job.categoryId);
       const descriptionSegments = job.description
         .split(/\r?\n|\. /)
-        .map((segment) => segment.trim())
+        .map(segment => segment.trim())
         .filter(Boolean);
 
       res.json({
@@ -151,7 +151,7 @@ export function registerPublicApiRoutes(app: Express) {
         workMode: job.workMode,
         category: {
           id: category?.id ?? job.categoryId,
-          name: category?.name ?? "General",
+          name: category?.name ?? 'General',
         },
         company: {
           id: company.id,
@@ -159,28 +159,48 @@ export function registerPublicApiRoutes(app: Express) {
           location: company.location,
           logo: company.logo,
         },
-        shortDescription: job.description.length > 140 ? `${job.description.slice(0, 137)}...` : job.description,
+        shortDescription:
+          job.description.length > 140 ? `${job.description.slice(0, 137)}...` : job.description,
         tags: [category?.name, job.jobType, job.workMode].filter(Boolean),
         postedDate: job.createdAt,
         isRemote: /remote/i.test(job.workMode),
-        experienceLevel: /senior|manager|lead/i.test(job.title) ? "senior" : /junior|entry|assistant|intern/i.test(job.title) ? "entry" : "mid",
+        experienceLevel: /senior|manager|lead/i.test(job.title)
+          ? 'senior'
+          : /junior|entry|assistant|intern/i.test(job.title)
+            ? 'entry'
+            : 'mid',
         featured: Boolean(job.isFeatured),
         details: {
           id: job.id,
           fullDescription: job.description,
-          requirements: descriptionSegments.slice(0, 3).length ? descriptionSegments.slice(0, 3) : ["Relevant experience", "Strong communication skills", "Reliable work ethic"],
-          responsibilities: descriptionSegments.slice(3, 6).length ? descriptionSegments.slice(3, 6) : ["Perform role-specific responsibilities", "Collaborate with the team", "Deliver consistent results"],
-          benefits: ["Market-related salary", "Growth opportunities", "Supportive team environment"],
-          applicationInstructions: "Submit your application through WorkWise SA with your latest CV and any supporting notes.",
+          requirements: descriptionSegments.slice(0, 3).length
+            ? descriptionSegments.slice(0, 3)
+            : ['Relevant experience', 'Strong communication skills', 'Reliable work ethic'],
+          responsibilities: descriptionSegments.slice(3, 6).length
+            ? descriptionSegments.slice(3, 6)
+            : [
+                'Perform role-specific responsibilities',
+                'Collaborate with the team',
+                'Deliver consistent results',
+              ],
+          benefits: [
+            'Market-related salary',
+            'Growth opportunities',
+            'Supportive team environment',
+          ],
+          applicationInstructions:
+            'Submit your application through WorkWise SA with your latest CV and any supporting notes.',
           companyDetails: {
             about: `${company.name} is hiring in ${company.location || job.location}.`,
-            industry: category?.name ?? "General",
+            industry: category?.name ?? 'General',
           },
-          salaryDetails: job.salary ? {
-            currency: "ZAR",
-            negotiable: true,
-            displayText: job.salary,
-          } : undefined,
+          salaryDetails: job.salary
+            ? {
+                currency: 'ZAR',
+                negotiable: true,
+                displayText: job.salary,
+              }
+            : undefined,
           createdAt: job.createdAt,
           updatedAt: job.createdAt,
         },
@@ -190,71 +210,80 @@ export function registerPublicApiRoutes(app: Express) {
     }
   });
 
-  app.post("/api/jobs/:id/apply", verifyFirebaseToken, validate(applyForJobSchema), async (req, res, next) => {
-    try {
-      const jobId = parseInt(req.params.id, 10);
-      const { coverLetter, resumeUrl, notes } = req.body;
-      const authUser = (req as any).user;
+  app.post(
+    '/api/jobs/:id/apply',
+    verifyFirebaseToken,
+    validate(applyForJobSchema),
+    async (req, res, next) => {
+      try {
+        const jobId = parseInt(req.params.id, 10);
+        const { coverLetter, resumeUrl, notes } = req.body;
+        const authUser = (req as any).user;
 
-      if (Number.isNaN(jobId)) {
-        throw Errors.validation("Invalid job ID");
+        if (Number.isNaN(jobId)) {
+          throw Errors.validation('Invalid job ID');
+        }
+
+        const job = await storage.getJob(jobId);
+        if (!job) {
+          throw Errors.notFound('Job not found');
+        }
+        if (job.status !== 'active') {
+          throw Errors.notFound('Job not available for applications');
+        }
+
+        const dbUser = await resolveAuthenticatedDatabaseUser(authUser);
+        const userId = dbUser.id;
+        const existingApplication = await storage.getJobApplicationByUserAndJob(userId, jobId);
+        if (existingApplication) {
+          throw Errors.conflict('You have already applied for this job');
+        }
+
+        const application = await storage.createJobApplication({
+          userId,
+          jobId,
+          coverLetter,
+          resumeUrl,
+          notes,
+          status: 'applied',
+        });
+
+        await storage.createUserInteraction({
+          userId,
+          interactionType: 'apply',
+          jobId,
+          interactionTime: new Date(),
+          metadata: { applicationId: application.id },
+        });
+
+        res.status(201).json({
+          success: true,
+          message: 'Job application submitted successfully',
+          application,
+        });
+      } catch (error) {
+        next(error);
       }
-
-      const job = await storage.getJob(jobId);
-      if (!job) {
-        throw Errors.notFound("Job not found");
-      }
-      if (job.status !== "active") {
-        throw Errors.notFound("Job not available for applications");
-      }
-
-      const dbUser = await resolveAuthenticatedDatabaseUser(authUser);
-      const userId = dbUser.id;
-      const existingApplication = await storage.getJobApplicationByUserAndJob(userId, jobId);
-      if (existingApplication) {
-        throw Errors.conflict("You have already applied for this job");
-      }
-
-      const application = await storage.createJobApplication({
-        userId,
-        jobId,
-        coverLetter,
-        resumeUrl,
-        notes,
-        status: "applied",
-      });
-
-      await storage.createUserInteraction({
-        userId,
-        interactionType: "apply",
-        jobId,
-        interactionTime: new Date(),
-        metadata: { applicationId: application.id },
-      });
-
-      res.status(201).json({
-        success: true,
-        message: "Job application submitted successfully",
-        application,
-      });
-    } catch (error) {
-      next(error);
     }
-  });
+  );
 
-  app.post("/api/users/register", validate(z.object({ body: insertUserSchema })), async (req, res, next) => {
-    try {
-      const userData = req.body;
-      const existingUser = await storage.getUserByUsername(userData.username);
-      if (existingUser) {
-        throw Errors.conflict("Username already exists");
+  app.post(
+    '/api/users/register',
+    validate(z.object({ body: insertUserSchema })),
+    async (req, res, next) => {
+      try {
+        const userData = req.body;
+        const existingUser = await storage.getUserByUsername(userData.username);
+        if (existingUser) {
+          throw Errors.conflict('Username already exists');
+        }
+
+        const newUser = await storage.createUser(userData);
+        const { password, ...userWithoutPassword } = newUser;
+        res.status(201).json(userWithoutPassword);
+      } catch (error) {
+        next(error);
       }
-
-      const newUser = await storage.createUser(userData);
-      const { password, ...userWithoutPassword } = newUser;
-      res.status(201).json(userWithoutPassword);
-    } catch (error) {
-      next(error);
     }
-  });
+  );
 }

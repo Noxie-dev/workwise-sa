@@ -21,8 +21,8 @@ vi.mock('../services/secretManager', () => ({
         default:
           return null;
       }
-    })
-  }
+    }),
+  },
 }));
 
 // Mock logger to prevent console output during tests
@@ -31,18 +31,18 @@ vi.mock('../utils/logger', () => ({
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
-    debug: vi.fn()
-  }
+    debug: vi.fn(),
+  },
 }));
 
 // Setup test database before all tests
 beforeAll(async () => {
   // Run migrations on test database
   await runMigrations();
-  
+
   // Initialize database connection
   await initializeDatabase();
-  
+
   logger.info('Test database initialized');
 });
 

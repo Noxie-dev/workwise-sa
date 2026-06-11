@@ -1,7 +1,7 @@
-import crypto from "crypto";
-import { storage } from "../storage";
-import { type InsertCategory, type InsertCompany, type InsertJob } from "@shared/schema";
-import { type JobIngest } from "@shared/job-ingest-schema";
+import crypto from 'crypto';
+import { storage } from '../storage';
+import { type InsertCategory, type InsertCompany, type InsertJob } from '@shared/schema';
+import { type JobIngest } from '@shared/job-ingest-schema';
 
 type IngestError = {
   externalId: string;
@@ -17,32 +17,32 @@ export type JobIngestionSummary = {
 };
 
 const categoryKeywordMap: Record<string, string[]> = {
-  retail: ["cashier", "retail", "sales assistant", "shop assistant", "store"],
-  security: ["security", "guard", "cctv", "loss prevention"],
-  hospitality: ["waiter", "bartender", "hospitality", "kitchen", "restaurant", "hotel"],
-  cleaning: ["cleaner", "cleaning", "housekeeping", "domestic"],
-  warehouse: ["warehouse", "picker", "packer", "forklift", "inventory"],
-  logistics: ["driver", "courier", "delivery", "code 10", "code 14"],
-  admin: ["admin", "clerk", "receptionist", "office", "data capture"],
-  general: ["general worker", "labourer", "laborer", "assistant", "helper"],
+  retail: ['cashier', 'retail', 'sales assistant', 'shop assistant', 'store'],
+  security: ['security', 'guard', 'cctv', 'loss prevention'],
+  hospitality: ['waiter', 'bartender', 'hospitality', 'kitchen', 'restaurant', 'hotel'],
+  cleaning: ['cleaner', 'cleaning', 'housekeeping', 'domestic'],
+  warehouse: ['warehouse', 'picker', 'packer', 'forklift', 'inventory'],
+  logistics: ['driver', 'courier', 'delivery', 'code 10', 'code 14'],
+  admin: ['admin', 'clerk', 'receptionist', 'office', 'data capture'],
+  general: ['general worker', 'labourer', 'laborer', 'assistant', 'helper'],
 };
 
 function slugify(value: string): string {
   return value
     .toLowerCase()
     .trim()
-    .replace(/&/g, " and ")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 function computeFingerprint(job: JobIngest): string {
   return crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(
       `${job.title.toLowerCase()}|${job.companyName.toLowerCase()}|${job.location.toLowerCase()}`
     )
-    .digest("hex");
+    .digest('hex');
 }
 
 async function ensureCompany(companyName: string, location: string) {
@@ -74,8 +74,8 @@ async function ensureCategory(job: JobIngest) {
   }
 
   for (const [slug, keywords] of Object.entries(categoryKeywordMap)) {
-    if (keywords.some((keyword) => haystack.includes(keyword))) {
-      const existing = categories.find((category) => category.slug === slug);
+    if (keywords.some(keyword => haystack.includes(keyword))) {
+      const existing = categories.find(category => category.slug === slug);
       if (existing) {
         return existing;
       }
@@ -83,16 +83,16 @@ async function ensureCategory(job: JobIngest) {
   }
 
   const existingOther = categories.find(
-    (category) => category.slug === "other" || category.name.toLowerCase() === "other"
+    category => category.slug === 'other' || category.name.toLowerCase() === 'other'
   );
   if (existingOther) {
     return existingOther;
   }
 
   const categoryInput: InsertCategory = {
-    name: "Other",
-    slug: "other",
-    icon: "briefcase",
+    name: 'Other',
+    slug: 'other',
+    icon: 'briefcase',
     jobCount: 0,
   };
 
@@ -104,11 +104,11 @@ function normalizeNullable(value: string | null): string | null {
 }
 
 function defaultJobType(jobType: string | null): string {
-  return normalizeNullable(jobType) ?? "Full-time";
+  return normalizeNullable(jobType) ?? 'Full-time';
 }
 
 function defaultWorkMode(workMode: string | null): string {
-  return normalizeNullable(workMode) ?? "On-site";
+  return normalizeNullable(workMode) ?? 'On-site';
 }
 
 export async function ingestJobs(payload: JobIngest[]): Promise<JobIngestionSummary> {
@@ -121,7 +121,10 @@ export async function ingestJobs(payload: JobIngest[]): Promise<JobIngestionSumm
 
   for (const job of payload) {
     try {
-      const existingBySource = await storage.getJobIngestRecordBySource(job.sourceSite, job.externalId);
+      const existingBySource = await storage.getJobIngestRecordBySource(
+        job.sourceSite,
+        job.externalId
+      );
       if (existingBySource) {
         summary.duplicates += 1;
         continue;
@@ -169,7 +172,7 @@ export async function ingestJobs(payload: JobIngest[]): Promise<JobIngestionSumm
       summary.errors.push({
         externalId: job.externalId,
         sourceSite: job.sourceSite,
-        message: error instanceof Error ? error.message : "Unknown ingestion error",
+        message: error instanceof Error ? error.message : 'Unknown ingestion error',
       });
     }
   }

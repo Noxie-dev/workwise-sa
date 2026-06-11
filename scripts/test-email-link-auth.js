@@ -1,21 +1,21 @@
 /**
  * Test script for Firebase Email Link Authentication
- * 
+ *
  * This script tests the email link authentication flow by:
  * 1. Sending a sign-in link to a test email address
  * 2. Verifying that the link is valid
- * 
+ *
  * Usage:
  * node scripts/test-email-link-auth.js [test-email@example.com]
  */
 
 import { config } from 'dotenv';
 import { initializeApp } from 'firebase/app';
-import { 
-  getAuth, 
+import {
+  getAuth,
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
-  signInWithEmailLink
+  signInWithEmailLink,
 } from 'firebase/auth';
 
 // Load environment variables
@@ -30,7 +30,8 @@ const firebaseConfig = {
   authDomain: process.env.FIREBASE_AUTH_DOMAIN || process.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: process.env.FIREBASE_STORAGE_BUCKET || process.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  messagingSenderId:
+    process.env.FIREBASE_MESSAGING_SENDER_ID || process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.FIREBASE_APP_ID || process.env.VITE_FIREBASE_APP_ID,
 };
 
@@ -62,12 +63,14 @@ async function sendTestEmailLink() {
     console.log('and retrieved when the user clicks the link.');
   } catch (error) {
     console.error('❌ Error sending sign-in link:', error);
-    
+
     // Provide troubleshooting guidance based on error code
     if (error.code === 'auth/invalid-email') {
       console.log('\nTroubleshooting: The email address format is invalid.');
     } else if (error.code === 'auth/unauthorized-domain') {
-      console.log('\nTroubleshooting: The domain of the URL is not authorized in Firebase Console.');
+      console.log(
+        '\nTroubleshooting: The domain of the URL is not authorized in Firebase Console.'
+      );
       console.log('Go to Firebase Console > Authentication > Settings > Authorized domains');
       console.log('and add your domain (e.g., localhost, your-app.firebaseapp.com).');
     } else if (error.code === 'auth/operation-not-allowed') {

@@ -10,26 +10,22 @@ interface ClientOnlyProps {
 /**
  * Component that only renders its children on the client side
  * Prevents server-client rendering mismatches
- * 
+ *
  * Similar to Next.js dynamic imports with ssr: false
  */
-export function ClientOnly({ 
-  children, 
-  fallback = null, 
-  suppressHydrationWarning = false 
-}: ClientOnlyProps) {
+export const ClientOnly = ({
+  children,
+  fallback = null,
+  suppressHydrationWarning = false,
+}: ClientOnlyProps) => {
   const isClient = useClientOnly();
 
   if (!isClient) {
     return <>{fallback}</>;
   }
 
-  return (
-    <div suppressHydrationWarning={suppressHydrationWarning}>
-      {children}
-    </div>
-  );
-}
+  return <div suppressHydrationWarning={suppressHydrationWarning}>{children}</div>;
+};
 
 /**
  * HOC version of ClientOnly for wrapping components
@@ -46,4 +42,3 @@ export function withClientOnly<P extends object>(
     );
   };
 }
-

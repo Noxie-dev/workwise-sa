@@ -17,8 +17,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-console.log("PORT from .env:", process.env.PORT);
-console.log("SESSION_SECRET from .env:", process.env.SESSION_SECRET);
+console.log('PORT from .env:', process.env.PORT);
+console.log('SESSION_SECRET from .env:', process.env.SESSION_SECRET);
 
 async function preloadSecrets() {
   const secretKeys = [
@@ -60,11 +60,11 @@ async function startServer() {
 
   // Add a simple root route to prevent 500 errors
   app.get('/', (req, res) => {
-    res.json({ 
-      message: 'WorkWise SA API Server', 
+    res.json({
+      message: 'WorkWise SA API Server',
       version: '1.0.0',
       docs: '/api-docs',
-      api: '/api'
+      api: '/api',
     });
   });
 
@@ -72,16 +72,16 @@ async function startServer() {
   if (process.env.NODE_ENV === 'production') {
     try {
       await storage.initializeData();
-      logger.info("Database initialized with sample data");
+      logger.info('Database initialized with sample data');
 
       const wiseUpService = new WiseUpService();
       await wiseUpService.initializeData();
-      logger.info("WiseUp service initialized with sample data");
+      logger.info('WiseUp service initialized with sample data');
     } catch (error) {
-      logger.error("Error initializing data", { error });
+      logger.error('Error initializing data', { error });
     }
   } else {
-    logger.info("Skipping data initialization in development mode");
+    logger.info('Skipping data initialization in development mode');
   }
 
   // Mount versioned API routes
@@ -103,18 +103,18 @@ async function startServer() {
 
 // Graceful shutdown handlers
 process.on('SIGINT', async () => {
-  logger.info("Shutting down gracefully...");
+  logger.info('Shutting down gracefully...');
   await cacheService.shutdown();
   process.exit();
 });
 
 process.on('SIGTERM', async () => {
-  logger.info("Shutting down gracefully...");
+  logger.info('Shutting down gracefully...');
   await cacheService.shutdown();
   process.exit();
 });
 
-startServer().catch((err) => {
-  logger.error("Failed to start server", { err });
+startServer().catch(err => {
+  logger.error('Failed to start server', { err });
   process.exit(1);
 });

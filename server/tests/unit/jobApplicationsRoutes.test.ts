@@ -71,7 +71,7 @@ function createMockResponse() {
 
 function getRouteHandlers(path: string, method: string) {
   const layer = router.stack.find(
-    (entry: any) => entry.route?.path === path && entry.route.methods?.[method],
+    (entry: any) => entry.route?.path === path && entry.route.methods?.[method]
   );
 
   if (!layer) {
@@ -157,14 +157,14 @@ describe('jobApplications routes', () => {
         userId: 7,
         jobId: 22,
         status: 'applied',
-      }),
+      })
     );
     expect(mockedStorage.createUserInteraction).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 7,
         interactionType: 'apply',
         jobId: 22,
-      }),
+      })
     );
   });
 
@@ -270,7 +270,7 @@ describe('jobApplications routes', () => {
         userId: 7,
         type: 'application_status_update',
         jobId: 22,
-      }),
+      })
     );
   });
 });
