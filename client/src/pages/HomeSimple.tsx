@@ -63,7 +63,7 @@ const HomeSimple: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationFrameId = useRef<number | null>(null);
   const particlesRef = useRef<Particle[]>([]);
-  
+
   // Auth modal state
   const [authModal, setAuthModal] = useState<{
     isOpen: boolean;
@@ -121,7 +121,6 @@ const HomeSimple: React.FC = () => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       initParticles();
-
     };
 
     const initParticles = () => {
@@ -379,9 +378,9 @@ const HomeSimple: React.FC = () => {
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-              <div className="flex items-center justify-center mb-4">
-                <Briefcase className="w-8 h-8 text-primary mr-3" />
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+              <div className="flex flex-col items-center justify-center gap-3 mb-4 sm:flex-row sm:gap-0">
+                <Briefcase className="w-8 h-8 text-primary sm:mr-3" />
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
                   Featured Opportunities
                 </h2>
               </div>
@@ -392,36 +391,38 @@ const HomeSimple: React.FC = () => {
 
             {jobsLoading ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                {Array(6).fill(0).map((_, i) => (
-                  <div key={i} className="bg-white rounded-lg shadow-card overflow-hidden">
-                    <div className="p-4 border-b border-border">
-                      <div className="flex items-center">
-                        <Skeleton className="w-12 h-12 rounded-md mr-3" />
-                        <div className="flex-1">
-                          <Skeleton className="h-5 w-3/4 mb-2" />
-                          <Skeleton className="h-4 w-1/2" />
+                {Array(6)
+                  .fill(0)
+                  .map((_, i) => (
+                    <div key={i} className="bg-white rounded-lg shadow-card overflow-hidden">
+                      <div className="p-4 border-b border-border">
+                        <div className="flex items-center">
+                          <Skeleton className="w-12 h-12 rounded-md mr-3" />
+                          <div className="flex-1">
+                            <Skeleton className="h-5 w-3/4 mb-2" />
+                            <Skeleton className="h-4 w-1/2" />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <Skeleton className="h-4 w-full mb-2" />
+                        <Skeleton className="h-4 w-2/3 mb-3" />
+                        <div className="flex gap-2 mb-3">
+                          <Skeleton className="h-5 w-16 rounded-full" />
+                          <Skeleton className="h-5 w-16 rounded-full" />
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <Skeleton className="h-4 w-20" />
+                          <Skeleton className="h-4 w-16" />
                         </div>
                       </div>
                     </div>
-                    <div className="p-4">
-                      <Skeleton className="h-4 w-full mb-2" />
-                      <Skeleton className="h-4 w-2/3 mb-3" />
-                      <div className="flex gap-2 mb-3">
-                        <Skeleton className="h-5 w-16 rounded-full" />
-                        <Skeleton className="h-5 w-16 rounded-full" />
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <Skeleton className="h-4 w-20" />
-                        <Skeleton className="h-4 w-16" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             ) : featuredJobs?.jobs?.length ? (
               <>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                  {featuredJobs.jobs.map((job) => (
+                  {featuredJobs.jobs.map(job => (
                     <JobPreviewCard
                       key={job.id}
                       job={job}
@@ -431,8 +432,8 @@ const HomeSimple: React.FC = () => {
                   ))}
                 </div>
                 <div className="text-center">
-                  <Button 
-                    size="lg" 
+                  <Button
+                    size="lg"
                     onClick={() => navigate('/jobs')}
                     className="bg-primary hover:bg-primary/90"
                   >
@@ -447,13 +448,8 @@ const HomeSimple: React.FC = () => {
                 <h3 className="text-xl font-semibold text-gray-600 mb-2">
                   No Featured Jobs Available
                 </h3>
-                <p className="text-gray-500 mb-6">
-                  Check back soon for new opportunities
-                </p>
-                <Button 
-                  onClick={() => navigate('/jobs')}
-                  variant="outline"
-                >
+                <p className="text-gray-500 mb-6">Check back soon for new opportunities</p>
+                <Button onClick={() => navigate('/jobs')} variant="outline">
                   Browse All Jobs
                 </Button>
               </div>

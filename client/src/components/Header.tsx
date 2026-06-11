@@ -29,21 +29,29 @@ interface NavLinkProps {
   isActive: boolean;
   className?: string;
   onClick?: () => void;
+  tone?: 'default' | 'light';
 }
 
-const NavLink = ({ href, label, isActive, className, onClick }: NavLinkProps) => (
-  <Link
-    href={href}
-    className={cn(
-      'font-medium text-sm transition-colors duration-200 hover:text-primary',
-      isActive ? 'text-primary' : 'text-muted-foreground',
-      className
-    )}
-    onClick={onClick}
-  >
-    {label}
-  </Link>
-);
+const NavLink = ({ href, label, isActive, className, onClick, tone = 'default' }: NavLinkProps) => {
+  const lightTone = isActive
+    ? 'text-[#102a47] underline decoration-[#f2c94c] underline-offset-4'
+    : 'text-[#102a47]/85 hover:text-[#102a47]';
+  const defaultTone = isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary';
+
+  return (
+    <Link
+      href={href}
+      className={cn(
+        'font-medium text-sm transition-colors duration-200',
+        tone === 'light' ? lightTone : defaultTone,
+        className
+      )}
+      onClick={onClick}
+    >
+      {label}
+    </Link>
+  );
+};
 
 /**
  * Logo Component
@@ -52,7 +60,7 @@ const NavLink = ({ href, label, isActive, className, onClick }: NavLinkProps) =>
 const Logo = () => (
   <Link href="/" className="flex items-center group">
     <img
-      src="/images/logo.png"
+      src="/images/header-logo.png"
       alt="WorkWise SA - Job Search Platform"
       className="h-20 sm:h-24 mr-2 transition-transform duration-200 group-hover:scale-105"
       loading="lazy"
@@ -72,7 +80,7 @@ interface MobileNavProps {
 
 const MobileNav = ({ navigationItems, currentPath }: MobileNavProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const handleLinkClick = useCallback(() => {
     setIsOpen(false);
   }, []);
@@ -102,9 +110,9 @@ const MobileNav = ({ navigationItems, currentPath }: MobileNavProps) => {
               <X className="h-5 w-5" />
             </Button>
           </div>
-          
+
           <nav className="flex flex-col space-y-4">
-            {navigationItems.map((item) => (
+            {navigationItems.map(item => (
               <NavLink
                 key={item.id}
                 href={item.href}
@@ -115,7 +123,7 @@ const MobileNav = ({ navigationItems, currentPath }: MobileNavProps) => {
               />
             ))}
           </nav>
-          
+
           <div className="border-t pt-4 space-y-4">
             <AdminButton variant="outline" className="w-full" />
             <UserMenu className="w-full" />
@@ -138,19 +146,23 @@ interface DesktopNavProps {
 const DesktopNav = ({ navigationItems, currentPath }: DesktopNavProps) => (
   <nav className="hidden md:flex items-center space-x-8">
     <ul className="flex items-center space-x-6">
-      {navigationItems.map((item) => (
+      {navigationItems.map(item => (
         <li key={item.id}>
           <NavLink
             href={item.href}
             label={item.label}
             isActive={currentPath === item.href}
+            tone="light"
           />
         </li>
       ))}
     </ul>
-    
-    <div className="flex items-center space-x-3 ml-6 border-l border-border pl-6">
-      <AdminButton variant="outline" />
+
+    <div className="flex items-center space-x-3 ml-6 border-l border-[#102a47]/25 pl-6">
+      <AdminButton
+        variant="outline"
+        className="border-[#102a47]/30 text-[#102a47] hover:bg-[#f2c94c]/15"
+      />
       <UserMenu />
     </div>
   </nav>
@@ -162,12 +174,12 @@ const DesktopNav = ({ navigationItems, currentPath }: DesktopNavProps) => (
  */
 const Header = () => {
   const [location] = useLocation();
-  
+
   // Memoize current path to prevent unnecessary re-renders
   const currentPath = useMemo(() => location, [location]);
-  
+
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-border">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-white/95 text-[#102a47] shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -176,16 +188,10 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <DesktopNav
-            navigationItems={navigationItems}
-            currentPath={currentPath}
-          />
+          <DesktopNav navigationItems={navigationItems} currentPath={currentPath} />
 
           {/* Mobile Navigation */}
-          <MobileNav
-            navigationItems={navigationItems}
-            currentPath={currentPath}
-          />
+          <MobileNav navigationItems={navigationItems} currentPath={currentPath} />
         </div>
       </div>
     </header>
