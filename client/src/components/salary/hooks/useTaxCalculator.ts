@@ -8,7 +8,7 @@ const taxBrackets2024 = [
   { min: 512801, max: 673000, rate: 0.36, baseAmount: 121475 },
   { min: 673001, max: 857900, rate: 0.39, baseAmount: 179147 },
   { min: 857901, max: 1817000, rate: 0.41, baseAmount: 251258 },
-  { min: 1817001, max: Infinity, rate: 0.45, baseAmount: 644489 }
+  { min: 1817001, max: Infinity, rate: 0.45, baseAmount: 644489 },
 ];
 
 // UIF
@@ -42,12 +42,12 @@ interface TaxDetails {
   actualDeductibleRetirementFundsAnnual: number;
   monthlyGross: number;
   taxBracketInfo: any;
-  pieChartData: Array<{name: string, value: number}>;
+  pieChartData: Array<{ name: string; value: number }>;
 }
 
 /**
  * Custom hook for calculating South African income tax and deductions
- * 
+ *
  * @param annualGross - Annual gross income
  * @param activeDeductions - Object indicating which deductions are active
  * @param deductionRates - Object containing rates for each deduction
@@ -63,31 +63,56 @@ export const useTaxCalculator = (
   const taxDetails = useMemo<TaxDetails>(() => {
     if (annualGross <= 0) {
       return {
-        incomeTax: 0, uif: 0, pension: 0, medical: 0, groupLife: 0, retirement: 0,
-        totalDeductions: 0, netIncome: 0, effectiveTaxRate: 0, taxableIncomeAnnual: 0,
-        mtcAppliedMonthly: 0, actualDeductibleRetirementFundsAnnual: 0,
-        monthlyGross: 0, pieChartData: [], taxBracketInfo: {}
+        incomeTax: 0,
+        uif: 0,
+        pension: 0,
+        medical: 0,
+        groupLife: 0,
+        retirement: 0,
+        totalDeductions: 0,
+        netIncome: 0,
+        effectiveTaxRate: 0,
+        taxableIncomeAnnual: 0,
+        mtcAppliedMonthly: 0,
+        actualDeductibleRetirementFundsAnnual: 0,
+        monthlyGross: 0,
+        pieChartData: [],
+        taxBracketInfo: {},
       };
     }
 
     const monthlyGross = annualGross / 12;
 
     // Calculate individual deductions
-    const pensionContribution = activeDeductions.pension ? monthlyGross * deductionRates.pension : 0;
-    const medicalAidContribution = activeDeductions.medical ? monthlyGross * deductionRates.medical : 0;
-    const groupLifeContribution = activeDeductions.groupLife ? monthlyGross * deductionRates.groupLife : 0;
-    const retirementAnnuityContribution = activeDeductions.retirement ? monthlyGross * deductionRates.retirement : 0;
+    const pensionContribution = activeDeductions.pension
+      ? monthlyGross * deductionRates.pension
+      : 0;
+    const medicalAidContribution = activeDeductions.medical
+      ? monthlyGross * deductionRates.medical
+      : 0;
+    const groupLifeContribution = activeDeductions.groupLife
+      ? monthlyGross * deductionRates.groupLife
+      : 0;
+    const retirementAnnuityContribution = activeDeductions.retirement
+      ? monthlyGross * deductionRates.retirement
+      : 0;
 
     // Calculate tax-deductible portion of Pension and RA
     const annualPensionContribution = pensionContribution * 12;
     const annualRAContribution = retirementAnnuityContribution * 12;
     const totalRetirementFundContributions = annualPensionContribution + annualRAContribution;
-    
+
     // Calculate allowable deduction for retirement funds
     // The 27.5% is of the greater of remuneration or taxable income *before* this deduction.
     // For simplicity, we use annualGross (remuneration) as the primary base.
-    const maxDeductibleOverall = Math.min(annualGross * PENSION_RA_DEDUCTIBILITY_RATE, PENSION_RA_ANNUAL_CAP);
-    const actualDeductibleRetirementFunds = Math.min(totalRetirementFundContributions, maxDeductibleOverall);
+    const maxDeductibleOverall = Math.min(
+      annualGross * PENSION_RA_DEDUCTIBILITY_RATE,
+      PENSION_RA_ANNUAL_CAP
+    );
+    const actualDeductibleRetirementFunds = Math.min(
+      totalRetirementFundContributions,
+      maxDeductibleOverall
+    );
 
     const taxableIncome = annualGross - actualDeductibleRetirementFunds;
 
@@ -100,7 +125,8 @@ export const useTaxCalculator = (
         if (taxableIncome <= bracket.max) {
           annualTax = bracket.baseAmount + (taxableIncome - bracket.min) * bracket.rate;
           break;
-        } else if (bracket.max === Infinity) { // Last bracket
+        } else if (bracket.max === Infinity) {
+          // Last bracket
           annualTax = bracket.baseAmount + (taxableIncome - bracket.min) * bracket.rate;
           break;
         }
@@ -144,11 +170,24 @@ export const useTaxCalculator = (
       { name: 'Income Tax', value: parseFloat(monthlyIncomeTax.toFixed(2)) },
       { name: 'UIF', value: parseFloat(uifPayable.toFixed(2)) },
     ];
-    if (activeDeductions.pension && pensionContribution > 0) pieChartData.push({ name: 'Pension', value: parseFloat(pensionContribution.toFixed(2)) });
-    if (activeDeductions.medical && medicalAidContribution > 0) pieChartData.push({ name: 'Medical Aid', value: parseFloat(medicalAidContribution.toFixed(2)) });
-    if (activeDeductions.groupLife && groupLifeContribution > 0) pieChartData.push({ name: 'Group Life', value: parseFloat(groupLifeContribution.toFixed(2)) });
-    if (activeDeductions.retirement && retirementAnnuityContribution > 0) pieChartData.push({ name: 'Ret. Annuity', value: parseFloat(retirementAnnuityContribution.toFixed(2)) });
-    
+    if (activeDeductions.pension && pensionContribution > 0)
+      pieChartData.push({ name: 'Pension', value: parseFloat(pensionContribution.toFixed(2)) });
+    if (activeDeductions.medical && medicalAidContribution > 0)
+      pieChartData.push({
+        name: 'Medical Aid',
+        value: parseFloat(medicalAidContribution.toFixed(2)),
+      });
+    if (activeDeductions.groupLife && groupLifeContribution > 0)
+      pieChartData.push({
+        name: 'Group Life',
+        value: parseFloat(groupLifeContribution.toFixed(2)),
+      });
+    if (activeDeductions.retirement && retirementAnnuityContribution > 0)
+      pieChartData.push({
+        name: 'Ret. Annuity',
+        value: parseFloat(retirementAnnuityContribution.toFixed(2)),
+      });
+
     return {
       incomeTax: monthlyIncomeTax,
       uif: uifPayable,
@@ -164,7 +203,7 @@ export const useTaxCalculator = (
       actualDeductibleRetirementFundsAnnual: actualDeductibleRetirementFunds,
       monthlyGross: monthlyGross,
       taxBracketInfo: taxBracketInfo,
-      pieChartData: pieChartData.filter(d => d.value > 0.005) // Filter out tiny values for cleaner chart
+      pieChartData: pieChartData.filter(d => d.value > 0.005), // Filter out tiny values for cleaner chart
     };
   }, [annualGross, activeDeductions, deductionRates, medicalAidMembers]);
 

@@ -72,19 +72,18 @@ export const generateCV = async (cvData: CVData): Promise<GeneratedCV> => {
 
     // Convert PDF to blob
     const pdfBlob = pdf.output('blob');
-    
+
     // Generate unique filename
     const fileName = `cv_${cvData.personalInfo.fullName.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}.pdf`;
-    
+
     // Create URL for download
     const downloadUrl = URL.createObjectURL(pdfBlob);
 
     return {
       downloadUrl,
       cvId: fileName,
-      fileName: fileName
+      fileName: fileName,
     };
-
   } catch (error) {
     console.error('Error generating CV:', error);
     throw new Error('Failed to generate CV');
@@ -105,11 +104,15 @@ const createCVElement = (cvData: CVData): HTMLElement => {
     <div style="height: 100%; display: flex; flex-direction: column;">
       <!-- Header Section -->
       <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; padding: 30px; display: flex; align-items: center; gap: 25px;">
-        ${cvData.profileImage ? `
+        ${
+          cvData.profileImage
+            ? `
           <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; background: white; flex-shrink: 0; border: 4px solid rgba(255,255,255,0.3);">
             <img src="${cvData.profileImage}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;" />
           </div>
-        ` : ''}
+        `
+            : ''
+        }
         <div style="flex: 1;">
           <h1 style="margin: 0; font-size: 36px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">
             ${cvData.personalInfo.fullName}
@@ -140,44 +143,64 @@ const createCVElement = (cvData: CVData): HTMLElement => {
           </div>
 
           <!-- Skills -->
-          ${cvData.skills.filter(skill => skill.trim()).length > 0 ? `
+          ${
+            cvData.skills.filter(skill => skill.trim()).length > 0
+              ? `
             <div style="margin-bottom: 30px;">
               <h2 style="color: #2563eb; font-size: 18px; font-weight: bold; margin: 0 0 15px 0; text-transform: uppercase; border-bottom: 2px solid #2563eb; padding-bottom: 5px;">
                 Skills
               </h2>
               <div style="font-size: 14px;">
-                ${cvData.skills.filter(skill => skill.trim()).map(skill => `
+                ${cvData.skills
+                  .filter(skill => skill.trim())
+                  .map(
+                    skill => `
                   <div style="margin-bottom: 8px; padding: 8px 12px; background: white; border-radius: 5px; border-left: 3px solid #2563eb;">
                     ${skill}
                   </div>
-                `).join('')}
+                `
+                  )
+                  .join('')}
               </div>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
 
           <!-- References -->
-          ${cvData.references.filter(ref => ref.name || ref.position || ref.contact).length > 0 ? `
+          ${
+            cvData.references.filter(ref => ref.name || ref.position || ref.contact).length > 0
+              ? `
             <div>
               <h2 style="color: #2563eb; font-size: 18px; font-weight: bold; margin: 0 0 15px 0; text-transform: uppercase; border-bottom: 2px solid #2563eb; padding-bottom: 5px;">
                 References
               </h2>
               <div style="font-size: 13px;">
-                ${cvData.references.filter(ref => ref.name || ref.position || ref.contact).map(ref => `
+                ${cvData.references
+                  .filter(ref => ref.name || ref.position || ref.contact)
+                  .map(
+                    ref => `
                   <div style="margin-bottom: 15px; padding: 12px; background: white; border-radius: 5px;">
                     ${ref.name ? `<div style="font-weight: bold; color: #1e40af; margin-bottom: 3px;">${ref.name}</div>` : ''}
                     ${ref.position ? `<div style="margin-bottom: 3px;">${ref.position}</div>` : ''}
                     ${ref.contact ? `<div style="color: #64748b;">${ref.contact}</div>` : ''}
                   </div>
-                `).join('')}
+                `
+                  )
+                  .join('')}
               </div>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
 
         <!-- Right Column -->
         <div style="width: 65%; padding: 30px;">
           <!-- About Me -->
-          ${cvData.personalInfo.aboutMe ? `
+          ${
+            cvData.personalInfo.aboutMe
+              ? `
             <div style="margin-bottom: 30px;">
               <h2 style="color: #2563eb; font-size: 20px; font-weight: bold; margin: 0 0 15px 0; text-transform: uppercase; border-bottom: 2px solid #2563eb; padding-bottom: 5px;">
                 About Me
@@ -186,45 +209,65 @@ const createCVElement = (cvData: CVData): HTMLElement => {
                 ${cvData.personalInfo.aboutMe}
               </p>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
 
           <!-- Education -->
-          ${cvData.education.filter(edu => edu.institution || edu.qualification).length > 0 ? `
+          ${
+            cvData.education.filter(edu => edu.institution || edu.qualification).length > 0
+              ? `
             <div style="margin-bottom: 30px;">
               <h2 style="color: #2563eb; font-size: 20px; font-weight: bold; margin: 0 0 15px 0; text-transform: uppercase; border-bottom: 2px solid #2563eb; padding-bottom: 5px;">
                 Education
               </h2>
               <div>
-                ${cvData.education.filter(edu => edu.institution || edu.qualification).map(edu => `
+                ${cvData.education
+                  .filter(edu => edu.institution || edu.qualification)
+                  .map(
+                    edu => `
                   <div style="margin-bottom: 20px; padding-left: 20px; border-left: 3px solid #2563eb; position: relative;">
                     <div style="position: absolute; left: -7px; top: 0; width: 12px; height: 12px; background: #2563eb; border-radius: 50%;"></div>
                     ${edu.institution ? `<div style="font-weight: bold; font-size: 16px; color: #1e40af; margin-bottom: 5px;">${edu.institution}</div>` : ''}
                     ${edu.qualification ? `<div style="font-size: 14px; color: #374151; margin-bottom: 3px;">${edu.qualification}</div>` : ''}
                     ${edu.year ? `<div style="font-size: 13px; color: #64748b; font-style: italic;">${edu.year}</div>` : ''}
                   </div>
-                `).join('')}
+                `
+                  )
+                  .join('')}
               </div>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
 
           <!-- Experience -->
-          ${cvData.experience.filter(exp => exp.position || exp.company).length > 0 ? `
+          ${
+            cvData.experience.filter(exp => exp.position || exp.company).length > 0
+              ? `
             <div>
               <h2 style="color: #2563eb; font-size: 20px; font-weight: bold; margin: 0 0 15px 0; text-transform: uppercase; border-bottom: 2px solid #2563eb; padding-bottom: 5px;">
                 Experience
               </h2>
               <div>
-                ${cvData.experience.filter(exp => exp.position || exp.company).map(exp => `
+                ${cvData.experience
+                  .filter(exp => exp.position || exp.company)
+                  .map(
+                    exp => `
                   <div style="margin-bottom: 20px; padding-left: 20px; border-left: 3px solid #2563eb; position: relative;">
                     <div style="position: absolute; left: -7px; top: 0; width: 12px; height: 12px; background: #2563eb; border-radius: 50%;"></div>
                     ${exp.position ? `<div style="font-weight: bold; font-size: 16px; color: #1e40af; margin-bottom: 5px;">${exp.position}</div>` : ''}
                     ${exp.company ? `<div style="font-size: 14px; color: #374151; margin-bottom: 3px;">${exp.company}</div>` : ''}
                     ${exp.duration ? `<div style="font-size: 13px; color: #64748b; font-style: italic;">${exp.duration}</div>` : ''}
                   </div>
-                `).join('')}
+                `
+                  )
+                  .join('')}
               </div>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
       </div>
     </div>
@@ -242,4 +285,3 @@ export const saveCVToUserProfile = async (userId: string, cvData: GeneratedCV): 
     console.error('Error saving CV to user profile:', error);
   }
 };
-

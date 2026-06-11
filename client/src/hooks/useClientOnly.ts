@@ -29,4 +29,3 @@ export function useBrowserAPI<T>(getAPI: () => T, fallback: T): T {
 
   return isClient ? value : fallback;
 }
-

@@ -29,6 +29,8 @@ These remain in the repo but are not first-class production targets:
 
 They are retained for compatibility, migration support, and historical operational context. They should not define the default developer workflow or the primary architecture narrative.
 
+Firebase Hosting remains a supported compatibility hosting target for the static frontend only. It deploys the root build artifact from `dist/public`, applies hosting security headers, and may be validated by CI so the legacy deployment path does not silently rot. It is not the canonical backend/runtime contract.
+
 ## Supported Environment Modes
 
 ### Local development

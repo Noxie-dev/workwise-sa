@@ -2,44 +2,44 @@ import React, { useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { marked } from 'marked';
 
-import {
-  Button,
-  Textarea,
-} from '@/components/ui';
+import { Button, Textarea } from '@/components/ui';
 
 interface JobDescriptionStepProps {
   formState: any;
   handleAIAssist: (type: string) => void;
 }
 
-export const JobDescriptionStep: React.FC<JobDescriptionStepProps> = ({ formState, handleAIAssist }) => {
+export const JobDescriptionStep: React.FC<JobDescriptionStepProps> = ({
+  formState,
+  handleAIAssist,
+}) => {
   const { values, errors, touched, handleChange, handleBlur } = formState;
   const [showMarkdownHelp, setShowMarkdownHelp] = useState(false);
-  
+
   return (
     <div className="space-y-6">
-      <FormField 
-        id="job-description" 
-        label="Job Description" 
+      <FormField
+        id="job-description"
+        label="Job Description"
         error={touched.description && errors.description}
         required
       >
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowMarkdownHelp(!showMarkdownHelp)}
               className="text-xs py-1 h-auto"
               type="button"
             >
               Formatting Help
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               className="flex items-center gap-1.5"
-              onClick={() => handleAIAssist("description")}
+              onClick={() => handleAIAssist('description')}
               disabled={!values.title || !values.category}
               type="button"
             >
@@ -47,62 +47,72 @@ export const JobDescriptionStep: React.FC<JobDescriptionStepProps> = ({ formStat
               Generate with AI
             </Button>
           </div>
-          
+
           {showMarkdownHelp && (
             <div className="rounded border bg-gray-50 p-3 text-xs space-y-1">
-              <p><code># Heading</code> for headings</p>
-              <p><code>**bold**</code> for <strong>bold text</strong></p>
-              <p><code>*italic*</code> for <em>italic text</em></p>
-              <p><code>- item</code> for bullet points</p>
-              <p><code>[link](https://example.com)</code> for links</p>
+              <p>
+                <code># Heading</code> for headings
+              </p>
+              <p>
+                <code>**bold**</code> for <strong>bold text</strong>
+              </p>
+              <p>
+                <code>*italic*</code> for <em>italic text</em>
+              </p>
+              <p>
+                <code>- item</code> for bullet points
+              </p>
+              <p>
+                <code>[link](https://example.com)</code> for links
+              </p>
             </div>
           )}
-          
-          <Textarea 
+
+          <Textarea
             id="job-description"
-            value={values.description || ""}
-            onChange={(e) => handleChange("description", e.target.value)}
-            onBlur={() => handleBlur("description")}
+            value={values.description || ''}
+            onChange={e => handleChange('description', e.target.value)}
+            onBlur={() => handleBlur('description')}
             className="min-h-[200px]"
             placeholder="Describe the position, requirements, responsibilities, and benefits..."
           />
         </div>
       </FormField>
-      
+
       {values.description && (
         <div className="mt-4 border-t pt-4">
           <h4 className="text-sm font-medium mb-2">Preview:</h4>
-          <div 
+          <div
             className="prose prose-sm max-w-none border p-4 rounded-md"
-            dangerouslySetInnerHTML={{ __html: marked(values.description) }} 
+            dangerouslySetInnerHTML={{ __html: marked(values.description) }}
           />
         </div>
       )}
-      
+
       <div className="grid gap-6 md:grid-cols-2">
-        <FormField 
-          id="job-responsibilities" 
-          label="Key Responsibilities" 
+        <FormField
+          id="job-responsibilities"
+          label="Key Responsibilities"
           hint="List the main duties separate from the general description"
         >
-          <Textarea 
+          <Textarea
             id="job-responsibilities"
-            value={values.responsibilities || ""}
-            onChange={(e) => handleChange("responsibilities", e.target.value)}
+            value={values.responsibilities || ''}
+            onChange={e => handleChange('responsibilities', e.target.value)}
             className="min-h-[120px]"
             placeholder="- Manage daily operations&#10;- Handle customer inquiries&#10;- Maintain inventory records"
           />
         </FormField>
-        
-        <FormField 
-          id="job-requirements" 
+
+        <FormField
+          id="job-requirements"
           label="Requirements & Qualifications"
           hint="Be specific about required experience and skills"
         >
-          <Textarea 
+          <Textarea
             id="job-requirements"
-            value={values.requirements || ""}
-            onChange={(e) => handleChange("requirements", e.target.value)}
+            value={values.requirements || ''}
+            onChange={e => handleChange('requirements', e.target.value)}
             className="min-h-[120px]"
             placeholder="- Minimum 2 years experience&#10;- High school diploma&#10;- Valid driver's license"
           />
@@ -121,7 +131,14 @@ interface FormFieldProps {
   hint?: string;
 }
 
-const FormField: React.FC<FormFieldProps> = ({ id, label, children, error, required = false, hint }) => (
+const FormField: React.FC<FormFieldProps> = ({
+  id,
+  label,
+  children,
+  error,
+  required = false,
+  hint,
+}) => (
   <div className="space-y-1.5">
     <div className="flex items-center gap-1.5">
       <label htmlFor={id} className="text-sm font-medium text-gray-700">

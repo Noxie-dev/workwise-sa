@@ -28,7 +28,7 @@ export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated' | 'erro
 /**
  * Permission types for role-based access control
  */
-export type Permission = 
+export type Permission =
   | 'dashboard:view'
   | 'profile:view'
   | 'profile:edit'
@@ -347,7 +347,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'profile:edit',
     'jobs:view',
     'jobs:apply',
-    'notifications:view'
+    'notifications:view',
   ],
   moderator: [
     'dashboard:view',
@@ -358,7 +358,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'jobs:create',
     'jobs:edit',
     'admin:content',
-    'notifications:view'
+    'notifications:view',
   ],
   employer: [
     'dashboard:view',
@@ -369,7 +369,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'jobs:edit',
     'jobs:delete',
     'notifications:view',
-    'notifications:send'
+    'notifications:send',
   ],
   admin: [
     'dashboard:view',
@@ -389,8 +389,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'marketing:view',
     'marketing:edit',
     'notifications:view',
-    'notifications:send'
-  ]
+    'notifications:send',
+  ],
 };
 
 /**
@@ -409,7 +409,7 @@ export const AUTH_ERROR_CODES = {
   POPUP_CLOSED_BY_USER: 'auth/popup-closed-by-user',
   POPUP_BLOCKED: 'auth/popup-blocked',
   CANCELLED_POPUP_REQUEST: 'auth/cancelled-popup-request',
-  
+
   // Custom application errors
   INVALID_TOKEN: 'auth/invalid-token',
   TOKEN_EXPIRED: 'auth/token-expired',
@@ -418,7 +418,7 @@ export const AUTH_ERROR_CODES = {
   ACCOUNT_DISABLED: 'auth/account-disabled',
   EMAIL_NOT_VERIFIED: 'auth/email-not-verified',
   VALIDATION_ERROR: 'auth/validation-error',
-  INTERNAL_ERROR: 'auth/internal-error'
+  INTERNAL_ERROR: 'auth/internal-error',
 } as const;
 
-export type AuthErrorCode = typeof AUTH_ERROR_CODES[keyof typeof AUTH_ERROR_CODES];
+export type AuthErrorCode = (typeof AUTH_ERROR_CODES)[keyof typeof AUTH_ERROR_CODES];

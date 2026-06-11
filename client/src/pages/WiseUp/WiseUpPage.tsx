@@ -12,17 +12,17 @@ const sampleItems: WiseUpItem[] = [
     creator: {
       name: 'Sarah Johnson',
       role: 'Career Coach',
-      avatar: '/images/avatars/sarah.jpg'
+      avatar: '/images/avatars/sarah.jpg',
     },
     video: 'https://example.com/videos/interview-tips.mp4',
     description: 'Learn the basics of job interviews and how to prepare effectively.',
     resources: [
       { title: 'Interview Checklist', url: 'https://example.com/resources/checklist.pdf' },
-      { title: 'Common Questions', url: 'https://example.com/resources/questions.pdf' }
+      { title: 'Common Questions', url: 'https://example.com/resources/questions.pdf' },
     ],
     tags: ['interview', 'career', 'preparation'],
     likeCount: 245,
-    commentCount: 32
+    commentCount: 32,
   },
   {
     id: 2,
@@ -32,11 +32,11 @@ const sampleItems: WiseUpItem[] = [
     video: 'https://example.com/videos/techcorp-ad.mp4',
     cta: {
       primary: { text: 'Apply Now', url: 'https://techcorp.example.com/apply' },
-      secondary: { text: 'Learn More', url: 'https://techcorp.example.com/internships' }
+      secondary: { text: 'Learn More', url: 'https://techcorp.example.com/internships' },
     },
     description: 'Gain valuable experience with our 3-month paid internship program.',
-    notes: 'Applications close on June 30th. Remote positions available.'
-  }
+    notes: 'Applications close on June 30th. Remote positions available.',
+  },
 ];
 
 interface WiseUpState {
@@ -77,12 +77,24 @@ function wiseUpReducer(state: WiseUpState, action: WiseUpAction): WiseUpState {
       return { ...state, items: action.payload, isLoading: false };
     case 'NEXT_ITEM':
       if (state.currentIndex < state.items.length - 1) {
-        return { ...state, currentIndex: state.currentIndex + 1, isPlaying: true, progress: 0, currentTime: 0 };
+        return {
+          ...state,
+          currentIndex: state.currentIndex + 1,
+          isPlaying: true,
+          progress: 0,
+          currentTime: 0,
+        };
       }
       return state;
     case 'PREVIOUS_ITEM':
       if (state.currentIndex > 0) {
-        return { ...state, currentIndex: state.currentIndex - 1, isPlaying: true, progress: 0, currentTime: 0 };
+        return {
+          ...state,
+          currentIndex: state.currentIndex - 1,
+          isPlaying: true,
+          progress: 0,
+          currentTime: 0,
+        };
       }
       return state;
     case 'TOGGLE_PLAY':
@@ -95,7 +107,10 @@ function wiseUpReducer(state: WiseUpState, action: WiseUpAction): WiseUpState {
       return {
         ...state,
         currentTime: action.payload.currentTime,
-        progress: action.payload.duration > 0 ? (action.payload.currentTime / action.payload.duration) * 100 : 0,
+        progress:
+          action.payload.duration > 0
+            ? (action.payload.currentTime / action.payload.duration) * 100
+            : 0,
       };
     case 'SET_DURATION':
       return { ...state, duration: action.payload };
@@ -122,7 +137,7 @@ export default function WiseUpPage() {
     }
 
     toast({
-      title: "End of content",
+      title: 'End of content',
       description: "You've reached the end of the available content.",
     });
   }, [state.currentIndex, state.items.length, toast]);
@@ -157,7 +172,7 @@ export default function WiseUpPage() {
 
     dispatch({ type: 'SET_PLAYING', payload: false });
     toast({
-      title: "End of content",
+      title: 'End of content',
       description: "You've reached the end of the available content.",
     });
   }, [state.currentIndex, state.items.length, toast]);
@@ -184,7 +199,7 @@ export default function WiseUpPage() {
         onTimeUpdate={(currentTime, duration) =>
           dispatch({ type: 'UPDATE_TIME', payload: { currentTime, duration } })
         }
-        onLoadedMetadata={(duration) => dispatch({ type: 'SET_DURATION', payload: duration })}
+        onLoadedMetadata={duration => dispatch({ type: 'SET_DURATION', payload: duration })}
         onEnded={handleEnded}
         onNext={handleNext}
         onPrevious={handlePrevious}

@@ -1,19 +1,19 @@
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  setDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy, 
-  limit, 
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  limit,
   startAfter,
   addDoc,
   serverTimestamp,
   Timestamp,
-  QueryDocumentSnapshot
+  QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { User } from 'firebase/auth';
@@ -51,7 +51,7 @@ export const wiseupService = {
     await setDoc(likeRef, {
       userId,
       contentId,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
     });
   },
 
@@ -67,7 +67,13 @@ export const wiseupService = {
   },
 
   // Bookmark functionality
-  async addBookmark(userId: string, contentId: string, title: string, thumbnail: string, creatorName: string): Promise<void> {
+  async addBookmark(
+    userId: string,
+    contentId: string,
+    title: string,
+    thumbnail: string,
+    creatorName: string
+  ): Promise<void> {
     const bookmarkRef = doc(db, BOOKMARKS_COLLECTION, `${userId}_${contentId}`);
     await setDoc(bookmarkRef, {
       userId,
@@ -75,7 +81,7 @@ export const wiseupService = {
       title,
       thumbnail,
       creatorName,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
     });
   },
 
@@ -91,10 +97,10 @@ export const wiseupService = {
   },
 
   async getUserBookmarks(
-    userId: string, 
-    itemsPerPage: number = 12, 
+    userId: string,
+    itemsPerPage: number = 12,
     startAfterDoc: QueryDocumentSnapshot | null = null
-  ): Promise<{ bookmarks: WiseUpBookmark[], lastDoc: QueryDocumentSnapshot | null }> {
+  ): Promise<{ bookmarks: WiseUpBookmark[]; lastDoc: QueryDocumentSnapshot | null }> {
     let bookmarksQuery = query(
       collection(db, BOOKMARKS_COLLECTION),
       where('userId', '==', userId),
@@ -110,7 +116,7 @@ export const wiseupService = {
     const bookmarks: WiseUpBookmark[] = [];
     let lastDoc: QueryDocumentSnapshot | null = null;
 
-    querySnapshot.forEach((doc) => {
+    querySnapshot.forEach(doc => {
       const data = doc.data();
       bookmarks.push({
         id: doc.id,
@@ -119,7 +125,7 @@ export const wiseupService = {
         title: data.title,
         thumbnail: data.thumbnail,
         creatorName: data.creatorName,
-        createdAt: data.createdAt
+        createdAt: data.createdAt,
       });
       lastDoc = doc;
     });
@@ -132,7 +138,7 @@ export const wiseupService = {
     contentId: string,
     commentsPerPage: number = 10,
     startAfterDoc: QueryDocumentSnapshot | null = null
-  ): Promise<{ comments: WiseUpComment[], lastDoc: QueryDocumentSnapshot | null }> {
+  ): Promise<{ comments: WiseUpComment[]; lastDoc: QueryDocumentSnapshot | null }> {
     let commentsQuery = query(
       collection(db, COMMENTS_COLLECTION),
       where('contentId', '==', contentId),
@@ -148,7 +154,7 @@ export const wiseupService = {
     const comments: WiseUpComment[] = [];
     let lastDoc: QueryDocumentSnapshot | null = null;
 
-    querySnapshot.forEach((doc) => {
+    querySnapshot.forEach(doc => {
       const data = doc.data();
       comments.push({
         id: doc.id,
@@ -156,7 +162,7 @@ export const wiseupService = {
         userName: data.userName,
         userAvatar: data.userAvatar,
         text: data.text,
-        createdAt: data.createdAt.toDate()
+        createdAt: data.createdAt.toDate(),
       });
       lastDoc = doc;
     });
@@ -166,36 +172,36 @@ export const wiseupService = {
 
   async addComment(contentId: string, user: User, text: string): Promise<WiseUpComment> {
     const commentsRef = collection(db, COMMENTS_COLLECTION);
-    
+
     const commentData = {
       contentId,
       userId: user.uid,
       userName: user.displayName || 'Anonymous User',
       userAvatar: user.photoURL,
       text,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
     };
-    
+
     const docRef = await addDoc(commentsRef, commentData);
-    
+
     // Get the newly created document to return with server timestamp
     const newDoc = await getDoc(docRef);
     const data = newDoc.data()!;
-    
+
     return {
       id: docRef.id,
       userId: data.userId,
       userName: data.userName,
       userAvatar: data.userAvatar,
       text: data.text,
-      createdAt: data.createdAt.toDate()
+      createdAt: data.createdAt.toDate(),
     };
   },
 
   async deleteComment(contentId: string, commentId: string): Promise<void> {
     const commentRef = doc(db, COMMENTS_COLLECTION, commentId);
     await deleteDoc(commentRef);
-  }
+  },
 };
 
 export default wiseupService;

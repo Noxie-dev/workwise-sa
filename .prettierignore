@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+.firebase/
+
+*.db
+test.db
+
+service-account.json
+*-firebase-adminsdk-*.json

@@ -16,11 +16,11 @@ interface AuthGuardProps {
  * Component that protects content behind authentication
  * Shows a sign-up prompt for unauthenticated users
  */
-const AuthGuard: React.FC<AuthGuardProps> = ({ 
-  children, 
+const AuthGuard: React.FC<AuthGuardProps> = ({
+  children,
   fallback,
-  message = "Please sign in to access this content",
-  showSignUpPrompt = true
+  message = 'Please sign in to access this content',
+  showSignUpPrompt = true,
 }) => {
   const { user, loading } = useAuth();
 
@@ -61,7 +61,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
                   <li>• Track your applications</li>
                 </ul>
               </div>
-              
+
               <div className="flex flex-col space-y-3">
                 <Link href="/register">
                   <Button className="w-full bg-primary hover:bg-primary/90" size="lg">
@@ -69,7 +69,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
                     Create Free Account
                   </Button>
                 </Link>
-                
+
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
@@ -78,7 +78,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
                     <span className="bg-white px-2 text-muted">Or</span>
                   </div>
                 </div>
-                
+
                 <Link href="/login">
                   <Button variant="outline" className="w-full" size="lg">
                     <LogIn className="w-4 h-4 mr-2" />

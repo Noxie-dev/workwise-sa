@@ -5,7 +5,7 @@ import {
   JobDistributionData,
   JobRecommendation,
   SkillsAnalysisData,
-  PaginatedResponse
+  PaginatedResponse,
 } from '@/services/dashboardService';
 
 /**
@@ -47,11 +47,7 @@ export const useJobRecommendations = (
 /**
  * Hook for fetching skills analysis data with pagination
  */
-export const useSkillsAnalysis = (
-  userId?: string,
-  page: number = 1,
-  limit: number = 10
-) => {
+export const useSkillsAnalysis = (userId?: string, page: number = 1, limit: number = 10) => {
   return useQuery<PaginatedResponse<SkillsAnalysisData>, Error>({
     queryKey: ['skillsAnalysis', userId, page, limit],
     queryFn: () => dashboardService.fetchSkillsAnalysis(userId, page, limit),
@@ -80,7 +76,8 @@ export const useDashboardData = (
     jobDistribution,
     jobRecommendations,
     skillsAnalysis,
-    isLoading: jobDistribution.isLoading || jobRecommendations.isLoading || skillsAnalysis.isLoading,
+    isLoading:
+      jobDistribution.isLoading || jobRecommendations.isLoading || skillsAnalysis.isLoading,
     isError: jobDistribution.isError || jobRecommendations.isError || skillsAnalysis.isError,
     error: jobDistribution.error || jobRecommendations.error || skillsAnalysis.error,
 
@@ -93,7 +90,10 @@ export const useDashboardData = (
       },
       jobRecommendations: () => {
         if (jobRecommendations.data) {
-          dashboardService.exportDashboardData(jobRecommendations.data.data, 'job-recommendations.csv');
+          dashboardService.exportDashboardData(
+            jobRecommendations.data.data,
+            'job-recommendations.csv'
+          );
         }
       },
       skillsAnalysis: () => {
@@ -107,7 +107,7 @@ export const useDashboardData = (
           const combinedData = {
             jobDistribution: jobDistribution.data.data,
             jobRecommendations: jobRecommendations.data.data,
-            skillsAnalysis: skillsAnalysis.data.data
+            skillsAnalysis: skillsAnalysis.data.data,
           };
 
           // Convert to JSON and download
@@ -122,8 +122,8 @@ export const useDashboardData = (
           link.click();
           document.body.removeChild(link);
         }
-      }
-    }
+      },
+    },
   };
 };
 

@@ -18,7 +18,7 @@ const ContactForm = () => {
     name: '',
     email: '',
     subject: '',
-    message: ''
+    message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -27,7 +27,7 @@ const ContactForm = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -39,10 +39,10 @@ const ContactForm = () => {
     try {
       // Simulate form submission
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Here you would typically send the form data to your backend
       console.log('Contact form submitted:', formData);
-      
+
       setSubmitStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (error) {
@@ -57,7 +57,7 @@ const ContactForm = () => {
     <Card>
       <CardContent className="p-6">
         <h2 className="text-2xl font-semibold mb-6">Send us a Message</h2>
-        
+
         {submitStatus === 'success' && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md flex items-start space-x-3">
             <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
@@ -135,11 +135,7 @@ const ContactForm = () => {
             />
           </div>
 
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full sm:w-auto"
-          >
+          <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -156,4 +152,3 @@ const ContactForm = () => {
 };
 
 export default ContactForm;
-

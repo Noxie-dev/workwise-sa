@@ -14,24 +14,24 @@ const contactMethods = [
   {
     icon: Mail,
     title: 'Email Us',
-    description: 'Send us an email and we\'ll respond within 24 hours',
+    description: "Send us an email and we'll respond within 24 hours",
     value: 'hello@workwisesa.co.za',
-    href: 'mailto:hello@workwisesa.co.za'
+    href: 'mailto:hello@workwisesa.co.za',
   },
   {
     icon: Phone,
     title: 'Call Us',
     description: 'Speak directly with our support team',
     value: '+27 21 123 4567',
-    href: 'tel:+27211234567'
+    href: 'tel:+27211234567',
   },
   {
     icon: MapPin,
     title: 'Visit Us',
     description: 'Our office in Cape Town, Western Cape',
     value: 'Cape Town, South Africa',
-    href: '#' // Consider a Google Maps link or similar
-  }
+    href: '#', // Consider a Google Maps link or similar
+  },
 ];
 
 const supportCategories = [
@@ -39,20 +39,20 @@ const supportCategories = [
     icon: Users,
     title: 'Job Seekers',
     description: 'Help with CV building, job applications, and career guidance',
-    topics: ['CV Builder', 'Job Applications', 'Profile Setup', 'WiseUp Learning']
+    topics: ['CV Builder', 'Job Applications', 'Profile Setup', 'WiseUp Learning'],
   },
   {
     icon: Briefcase,
     title: 'Employers',
     description: 'Support for posting jobs and managing applications',
-    topics: ['Job Posting', 'Candidate Management', 'Account Setup', 'Billing']
+    topics: ['Job Posting', 'Candidate Management', 'Account Setup', 'Billing'],
   },
   {
     icon: MessageSquare,
     title: 'General Support',
     description: 'Technical issues, account problems, and other inquiries',
-    topics: ['Technical Issues', 'Account Recovery', 'Feature Requests', 'Feedback']
-  }
+    topics: ['Technical Issues', 'Account Recovery', 'Feature Requests', 'Feedback'],
+  },
 ];
 
 // Fallback component for Suspense
@@ -62,7 +62,6 @@ const LoadingFallback = () => (
     <p className="ml-4 text-muted-foreground">Loading section...</p>
   </div>
 );
-
 
 const Contact = () => {
   return (
@@ -78,7 +77,7 @@ const Contact = () => {
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold mb-4">Get in Touch</h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Have questions about WorkWise SA? Need help with your job search or recruitment needs? 
+              Have questions about WorkWise SA? Need help with your job search or recruitment needs?
               We're here to help you succeed in South Africa's job market.
             </p>
           </div>
@@ -96,13 +95,15 @@ const Contact = () => {
               </Suspense>
             </div>
           </div>
-          
+
           <Suspense fallback={<LoadingFallback />}>
             <SupportCategoriesDisplay supportCategories={supportCategories} />
           </Suspense>
 
           {/* FAQ Prompt (can remain here as it's small) */}
-          <Card className="bg-muted/50 mt-12"> {/* Added mt-12 for spacing from section above */}
+          <Card className="bg-muted/50 mt-12">
+            {' '}
+            {/* Added mt-12 for spacing from section above */}
             <CardContent className="p-8 text-center">
               <h3 className="text-xl font-semibold mb-2">Looking for Quick Answers?</h3>
               <p className="text-muted-foreground mb-4">

@@ -3,11 +3,11 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 
-export function UITest() {
+export const UITest = () => {
   return (
     <div className="p-8 space-y-8">
       <h1 className="text-3xl font-bold">UI Component Test</h1>
-      
+
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold">Buttons</h2>
         <div className="flex flex-wrap gap-4">
@@ -19,7 +19,7 @@ export function UITest() {
           <Button variant="link">Link</Button>
         </div>
       </div>
-      
+
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold">Cards</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -29,7 +29,10 @@ export function UITest() {
               <CardDescription>Card Description</CardDescription>
             </CardHeader>
             <CardContent>
-              <p>Card content goes here. This is using the shadcn/ui components with our custom theme.</p>
+              <p>
+                Card content goes here. This is using the shadcn/ui components with our custom
+                theme.
+              </p>
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button variant="outline">Cancel</Button>
@@ -38,7 +41,7 @@ export function UITest() {
           </Card>
         </div>
       </div>
-      
+
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold">Badges</h2>
         <div className="flex flex-wrap gap-2">
@@ -48,17 +51,17 @@ export function UITest() {
           <Badge variant="outline">Outline</Badge>
         </div>
       </div>
-      
+
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold">Typography</h2>
         <div className="prose">
           <h1>Heading 1</h1>
           <h2>Heading 2</h2>
           <h3>Heading 3</h3>
-          <p>This is a paragraph with <a href="#">a link</a> inside it.</p>
-          <blockquote>
-            This is a blockquote. The typography plugin styles this nicely.
-          </blockquote>
+          <p>
+            This is a paragraph with <a href="#">a link</a> inside it.
+          </p>
+          <blockquote>This is a blockquote. The typography plugin styles this nicely.</blockquote>
           <ul>
             <li>List item 1</li>
             <li>List item 2</li>
@@ -66,7 +69,7 @@ export function UITest() {
           </ul>
         </div>
       </div>
-      
+
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold">Animations</h2>
         <div className="flex flex-wrap gap-4">
@@ -77,4 +80,4 @@ export function UITest() {
       </div>
     </div>
   );
-}
+};

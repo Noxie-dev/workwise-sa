@@ -1,6 +1,7 @@
 # Bundle Optimization Guide
 
 This guide provides recommendations for optimizing your application bundle size to address the warning:
+
 > Some chunks are larger than 600 kB after minification.
 
 ## Implemented Optimizations
@@ -25,8 +26,10 @@ Your application already uses React.lazy for route components, which is excellen
 
 ```jsx
 // Example of more granular code splitting for feature-rich pages
-const Dashboard = lazy(() => import(/* webpackChunkName: "dashboard" */ "@/pages/Dashboard"));
-const DashboardCharts = lazy(() => import(/* webpackChunkName: "dashboard-charts" */ "@/components/dashboard/Charts"));
+const Dashboard = lazy(() => import(/* webpackChunkName: "dashboard" */ '@/pages/Dashboard'));
+const DashboardCharts = lazy(
+  () => import(/* webpackChunkName: "dashboard-charts" */ '@/components/dashboard/Charts')
+);
 ```
 
 ### 2. Optimize Large Dependencies
@@ -90,6 +93,7 @@ Consider implementing bundle size tracking in your CI/CD pipeline to prevent reg
 To identify the largest chunks in your application:
 
 1. Run the analyze script:
+
    ```bash
    cd client
    npm run analyze

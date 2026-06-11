@@ -14,17 +14,17 @@ console.log('🔍 Validating Netlify deployment configuration...\n');
 let hasErrors = false;
 let hasWarnings = false;
 
-const error = (message) => {
+const error = message => {
   console.error(`❌ ${message}`);
   hasErrors = true;
 };
 
-const warning = (message) => {
+const warning = message => {
   console.warn(`⚠️  ${message}`);
   hasWarnings = true;
 };
 
-const success = (message) => {
+const success = message => {
   console.log(`✅ ${message}`);
 };
 
@@ -43,34 +43,33 @@ try {
 // Check netlify.toml
 if (fs.existsSync('netlify.toml')) {
   success('netlify.toml configuration file exists');
-  
+
   const tomlContent = fs.readFileSync('netlify.toml', 'utf8');
-  
+
   // Check for required sections
   if (tomlContent.includes('[build]')) {
     success('Build configuration found');
   } else {
     error('Missing [build] section in netlify.toml');
   }
-  
+
   if (tomlContent.includes('[functions]')) {
     success('Functions configuration found');
   } else {
     warning('No [functions] section in netlify.toml');
   }
-  
+
   if (tomlContent.includes('NODE_VERSION = "20"')) {
     success('Node.js 20 configured');
   } else {
     warning('Node.js version not set to 20 in netlify.toml');
   }
-  
+
   if (tomlContent.includes('streaming = true')) {
     success('Function streaming enabled');
   } else {
     warning('Function streaming not enabled - consider adding for better performance');
   }
-  
 } else {
   error('netlify.toml configuration file missing');
 }
@@ -79,24 +78,24 @@ if (fs.existsSync('netlify.toml')) {
 if (fs.existsSync('dist/public')) {
   success('Build output directory exists');
 } else {
-  warning('Build output directory (dist/public) not found - run npm run build first');
+  warning('Build output directory (dist/public) not found - run pnpm run build first');
 }
 
 // Check functions directory
 if (fs.existsSync('netlify/functions')) {
   success('Functions directory exists');
-  
+
   const functionsPackageJson = 'netlify/functions/package.json';
   if (fs.existsSync(functionsPackageJson)) {
     success('Functions package.json exists');
-    
+
     const pkg = JSON.parse(fs.readFileSync(functionsPackageJson, 'utf8'));
     if (pkg.type === 'module') {
       success('Functions configured as ES modules');
     } else {
       warning('Functions not configured as ES modules - consider updating');
     }
-    
+
     if (pkg.engines && pkg.engines.node && pkg.engines.node.includes('20')) {
       success('Functions Node.js version specified');
     } else {
@@ -119,20 +118,15 @@ if (fs.existsSync('.env.example')) {
 if (fs.existsSync('.env.production')) {
   success('Production environment file exists');
 } else {
-  warning('No .env.production file - run npm run netlify:prepare');
+  warning('No .env.production file - run pnpm run netlify:prepare');
 }
 
 // Check package.json scripts
 if (fs.existsSync('package.json')) {
   const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-  
-  const requiredScripts = [
-    'netlify:build',
-    'netlify:prepare',
-    'deploy:fast',
-    'deploy:prod'
-  ];
-  
+
+  const requiredScripts = ['netlify:build', 'netlify:prepare', 'deploy:fast', 'deploy:prod'];
+
   requiredScripts.forEach(script => {
     if (pkg.scripts && pkg.scripts[script]) {
       success(`Script "${script}" configured`);
@@ -145,10 +139,7 @@ if (fs.existsSync('package.json')) {
 }
 
 // Check for security files
-const securityFiles = [
-  'scripts/netlify-post-build.js',
-  'NETLIFY_DEPLOYMENT_GUIDE.md'
-];
+const securityFiles = ['scripts/netlify-post-build.js', 'NETLIFY_DEPLOYMENT_GUIDE.md'];
 
 securityFiles.forEach(file => {
   if (fs.existsSync(file)) {
@@ -185,7 +176,7 @@ if (hasErrors) {
 } else {
   console.log('✅ Configuration is ready for deployment!');
   console.log('\n🚀 Next steps:');
-  console.log('   1. npm run netlify:prepare  # Set up environment variables');
-  console.log('   2. npm run deploy:fast      # Deploy to Netlify');
+  console.log('   1. pnpm run netlify:prepare  # Set up environment variables');
+  console.log('   2. pnpm run deploy:fast      # Deploy to Netlify');
   process.exit(0);
 }

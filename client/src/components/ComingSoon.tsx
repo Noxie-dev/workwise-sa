@@ -1,5 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarClock } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CalendarClock } from 'lucide-react';
 
 interface ComingSoonProps {
   title: string;
@@ -16,7 +16,7 @@ export default function ComingSoon({ title, description }: ComingSoonProps) {
             <CardTitle className="text-2xl font-bold">{title}</CardTitle>
           </div>
           <CardDescription>
-            {description || "This page is under construction and will be available soon."}
+            {description || 'This page is under construction and will be available soon.'}
           </CardDescription>
         </CardHeader>
         <CardContent>

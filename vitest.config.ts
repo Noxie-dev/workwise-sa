@@ -7,12 +7,8 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
-    include: ['**/*.test.{ts,js}'],
-    exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/client/**',
-    ],
+    include: ['server/**/*.test.{ts,js}', 'tests/**/*.test.{ts,js}'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/client/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -32,4 +28,3 @@ export default defineConfig({
     },
   },
 });
-

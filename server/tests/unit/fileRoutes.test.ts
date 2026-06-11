@@ -50,7 +50,7 @@ function createMockResponse() {
 
 function getFinalRouteHandler(path: string, method: string) {
   const layer = router.stack.find(
-    (entry: any) => entry.route?.path === path && entry.route.methods?.[method],
+    (entry: any) => entry.route?.path === path && entry.route.methods?.[method]
   );
 
   if (!layer) {
@@ -137,7 +137,7 @@ describe('file routes', () => {
         fileType: 'profile_image',
         mimeType: 'image/png',
         fileUrl: expect.stringContaining('/uploads/profile-images/user-42/'),
-      }),
+      })
     );
   });
 

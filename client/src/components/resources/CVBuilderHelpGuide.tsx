@@ -4,14 +4,18 @@ import { ChevronDown, ChevronUp, HelpCircle, AlertCircle, Download, FileText } f
 // Lazy load section content components
 const GettingStartedContent = lazy(() => import('./help-guide-sections/GettingStartedContent'));
 const PersonalInfoContent = lazy(() => import('./help-guide-sections/PersonalInfoContent'));
-const ProfessionalSummaryContent = lazy(() => import('./help-guide-sections/ProfessionalSummaryContent'));
+const ProfessionalSummaryContent = lazy(
+  () => import('./help-guide-sections/ProfessionalSummaryContent')
+);
 const WorkExperienceContent = lazy(() => import('./help-guide-sections/WorkExperienceContent'));
 const EducationContent = lazy(() => import('./help-guide-sections/EducationContent'));
 const SkillsLanguagesContent = lazy(() => import('./help-guide-sections/SkillsLanguagesContent'));
 const ReferencesContent = lazy(() => import('./help-guide-sections/ReferencesContent'));
 const GeneratingCVContent = lazy(() => import('./help-guide-sections/GeneratingCVContent'));
 const IndustryTipsContent = lazy(() => import('./help-guide-sections/IndustryTipsContent'));
-const TroubleshootingSupportContent = lazy(() => import('./help-guide-sections/TroubleshootingSupportContent'));
+const TroubleshootingSupportContent = lazy(
+  () => import('./help-guide-sections/TroubleshootingSupportContent')
+);
 
 // Fallback component for Suspense
 const SectionLoading = () => (
@@ -33,7 +37,7 @@ export default function CVBuilderHelpGuide() {
     id,
     title,
     icon,
-    ContentComponent
+    ContentComponent,
   }: {
     id: string;
     title: string;
@@ -54,7 +58,11 @@ export default function CVBuilderHelpGuide() {
             {icon}
             {title}
           </div>
-          {isOpen ? <ChevronUp className="h-5 w-5 text-blue-600" /> : <ChevronDown className="h-5 w-5 text-blue-600" />}
+          {isOpen ? (
+            <ChevronUp className="h-5 w-5 text-blue-600" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-blue-600" />
+          )}
         </button>
 
         {isOpen && (
@@ -73,7 +81,8 @@ export default function CVBuilderHelpGuide() {
       <div className="text-center mb-10">
         <h1 className="text-3xl font-bold text-blue-900 mb-4">AI CV Builder Help Guide</h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Our AI-powered CV builder helps you create professional, tailored CVs that stand out to South African employers.
+          Our AI-powered CV builder helps you create professional, tailored CVs that stand out to
+          South African employers.
         </p>
       </div>
 

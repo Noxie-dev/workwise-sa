@@ -51,7 +51,7 @@ const pythonScript = path.join(scrapyDir, 'run_scrapers.py');
 
 router.get('/status', async (_req, res) => {
   try {
-    const sessions = Array.from(scrapingSessions.values()).map((session) => ({
+    const sessions = Array.from(scrapingSessions.values()).map(session => ({
       id: session.id,
       status: session.status,
       startTime: session.startTime,
@@ -63,7 +63,7 @@ router.get('/status', async (_req, res) => {
     res.json({
       success: true,
       sessions,
-      activeSessions: sessions.filter((s) => s.status === 'running').length,
+      activeSessions: sessions.filter(s => s.status === 'running').length,
     });
   } catch (error) {
     console.error('Error getting scraping status:', error);
@@ -95,7 +95,7 @@ router.post('/trigger', async (req, res) => {
     const validatedData = triggerScrapingSchema.parse(req.body);
 
     const runningSessions = Array.from(scrapingSessions.values()).filter(
-      (session) => session.status === 'running'
+      session => session.status === 'running'
     );
 
     if (runningSessions.length >= 2) {
@@ -187,7 +187,7 @@ router.get('/logs/:sessionId', async (req, res) => {
       const logContent = await fs.readFile(scrapingLogPath, 'utf-8');
       const sessionLogs = logContent
         .split('\n')
-        .filter((line) => line.includes(sessionId) || line.includes('INFO'))
+        .filter(line => line.includes(sessionId) || line.includes('INFO'))
         .slice(-100);
 
       return res.json({
@@ -210,7 +210,7 @@ router.get('/logs/:sessionId', async (req, res) => {
 router.get('/stats', async (_req, res) => {
   try {
     const totalJobs = await storage.getJobs();
-    const recentJobs = totalJobs.filter((job) => {
+    const recentJobs = totalJobs.filter(job => {
       const createdAt = new Date(job.createdAt!);
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -232,9 +232,9 @@ router.get('/stats', async (_req, res) => {
         scrapingHistory: {
           totalSessions: scrapingSessions.size,
           completedSessions: Array.from(scrapingSessions.values()).filter(
-            (s) => s.status === 'completed'
+            s => s.status === 'completed'
           ).length,
-          failedSessions: Array.from(scrapingSessions.values()).filter((s) => s.status === 'failed')
+          failedSessions: Array.from(scrapingSessions.values()).filter(s => s.status === 'failed')
             .length,
         },
       },
@@ -286,7 +286,7 @@ function startScrapingProcess(sessionId: string, options: TriggerScrapingOptions
     session.progress.errors += 1;
   });
 
-  scrapingProcess.on('close', (code) => {
+  scrapingProcess.on('close', code => {
     session.endTime = new Date();
 
     if (code === 0) {
@@ -300,7 +300,7 @@ function startScrapingProcess(sessionId: string, options: TriggerScrapingOptions
     }
   });
 
-  scrapingProcess.on('error', (error) => {
+  scrapingProcess.on('error', error => {
     session.status = 'failed';
     session.endTime = new Date();
     session.error = error.message;
@@ -312,7 +312,7 @@ async function loadScrapingResults(sessionId: string) {
   try {
     const files = await fs.readdir(scrapyDir);
     const reportFiles = files
-      .filter((file) => file.startsWith('scraping_report_') && file.endsWith('.json'))
+      .filter(file => file.startsWith('scraping_report_') && file.endsWith('.json'))
       .sort()
       .reverse();
 

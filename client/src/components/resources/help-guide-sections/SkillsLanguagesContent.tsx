@@ -10,14 +10,20 @@ export default function SkillsLanguagesContent() {
       <h3 className="font-semibold text-blue-800">Skills</h3>
       <ul className="list-disc pl-5 space-y-2">
         <li>List both hard skills (technical abilities) and soft skills (personal attributes)</li>
-        <li>Be specific about technical skills (e.g., instead of "Computer Skills," list "Proficient in MS Excel, PowerPoint, and Word")</li>
+        <li>
+          Be specific about technical skills (e.g., instead of "Computer Skills," list "Proficient
+          in MS Excel, PowerPoint, and Word")
+        </li>
         <li>Include level of proficiency where relevant</li>
         <li>Focus on skills mentioned in the job advertisement</li>
       </ul>
       <h3 className="font-semibold text-blue-800 mt-6">Languages</h3>
       <ul className="list-disc pl-5 space-y-2">
         <li>List all languages you speak with proficiency level</li>
-        <li>South Africa has 11 official languages—knowledge of multiple South African languages is a valuable asset</li>
+        <li>
+          South Africa has 11 official languages—knowledge of multiple South African languages is a
+          valuable asset
+        </li>
       </ul>
       <div className="border rounded p-4 bg-gray-50 mt-4">
         <h4 className="font-medium text-gray-700 mb-2">Example:</h4>
@@ -37,7 +43,8 @@ export default function SkillsLanguagesContent() {
         </ul>
       </div>
       <Tip>
-        South African employers often use Applicant Tracking Systems (ATS) to scan CVs, so include relevant keywords from the job description.
+        South African employers often use Applicant Tracking Systems (ATS) to scan CVs, so include
+        relevant keywords from the job description.
       </Tip>
     </div>
   );

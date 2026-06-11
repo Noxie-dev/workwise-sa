@@ -29,16 +29,17 @@ const MarketingRulesPage: React.FC = () => {
     queryFn: () => {
       // Sample job listing data for preview
       const sampleJob: JobListingExample = {
-        title: "Junior Software Developer",
-        company: "TechInnovate Solutions",
-        location: "Johannesburg, Gauteng",
-        jobType: "IT/Technology",
-        description: "Entry-level position for a passionate developer. Knowledge of HTML, CSS, and JavaScript preferred. Opportunity to learn and grow in a supportive environment.",
+        title: 'Junior Software Developer',
+        company: 'TechInnovate Solutions',
+        location: 'Johannesburg, Gauteng',
+        jobType: 'IT/Technology',
+        description:
+          'Entry-level position for a passionate developer. Knowledge of HTML, CSS, and JavaScript preferred. Opportunity to learn and grow in a supportive environment.',
         contactInfo: {
-          email: "recruitment@techinnovate.co.za",
-          phone: "011-555-9876",
-          applyInstructions: "Send CV to jobs@techinnovate.co.za by August 15th"
-        }
+          email: 'recruitment@techinnovate.co.za',
+          phone: '011-555-9876',
+          applyInstructions: 'Send CV to jobs@techinnovate.co.za by August 15th',
+        },
       };
       return Promise.resolve(sampleJob);
     },
@@ -47,7 +48,9 @@ const MarketingRulesPage: React.FC = () => {
 
   // Save rule mutation (handles both create and update)
   const mutationSave = useMutation({
-    mutationFn: (ruleData: Omit<MarketingRule, 'id' | 'createdAt' | 'ctaPreview'> | MarketingRule) => {
+    mutationFn: (
+      ruleData: Omit<MarketingRule, 'id' | 'createdAt' | 'ctaPreview'> | MarketingRule
+    ) => {
       if ('id' in ruleData) {
         // Update existing rule
         return marketingRuleService.updateRule(ruleData.id, ruleData);
@@ -56,7 +59,7 @@ const MarketingRulesPage: React.FC = () => {
         return marketingRuleService.createRule(ruleData);
       }
     },
-    onSuccess: (savedRule) => {
+    onSuccess: savedRule => {
       queryClient.invalidateQueries({ queryKey: ['marketingRules'] });
       toast({
         title: 'Success',
@@ -66,7 +69,7 @@ const MarketingRulesPage: React.FC = () => {
       setIsCreatingNew(false);
       setActiveTab('rules');
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Error',
         description: `Failed to save rule: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -86,7 +89,7 @@ const MarketingRulesPage: React.FC = () => {
       });
       setSelectedRule(null);
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Error',
         description: `Failed to delete rule: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -110,7 +113,7 @@ const MarketingRulesPage: React.FC = () => {
 
   // Handle delete rule
   const handleDelete = (ruleId: string) => {
-    if (window.confirm("Are you sure you want to delete this rule?")) {
+    if (window.confirm('Are you sure you want to delete this rule?')) {
       mutationDelete.mutate(ruleId);
     }
   };
@@ -124,8 +127,8 @@ const MarketingRulesPage: React.FC = () => {
 
   // Handle save rule
   const handleSave = (formData: Omit<MarketingRule, 'id' | 'createdAt' | 'ctaPreview'>) => {
-     const ruleToSave = selectedRule ? { ...selectedRule, ...formData } : formData;
-     mutationSave.mutate(ruleToSave);
+    const ruleToSave = selectedRule ? { ...selectedRule, ...formData } : formData;
+    mutationSave.mutate(ruleToSave);
   };
 
   // Handle close editor
@@ -146,7 +149,8 @@ const MarketingRulesPage: React.FC = () => {
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Marketing Rules Manager</h1>
         <p className="text-muted-foreground mt-2">
-          Create and manage rules to add call-to-action messages to job listings for specific locations and job types.
+          Create and manage rules to add call-to-action messages to job listings for specific
+          locations and job types.
         </p>
       </div>
 
@@ -169,9 +173,7 @@ const MarketingRulesPage: React.FC = () => {
               onSubmit={handleSave}
               onCancel={closeEditor}
             />
-            <MarketingRulePreview
-              selectedRule={selectedRule}
-            />
+            <MarketingRulePreview selectedRule={selectedRule} />
           </div>
         )}
 

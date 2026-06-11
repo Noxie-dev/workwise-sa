@@ -27,10 +27,10 @@ export interface UseUserMenuResult {
 
 /**
  * Custom hook for user menu functionality
- * 
+ *
  * Provides user information, authentication status, admin status,
  * and logout functionality for the UserMenu component.
- * 
+ *
  * @returns {UseUserMenuResult} User menu data and functions
  */
 export function useUserMenu(): UseUserMenuResult {
@@ -41,24 +41,30 @@ export function useUserMenu(): UseUserMenuResult {
   // Calculate user initials for avatar fallback
   const userInitials = useMemo(() => {
     if (!currentUser) return 'U';
-    
+
     return currentUser.displayName
-      ? currentUser.displayName.split(' ').map(n => n[0]).join('').toUpperCase()
+      ? currentUser.displayName
+          .split(' ')
+          .map(n => n[0])
+          .join('')
+          .toUpperCase()
       : currentUser.email?.substring(0, 2).toUpperCase() || 'U';
   }, [currentUser]);
 
   // Check if user is an admin
   const isAdmin = useMemo(() => {
     if (!currentUser?.email) return false;
-    
+
     // For demo purposes, consider users with these domains as admins
     const adminDomains = ['workwisesa.co.za', 'admin.workwisesa.co.za', 'admin.com'];
-    
+
     // Also grant admin access to specific email addresses
     const adminEmails = ['phakikrwele@gmail.com'];
-    
-    return adminDomains.some(domain => currentUser.email.endsWith(domain)) ||
-           adminEmails.includes(currentUser.email);
+
+    return (
+      adminDomains.some(domain => currentUser.email.endsWith(domain)) ||
+      adminEmails.includes(currentUser.email)
+    );
   }, [currentUser]);
 
   // Handle user logout

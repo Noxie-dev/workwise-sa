@@ -39,7 +39,9 @@ export const fileUploadService = {
         } catch {
           errorData = { error: errorText };
         }
-        throw new Error(errorData.error || `HTTP ${response.status}: Failed to upload professional image`);
+        throw new Error(
+          errorData.error || `HTTP ${response.status}: Failed to upload professional image`
+        );
       }
 
       const data = await response.json();
@@ -86,7 +88,9 @@ export const fileUploadService = {
         } catch {
           errorData = { error: errorText };
         }
-        throw new Error(errorData.error || `HTTP ${response.status}: Failed to upload profile image`);
+        throw new Error(
+          errorData.error || `HTTP ${response.status}: Failed to upload profile image`
+        );
       }
 
       const data = await response.json();
@@ -204,5 +208,5 @@ export const fileUploadService = {
       console.error('Error deleting file:', error);
       throw error;
     }
-  }
+  },
 };

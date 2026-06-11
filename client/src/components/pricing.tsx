@@ -2,7 +2,9 @@ import React from 'react';
 
 const PricingCard = ({ title, price, features, isPopular }) => {
   return (
-    <div className={`p-6 rounded-lg shadow-lg ${isPopular ? 'bg-blue-50 border-2 border-blue-500' : 'bg-white'}`}>
+    <div
+      className={`p-6 rounded-lg shadow-lg ${isPopular ? 'bg-blue-50 border-2 border-blue-500' : 'bg-white'}`}
+    >
       {isPopular && (
         <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
           Most Popular
@@ -16,14 +18,26 @@ const PricingCard = ({ title, price, features, isPopular }) => {
       <ul className="mt-6 space-y-3">
         {features.map((feature, index) => (
           <li key={index} className="flex items-center">
-            <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            <svg
+              className="w-5 h-5 text-green-500 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
             {feature}
           </li>
         ))}
       </ul>
-      <button className={`mt-8 w-full py-2 px-4 rounded-lg font-medium ${isPopular ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-800 text-white hover:bg-gray-900'}`}>
+      <button
+        className={`mt-8 w-full py-2 px-4 rounded-lg font-medium ${isPopular ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-800 text-white hover:bg-gray-900'}`}
+      >
         Get Started
       </button>
     </div>
@@ -36,20 +50,20 @@ const Pricing = () => {
       title: 'Basic',
       price: 29,
       features: ['1 User', '10 Projects', 'Basic Support', '2GB Storage'],
-      isPopular: false
+      isPopular: false,
     },
     {
       title: 'Professional',
       price: 99,
       features: ['5 Users', 'Unlimited Projects', 'Priority Support', '10GB Storage'],
-      isPopular: true
+      isPopular: true,
     },
     {
       title: 'Enterprise',
       price: 199,
       features: ['Unlimited Users', 'Unlimited Projects', '24/7 Support', 'Unlimited Storage'],
-      isPopular: false
-    }
+      isPopular: false,
+    },
   ];
 
   return (
@@ -59,9 +73,7 @@ const Pricing = () => {
           <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
             Simple, transparent pricing
           </h2>
-          <p className="mt-4 text-lg text-gray-600">
-            Choose the plan that best suits your needs
-          </p>
+          <p className="mt-4 text-lg text-gray-600">Choose the plan that best suits your needs</p>
         </div>
         <div className="mt-16 grid gap-6 lg:grid-cols-3 lg:gap-8">
           {plans.map((plan, index) => (

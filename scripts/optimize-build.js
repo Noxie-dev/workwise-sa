@@ -17,7 +17,7 @@ const uploadDirs = [
   'uploads/profile-images',
   'uploads/professional-images',
   'uploads/cvs',
-  'uploads/temp'
+  'uploads/temp',
 ];
 
 uploadDirs.forEach(dir => {

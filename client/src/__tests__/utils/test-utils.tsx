@@ -37,36 +37,32 @@ export const createTestQueryClient = () =>
  */
 export function createWrapper() {
   const testQueryClient = createTestQueryClient();
-  
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={testQueryClient}>{children}</QueryClientProvider>
-  );
+
+  return function ({ children }: { children: React.ReactNode }) {
+    return <QueryClientProvider client={testQueryClient}>{children}</QueryClientProvider>;
+  };
 }
 
 /**
  * A wrapper component that provides all common providers for testing
  */
-export function AllTheProviders({ children }: { children: React.ReactNode }) {
+export const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   const testQueryClient = createTestQueryClient();
-  
+
   return (
     <HelmetProvider>
       <QueryClientProvider client={testQueryClient}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <AuthProvider>{children}</AuthProvider>
       </QueryClientProvider>
     </HelmetProvider>
   );
-}
+};
 
 /**
  * Custom render function that includes common providers
  */
-const customRender = (
-  ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>,
-) => render(ui, { wrapper: AllTheProviders, ...options });
+const customRender = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
+  render(ui, { wrapper: AllTheProviders, ...options });
 
 // Re-export everything from testing-library
 export * from '@testing-library/react';

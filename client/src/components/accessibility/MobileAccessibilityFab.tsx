@@ -7,15 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Settings,
-  Type,
-  Eye,
-  Volume2,
-  Smartphone,
-  Accessibility,
-  Zap,
-} from 'lucide-react';
+import { Settings, Type, Eye, Volume2, Smartphone, Accessibility, Zap } from 'lucide-react';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { toast } from '@/hooks/use-toast';
 
@@ -111,17 +103,12 @@ export default function MobileAccessibilityFab({ onOpenSettings }: MobileAccessi
               <Accessibility className="h-6 w-6" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            side="top"
-            className="w-64 mb-2"
-            sideOffset={8}
-          >
+          <DropdownMenuContent align="end" side="top" className="w-64 mb-2" sideOffset={8}>
             <div className="px-3 py-2 text-sm font-medium text-gray-700 border-b">
               Quick Accessibility
             </div>
-            
-            {quickActions.map((action) => (
+
+            {quickActions.map(action => (
               <DropdownMenuItem
                 key={action.id}
                 onClick={action.action}
@@ -131,9 +118,9 @@ export default function MobileAccessibilityFab({ onOpenSettings }: MobileAccessi
                 <span className="text-sm">{action.label}</span>
               </DropdownMenuItem>
             ))}
-            
+
             <DropdownMenuSeparator />
-            
+
             <DropdownMenuItem
               onClick={onOpenSettings}
               className="flex items-center gap-3 py-3 cursor-pointer font-medium"

@@ -8,12 +8,15 @@ import { DatabaseStorage } from '../server/storage';
 config();
 
 // Initialize Firebase Admin SDK
-const serviceAccountPath = path.join(process.cwd(), 'workwisesa-dev-firebase-adminsdk-fbsvc-f426ddcf9a.json');
+const serviceAccountPath = path.join(
+  process.cwd(),
+  'workwisesa-dev-firebase-adminsdk-fbsvc-f426ddcf9a.json'
+);
 const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
 const app = admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   projectId: process.env.FIREBASE_PROJECT_ID || 'workwisesa-dev-us',
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'workwisesa-dev-us.appspot.com'
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'workwisesa-dev-us.appspot.com',
 });
 
 // Initialize storage
@@ -33,8 +36,8 @@ const testUsers = [
       bio: 'Test user for persistence testing',
       phoneNumber: '0123456789',
       willingToRelocate: true,
-      notificationPreference: true
-    }
+      notificationPreference: true,
+    },
   },
   {
     email: 'testuser2@example.com',
@@ -48,9 +51,9 @@ const testUsers = [
       bio: 'Another test user for persistence testing',
       phoneNumber: '0987654321',
       willingToRelocate: false,
-      notificationPreference: false
-    }
-  }
+      notificationPreference: false,
+    },
+  },
 ];
 
 async function createTestUsers() {
@@ -60,7 +63,10 @@ async function createTestUsers() {
     for (const user of testUsers) {
       try {
         // Check if user already exists in Firebase Auth
-        const existingUser = await admin.auth().getUserByEmail(user.email).catch(() => null);
+        const existingUser = await admin
+          .auth()
+          .getUserByEmail(user.email)
+          .catch(() => null);
 
         if (existingUser) {
           console.log(`User ${user.email} already exists in Firebase Auth, skipping creation`);
@@ -70,7 +76,7 @@ async function createTestUsers() {
             email: user.email,
             password: user.password,
             displayName: user.displayName,
-            emailVerified: true
+            emailVerified: true,
           });
 
           console.log(`Created Firebase Auth user: ${userRecord.uid}`);
@@ -80,7 +86,9 @@ async function createTestUsers() {
         const existingDbUser = await storage.getUserByUsername(user.userData.username);
 
         if (existingDbUser) {
-          console.log(`User ${user.userData.username} already exists in database, skipping creation`);
+          console.log(
+            `User ${user.userData.username} already exists in database, skipping creation`
+          );
         } else {
           // Create user in database
           const dbUser = await storage.createUser(user.userData);

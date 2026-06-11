@@ -5,7 +5,17 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Loader2, Save, Trash2, ArrowLeft, ArrowRight } from 'lucide-react';
 
 import CustomHelmet from '@/components/CustomHelmet';
-import { Button, AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui';
+import {
+  Button,
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui';
 
 import { INITIAL_FORM_STATE, JobFormValues } from '@/constants/formConstants';
 import useJobFormState from '@/hooks/useJobFormState';
@@ -27,7 +37,7 @@ const LoadingStepFallback = () => (
 );
 
 const PostJob = () => {
-  const FORM_ID = "job-post-form-v1";
+  const FORM_ID = 'job-post-form-v1';
   const [, setLocation] = useLocation();
   const [isEditMatch, editParams] = useRoute('/employers/jobs/:id/edit');
   const { currentUser, role } = useAuth();
@@ -52,11 +62,10 @@ const PostJob = () => {
   });
 
   const submitMutation = useMutation({
-    mutationFn: async (payload: JobFormValues) => (
+    mutationFn: async (payload: JobFormValues) =>
       isEditMode && editParams?.id
         ? employerDashboardService.updateEmployerJob(editParams.id, payload)
-        : employerDashboardService.createEmployerJob(payload)
-    ),
+        : employerDashboardService.createEmployerJob(payload),
     onSuccess: () => {
       clearSavedData();
       setLocation('/employers/dashboard');
@@ -66,14 +75,14 @@ const PostJob = () => {
   const handleAIAssist = async (type: string) => {
     setIsAiLoading(true);
     try {
-      const response = await generateAIContent("", type, formState.values);
+      const response = await generateAIContent('', type, formState.values);
       if (response.content) {
         switch (type) {
-          case "description":
-            formState.handleChange("description", response.content);
+          case 'description':
+            formState.handleChange('description', response.content);
             break;
-          case "companyBio":
-            formState.handleChange("companyBio", response.content);
+          case 'companyBio':
+            formState.handleChange('companyBio', response.content);
             break;
         }
       }
@@ -116,43 +125,28 @@ const PostJob = () => {
 
   const steps = [
     {
-      title: "Job Details",
+      title: 'Job Details',
       component: (
-        <JobDetailsStep 
+        <JobDetailsStep
           formState={formState}
           handleAIAssist={handleAIAssist}
           categories={categories || []}
           isLoadingCategories={isLoadingCategories}
         />
-      )
+      ),
     },
     {
-      title: "Job Description",
-      component: (
-        <JobDescriptionStep 
-          formState={formState}
-          handleAIAssist={handleAIAssist}
-        />
-      )
+      title: 'Job Description',
+      component: <JobDescriptionStep formState={formState} handleAIAssist={handleAIAssist} />,
     },
     {
-      title: "Company Info",
-      component: (
-        <CompanyInfoStep 
-          formState={formState}
-          handleAIAssist={handleAIAssist}
-        />
-      )
+      title: 'Company Info',
+      component: <CompanyInfoStep formState={formState} handleAIAssist={handleAIAssist} />,
     },
     {
-      title: "Review",
-      component: (
-        <ReviewStep 
-          formState={formState}
-          onEditStep={setCurrentStep}
-        />
-      )
-    }
+      title: 'Review',
+      component: <ReviewStep formState={formState} onEditStep={setCurrentStep} />,
+    },
   ];
 
   const handleNext = () => {
@@ -171,7 +165,8 @@ const PostJob = () => {
     await submitMutation.mutateAsync({
       ...formState.values,
       isDraft: isDraftSubmit,
-      companyLogo: typeof formState.values.companyLogo === 'string' ? formState.values.companyLogo : null,
+      companyLogo:
+        typeof formState.values.companyLogo === 'string' ? formState.values.companyLogo : null,
     });
     formState.setIsSubmitting(false);
   };
@@ -183,7 +178,8 @@ const PostJob = () => {
           <div className="max-w-2xl rounded-lg border bg-white p-6 shadow-sm">
             <h1 className="text-2xl font-bold">Employer Access Required</h1>
             <p className="mt-3 text-gray-600">
-              Posting jobs is limited to employer and admin accounts. Sign in with the correct account or request employer access.
+              Posting jobs is limited to employer and admin accounts. Sign in with the correct
+              account or request employer access.
             </p>
           </div>
         </div>
@@ -204,7 +200,6 @@ const PostJob = () => {
     );
   }
 
-
   return (
     <>
       <CustomHelmet
@@ -216,23 +211,27 @@ const PostJob = () => {
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-3xl font-bold mb-6">{isEditMode ? 'Edit Job' : 'Post a Job'}</h1>
-            
+
             {/* Progress Steps */}
             <nav className="mb-8">
               <ol className="flex items-center w-full">
                 {steps.map((step, index) => (
                   <li key={index} className="flex items-center">
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${currentStep >= index ? 'border-blue-600 bg-blue-50' : 'border-gray-300'}`}>
-                      <span className={`text-sm font-medium ${currentStep >= index ? 'text-blue-600' : 'text-gray-500'}`}>
+                    <div
+                      className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${currentStep >= index ? 'border-blue-600 bg-blue-50' : 'border-gray-300'}`}
+                    >
+                      <span
+                        className={`text-sm font-medium ${currentStep >= index ? 'text-blue-600' : 'text-gray-500'}`}
+                      >
                         {index + 1}
                       </span>
                     </div>
-                    <div className={`ml-2 text-sm font-medium ${currentStep >= index ? 'text-blue-600' : 'text-gray-500'}`}>
+                    <div
+                      className={`ml-2 text-sm font-medium ${currentStep >= index ? 'text-blue-600' : 'text-gray-500'}`}
+                    >
                       {step.title}
                     </div>
-                    {index < steps.length - 1 && (
-                      <div className="flex-1 h-0.5 mx-4 bg-gray-200" />
-                    )}
+                    {index < steps.length - 1 && <div className="flex-1 h-0.5 mx-4 bg-gray-200" />}
                   </li>
                 ))}
               </ol>
@@ -240,9 +239,7 @@ const PostJob = () => {
 
             {/* Form Steps */}
             <div className="bg-white shadow-sm rounded-lg border p-6">
-              <Suspense fallback={<LoadingStepFallback />}>
-                {steps[currentStep].component}
-              </Suspense>
+              <Suspense fallback={<LoadingStepFallback />}>{steps[currentStep].component}</Suspense>
             </div>
 
             {/* Navigation Buttons */}
@@ -258,7 +255,11 @@ const PostJob = () => {
               </Button>
               <div className="flex gap-2">
                 <Button
-                  onClick={() => currentStep === steps.length - 1 ? handleSubmit(true) : formState.handleChange("isDraft", true)}
+                  onClick={() =>
+                    currentStep === steps.length - 1
+                      ? handleSubmit(true)
+                      : formState.handleChange('isDraft', true)
+                  }
                   variant="outline"
                   className="flex items-center gap-1.5"
                   disabled={submitMutation.isPending}
@@ -267,10 +268,7 @@ const PostJob = () => {
                   {currentStep === steps.length - 1 ? 'Save Draft' : 'Mark as Draft'}
                 </Button>
                 {currentStep < steps.length - 1 ? (
-                  <Button
-                    onClick={handleNext}
-                    className="flex items-center gap-1.5"
-                  >
+                  <Button onClick={handleNext} className="flex items-center gap-1.5">
                     Next
                     <ArrowRight className="w-4 h-4" />
                   </Button>
@@ -302,14 +300,17 @@ const PostJob = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Resume Draft?</AlertDialogTitle>
             <AlertDialogDescription>
-              We found a saved draft of your job posting. Would you like to continue where you left off?
+              We found a saved draft of your job posting. Would you like to continue where you left
+              off?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setShowDraftDialog(false);
-              clearSavedData();
-            }}>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowDraftDialog(false);
+                clearSavedData();
+              }}
+            >
               <Trash2 className="w-4 h-4 mr-2" />
               Delete Draft
             </AlertDialogCancel>

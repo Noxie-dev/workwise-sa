@@ -8,16 +8,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/useEnhancedAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  Lock, 
-  UserPlus, 
-  LogIn, 
-  Loader2, 
-  Shield, 
-  UserCheck,
-  Mail,
-  AlertCircle
-} from 'lucide-react';
+import { Lock, UserPlus, LogIn, Loader2, Shield, UserCheck, Mail, AlertCircle } from 'lucide-react';
 import { Link } from 'wouter';
 import { Permission, UserRole } from '@shared/auth-types';
 
@@ -30,21 +21,21 @@ interface EnhancedAuthGuardProps {
   fallback?: React.ReactNode;
   message?: string;
   showSignUpPrompt?: boolean;
-  
+
   // Authorization requirements
   requiredPermissions?: Permission[];
   requiredRoles?: UserRole[];
   requireAllPermissions?: boolean; // If true, user needs ALL permissions; if false, ANY permission
-  
+
   // Profile requirements
   requireCompleteProfile?: boolean;
   requireEmailVerification?: boolean;
-  
+
   // Custom error messages
   permissionDeniedMessage?: string;
   profileIncompleteMessage?: string;
   emailNotVerifiedMessage?: string;
-  
+
   // Loading state
   loadingComponent?: React.ReactNode;
 }
@@ -53,10 +44,10 @@ interface EnhancedAuthGuardProps {
 // ENHANCED AUTH GUARD COMPONENT
 // ============================================================================
 
-const EnhancedAuthGuard: React.FC<EnhancedAuthGuardProps> = ({ 
-  children, 
+const EnhancedAuthGuard: React.FC<EnhancedAuthGuardProps> = ({
+  children,
   fallback,
-  message = "Please sign in to access this content",
+  message = 'Please sign in to access this content',
   showSignUpPrompt = true,
   requiredPermissions = [],
   requiredRoles = [],
@@ -64,21 +55,21 @@ const EnhancedAuthGuard: React.FC<EnhancedAuthGuardProps> = ({
   requireCompleteProfile = false,
   requireEmailVerification = false,
   permissionDeniedMessage = "You don't have permission to access this content",
-  profileIncompleteMessage = "Please complete your profile to access this content",
-  emailNotVerifiedMessage = "Please verify your email to access this content",
-  loadingComponent
+  profileIncompleteMessage = 'Please complete your profile to access this content',
+  emailNotVerifiedMessage = 'Please verify your email to access this content',
+  loadingComponent,
 }) => {
-  const { 
-    user, 
-    isLoading, 
-    isAuthenticated, 
-    hasPermission, 
-    hasAnyPermission, 
+  const {
+    user,
+    isLoading,
+    isAuthenticated,
+    hasPermission,
+    hasAnyPermission,
     hasAllPermissions,
     hasRole,
     hasAnyRole,
     isProfileComplete,
-    userDisplayName
+    userDisplayName,
   } = useAuth();
 
   // ============================================================================
@@ -128,12 +119,7 @@ const EnhancedAuthGuard: React.FC<EnhancedAuthGuardProps> = ({
   // ============================================================================
 
   if (requireEmailVerification && !user.emailVerified) {
-    return (
-      <EmailVerificationRequired 
-        message={emailNotVerifiedMessage}
-        userEmail={user.email}
-      />
-    );
+    return <EmailVerificationRequired message={emailNotVerifiedMessage} userEmail={user.email} />;
   }
 
   // ============================================================================
@@ -142,10 +128,7 @@ const EnhancedAuthGuard: React.FC<EnhancedAuthGuardProps> = ({
 
   if (requireCompleteProfile && !isProfileComplete) {
     return (
-      <ProfileCompletionRequired 
-        message={profileIncompleteMessage}
-        userName={userDisplayName}
-      />
+      <ProfileCompletionRequired message={profileIncompleteMessage} userName={userDisplayName} />
     );
   }
 
@@ -155,7 +138,7 @@ const EnhancedAuthGuard: React.FC<EnhancedAuthGuardProps> = ({
 
   if (requiredRoles.length > 0 && !hasAnyRole(requiredRoles)) {
     return (
-      <PermissionDenied 
+      <PermissionDenied
         message={permissionDeniedMessage}
         reason="You don't have the required role to access this content"
         userRole={user.role}
@@ -169,13 +152,13 @@ const EnhancedAuthGuard: React.FC<EnhancedAuthGuardProps> = ({
   // ============================================================================
 
   if (requiredPermissions.length > 0) {
-    const hasAccess = requireAllPermissions 
+    const hasAccess = requireAllPermissions
       ? hasAllPermissions(requiredPermissions)
       : hasAnyPermission(requiredPermissions);
 
     if (!hasAccess) {
       return (
-        <PermissionDenied 
+        <PermissionDenied
           message={permissionDeniedMessage}
           reason="You don't have the required permissions to access this content"
           userPermissions={user.permissions}
@@ -219,7 +202,7 @@ const UnauthenticatedPrompt: React.FC<{ message: string }> = ({ message }) => (
             <li>• Track your applications</li>
           </ul>
         </div>
-        
+
         <div className="flex flex-col space-y-3">
           <Link href="/register">
             <Button className="w-full bg-primary hover:bg-primary/90" size="lg">
@@ -227,7 +210,7 @@ const UnauthenticatedPrompt: React.FC<{ message: string }> = ({ message }) => (
               Create Free Account
             </Button>
           </Link>
-          
+
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -236,7 +219,7 @@ const UnauthenticatedPrompt: React.FC<{ message: string }> = ({ message }) => (
               <span className="bg-white px-2 text-muted">Or</span>
             </div>
           </div>
-          
+
           <Link href="/login">
             <Button variant="outline" className="w-full" size="lg">
               <LogIn className="w-4 h-4 mr-2" />
@@ -252,9 +235,9 @@ const UnauthenticatedPrompt: React.FC<{ message: string }> = ({ message }) => (
 /**
  * Component shown when email verification is required
  */
-const EmailVerificationRequired: React.FC<{ 
-  message: string; 
-  userEmail: string; 
+const EmailVerificationRequired: React.FC<{
+  message: string;
+  userEmail: string;
 }> = ({ message, userEmail }) => (
   <div className="flex items-center justify-center min-h-[400px] p-4">
     <Card className="w-full max-w-md">
@@ -268,20 +251,16 @@ const EmailVerificationRequired: React.FC<{
       <CardContent className="space-y-4">
         <div className="bg-yellow-50 rounded-lg p-4">
           <p className="text-sm text-yellow-800">
-            We've sent a verification email to <strong>{userEmail}</strong>. 
-            Please check your inbox and click the verification link.
+            We've sent a verification email to <strong>{userEmail}</strong>. Please check your inbox
+            and click the verification link.
           </p>
         </div>
-        
+
         <div className="flex flex-col space-y-3">
-          <Button 
-            variant="outline" 
-            className="w-full"
-            onClick={() => window.location.reload()}
-          >
+          <Button variant="outline" className="w-full" onClick={() => window.location.reload()}>
             Check Again
           </Button>
-          
+
           <Link href="/resend-verification">
             <Button variant="ghost" className="w-full">
               Resend Verification Email
@@ -296,9 +275,9 @@ const EmailVerificationRequired: React.FC<{
 /**
  * Component shown when profile completion is required
  */
-const ProfileCompletionRequired: React.FC<{ 
-  message: string; 
-  userName: string; 
+const ProfileCompletionRequired: React.FC<{
+  message: string;
+  userName: string;
 }> = ({ message, userName }) => (
   <div className="flex items-center justify-center min-h-[400px] p-4">
     <Card className="w-full max-w-md">
@@ -312,18 +291,16 @@ const ProfileCompletionRequired: React.FC<{
       <CardContent className="space-y-4">
         <div className="bg-blue-50 rounded-lg p-4">
           <p className="text-sm text-blue-800">
-            Hi <strong>{userName}</strong>! To access this content, 
-            please complete your profile setup.
+            Hi <strong>{userName}</strong>! To access this content, please complete your profile
+            setup.
           </p>
         </div>
-        
+
         <div className="flex flex-col space-y-3">
           <Link href="/profile-setup">
-            <Button className="w-full bg-primary hover:bg-primary/90">
-              Complete Profile
-            </Button>
+            <Button className="w-full bg-primary hover:bg-primary/90">Complete Profile</Button>
           </Link>
-          
+
           <Link href="/profile">
             <Button variant="outline" className="w-full">
               Go to Profile
@@ -338,21 +315,14 @@ const ProfileCompletionRequired: React.FC<{
 /**
  * Component shown when user doesn't have required permissions
  */
-const PermissionDenied: React.FC<{ 
-  message: string; 
+const PermissionDenied: React.FC<{
+  message: string;
   reason: string;
   userRole?: UserRole;
   requiredRoles?: UserRole[];
   userPermissions?: Permission[];
   requiredPermissions?: Permission[];
-}> = ({ 
-  message, 
-  reason, 
-  userRole, 
-  requiredRoles, 
-  userPermissions, 
-  requiredPermissions 
-}) => (
+}> = ({ message, reason, userRole, requiredRoles, userPermissions, requiredPermissions }) => (
   <div className="flex items-center justify-center min-h-[400px] p-4">
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
@@ -368,30 +338,36 @@ const PermissionDenied: React.FC<{
             <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
             <div className="text-sm text-red-800">
               <p className="font-medium">{reason}</p>
-              
+
               {userRole && requiredRoles && (
                 <div className="mt-2">
-                  <p>Your role: <strong>{userRole}</strong></p>
-                  <p>Required roles: <strong>{requiredRoles.join(', ')}</strong></p>
+                  <p>
+                    Your role: <strong>{userRole}</strong>
+                  </p>
+                  <p>
+                    Required roles: <strong>{requiredRoles.join(', ')}</strong>
+                  </p>
                 </div>
               )}
-              
+
               {userPermissions && requiredPermissions && (
                 <div className="mt-2">
-                  <p>Required permissions: <strong>{requiredPermissions.join(', ')}</strong></p>
+                  <p>
+                    Required permissions: <strong>{requiredPermissions.join(', ')}</strong>
+                  </p>
                 </div>
               )}
             </div>
           </div>
         </div>
-        
+
         <div className="flex flex-col space-y-3">
           <Link href="/contact">
             <Button variant="outline" className="w-full">
               Contact Support
             </Button>
           </Link>
-          
+
           <Link href="/">
             <Button variant="ghost" className="w-full">
               Go Home
@@ -410,9 +386,9 @@ const PermissionDenied: React.FC<{
 /**
  * Admin-only guard component
  */
-export const AdminGuard: React.FC<Omit<EnhancedAuthGuardProps, 'requiredRoles'>> = (props) => (
-  <EnhancedAuthGuard 
-    {...props} 
+export const AdminGuard: React.FC<Omit<EnhancedAuthGuardProps, 'requiredRoles'>> = props => (
+  <EnhancedAuthGuard
+    {...props}
     requiredRoles={['admin']}
     permissionDeniedMessage="Admin access required"
   />
@@ -421,9 +397,9 @@ export const AdminGuard: React.FC<Omit<EnhancedAuthGuardProps, 'requiredRoles'>>
 /**
  * Employer guard component
  */
-export const EmployerGuard: React.FC<Omit<EnhancedAuthGuardProps, 'requiredRoles'>> = (props) => (
-  <EnhancedAuthGuard 
-    {...props} 
+export const EmployerGuard: React.FC<Omit<EnhancedAuthGuardProps, 'requiredRoles'>> = props => (
+  <EnhancedAuthGuard
+    {...props}
     requiredRoles={['employer', 'admin']}
     permissionDeniedMessage="Employer access required"
   />
@@ -432,9 +408,9 @@ export const EmployerGuard: React.FC<Omit<EnhancedAuthGuardProps, 'requiredRoles
 /**
  * Moderator guard component
  */
-export const ModeratorGuard: React.FC<Omit<EnhancedAuthGuardProps, 'requiredRoles'>> = (props) => (
-  <EnhancedAuthGuard 
-    {...props} 
+export const ModeratorGuard: React.FC<Omit<EnhancedAuthGuardProps, 'requiredRoles'>> = props => (
+  <EnhancedAuthGuard
+    {...props}
     requiredRoles={['moderator', 'admin']}
     permissionDeniedMessage="Moderator access required"
   />
@@ -443,22 +419,16 @@ export const ModeratorGuard: React.FC<Omit<EnhancedAuthGuardProps, 'requiredRole
 /**
  * Profile completion guard component
  */
-export const ProfileCompletionGuard: React.FC<Omit<EnhancedAuthGuardProps, 'requireCompleteProfile'>> = (props) => (
-  <EnhancedAuthGuard 
-    {...props} 
-    requireCompleteProfile={true}
-  />
-);
+export const ProfileCompletionGuard: React.FC<
+  Omit<EnhancedAuthGuardProps, 'requireCompleteProfile'>
+> = props => <EnhancedAuthGuard {...props} requireCompleteProfile={true} />;
 
 /**
  * Email verification guard component
  */
-export const EmailVerificationGuard: React.FC<Omit<EnhancedAuthGuardProps, 'requireEmailVerification'>> = (props) => (
-  <EnhancedAuthGuard 
-    {...props} 
-    requireEmailVerification={true}
-  />
-);
+export const EmailVerificationGuard: React.FC<
+  Omit<EnhancedAuthGuardProps, 'requireEmailVerification'>
+> = props => <EnhancedAuthGuard {...props} requireEmailVerification={true} />;
 
 // ============================================================================
 // EXPORTS

@@ -1,14 +1,8 @@
 // @ts-nocheck
 import React from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { SkillsAnalysisData } from '@/services/dashboardService';
 import {
@@ -27,11 +21,7 @@ interface SkillsRadarChartProps {
   onExport?: () => void;
 }
 
-const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ 
-  data, 
-  isLoading,
-  onExport 
-}) => {
+const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ data, isLoading, onExport }) => {
   if (isLoading) {
     return (
       <Card>
@@ -69,26 +59,39 @@ const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({
   // Transform data for radar chart
   const radarData = data.marketDemand.slice(0, 8).map(skill => {
     // Find if user has this skill
-    const userSkill = data.userSkills.find(us => us.skill.toLowerCase() === skill.skill.toLowerCase());
-    
+    const userSkill = data.userSkills.find(
+      us => us.skill.toLowerCase() === skill.skill.toLowerCase()
+    );
+
     // Convert user skill level to a numeric value
     let userSkillValue = 0;
     if (userSkill) {
       switch (userSkill.level.toLowerCase()) {
-        case 'beginner': userSkillValue = 25; break;
-        case 'basic': userSkillValue = 35; break;
-        case 'intermediate': userSkillValue = 60; break;
-        case 'advanced': userSkillValue = 85; break;
-        case 'expert': userSkillValue = 95; break;
-        default: userSkillValue = 30;
+        case 'beginner':
+          userSkillValue = 25;
+          break;
+        case 'basic':
+          userSkillValue = 35;
+          break;
+        case 'intermediate':
+          userSkillValue = 60;
+          break;
+        case 'advanced':
+          userSkillValue = 85;
+          break;
+        case 'expert':
+          userSkillValue = 95;
+          break;
+        default:
+          userSkillValue = 30;
       }
     }
-    
+
     return {
       skill: skill.skill,
       marketDemand: skill.demand,
       userSkill: userSkillValue,
-      growth: skill.growth
+      growth: skill.growth,
     };
   });
 

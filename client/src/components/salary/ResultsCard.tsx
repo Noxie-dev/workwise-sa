@@ -10,19 +10,46 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { HelpCircle, Download, Share2, Users, Copy, Mail, Printer, FileText } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 
 // Constants
 const SA_CURRENCY = 'ZAR';
 const SA_LOCALE = 'en-ZA';
-const PIE_CHART_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#FF7F50'];
+const PIE_CHART_COLORS = [
+  '#0088FE',
+  '#00C49F',
+  '#FFBB28',
+  '#FF8042',
+  '#8884d8',
+  '#82ca9d',
+  '#FF7F50',
+];
 
 // Helper function for currency formatting
 const formatCurrency = (value: number, currency = SA_CURRENCY, locale = SA_LOCALE) => {
-  if (typeof value !== 'number' || isNaN(value)) return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(0);
+  if (typeof value !== 'number' || isNaN(value))
+    return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(0);
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: currency,
@@ -71,7 +98,11 @@ const exportSalaryBreakdownCSV = (taxDetails: any, calculatedAmounts: any) => {
 };
 
 // Function to generate a printable HTML version of the salary breakdown
-const generatePrintableHTML = (taxDetails: any, calculatedAmounts: any, includePieChart: boolean = false) => {
+const generatePrintableHTML = (
+  taxDetails: any,
+  calculatedAmounts: any,
+  includePieChart: boolean = false
+) => {
   // Create pie chart SVG if requested
   let pieChartSvg = '';
 
@@ -80,49 +111,53 @@ const generatePrintableHTML = (taxDetails: any, calculatedAmounts: any, includeP
     const total = taxDetails.pieChartData.reduce((sum: number, item: any) => sum + item.value, 0);
     let startAngle = 0;
 
-    const pieChartParts = taxDetails.pieChartData.map((item: any, index: number) => {
-      const percentage = item.value / total;
-      const angle = percentage * 360;
-      const endAngle = startAngle + angle;
+    const pieChartParts = taxDetails.pieChartData
+      .map((item: any, index: number) => {
+        const percentage = item.value / total;
+        const angle = percentage * 360;
+        const endAngle = startAngle + angle;
 
-      // Calculate SVG arc path
-      const startRadians = (startAngle - 90) * Math.PI / 180;
-      const endRadians = (endAngle - 90) * Math.PI / 180;
+        // Calculate SVG arc path
+        const startRadians = ((startAngle - 90) * Math.PI) / 180;
+        const endRadians = ((endAngle - 90) * Math.PI) / 180;
 
-      const x1 = 100 + 80 * Math.cos(startRadians);
-      const y1 = 100 + 80 * Math.sin(startRadians);
-      const x2 = 100 + 80 * Math.cos(endRadians);
-      const y2 = 100 + 80 * Math.sin(endRadians);
+        const x1 = 100 + 80 * Math.cos(startRadians);
+        const y1 = 100 + 80 * Math.sin(startRadians);
+        const x2 = 100 + 80 * Math.cos(endRadians);
+        const y2 = 100 + 80 * Math.sin(endRadians);
 
-      const largeArcFlag = angle > 180 ? 1 : 0;
+        const largeArcFlag = angle > 180 ? 1 : 0;
 
-      const pathData = `M 100 100 L ${x1} ${y1} A 80 80 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+        const pathData = `M 100 100 L ${x1} ${y1} A 80 80 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
 
-      const color = PIE_CHART_COLORS[index % PIE_CHART_COLORS.length];
-      const path = `<path d="${pathData}" fill="${color}" stroke="white" stroke-width="1" />`;
+        const color = PIE_CHART_COLORS[index % PIE_CHART_COLORS.length];
+        const path = `<path d="${pathData}" fill="${color}" stroke="white" stroke-width="1" />`;
 
-      // Add text label
-      const labelRadians = (startAngle + angle/2 - 90) * Math.PI / 180;
-      const labelDistance = 60; // Slightly inside the pie
-      const labelX = 100 + labelDistance * Math.cos(labelRadians);
-      const labelY = 100 + labelDistance * Math.sin(labelRadians);
+        // Add text label
+        const labelRadians = ((startAngle + angle / 2 - 90) * Math.PI) / 180;
+        const labelDistance = 60; // Slightly inside the pie
+        const labelX = 100 + labelDistance * Math.cos(labelRadians);
+        const labelY = 100 + labelDistance * Math.sin(labelRadians);
 
-      const label = `<text x="${labelX}" y="${labelY}" text-anchor="middle" fill="white" font-size="8" font-weight="bold">${(percentage * 100).toFixed(0)}%</text>`;
+        const label = `<text x="${labelX}" y="${labelY}" text-anchor="middle" fill="white" font-size="8" font-weight="bold">${(percentage * 100).toFixed(0)}%</text>`;
 
-      startAngle = endAngle;
-      return path + label;
-    }).join('');
+        startAngle = endAngle;
+        return path + label;
+      })
+      .join('');
 
     // Create legend
-    const legendItems = taxDetails.pieChartData.map((item: any, index: number) => {
-      const color = PIE_CHART_COLORS[index % PIE_CHART_COLORS.length];
-      return `
+    const legendItems = taxDetails.pieChartData
+      .map((item: any, index: number) => {
+        const color = PIE_CHART_COLORS[index % PIE_CHART_COLORS.length];
+        return `
         <div style="display: flex; align-items: center; margin-bottom: 5px;">
           <div style="width: 12px; height: 12px; background-color: ${color}; margin-right: 8px;"></div>
-          <div>${item.name}: ${formatCurrency(item.value)} (${(item.value / total * 100).toFixed(1)}%)</div>
+          <div>${item.name}: ${formatCurrency(item.value)} (${((item.value / total) * 100).toFixed(1)}%)</div>
         </div>
       `;
-    }).join('');
+      })
+      .join('');
 
     pieChartSvg = `
       <h2>Monthly Income Allocation</h2>
@@ -165,12 +200,16 @@ const generatePrintableHTML = (taxDetails: any, calculatedAmounts: any, includeP
           <th>Period</th>
           <th class="amount">Amount</th>
         </tr>
-        ${Object.entries(calculatedAmounts).map(([period, amount]) => `
+        ${Object.entries(calculatedAmounts)
+          .map(
+            ([period, amount]) => `
           <tr>
             <td>${period.charAt(0).toUpperCase() + period.slice(1)}</td>
             <td class="amount">${formatCurrency(amount as number)}</td>
           </tr>
-        `).join('')}
+        `
+          )
+          .join('')}
       </table>
 
       <h2>Monthly Breakdown</h2>
@@ -191,30 +230,46 @@ const generatePrintableHTML = (taxDetails: any, calculatedAmounts: any, includeP
           <td>UIF Contribution</td>
           <td class="amount deduction">- ${formatCurrency(taxDetails.uif)}</td>
         </tr>
-        ${taxDetails.pension > 0 ? `
+        ${
+          taxDetails.pension > 0
+            ? `
           <tr>
             <td>Pension Fund</td>
             <td class="amount deduction">- ${formatCurrency(taxDetails.pension)}</td>
           </tr>
-        ` : ''}
-        ${taxDetails.medical > 0 ? `
+        `
+            : ''
+        }
+        ${
+          taxDetails.medical > 0
+            ? `
           <tr>
             <td>Medical Aid</td>
             <td class="amount deduction">- ${formatCurrency(taxDetails.medical)}</td>
           </tr>
-        ` : ''}
-        ${taxDetails.groupLife > 0 ? `
+        `
+            : ''
+        }
+        ${
+          taxDetails.groupLife > 0
+            ? `
           <tr>
             <td>Group Life Insurance</td>
             <td class="amount deduction">- ${formatCurrency(taxDetails.groupLife)}</td>
           </tr>
-        ` : ''}
-        ${taxDetails.retirement > 0 ? `
+        `
+            : ''
+        }
+        ${
+          taxDetails.retirement > 0
+            ? `
           <tr>
             <td>Retirement Annuity</td>
             <td class="amount deduction">- ${formatCurrency(taxDetails.retirement)}</td>
           </tr>
-        ` : ''}
+        `
+            : ''
+        }
         <tr>
           <td>Total Monthly Deductions</td>
           <td class="amount deduction total">- ${formatCurrency(taxDetails.totalDeductions)}</td>
@@ -240,7 +295,11 @@ const generatePrintableHTML = (taxDetails: any, calculatedAmounts: any, includeP
 };
 
 // Function to print the salary breakdown
-const printSalaryBreakdown = (taxDetails: any, calculatedAmounts: any, includePieChart: boolean = false) => {
+const printSalaryBreakdown = (
+  taxDetails: any,
+  calculatedAmounts: any,
+  includePieChart: boolean = false
+) => {
   const html = generatePrintableHTML(taxDetails, calculatedAmounts, includePieChart);
 
   const printWindow = window.open('', '_blank');
@@ -309,11 +368,12 @@ Salary Breakdown Summary:
 Generated with WorkWise.SA Salary Calculator
   `.trim();
 
-  navigator.clipboard.writeText(text)
+  navigator.clipboard
+    .writeText(text)
     .then(() => {
       toast({
-        title: "Copied to clipboard",
-        description: "Salary breakdown summary has been copied to your clipboard.",
+        title: 'Copied to clipboard',
+        description: 'Salary breakdown summary has been copied to your clipboard.',
       });
       return true;
     })
@@ -347,9 +407,7 @@ Generated with WorkWise.SA Salary Calculator
 const easingFunctions = {
   // Cubic easing in/out - acceleration until halfway, then deceleration
   easeInOutCubic: (t: number): number => {
-    return t < 0.5
-      ? 4 * t * t * t
-      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   },
 
   // Exponential easing in/out - accelerating until halfway, then decelerating
@@ -357,21 +415,17 @@ const easingFunctions = {
     return t === 0
       ? 0
       : t === 1
-      ? 1
-      : t < 0.5
-      ? Math.pow(2, 20 * t - 10) / 2
-      : (2 - Math.pow(2, -20 * t + 10)) / 2;
+        ? 1
+        : t < 0.5
+          ? Math.pow(2, 20 * t - 10) / 2
+          : (2 - Math.pow(2, -20 * t + 10)) / 2;
   },
 
   // Smooth spring-like effect with slight bounce
   elasticOut: (t: number): number => {
     const c4 = (2 * Math.PI) / 3;
-    return t === 0
-      ? 0
-      : t === 1
-      ? 1
-      : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
-  }
+    return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+  },
 };
 
 // Helper function for animating number increment with smoother animation
@@ -420,10 +474,11 @@ const useAnimatedCounter = (targetValue: number, duration: number = 1000, delay:
             // Normalize progress to 0-1 range for the last 20%
             const normalizedProgress = (linearProgress - 0.8) / 0.2;
             // Start from 80% and add the remaining 20% with elastic easing
-            easedProgress = 0.8 + (easingFunctions.elasticOut(normalizedProgress) * 0.2);
+            easedProgress = 0.8 + easingFunctions.elasticOut(normalizedProgress) * 0.2;
           }
 
-          const currentCount = previousValue.current + (targetValue - previousValue.current) * easedProgress;
+          const currentCount =
+            previousValue.current + (targetValue - previousValue.current) * easedProgress;
           setCount(currentCount);
           animationRef.current = requestAnimationFrame(animate);
         } else {
@@ -466,7 +521,7 @@ const DeductionItem: React.FC<DeductionItemProps> = ({
   isDeduction = false,
   hasPopover = false,
   popoverContent = null,
-  className = ""
+  className = '',
 }) => {
   const helpId = useId();
   return (
@@ -497,8 +552,11 @@ const DeductionItem: React.FC<DeductionItemProps> = ({
           </TooltipProvider>
         )}
       </div>
-      <span className={`${isIncome ? "text-green-600 dark:text-green-400" : isDeduction ? "text-red-600 dark:text-red-400" : ""} font-medium`}>
-        {isIncome ? "" : isDeduction ? "- " : ""}{value}
+      <span
+        className={`${isIncome ? 'text-green-600 dark:text-green-400' : isDeduction ? 'text-red-600 dark:text-red-400' : ''} font-medium`}
+      >
+        {isIncome ? '' : isDeduction ? '- ' : ''}
+        {value}
       </span>
     </div>
   );
@@ -528,7 +586,7 @@ interface ResultsCardProps {
     actualDeductibleRetirementFundsAnnual: number;
     monthlyGross: number;
     taxBracketInfo: any;
-    pieChartData: Array<{name: string, value: number}>;
+    pieChartData: Array<{ name: string; value: number }>;
   };
   activeDeductions: Record<string, boolean>;
   setActiveDeductions: (deductions: Record<string, boolean>) => void;
@@ -546,7 +604,7 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
   deductionRates,
   setDeductionRates,
   medicalAidMembers,
-  setMedicalAidMembers
+  setMedicalAidMembers,
 }) => {
   // State for export confirmation modal
   const [exportModalOpen, setExportModalOpen] = useState(false);
@@ -556,7 +614,7 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
   const animatedMonthlySalary = useAnimatedCounter(
     taxDetails.netIncome || 0,
     2500, // 2.5 second animation duration for smoother counting
-    3500  // 3.5 second delay
+    3500 // 3.5 second delay
   );
 
   // Handle export action
@@ -569,7 +627,7 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
   const confirmExport = () => {
     setExportModalOpen(false);
 
-    switch(exportType) {
+    switch (exportType) {
       case 'csv':
         exportSalaryBreakdownCSV(taxDetails, calculatedAmounts);
         break;
@@ -588,9 +646,11 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
         <div className="bg-background p-2 shadow rounded-md border">
           <p className="font-medium">{payload[0].name}</p>
           <p>{formatCurrency(payload[0].value)}</p>
-          {taxDetails.monthlyGross > 0 && <p className="text-xs text-muted-foreground">
-            {(payload[0].value / taxDetails.monthlyGross * 100).toFixed(1)}% of gross
-          </p>}
+          {taxDetails.monthlyGross > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {((payload[0].value / taxDetails.monthlyGross) * 100).toFixed(1)}% of gross
+            </p>
+          )}
         </div>
       );
     }
@@ -601,10 +661,10 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
 
   // Common deductions
   const commonDeductions = [
-    { id: "pension", name: "Pension Fund", defaultRate: 0.075, mandatory: false },
-    { id: "medical", name: "Medical Aid", defaultRate: 0.06, mandatory: false },
-    { id: "groupLife", name: "Group Life Insurance", defaultRate: 0.01, mandatory: false },
-    { id: "retirement", name: "Retirement Annuity", defaultRate: 0.05, mandatory: false },
+    { id: 'pension', name: 'Pension Fund', defaultRate: 0.075, mandatory: false },
+    { id: 'medical', name: 'Medical Aid', defaultRate: 0.06, mandatory: false },
+    { id: 'groupLife', name: 'Group Life Insurance', defaultRate: 0.01, mandatory: false },
+    { id: 'retirement', name: 'Retirement Annuity', defaultRate: 0.05, mandatory: false },
   ];
 
   return (
@@ -615,12 +675,16 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
             <img src="/images/coin-icon.png" alt="Coin" className="mr-4 h-12 w-12" />
             Salary Breakdown
           </CardTitle>
-          <CardDescription>Your estimated income and deductions based on your input.</CardDescription>
+          <CardDescription>
+            Your estimated income and deductions based on your input.
+          </CardDescription>
         </div>
         <div className="mt-4 md:mt-0">
           <div className="font-bold text-2xl flex flex-col items-end">
             <span className="text-base text-gray-500 mb-1">Monthly Take-Home</span>
-            <span className="text-4xl text-green-600 dark:text-green-400">{formatCurrency(animatedMonthlySalary)}</span>
+            <span className="text-4xl text-green-600 dark:text-green-400">
+              {formatCurrency(animatedMonthlySalary)}
+            </span>
           </div>
         </div>
       </CardHeader>
@@ -630,7 +694,9 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
           {['hourly', 'daily', 'weekly', 'fortnightly', 'monthly', 'annual'].map(period => (
             <div key={period} className="bg-muted/50 p-3 rounded-lg">
               <div className="text-sm text-muted-foreground capitalize">{period}</div>
-              <div className="text-lg font-semibold">{formatCurrency(calculatedAmounts[period as keyof typeof calculatedAmounts])}</div>
+              <div className="text-lg font-semibold">
+                {formatCurrency(calculatedAmounts[period as keyof typeof calculatedAmounts])}
+              </div>
             </div>
           ))}
         </div>
@@ -641,37 +707,85 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
           <h3 className="text-xl font-medium text-[#163b6d]">Monthly Breakdown</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div className="space-y-2">
-              <DeductionItem label="Gross Monthly Income" value={formatCurrency(taxDetails.monthlyGross)} isIncome className="text-base" />
+              <DeductionItem
+                label="Gross Monthly Income"
+                value={formatCurrency(taxDetails.monthlyGross)}
+                isIncome
+                className="text-base"
+              />
               <Separator />
 
               <DeductionItem
-                label="Income Tax (PAYE)" value={formatCurrency(taxDetails.incomeTax)} isDeduction
+                label="Income Tax (PAYE)"
+                value={formatCurrency(taxDetails.incomeTax)}
+                isDeduction
                 className="text-base"
-                hasPopover popoverContent={
+                hasPopover
+                popoverContent={
                   <div className="space-y-2 text-sm">
                     <h4 className="font-medium">Income Tax (PAYE)</h4>
-                    <p className="text-muted-foreground">Calculated on annual taxable income of <span className="font-semibold">{formatCurrency(taxDetails.taxableIncomeAnnual)}</span> using 2024/2025 SARS brackets.</p>
-                    {taxDetails.taxBracketInfo?.rate && <p className="text-muted-foreground">Marginal tax rate: {(taxDetails.taxBracketInfo.rate * 100).toFixed(0)}%.</p>}
-                    {taxDetails.mtcAppliedMonthly > 0 && <p className="text-muted-foreground">Medical Tax Credits of <span className="font-semibold">{formatCurrency(taxDetails.mtcAppliedMonthly)}</span> applied monthly.</p>}
-                    {taxDetails.actualDeductibleRetirementFundsAnnual > 0 && <p className="text-muted-foreground">Retirement fund contributions of <span className="font-semibold">{formatCurrency(taxDetails.actualDeductibleRetirementFundsAnnual / 12)}</span> (monthly equivalent) were tax-deductible.</p>}
-                    <p className="text-muted-foreground">Effective tax rate (on taxable income): {taxDetails.effectiveTaxRate.toFixed(1)}%</p>
+                    <p className="text-muted-foreground">
+                      Calculated on annual taxable income of{' '}
+                      <span className="font-semibold">
+                        {formatCurrency(taxDetails.taxableIncomeAnnual)}
+                      </span>{' '}
+                      using 2024/2025 SARS brackets.
+                    </p>
+                    {taxDetails.taxBracketInfo?.rate && (
+                      <p className="text-muted-foreground">
+                        Marginal tax rate: {(taxDetails.taxBracketInfo.rate * 100).toFixed(0)}%.
+                      </p>
+                    )}
+                    {taxDetails.mtcAppliedMonthly > 0 && (
+                      <p className="text-muted-foreground">
+                        Medical Tax Credits of{' '}
+                        <span className="font-semibold">
+                          {formatCurrency(taxDetails.mtcAppliedMonthly)}
+                        </span>{' '}
+                        applied monthly.
+                      </p>
+                    )}
+                    {taxDetails.actualDeductibleRetirementFundsAnnual > 0 && (
+                      <p className="text-muted-foreground">
+                        Retirement fund contributions of{' '}
+                        <span className="font-semibold">
+                          {formatCurrency(taxDetails.actualDeductibleRetirementFundsAnnual / 12)}
+                        </span>{' '}
+                        (monthly equivalent) were tax-deductible.
+                      </p>
+                    )}
+                    <p className="text-muted-foreground">
+                      Effective tax rate (on taxable income):{' '}
+                      {taxDetails.effectiveTaxRate.toFixed(1)}%
+                    </p>
                   </div>
                 }
               />
 
               <DeductionItem
-                label="UIF Contribution" value={formatCurrency(taxDetails.uif)} isDeduction
+                label="UIF Contribution"
+                value={formatCurrency(taxDetails.uif)}
+                isDeduction
                 className="text-base"
-                hasPopover popoverContent={
+                hasPopover
+                popoverContent={
                   <div className="space-y-2 text-sm">
                     <h4 className="font-medium">UIF Contribution</h4>
-                    <p className="text-muted-foreground">1% of gross monthly income, capped at 1% of R17,712 (i.e., max R177.12 per month).</p>
+                    <p className="text-muted-foreground">
+                      1% of gross monthly income, capped at 1% of R17,712 (i.e., max R177.12 per
+                      month).
+                    </p>
                   </div>
                 }
               />
 
               {commonDeductions.map(ded => {
-                if (!activeDeductions[ded.id] || !taxDetails[ded.id as keyof typeof taxDetails] || taxDetails[ded.id as keyof typeof taxDetails] <= 0) return null;
+                if (
+                  !activeDeductions[ded.id] ||
+                  !taxDetails[ded.id as keyof typeof taxDetails] ||
+                  taxDetails[ded.id as keyof typeof taxDetails] <= 0
+                )
+                  return null;
                 return (
                   <DeductionItem
                     key={ded.id}
@@ -679,24 +793,52 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
                     value={formatCurrency(taxDetails[ded.id as keyof typeof taxDetails] as number)}
                     isDeduction
                     className="text-base"
-                    hasPopover popoverContent={
+                    hasPopover
+                    popoverContent={
                       <div className="space-y-2 text-sm">
                         <h4 className="font-medium">{ded.name}</h4>
-                        { ded.id === "pension" && <p className="text-muted-foreground">Employee contribution to a pension fund. Tax-deductible up to limits.</p> }
-                        { ded.id === "medical" && <p className="text-muted-foreground">Contribution to a medical aid scheme. Not directly deductible, but MTCs apply.</p> }
-                        { ded.id === "groupLife" && <p className="text-muted-foreground">Typically for death and disability cover.</p> }
-                        { ded.id === "retirement" && <p className="text-muted-foreground">Personal retirement annuity contribution. Tax-deductible up to limits.</p> }
+                        {ded.id === 'pension' && (
+                          <p className="text-muted-foreground">
+                            Employee contribution to a pension fund. Tax-deductible up to limits.
+                          </p>
+                        )}
+                        {ded.id === 'medical' && (
+                          <p className="text-muted-foreground">
+                            Contribution to a medical aid scheme. Not directly deductible, but MTCs
+                            apply.
+                          </p>
+                        )}
+                        {ded.id === 'groupLife' && (
+                          <p className="text-muted-foreground">
+                            Typically for death and disability cover.
+                          </p>
+                        )}
+                        {ded.id === 'retirement' && (
+                          <p className="text-muted-foreground">
+                            Personal retirement annuity contribution. Tax-deductible up to limits.
+                          </p>
+                        )}
                         <div className="space-y-1 pt-2">
-                          <Label htmlFor={`${ded.id}-rate-input`} className="text-xs">Adjust contribution (% of gross):</Label>
+                          <Label htmlFor={`${ded.id}-rate-input`} className="text-xs">
+                            Adjust contribution (% of gross):
+                          </Label>
                           <Input
                             id={`${ded.id}-rate-input`}
-                            type="number" min="0" max={ded.id === 'medical' ? "20" : "25"} step="0.1" // Max 25% for retirement for instance
+                            type="number"
+                            min="0"
+                            max={ded.id === 'medical' ? '20' : '25'}
+                            step="0.1" // Max 25% for retirement for instance
                             value={(deductionRates[ded.id] * 100).toFixed(1)}
-                            onChange={(e) => {
-                                const rateVal = parseFloat(e.target.value);
-                                if (!isNaN(rateVal)) {
-                                    setDeductionRates(prev => ({...prev, [ded.id]: Math.min(Math.max(rateVal, 0), (ded.id === 'medical' ? 20 : 25)) / 100}));
-                                }
+                            onChange={e => {
+                              const rateVal = parseFloat(e.target.value);
+                              if (!isNaN(rateVal)) {
+                                setDeductionRates(prev => ({
+                                  ...prev,
+                                  [ded.id]:
+                                    Math.min(Math.max(rateVal, 0), ded.id === 'medical' ? 20 : 25) /
+                                    100,
+                                }));
+                              }
                             }}
                             className="h-8 text-sm"
                           />
@@ -708,9 +850,18 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
               })}
 
               <Separator />
-              <DeductionItem label="Total Monthly Deductions" value={formatCurrency(taxDetails.totalDeductions)} isDeduction className="font-semibold text-lg" />
+              <DeductionItem
+                label="Total Monthly Deductions"
+                value={formatCurrency(taxDetails.totalDeductions)}
+                isDeduction
+                className="font-semibold text-lg"
+              />
               <Separator />
-              <DeductionItem label="Net Monthly Income (Take-Home)" value={formatCurrency(taxDetails.netIncome)} className="font-bold text-lg text-green-600 dark:text-green-400" />
+              <DeductionItem
+                label="Net Monthly Income (Take-Home)"
+                value={formatCurrency(taxDetails.netIncome)}
+                className="font-bold text-lg text-green-600 dark:text-green-400"
+              />
             </div>
 
             <div className="flex flex-col space-y-4 bg-muted/30 p-4 rounded-lg">
@@ -718,15 +869,21 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
               <div className="space-y-3">
                 <div className="flex flex-col items-center">
                   <span className="text-base text-muted-foreground">Net Income</span>
-                  <span className="text-3xl font-bold text-green-600 dark:text-green-400">{formatCurrency(taxDetails.netIncome)}</span>
+                  <span className="text-3xl font-bold text-green-600 dark:text-green-400">
+                    {formatCurrency(taxDetails.netIncome)}
+                  </span>
                 </div>
                 <div className="flex flex-col items-center">
                   <span className="text-base text-muted-foreground">Deductions</span>
-                  <span className="text-3xl font-bold text-red-600 dark:text-red-400">- {formatCurrency(taxDetails.totalDeductions)}</span>
+                  <span className="text-3xl font-bold text-red-600 dark:text-red-400">
+                    - {formatCurrency(taxDetails.totalDeductions)}
+                  </span>
                 </div>
                 <div className="flex flex-col items-center">
                   <span className="text-base text-muted-foreground">Gross</span>
-                  <span className="text-3xl font-bold text-[#163b6d]">{formatCurrency(taxDetails.monthlyGross)}</span>
+                  <span className="text-3xl font-bold text-[#163b6d]">
+                    {formatCurrency(taxDetails.monthlyGross)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -738,35 +895,49 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
         <div>
           <h3 className="text-lg font-medium mb-3">Customize Deductions & Credits</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {commonDeductions.map((deduction) => (
-              <div key={deduction.id} className="flex items-center space-x-2 bg-muted/30 p-3 rounded-md">
+            {commonDeductions.map(deduction => (
+              <div
+                key={deduction.id}
+                className="flex items-center space-x-2 bg-muted/30 p-3 rounded-md"
+              >
                 <Switch
                   id={`deduction-${deduction.id}`}
                   checked={activeDeductions[deduction.id]}
-                  onCheckedChange={(checked) => setActiveDeductions(prev => ({...prev, [deduction.id]: checked }))}
+                  onCheckedChange={checked =>
+                    setActiveDeductions(prev => ({ ...prev, [deduction.id]: checked }))
+                  }
                 />
-                <Label htmlFor={`deduction-${deduction.id}`} className="cursor-pointer flex-1">{deduction.name}</Label>
+                <Label htmlFor={`deduction-${deduction.id}`} className="cursor-pointer flex-1">
+                  {deduction.name}
+                </Label>
               </div>
             ))}
             {activeDeductions.medical && (
               <div className="sm:col-span-2 bg-muted/30 p-3 rounded-md space-y-2">
-                 <Label htmlFor={medicalAidMembersId} className="flex items-center"><Users className="mr-2 h-4 w-4 text-blue-500" />Medical Aid Members (incl. yourself)</Label>
-                 <Select
-                    value={medicalAidMembers.toString()}
-                    onValueChange={(val) => setMedicalAidMembers(parseInt(val) || 0)}
-                  >
-                   <SelectTrigger id={medicalAidMembersId}>
-                     <SelectValue placeholder="Number of members" />
-                   </SelectTrigger>
-                   <SelectContent>
-                     {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                       <SelectItem key={num} value={num.toString()}>
-                         {num === 0 ? "None / Not claiming MTC" : `${num} member${num !== 1 ? 's' : ''}`}
-                       </SelectItem>
-                     ))}
-                   </SelectContent>
-                 </Select>
-                 <p className="text-xs text-muted-foreground">Used for calculating Medical Tax Credits (MTCs).</p>
+                <Label htmlFor={medicalAidMembersId} className="flex items-center">
+                  <Users className="mr-2 h-4 w-4 text-blue-500" />
+                  Medical Aid Members (incl. yourself)
+                </Label>
+                <Select
+                  value={medicalAidMembers.toString()}
+                  onValueChange={val => setMedicalAidMembers(parseInt(val) || 0)}
+                >
+                  <SelectTrigger id={medicalAidMembersId}>
+                    <SelectValue placeholder="Number of members" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                      <SelectItem key={num} value={num.toString()}>
+                        {num === 0
+                          ? 'None / Not claiming MTC'
+                          : `${num} member${num !== 1 ? 's' : ''}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Used for calculating Medical Tax Credits (MTCs).
+                </p>
               </div>
             )}
           </div>
@@ -820,9 +991,7 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Confirm Export</DialogTitle>
-                <DialogDescription>
-                  Review your salary breakdown before exporting
-                </DialogDescription>
+                <DialogDescription>Review your salary breakdown before exporting</DialogDescription>
               </DialogHeader>
 
               <div className="grid gap-4 py-4">
@@ -835,11 +1004,15 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
                     </div>
                     <div className="flex justify-between">
                       <span>Total Deductions:</span>
-                      <span className="font-medium text-red-600">- {formatCurrency(taxDetails.totalDeductions)}</span>
+                      <span className="font-medium text-red-600">
+                        - {formatCurrency(taxDetails.totalDeductions)}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Net Monthly (Take-Home):</span>
-                      <span className="font-medium text-green-600">{formatCurrency(taxDetails.netIncome)}</span>
+                      <span className="font-medium text-green-600">
+                        {formatCurrency(taxDetails.netIncome)}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Effective Tax Rate:</span>
@@ -857,13 +1030,17 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
                         <PieChart>
                           <Pie
                             data={taxDetails.pieChartData}
-                            cx="50%" cy="50%"
+                            cx="50%"
+                            cy="50%"
                             outerRadius={60}
                             fill="#8884d8"
                             dataKey="value"
                           >
                             {taxDetails.pieChartData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]} />
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]}
+                              />
                             ))}
                           </Pie>
                           <RechartsTooltip content={<CustomPieTooltip />} />
@@ -879,9 +1056,11 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
                   Cancel
                 </Button>
                 <Button type="button" onClick={confirmExport}>
-                  {exportType === 'csv' ? 'Download CSV' :
-                   exportType === 'pdf' ? 'Download PDF' :
-                   'Print'}
+                  {exportType === 'csv'
+                    ? 'Download CSV'
+                    : exportType === 'pdf'
+                      ? 'Download PDF'
+                      : 'Print'}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -899,18 +1078,27 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
                 <PieChart>
                   <Pie
                     data={taxDetails.pieChartData}
-                    cx="50%" cy="50%" labelLine={false}
-                    outerRadius={100} fill="#8884d8" dataKey="value"
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
                     label={({ name, percent }: any) => `${name} (${(percent * 100).toFixed(0)}%)`}
                   >
                     {taxDetails.pieChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]}
+                      />
                     ))}
                   </Pie>
                   <RechartsTooltip content={<CustomPieTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
-            ) : <p className="text-muted-foreground text-sm">Enter an amount to see the breakdown.</p>}
+            ) : (
+              <p className="text-muted-foreground text-sm">Enter an amount to see the breakdown.</p>
+            )}
           </div>
         </div>
       </CardContent>

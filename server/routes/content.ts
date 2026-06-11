@@ -51,7 +51,7 @@ const createJobSchema = z.object({
     applicationUrl: z.url().optional(),
     applicationEmail: z.email().optional(),
     applicationInstructions: z.string().optional(),
-  })
+  }),
 });
 
 const updateJobSchema = z.object({
@@ -81,7 +81,7 @@ const updateJobSchema = z.object({
     applicationUrl: z.url().optional(),
     applicationEmail: z.email().optional(),
     applicationInstructions: z.string().optional(),
-  })
+  }),
 });
 
 const createCompanySchema = z.object({
@@ -99,16 +99,18 @@ const createCompanySchema = z.object({
     mission: z.string().optional(),
     vision: z.string().optional(),
     values: z.array(z.string()).optional(),
-    socialMedia: z.object({
-      linkedin: z.url().optional(),
-      twitter: z.url().optional(),
-      facebook: z.url().optional(),
-      instagram: z.url().optional(),
-    }).optional(),
+    socialMedia: z
+      .object({
+        linkedin: z.url().optional(),
+        twitter: z.url().optional(),
+        facebook: z.url().optional(),
+        instagram: z.url().optional(),
+      })
+      .optional(),
     isVerified: z.boolean().prefault(false),
     isActive: z.boolean().prefault(true),
     isPremium: z.boolean().prefault(false),
-  })
+  }),
 });
 
 const updateCompanySchema = z.object({
@@ -129,23 +131,25 @@ const updateCompanySchema = z.object({
     mission: z.string().optional(),
     vision: z.string().optional(),
     values: z.array(z.string()).optional(),
-    socialMedia: z.object({
-      linkedin: z.url().optional(),
-      twitter: z.url().optional(),
-      facebook: z.url().optional(),
-      instagram: z.url().optional(),
-    }).optional(),
+    socialMedia: z
+      .object({
+        linkedin: z.url().optional(),
+        twitter: z.url().optional(),
+        facebook: z.url().optional(),
+        instagram: z.url().optional(),
+      })
+      .optional(),
     isVerified: z.boolean().optional(),
     isActive: z.boolean().optional(),
     isPremium: z.boolean().optional(),
-  })
+  }),
 });
 
 const bulkOperationSchema = z.object({
   body: z.object({
     action: z.enum(['activate', 'deactivate', 'delete', 'feature', 'unfeature']),
     ids: z.array(z.uuid()).min(1).max(100),
-  })
+  }),
 });
 
 const searchSchema = z.object({
@@ -154,7 +158,7 @@ const searchSchema = z.object({
     type: z.enum(['jobs', 'companies', 'all']).prefault('all'),
     page: z.coerce.number().min(1).prefault(1),
     limit: z.coerce.number().min(1).max(50).prefault(20),
-  })
+  }),
 });
 
 // Admin middleware
@@ -175,17 +179,17 @@ const requireCompanyAdmin = async (req: any, res: any, next: any) => {
   try {
     const userId = req.user.id;
     const companyId = req.params.companyId;
-    
+
     const user = await storage.getUser(userId);
     if (user.isAdmin) {
       return next(); // Admin can access any company
     }
-    
+
     const companyUser = await storage.getCompanyUser(userId, companyId);
     if (!companyUser || companyUser.role !== 'admin') {
       throw Errors.forbidden('Company admin access required');
     }
-    
+
     next();
   } catch (error) {
     next(error);
@@ -193,60 +197,57 @@ const requireCompanyAdmin = async (req: any, res: any, next: any) => {
 };
 
 // Job Management Routes
-router.get('/jobs',
-  authenticate,
-  requireAdmin,
-  async (req, res, next) => {
-    try {
-      const {
-        page = 1,
-        limit = 20,
-        status = 'all',
-        category,
-        location,
-        remote,
-        featured,
-        sortBy = 'createdAt',
-        sortOrder = 'desc',
-      } = req.query;
+router.get('/jobs', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      status = 'all',
+      category,
+      location,
+      remote,
+      featured,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = req.query;
 
-      const filters = {
-        status: status !== 'all' ? status : undefined,
-        category: category as string,
-        location: location as string,
-        remote: remote === 'true' ? true : remote === 'false' ? false : undefined,
-        featured: featured === 'true' ? true : featured === 'false' ? false : undefined,
-      };
+    const filters = {
+      status: status !== 'all' ? status : undefined,
+      category: category as string,
+      location: location as string,
+      remote: remote === 'true' ? true : remote === 'false' ? false : undefined,
+      featured: featured === 'true' ? true : featured === 'false' ? false : undefined,
+    };
 
-      const jobs = await storage.getJobs(filters, {
+    const jobs = await storage.getJobs(filters, {
+      page: Number(page),
+      limit: Number(limit),
+      sortBy: sortBy as string,
+      sortOrder: sortOrder as 'asc' | 'desc',
+    });
+
+    res.json({
+      jobs: jobs.jobs,
+      pagination: {
         page: Number(page),
         limit: Number(limit),
-        sortBy: sortBy as string,
-        sortOrder: sortOrder as 'asc' | 'desc',
-      });
-
-      res.json({
-        jobs: jobs.jobs,
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total: jobs.total,
-          totalPages: Math.ceil(jobs.total / Number(limit)),
-        },
-        stats: {
-          totalJobs: jobs.total,
-          activeJobs: jobs.activeCount,
-          featuredJobs: jobs.featuredCount,
-          expiredJobs: jobs.expiredCount,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
+        total: jobs.total,
+        totalPages: Math.ceil(jobs.total / Number(limit)),
+      },
+      stats: {
+        totalJobs: jobs.total,
+        activeJobs: jobs.activeCount,
+        featuredJobs: jobs.featuredCount,
+        expiredJobs: jobs.expiredCount,
+      },
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
-router.post('/jobs',
+router.post(
+  '/jobs',
   authenticate,
   requireAdmin,
   rateLimiter(20, 60), // 20 requests per minute
@@ -271,37 +272,34 @@ router.post('/jobs',
   }
 );
 
-router.get('/jobs/:jobId',
-  authenticate,
-  requireAdmin,
-  async (req, res, next) => {
-    try {
-      const { jobId } = req.params;
+router.get('/jobs/:jobId', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const { jobId } = req.params;
 
-      const job = await storage.getJob(jobId);
-      if (!job) {
-        throw Errors.notFound('Job not found');
-      }
-
-      const analytics = await storage.getJobAnalytics(jobId);
-
-      res.json({
-        job,
-        analytics: {
-          views: analytics.views,
-          applications: analytics.applications,
-          saves: analytics.saves,
-          shares: analytics.shares,
-          conversionRate: analytics.conversionRate,
-        },
-      });
-    } catch (error) {
-      next(error);
+    const job = await storage.getJob(jobId);
+    if (!job) {
+      throw Errors.notFound('Job not found');
     }
-  }
-);
 
-router.put('/jobs/:jobId',
+    const analytics = await storage.getJobAnalytics(jobId);
+
+    res.json({
+      job,
+      analytics: {
+        views: analytics.views,
+        applications: analytics.applications,
+        saves: analytics.saves,
+        shares: analytics.shares,
+        conversionRate: analytics.conversionRate,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put(
+  '/jobs/:jobId',
   authenticate,
   requireAdmin,
   rateLimiter(50, 60), // 50 requests per minute
@@ -328,7 +326,8 @@ router.put('/jobs/:jobId',
   }
 );
 
-router.delete('/jobs/:jobId',
+router.delete(
+  '/jobs/:jobId',
   authenticate,
   requireAdmin,
   rateLimiter(20, 60), // 20 requests per minute
@@ -353,7 +352,8 @@ router.delete('/jobs/:jobId',
   }
 );
 
-router.post('/jobs/bulk',
+router.post(
+  '/jobs/bulk',
   authenticate,
   requireAdmin,
   rateLimiter(10, 60), // 10 requests per minute
@@ -377,60 +377,57 @@ router.post('/jobs/bulk',
 );
 
 // Company Management Routes
-router.get('/companies',
-  authenticate,
-  requireAdmin,
-  async (req, res, next) => {
-    try {
-      const {
-        page = 1,
-        limit = 20,
-        status = 'all',
-        industry,
-        size,
-        verified,
-        premium,
-        sortBy = 'createdAt',
-        sortOrder = 'desc',
-      } = req.query;
+router.get('/companies', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      status = 'all',
+      industry,
+      size,
+      verified,
+      premium,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = req.query;
 
-      const filters = {
-        status: status !== 'all' ? status : undefined,
-        industry: industry as string,
-        size: size as string,
-        verified: verified === 'true' ? true : verified === 'false' ? false : undefined,
-        premium: premium === 'true' ? true : premium === 'false' ? false : undefined,
-      };
+    const filters = {
+      status: status !== 'all' ? status : undefined,
+      industry: industry as string,
+      size: size as string,
+      verified: verified === 'true' ? true : verified === 'false' ? false : undefined,
+      premium: premium === 'true' ? true : premium === 'false' ? false : undefined,
+    };
 
-      const companies = await storage.getCompanies(filters, {
+    const companies = await storage.getCompanies(filters, {
+      page: Number(page),
+      limit: Number(limit),
+      sortBy: sortBy as string,
+      sortOrder: sortOrder as 'asc' | 'desc',
+    });
+
+    res.json({
+      companies: companies.companies,
+      pagination: {
         page: Number(page),
         limit: Number(limit),
-        sortBy: sortBy as string,
-        sortOrder: sortOrder as 'asc' | 'desc',
-      });
-
-      res.json({
-        companies: companies.companies,
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total: companies.total,
-          totalPages: Math.ceil(companies.total / Number(limit)),
-        },
-        stats: {
-          totalCompanies: companies.total,
-          activeCompanies: companies.activeCount,
-          verifiedCompanies: companies.verifiedCount,
-          premiumCompanies: companies.premiumCount,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
+        total: companies.total,
+        totalPages: Math.ceil(companies.total / Number(limit)),
+      },
+      stats: {
+        totalCompanies: companies.total,
+        activeCompanies: companies.activeCount,
+        verifiedCompanies: companies.verifiedCount,
+        premiumCompanies: companies.premiumCount,
+      },
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
-router.post('/companies',
+router.post(
+  '/companies',
   authenticate,
   requireAdmin,
   rateLimiter(10, 60), // 10 requests per minute
@@ -455,37 +452,34 @@ router.post('/companies',
   }
 );
 
-router.get('/companies/:companyId',
-  authenticate,
-  requireCompanyAdmin,
-  async (req, res, next) => {
-    try {
-      const { companyId } = req.params;
+router.get('/companies/:companyId', authenticate, requireCompanyAdmin, async (req, res, next) => {
+  try {
+    const { companyId } = req.params;
 
-      const company = await storage.getCompany(companyId);
-      if (!company) {
-        throw Errors.notFound('Company not found');
-      }
-
-      const analytics = await storage.getCompanyAnalytics(companyId);
-
-      res.json({
-        company,
-        analytics: {
-          totalJobs: analytics.totalJobs,
-          activeJobs: analytics.activeJobs,
-          totalViews: analytics.totalViews,
-          totalApplications: analytics.totalApplications,
-          followers: analytics.followers,
-        },
-      });
-    } catch (error) {
-      next(error);
+    const company = await storage.getCompany(companyId);
+    if (!company) {
+      throw Errors.notFound('Company not found');
     }
-  }
-);
 
-router.put('/companies/:companyId',
+    const analytics = await storage.getCompanyAnalytics(companyId);
+
+    res.json({
+      company,
+      analytics: {
+        totalJobs: analytics.totalJobs,
+        activeJobs: analytics.activeJobs,
+        totalViews: analytics.totalViews,
+        totalApplications: analytics.totalApplications,
+        followers: analytics.followers,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put(
+  '/companies/:companyId',
   authenticate,
   requireCompanyAdmin,
   rateLimiter(20, 60), // 20 requests per minute
@@ -512,7 +506,8 @@ router.put('/companies/:companyId',
   }
 );
 
-router.delete('/companies/:companyId',
+router.delete(
+  '/companies/:companyId',
   authenticate,
   requireAdmin,
   rateLimiter(5, 60), // 5 requests per minute
@@ -538,7 +533,8 @@ router.delete('/companies/:companyId',
 );
 
 // Company Job Management Routes
-router.get('/companies/:companyId/jobs',
+router.get(
+  '/companies/:companyId/jobs',
   authenticate,
   requireCompanyAdmin,
   async (req, res, next) => {
@@ -579,7 +575,8 @@ router.get('/companies/:companyId/jobs',
   }
 );
 
-router.post('/companies/:companyId/jobs',
+router.post(
+  '/companies/:companyId/jobs',
   authenticate,
   requireCompanyAdmin,
   rateLimiter(10, 60), // 10 requests per minute
@@ -607,7 +604,8 @@ router.post('/companies/:companyId/jobs',
 );
 
 // File Upload Routes
-router.post('/companies/:companyId/logo',
+router.post(
+  '/companies/:companyId/logo',
   authenticate,
   requireCompanyAdmin,
   upload.single('logo'),
@@ -638,7 +636,8 @@ router.post('/companies/:companyId/logo',
   }
 );
 
-router.post('/companies/:companyId/images',
+router.post(
+  '/companies/:companyId/images',
   authenticate,
   requireCompanyAdmin,
   upload.array('images', 10),
@@ -670,131 +669,116 @@ router.post('/companies/:companyId/images',
 );
 
 // Search Routes
-router.get('/search',
-  authenticate,
-  validate(searchSchema),
-  async (req, res, next) => {
-    try {
-      const { q, type, page, limit } = req.query;
+router.get('/search', authenticate, validate(searchSchema), async (req, res, next) => {
+  try {
+    const { q, type, page, limit } = req.query;
 
-      const results = await storage.searchContent(q as string, type as string, {
+    const results = await storage.searchContent(q as string, type as string, {
+      page: Number(page),
+      limit: Number(limit),
+    });
+
+    res.json({
+      query: q,
+      type,
+      results: results.results,
+      pagination: {
         page: Number(page),
         limit: Number(limit),
-      });
-
-      res.json({
-        query: q,
-        type,
-        results: results.results,
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total: results.total,
-          totalPages: Math.ceil(results.total / Number(limit)),
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
+        total: results.total,
+        totalPages: Math.ceil(results.total / Number(limit)),
+      },
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 // Analytics Routes
-router.get('/analytics/overview',
-  authenticate,
-  requireAdmin,
-  async (req, res, next) => {
-    try {
-      const { period = '30d' } = req.query;
+router.get('/analytics/overview', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const { period = '30d' } = req.query;
 
-      const analytics = await storage.getContentAnalytics(period as string);
+    const analytics = await storage.getContentAnalytics(period as string);
 
-      res.json({
-        analytics: {
-          jobs: {
-            total: analytics.jobs.total,
-            active: analytics.jobs.active,
-            featured: analytics.jobs.featured,
-            expired: analytics.jobs.expired,
-            growth: analytics.jobs.growth,
-          },
-          companies: {
-            total: analytics.companies.total,
-            active: analytics.companies.active,
-            verified: analytics.companies.verified,
-            premium: analytics.companies.premium,
-            growth: analytics.companies.growth,
-          },
-          applications: {
-            total: analytics.applications.total,
-            pending: analytics.applications.pending,
-            approved: analytics.applications.approved,
-            rejected: analytics.applications.rejected,
-            conversionRate: analytics.applications.conversionRate,
-          },
-          traffic: {
-            pageViews: analytics.traffic.pageViews,
-            uniqueVisitors: analytics.traffic.uniqueVisitors,
-            averageSessionDuration: analytics.traffic.averageSessionDuration,
-            bounceRate: analytics.traffic.bounceRate,
-          },
+    res.json({
+      analytics: {
+        jobs: {
+          total: analytics.jobs.total,
+          active: analytics.jobs.active,
+          featured: analytics.jobs.featured,
+          expired: analytics.jobs.expired,
+          growth: analytics.jobs.growth,
         },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-router.get('/analytics/jobs',
-  authenticate,
-  requireAdmin,
-  async (req, res, next) => {
-    try {
-      const { period = '30d' } = req.query;
-
-      const analytics = await storage.getJobAnalytics(null, period as string);
-
-      res.json({
-        analytics: {
-          performance: analytics.performance,
-          categories: analytics.categories,
-          locations: analytics.locations,
-          salaryRanges: analytics.salaryRanges,
-          trends: analytics.trends,
+        companies: {
+          total: analytics.companies.total,
+          active: analytics.companies.active,
+          verified: analytics.companies.verified,
+          premium: analytics.companies.premium,
+          growth: analytics.companies.growth,
         },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-router.get('/analytics/companies',
-  authenticate,
-  requireAdmin,
-  async (req, res, next) => {
-    try {
-      const { period = '30d' } = req.query;
-
-      const analytics = await storage.getCompanyAnalytics(null, period as string);
-
-      res.json({
-        analytics: {
-          topCompanies: analytics.topCompanies,
-          industryDistribution: analytics.industryDistribution,
-          sizeDistribution: analytics.sizeDistribution,
-          growth: analytics.growth,
+        applications: {
+          total: analytics.applications.total,
+          pending: analytics.applications.pending,
+          approved: analytics.applications.approved,
+          rejected: analytics.applications.rejected,
+          conversionRate: analytics.applications.conversionRate,
         },
-      });
-    } catch (error) {
-      next(error);
-    }
+        traffic: {
+          pageViews: analytics.traffic.pageViews,
+          uniqueVisitors: analytics.traffic.uniqueVisitors,
+          averageSessionDuration: analytics.traffic.averageSessionDuration,
+          bounceRate: analytics.traffic.bounceRate,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
+
+router.get('/analytics/jobs', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const { period = '30d' } = req.query;
+
+    const analytics = await storage.getJobAnalytics(null, period as string);
+
+    res.json({
+      analytics: {
+        performance: analytics.performance,
+        categories: analytics.categories,
+        locations: analytics.locations,
+        salaryRanges: analytics.salaryRanges,
+        trends: analytics.trends,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/analytics/companies', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const { period = '30d' } = req.query;
+
+    const analytics = await storage.getCompanyAnalytics(null, period as string);
+
+    res.json({
+      analytics: {
+        topCompanies: analytics.topCompanies,
+        industryDistribution: analytics.industryDistribution,
+        sizeDistribution: analytics.sizeDistribution,
+        growth: analytics.growth,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Export/Import Routes
-router.post('/export/jobs',
+router.post(
+  '/export/jobs',
   authenticate,
   requireAdmin,
   rateLimiter(5, 60), // 5 requests per minute
@@ -816,7 +800,8 @@ router.post('/export/jobs',
   }
 );
 
-router.post('/import/jobs',
+router.post(
+  '/import/jobs',
   authenticate,
   requireAdmin,
   upload.single('file'),

@@ -4,15 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Upload, 
-  Camera, 
-  X, 
-  Check, 
-  AlertCircle, 
+import {
+  Upload,
+  Camera,
+  X,
+  Check,
+  AlertCircle,
   Image as ImageIcon,
   Loader2,
-  Crop
+  Crop,
 } from 'lucide-react';
 import { fileUploadService } from '@/services/fileUploadService';
 import { profileService } from '@/services/profileService';
@@ -29,7 +29,7 @@ interface ProfileImageUploadProps {
 const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
   currentImageUrl,
   onImageUpdate,
-  className = ''
+  className = '',
 }) => {
   const { currentUser } = useAuth();
   const [uploading, setUploading] = useState(false);
@@ -91,7 +91,7 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
 
       // Upload to storage
       const imageUrl = await fileUploadService.uploadProfileImage(file, currentUser.uid);
-      
+
       // Update progress to 95%
       setUploadProgress(95);
 
@@ -105,7 +105,7 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
 
       // Complete progress
       setUploadProgress(100);
-      
+
       // Show success and update parent component
       setSuccess(true);
       onImageUpdate(imageUrl);
@@ -115,7 +115,6 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
         setSuccess(false);
         setUploadProgress(0);
       }, 3000);
-
     } catch (err: any) {
       setError(err.message || 'Failed to upload image');
       setUploadProgress(0);
@@ -161,7 +160,7 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    
+
     const file = e.dataTransfer.files[0];
     if (file) {
       handleFileSelect(file);
@@ -179,18 +178,14 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
         <div className="relative">
           <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white bg-gray-100 shadow-lg">
             {currentImageUrl ? (
-              <img
-                src={currentImageUrl}
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
+              <img src={currentImageUrl} alt="Profile" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gray-200">
                 <ImageIcon className="h-12 w-12 text-gray-400" />
               </div>
             )}
           </div>
-          
+
           {/* Upload Progress Overlay */}
           {uploading && (
             <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
@@ -211,7 +206,9 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
       </div>
 
       {/* Upload Area */}
-      <Card className={`transition-all duration-200 ${dragOver ? 'border-blue-500 bg-blue-50' : ''}`}>
+      <Card
+        className={`transition-all duration-200 ${dragOver ? 'border-blue-500 bg-blue-50' : ''}`}
+      >
         <CardContent className="p-6">
           <div
             className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
@@ -227,15 +224,13 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
                   <Upload className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
-              
+
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Upload Profile Image
-                </h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Profile Image</h3>
                 <p className="text-sm text-gray-500 mb-4">
                   Drag and drop an image here, or click to select
                 </p>
-                
+
                 <div className="flex flex-col sm:flex-row gap-2 justify-center">
                   <Button
                     onClick={openFileDialog}

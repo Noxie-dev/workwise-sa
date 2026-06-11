@@ -7,7 +7,7 @@ import { User } from 'firebase/auth';
 // Mock the firebase auth module
 vi.mock('../../lib/firebase', () => ({
   auth: {},
-  onAuthChange: vi.fn((callback) => {
+  onAuthChange: vi.fn(callback => {
     // Store the callback to trigger it in tests
     (global as any).authChangeCallback = callback;
     return vi.fn(); // Return unsubscribe function
@@ -17,19 +17,15 @@ vi.mock('../../lib/firebase', () => ({
 // Test component that uses the auth context
 const TestComponent = () => {
   const { currentUser, isLoading, isAuthenticated } = useAuth();
-  
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
-  
+
   return (
     <div>
-      <div data-testid="auth-status">
-        {isAuthenticated ? 'Authenticated' : 'Not authenticated'}
-      </div>
-      <div data-testid="user-email">
-        {currentUser?.email || 'No user'}
-      </div>
+      <div data-testid="auth-status">{isAuthenticated ? 'Authenticated' : 'Not authenticated'}</div>
+      <div data-testid="user-email">{currentUser?.email || 'No user'}</div>
     </div>
   );
 };
@@ -56,7 +52,7 @@ describe('AuthContext', () => {
         <TestComponent />
       </AuthProvider>
     );
-    
+
     // Initially, the provider should be in loading state
     // But our implementation hides children while loading
     // So we won't see the loading text
@@ -68,15 +64,15 @@ describe('AuthContext', () => {
         <TestComponent />
       </AuthProvider>
     );
-    
+
     // Simulate user sign in
     const mockUser = buildMockUser();
-    
+
     // Trigger the auth change callback with the mock user
     await act(async () => {
       await (global as any).authChangeCallback(mockUser);
     });
-    
+
     // Wait for the component to update
     await waitFor(() => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('Authenticated');
@@ -90,24 +86,24 @@ describe('AuthContext', () => {
         <TestComponent />
       </AuthProvider>
     );
-    
+
     // First simulate user sign in
     const mockUser = buildMockUser();
-    
+
     await act(async () => {
       await (global as any).authChangeCallback(mockUser);
     });
-    
+
     // Wait for the component to update
     await waitFor(() => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('Authenticated');
     });
-    
+
     // Then simulate sign out
     await act(async () => {
       await (global as any).authChangeCallback(null);
     });
-    
+
     // Wait for the component to update again
     await waitFor(() => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('Not authenticated');
@@ -119,18 +115,18 @@ describe('AuthContext', () => {
     // Suppress console.error for this test
     const originalConsoleError = console.error;
     console.error = vi.fn();
-    
+
     // Define a component that uses useAuth without a provider
     const InvalidComponent = () => {
       useAuth();
       return null;
     };
-    
+
     // Expect the render to throw
     expect(() => {
       render(<InvalidComponent />);
     }).toThrow('useAuth must be used within an AuthProvider');
-    
+
     // Restore console.error
     console.error = originalConsoleError;
   });
@@ -141,20 +137,20 @@ describe('AuthContext', () => {
       const { user } = useAuth();
       return <div data-testid="user-compat">{user?.email || 'No user'}</div>;
     };
-    
+
     render(
       <AuthProvider>
         <UserCheckComponent />
       </AuthProvider>
     );
-    
+
     // Simulate user sign in
     const mockUser = buildMockUser();
-    
+
     await act(async () => {
       await (global as any).authChangeCallback(mockUser);
     });
-    
+
     // Wait for the component to update
     await waitFor(() => {
       expect(screen.getByTestId('user-compat')).toHaveTextContent('test@example.com');

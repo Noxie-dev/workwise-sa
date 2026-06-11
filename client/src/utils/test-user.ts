@@ -10,14 +10,14 @@ export const generateTestUser = () => {
     name: `Test User ${randomId}`,
     username: `testuser${randomId}`,
     location: 'Test Location',
-    bio: 'This is a test user account'
+    bio: 'This is a test user account',
   };
 };
 
 // Create a test user for debugging
 export const createTestUser = async () => {
   const testUser = generateTestUser();
-  
+
   try {
     console.log(`Creating test user with email: ${testUser.email}`);
     const user = await signUpWithEmail(testUser.email, testUser.password, testUser.name);
@@ -25,14 +25,14 @@ export const createTestUser = async () => {
     return {
       success: true,
       user,
-      credentials: testUser
+      credentials: testUser,
     };
   } catch (error) {
     console.error('Failed to create test user:', error);
     return {
       success: false,
       error,
-      credentials: testUser
+      credentials: testUser,
     };
   }
 };

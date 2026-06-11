@@ -1,25 +1,25 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock("../../firebase", () => ({
+vi.mock('../../firebase', () => ({
   auth: {
     verifyIdToken: vi.fn(),
   },
 }));
 
-vi.mock("../../services/authenticatedUser", () => ({
+vi.mock('../../services/authenticatedUser', () => ({
   resolveAuthenticatedDatabaseUser: vi.fn(),
 }));
 
-vi.mock("../../services/entitlementService", () => ({
+vi.mock('../../services/entitlementService', () => ({
   entitlementService: {
     getEntitlementsForUser: vi.fn(),
   },
 }));
 
-import router from "../../routes/entitlements";
-import { auth } from "../../firebase";
-import { resolveAuthenticatedDatabaseUser } from "../../services/authenticatedUser";
-import { entitlementService } from "../../services/entitlementService";
+import router from '../../routes/entitlements';
+import { auth } from '../../firebase';
+import { resolveAuthenticatedDatabaseUser } from '../../services/authenticatedUser';
+import { entitlementService } from '../../services/entitlementService';
 
 const mockedAuth = vi.mocked(auth);
 const mockedResolveUser = vi.mocked(resolveAuthenticatedDatabaseUser);
@@ -41,7 +41,7 @@ function createMockResponse() {
 }
 
 async function invokeGetMe(req: Record<string, any>) {
-  const layer: any = router.stack.find((entry: any) => entry.route?.path === "/me");
+  const layer: any = router.stack.find((entry: any) => entry.route?.path === '/me');
   const handler = layer.route.stack[0].handle;
   const response = createMockResponse();
   let capturedError: unknown;
@@ -54,12 +54,12 @@ async function invokeGetMe(req: Record<string, any>) {
   return response;
 }
 
-describe("entitlements routes", () => {
+describe('entitlements routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("returns anonymous free capabilities without requiring auth", async () => {
+  it('returns anonymous free capabilities without requiring auth', async () => {
     mockedEntitlements.getEntitlementsForUser.mockResolvedValue({
       canGenerateCv: false,
       canGenerateCoverLetter: false,
@@ -78,9 +78,12 @@ describe("entitlements routes", () => {
     expect(mockedEntitlements.getEntitlementsForUser).toHaveBeenCalledWith(undefined);
   });
 
-  it("resolves the database user before returning authenticated capabilities", async () => {
-    mockedAuth.verifyIdToken.mockResolvedValue({ uid: "firebase-1", email: "user@example.com" } as any);
-    mockedResolveUser.mockResolvedValue({ id: 12, email: "user@example.com" } as any);
+  it('resolves the database user before returning authenticated capabilities', async () => {
+    mockedAuth.verifyIdToken.mockResolvedValue({
+      uid: 'firebase-1',
+      email: 'user@example.com',
+    } as any);
+    mockedResolveUser.mockResolvedValue({ id: 12, email: 'user@example.com' } as any);
     mockedEntitlements.getEntitlementsForUser.mockResolvedValue({
       canGenerateCv: true,
       canGenerateCoverLetter: true,
@@ -94,7 +97,7 @@ describe("entitlements routes", () => {
     });
 
     const response = await invokeGetMe({
-      headers: { authorization: "Bearer token" },
+      headers: { authorization: 'Bearer token' },
     });
 
     expect(response.body).toMatchObject({ canGenerateCv: true, adsEnabled: false });

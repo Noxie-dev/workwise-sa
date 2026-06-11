@@ -2,7 +2,7 @@ import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { drizzle as drizzlePostgres } from 'drizzle-orm/postgres-js';
 import Database from 'better-sqlite3';
 import postgres from 'postgres';
-import * as schema from "../shared/schema";
+import * as schema from '../shared/schema';
 
 import { secretManager } from './services/secretManager';
 
@@ -14,18 +14,19 @@ let sqliteConnection: any = null;
 // Initialize database connection
 export async function initializeDatabase() {
   if (dbInitialized) return db;
-  
+
   try {
     // Get database connection string
     const secretConnectionString = await secretManager.getSecret('DATABASE_URL');
     const fallbackConnectionString =
       process.env.NODE_ENV === 'production' ? undefined : 'sqlite:./test.db';
-    const connectionString = secretConnectionString || process.env.DATABASE_URL || fallbackConnectionString;
+    const connectionString =
+      secretConnectionString || process.env.DATABASE_URL || fallbackConnectionString;
 
     if (!connectionString) {
       throw new Error('DATABASE_URL is not configured');
     }
-    
+
     // Create database client based on connection string
     if (connectionString.startsWith('sqlite')) {
       const sqlitePath = connectionString.replace(/^sqlite:\/*/, '') || 'test.db';
@@ -38,7 +39,7 @@ export async function initializeDatabase() {
       sqliteConnection = null;
       db = drizzlePostgres(client, { schema });
     }
-    
+
     dbInitialized = true;
     console.log('✅ Database connection initialized');
     return db;

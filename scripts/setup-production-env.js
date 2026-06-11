@@ -7,7 +7,7 @@ const REQUIRED_ENV_VARS = [
   'FIREBASE_STORAGE_BUCKET',
   'GOOGLE_GENAI_API_KEY',
   'VITE_USE_FIREBASE_EMULATORS',
-  'VITE_API_URL'
+  'VITE_API_URL',
 ];
 
 function printPrimaryEnvTemplate() {
@@ -65,7 +65,9 @@ function checkPrimaryEnv() {
   }
 
   if (!process.env.GOOGLE_APPLICATION_CREDENTIALS && !process.env.FIREBASE_SERVICE_ACCOUNT) {
-    console.warn('⚠️  No Firebase Admin credential hint found. Ensure workload identity or GOOGLE_APPLICATION_CREDENTIALS is configured in the target environment.');
+    console.warn(
+      '⚠️  No Firebase Admin credential hint found. Ensure workload identity or GOOGLE_APPLICATION_CREDENTIALS is configured in the target environment.'
+    );
   }
 
   if (hasErrors) {

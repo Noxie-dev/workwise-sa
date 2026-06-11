@@ -5,14 +5,14 @@
  */
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
-import { 
-  AppUser, 
-  AuthContextType, 
-  AuthStatus, 
-  AuthResult, 
-  RegisterData, 
+import {
+  AppUser,
+  AuthContextType,
+  AuthStatus,
+  AuthResult,
+  RegisterData,
   Permission,
-  UserUpdate
+  UserUpdate,
 } from '@shared/auth-types';
 import { firebaseAuthAdapter } from '@shared/firebase-auth-adapter';
 
@@ -45,7 +45,7 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
   // ============================================================================
 
   const isAuthenticated = useMemo(() => !!user, [user]);
-  
+
   const isAdmin = useMemo(() => {
     return user?.role === 'admin';
   }, [user]);
@@ -60,14 +60,14 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
 
     try {
       const result = await firebaseAuthAdapter.loginWithEmailPassword(email, password);
-      
+
       if (result.success && result.user) {
         setUser(result.user);
         setStatus('authenticated');
       } else {
         setStatus('error');
       }
-      
+
       return result;
     } catch (error) {
       setStatus('error');
@@ -75,8 +75,8 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
         success: false,
         error: {
           code: 'auth/internal-error',
-          message: 'An unexpected error occurred during login'
-        }
+          message: 'An unexpected error occurred during login',
+        },
       };
     } finally {
       setIsLoading(false);
@@ -89,14 +89,14 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
 
     try {
       const result = await firebaseAuthAdapter.loginWithGoogle();
-      
+
       if (result.success && result.user) {
         setUser(result.user);
         setStatus('authenticated');
       } else {
         setStatus('error');
       }
-      
+
       return result;
     } catch (error) {
       setStatus('error');
@@ -104,8 +104,8 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
         success: false,
         error: {
           code: 'auth/internal-error',
-          message: 'An unexpected error occurred during Google login'
-        }
+          message: 'An unexpected error occurred during Google login',
+        },
       };
     } finally {
       setIsLoading(false);
@@ -118,13 +118,13 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
 
     try {
       const result = await firebaseAuthAdapter.loginWithEmailLink(email);
-      
+
       if (result.success) {
         setStatus('authenticated');
       } else {
         setStatus('error');
       }
-      
+
       return result;
     } catch (error) {
       setStatus('error');
@@ -132,8 +132,8 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
         success: false,
         error: {
           code: 'auth/internal-error',
-          message: 'An unexpected error occurred during email link login'
-        }
+          message: 'An unexpected error occurred during email link login',
+        },
       };
     } finally {
       setIsLoading(false);
@@ -146,14 +146,14 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
 
     try {
       const result = await firebaseAuthAdapter.registerWithEmailPassword(userData);
-      
+
       if (result.success && result.user) {
         setUser(result.user);
         setStatus('authenticated');
       } else {
         setStatus('error');
       }
-      
+
       return result;
     } catch (error) {
       setStatus('error');
@@ -161,8 +161,8 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
         success: false,
         error: {
           code: 'auth/internal-error',
-          message: 'An unexpected error occurred during registration'
-        }
+          message: 'An unexpected error occurred during registration',
+        },
       };
     } finally {
       setIsLoading(false);
@@ -199,8 +199,8 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
         success: false,
         error: {
           code: 'auth/internal-error',
-          message: 'An unexpected error occurred during password reset'
-        }
+          message: 'An unexpected error occurred during password reset',
+        },
       };
     } finally {
       setIsLoading(false);
@@ -212,19 +212,19 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
 
     try {
       const result = await firebaseAuthAdapter.updateUserProfile(updates);
-      
+
       if (result.success && result.user) {
         setUser(result.user);
       }
-      
+
       return result;
     } catch (error) {
       return {
         success: false,
         error: {
           code: 'auth/internal-error',
-          message: 'An unexpected error occurred during profile update'
-        }
+          message: 'An unexpected error occurred during profile update',
+        },
       };
     } finally {
       setIsLoading(false);
@@ -251,17 +251,20 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
   // AUTHORIZATION METHODS
   // ============================================================================
 
-  const hasPermission = useCallback((permission: Permission): boolean => {
-    if (!user) return false;
-    return user.permissions.includes(permission);
-  }, [user]);
+  const hasPermission = useCallback(
+    (permission: Permission): boolean => {
+      if (!user) return false;
+      return user.permissions.includes(permission);
+    },
+    [user]
+  );
 
   // ============================================================================
   // AUTH STATE LISTENER
   // ============================================================================
 
   useEffect(() => {
-    const unsubscribe = firebaseAuthAdapter.onAuthStateChanged((appUser) => {
+    const unsubscribe = firebaseAuthAdapter.onAuthStateChanged(appUser => {
       if (appUser) {
         setUser(appUser);
         setStatus('authenticated');
@@ -279,48 +282,49 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
   // CONTEXT VALUE
   // ============================================================================
 
-  const contextValue: AuthContextType = useMemo(() => ({
-    user,
-    firebaseUser,
-    status,
-    isLoading,
-    isAuthenticated,
-    isAdmin,
-    hasPermission,
-    login,
-    loginWithGoogle,
-    loginWithEmailLink,
-    register,
-    logout,
-    resetPassword,
-    updateProfile,
-    refreshUser
-  }), [
-    user,
-    firebaseUser,
-    status,
-    isLoading,
-    isAuthenticated,
-    isAdmin,
-    hasPermission,
-    login,
-    loginWithGoogle,
-    loginWithEmailLink,
-    register,
-    logout,
-    resetPassword,
-    updateProfile,
-    refreshUser
-  ]);
+  const contextValue: AuthContextType = useMemo(
+    () => ({
+      user,
+      firebaseUser,
+      status,
+      isLoading,
+      isAuthenticated,
+      isAdmin,
+      hasPermission,
+      login,
+      loginWithGoogle,
+      loginWithEmailLink,
+      register,
+      logout,
+      resetPassword,
+      updateProfile,
+      refreshUser,
+    }),
+    [
+      user,
+      firebaseUser,
+      status,
+      isLoading,
+      isAuthenticated,
+      isAdmin,
+      hasPermission,
+      login,
+      loginWithGoogle,
+      loginWithEmailLink,
+      register,
+      logout,
+      resetPassword,
+      updateProfile,
+      refreshUser,
+    ]
+  );
 
   // ============================================================================
   // RENDER
   // ============================================================================
 
   return (
-    <EnhancedAuthContext.Provider value={contextValue}>
-      {children}
-    </EnhancedAuthContext.Provider>
+    <EnhancedAuthContext.Provider value={contextValue}>{children}</EnhancedAuthContext.Provider>
   );
 };
 
@@ -330,11 +334,11 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
 
 export const useEnhancedAuth = (): AuthContextType => {
   const context = useContext(EnhancedAuthContext);
-  
+
   if (!context) {
     throw new Error('useEnhancedAuth must be used within an EnhancedAuthProvider');
   }
-  
+
   return context;
 };
 

@@ -1,7 +1,9 @@
 import { expect, test } from 'playwright/test';
 
 test.describe('Anonymous Jobs Browser Flow', () => {
-  test('lets an anonymous visitor search jobs and hits the auth gate for details', async ({ page }) => {
+  test('lets an anonymous visitor search jobs and hits the auth gate for details', async ({
+    page,
+  }) => {
     await page.goto('/');
 
     await page.getByRole('link', { name: 'Find Jobs' }).click();
@@ -23,10 +25,14 @@ test.describe('Anonymous Jobs Browser Flow', () => {
     await expect(authModal).toBeVisible();
     await expect(authModal.getByText('Sign Up to Continue')).toBeVisible();
     await expect(authModal.getByRole('button', { name: 'Create Free Account' })).toBeVisible();
-    await expect(authModal.getByRole('button', { name: 'Sign In to Existing Account' })).toBeVisible();
+    await expect(
+      authModal.getByRole('button', { name: 'Sign In to Existing Account' })
+    ).toBeVisible();
   });
 
-  test('redirects an anonymous visitor to login when protected job details are opened directly', async ({ page }) => {
+  test('redirects an anonymous visitor to login when protected job details are opened directly', async ({
+    page,
+  }) => {
     await page.goto('/jobs/1');
 
     await expect(page.getByText('Authentication Required')).toBeVisible();

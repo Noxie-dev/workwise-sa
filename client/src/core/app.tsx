@@ -1,9 +1,9 @@
 import { HelmetProvider } from 'react-helmet-async';
 import { Route, Switch, Redirect } from 'wouter';
-import { queryClient } from "@/lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { queryClient } from '@/lib/queryClient';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Suspense, lazy } from 'react';
 import Header from '@/components/Header';
@@ -12,66 +12,68 @@ import { LoadingScreen } from '@/components/ui/loading-screen';
 import { firebaseStatus } from '@/lib/firebase';
 
 // Lazy load all pages for better performance
-const NotFound = lazy(() => import("@/pages/not-found"));
-const Home = lazy(() => import("@/pages/Home"));
-const Jobs = lazy(() => import("@/pages/Jobs"));
-const Resources = lazy(() => import("@/pages/Resources"));
-const WiseUpPage = lazy(() => import("@/pages/WiseUp/WiseUpPage"));
-const Login = lazy(() => import("@/pages/Login"));
-const Register = lazy(() => import("@/pages/Register"));
-const CVBuilder = lazy(() => import("@/pages/CVBuilder"));
-const UserProfile = lazy(() => import("@/pages/UserProfile"));
-const ProfileSetup = lazy(() => import("@/pages/ProfileSetup"));
-const EmailLinkLogin = lazy(() => import("@/pages/EmailLinkLogin"));
-const EmailSignInComplete = lazy(() => import("@/pages/EmailSignInComplete"));
-const MarketingRulesPage = lazy(() => import("@/pages/MarketingRulesPage"));
-const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
-const AdminAnalytics = lazy(() => import("@/pages/admin/Analytics"));
-const AdminSettings = lazy(() => import("@/pages/admin/SettingsPage"));
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const JobDetails = lazy(() => import("@/pages/JobDetails"));
-const HomeSimple = lazy(() => import("@/pages/HomeSimple"));
-const FAQWheelPage = lazy(() => import("@/pages/FAQWheelPage"));
-const Billing = lazy(() => import("@/pages/Billing"));
+const NotFound = lazy(() => import('@/pages/not-found'));
+const Home = lazy(() => import('@/pages/Home'));
+const Jobs = lazy(() => import('@/pages/Jobs'));
+const Resources = lazy(() => import('@/pages/Resources'));
+const WiseUpPage = lazy(() => import('@/pages/WiseUp/WiseUpPage'));
+const Login = lazy(() => import('@/pages/Login'));
+const Register = lazy(() => import('@/pages/Register'));
+const CVBuilder = lazy(() => import('@/pages/CVBuilder'));
+const UserProfile = lazy(() => import('@/pages/UserProfile'));
+const ProfileSetup = lazy(() => import('@/pages/ProfileSetup'));
+const EmailLinkLogin = lazy(() => import('@/pages/EmailLinkLogin'));
+const EmailSignInComplete = lazy(() => import('@/pages/EmailSignInComplete'));
+const MarketingRulesPage = lazy(() => import('@/pages/MarketingRulesPage'));
+const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
+const AdminAnalytics = lazy(() => import('@/pages/admin/Analytics'));
+const AdminSettings = lazy(() => import('@/pages/admin/SettingsPage'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const JobDetails = lazy(() => import('@/pages/JobDetails'));
+const HomeSimple = lazy(() => import('@/pages/HomeSimple'));
+const FAQWheelPage = lazy(() => import('@/pages/FAQWheelPage'));
+const Billing = lazy(() => import('@/pages/Billing'));
 
 // Companies and Blog pages
-const Companies = lazy(() => import("@/pages/Companies"));
-const BlogWise = lazy(() => import("@/pages/BlogWise"));
+const Companies = lazy(() => import('@/pages/Companies'));
+const BlogWise = lazy(() => import('@/pages/BlogWise'));
 
 // Resource pages
-const CVTemplates = lazy(() => import("@/pages/resources/CVTemplates"));
+const CVTemplates = lazy(() => import('@/pages/resources/CVTemplates'));
 // Use the new InterviewTipsPage component that handles its own lazy loading
-const InterviewTips = lazy(() => import("@/pages/resources/InterviewTipsPage"));
-const SalaryGuide = lazy(() => import("@/pages/resources/SalaryGuide"));
-const CVBuilderHelp = lazy(() => import("@/pages/resources/CVBuilderHelp"));
+const InterviewTips = lazy(() => import('@/pages/resources/InterviewTipsPage'));
+const SalaryGuide = lazy(() => import('@/pages/resources/SalaryGuide'));
+const CVBuilderHelp = lazy(() => import('@/pages/resources/CVBuilderHelp'));
 
 // Employer pages
-const PostJob = lazy(() => import("@/pages/employers/PostJob"));
-const EmployerDashboard = lazy(() => import("@/pages/employers/EmployerDashboard"));
-const Solutions = lazy(() => import("@/pages/employers/Solutions"));
-const Pricing = lazy(() => import("@/pages/employers/Pricing"));
-const SuccessStories = lazy(() => import("@/pages/employers/SuccessStories"));
+const PostJob = lazy(() => import('@/pages/employers/PostJob'));
+const EmployerDashboard = lazy(() => import('@/pages/employers/EmployerDashboard'));
+const Solutions = lazy(() => import('@/pages/employers/Solutions'));
+const Pricing = lazy(() => import('@/pages/employers/Pricing'));
+const SuccessStories = lazy(() => import('@/pages/employers/SuccessStories'));
 
 // About pages
-const About = lazy(() => import("@/pages/About"));
-const AboutUsPage = lazy(() => import("@/pages/AboutUsPage"));
-const Contact = lazy(() => import("@/pages/Contact"));
-const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
-const Terms = lazy(() => import("@/pages/Terms"));
-const FAQ = lazy(() => import("@/pages/FAQ"));
+const About = lazy(() => import('@/pages/About'));
+const AboutUsPage = lazy(() => import('@/pages/AboutUsPage'));
+const Contact = lazy(() => import('@/pages/Contact'));
+const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
+const Terms = lazy(() => import('@/pages/Terms'));
+const FAQ = lazy(() => import('@/pages/FAQ'));
 
 /**
  * Router component with lazy-loaded routes and error boundaries
  */
-function Router() {
+const Router = () => {
   return (
     <>
       <Header />
       {!firebaseStatus.clientOpsEnabled && (
         <div className="mx-auto w-full max-w-7xl px-4 pt-4">
           <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            Firebase client features are in demo mode because Firebase keys are missing or placeholder values are being used.
-            Add `VITE_FIREBASE_API_KEY` and `VITE_FIREBASE_APP_ID` in `client/.env`, or enable emulators with `VITE_USE_FIREBASE_EMULATORS=true`.
+            Firebase client features are in demo mode because Firebase keys are missing or
+            placeholder values are being used. Add `VITE_FIREBASE_API_KEY` and
+            `VITE_FIREBASE_APP_ID` in `client/.env`, or enable emulators with
+            `VITE_USE_FIREBASE_EMULATORS=true`.
           </div>
         </div>
       )}
@@ -118,12 +120,8 @@ function Router() {
             <Route path="/register" component={Register} />
             <Route path="/profile" component={UserProfile} />
             <Route path="/profile/:username" component={UserProfile} />
-            <Route path="/profile-setup">
-              {() => <ProfileSetup />}
-            </Route>
-            <Route path="/upload-cv">
-              {() => <Redirect to="/profile-setup" />}
-            </Route>
+            <Route path="/profile-setup">{() => <ProfileSetup />}</Route>
+            <Route path="/upload-cv">{() => <Redirect to="/profile-setup" />}</Route>
             <Route path="/email-link-login" component={EmailLinkLogin} />
             <Route path="/auth/email-signin-complete" component={EmailSignInComplete} />
             <Route path="/admin" component={AdminDashboard} />
@@ -138,13 +136,13 @@ function Router() {
       <Footer />
     </>
   );
-}
+};
 
 /**
  * Main App component
  * Provides global providers (Helmet, QueryClient, Auth) and main layout
  */
-function App() {
+const App = () => {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
@@ -155,6 +153,6 @@ function App() {
       </QueryClientProvider>
     </HelmetProvider>
   );
-}
+};
 
 export default App;

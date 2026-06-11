@@ -60,13 +60,15 @@ describe('authenticatedUser service', () => {
         username: 'firebase-firebase-uid',
         name: 'new.user',
         role: 'employer',
-      }),
+      })
     );
     expect(result.id).toBe(11);
   });
 
   it('rejects firebase identities without uid', async () => {
-    await expect(resolveAuthenticatedDatabaseUser({ email: 'missing-uid@example.com' })).rejects.toMatchObject({
+    await expect(
+      resolveAuthenticatedDatabaseUser({ email: 'missing-uid@example.com' })
+    ).rejects.toMatchObject({
       statusCode: 401,
     });
   });
@@ -74,15 +76,15 @@ describe('authenticatedUser service', () => {
   it('rejects creation when firebase user has no email', async () => {
     mockedStorage.getUserByFirebaseUid.mockResolvedValue(undefined as any);
 
-    await expect(resolveAuthenticatedDatabaseUser({ uid: 'firebase-uid-3' })).rejects.toMatchObject({
-      statusCode: 401,
-    });
+    await expect(resolveAuthenticatedDatabaseUser({ uid: 'firebase-uid-3' })).rejects.toMatchObject(
+      {
+        statusCode: 401,
+      }
+    );
   });
 
   it('assertRole allows approved roles and blocks unauthorized roles', () => {
     expect(() => assertRole({ role: 'admin' }, ['admin', 'employer'])).not.toThrow();
-    expect(() => assertRole({ role: 'user' }, ['admin', 'employer'])).toThrowError(
-      /permission/i,
-    );
+    expect(() => assertRole({ role: 'user' }, ['admin', 'employer'])).toThrowError(/permission/i);
   });
 });

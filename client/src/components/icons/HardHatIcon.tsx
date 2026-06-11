@@ -5,7 +5,10 @@ interface HardHatIconProps {
   color?: string;
 }
 
-const HardHatIcon: React.FC<HardHatIconProps> = ({ className = "w-24 h-24", color = "#FFD54F" }) => {
+const HardHatIcon: React.FC<HardHatIconProps> = ({
+  className = 'w-24 h-24',
+  color = '#FFD54F',
+}) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

@@ -1,8 +1,8 @@
-import fs from "node:fs";
-import path from "node:path";
+import fs from 'node:fs';
+import path from 'node:path';
 
-const GENERATED_JS_DIR = path.resolve(process.cwd(), "dataconnect-generated/js");
-const FIREBASE_12_RANGE = "^12.0.0";
+const GENERATED_JS_DIR = path.resolve(process.cwd(), 'dataconnect-generated/js');
+const FIREBASE_12_RANGE = '^12.0.0';
 
 function patchPeerRange(range) {
   if (!range) return null;
@@ -11,24 +11,29 @@ function patchPeerRange(range) {
 }
 
 function patchConnectorPackage(packageJsonPath) {
-  const raw = fs.readFileSync(packageJsonPath, "utf8");
+  const raw = fs.readFileSync(packageJsonPath, 'utf8');
   const pkg = JSON.parse(raw);
   const peerDeps = pkg.peerDependencies;
 
-  if (!peerDeps || typeof peerDeps.firebase !== "string") {
-    return { changed: false, reason: "no firebase peer dependency" };
+  if (!peerDeps || typeof peerDeps.firebase !== 'string') {
+    return { changed: false, reason: 'no firebase peer dependency' };
   }
 
   const nextRange = patchPeerRange(peerDeps.firebase);
   if (!nextRange || nextRange === peerDeps.firebase) {
-    return { changed: false, reason: "already includes firebase 12" };
+    return { changed: false, reason: 'already includes firebase 12' };
   }
 
   const previousRange = peerDeps.firebase;
   pkg.peerDependencies.firebase = nextRange;
   fs.writeFileSync(packageJsonPath, `${JSON.stringify(pkg, null, 2)}\n`);
 
-  return { changed: true, previousRange, nextRange, name: pkg.name || path.basename(path.dirname(packageJsonPath)) };
+  return {
+    changed: true,
+    previousRange,
+    nextRange,
+    name: pkg.name || path.basename(path.dirname(packageJsonPath)),
+  };
 }
 
 function main() {
@@ -44,7 +49,7 @@ function main() {
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
 
-    const packageJsonPath = path.join(GENERATED_JS_DIR, entry.name, "package.json");
+    const packageJsonPath = path.join(GENERATED_JS_DIR, entry.name, 'package.json');
     if (!fs.existsSync(packageJsonPath)) continue;
 
     checked += 1;
@@ -52,7 +57,9 @@ function main() {
 
     if (result.changed) {
       patched += 1;
-      console.log(`Patched ${result.name}: firebase peer ${result.previousRange} -> ${result.nextRange}`);
+      console.log(
+        `Patched ${result.name}: firebase peer ${result.previousRange} -> ${result.nextRange}`
+      );
     } else {
       console.log(`Skipped ${entry.name}: ${result.reason}`);
     }

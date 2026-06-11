@@ -5,19 +5,19 @@
  * across the application, handling both client and server-side authentication.
  */
 
-import { 
-  AppUser, 
-  AuthResult, 
-  AuthError, 
-  RegisterData, 
-  LoginData, 
-  UserRole, 
+import {
+  AppUser,
+  AuthResult,
+  AuthError,
+  RegisterData,
+  LoginData,
+  UserRole,
   Permission,
   ROLE_PERMISSIONS,
   AUTH_ERROR_CODES,
   AuthErrorCode,
   UserUpdate,
-  UserCreate
+  UserCreate,
 } from './auth-types';
 
 // ============================================================================
@@ -32,22 +32,22 @@ export interface IAuthService {
   register(userData: RegisterData): Promise<AuthResult>;
   logout(): Promise<AuthResult>;
   resetPassword(email: string): Promise<AuthResult>;
-  
+
   // User management
   getCurrentUser(): Promise<AppUser | null>;
   updateUser(updates: UserUpdate): Promise<AuthResult>;
   deleteUser(): Promise<AuthResult>;
-  
+
   // Token management
   getToken(): Promise<string | null>;
   refreshToken(): Promise<string | null>;
   verifyToken(token: string): Promise<AppUser | null>;
-  
+
   // Authorization
   hasPermission(permission: Permission): boolean;
   hasRole(role: UserRole): boolean;
   checkAccess(permissions: Permission[], roles?: UserRole[]): boolean;
-  
+
   // Utility methods
   isAuthenticated(): boolean;
   isAdmin(): boolean;
@@ -106,19 +106,19 @@ export class AuthService implements IAuthService {
 
       // Perform login (this would integrate with your Firebase client)
       const result = await this.performLogin(email, password);
-      
+
       if (result.success && result.user) {
         this.currentUser = result.user;
         this.token = result.token;
-        
+
         // Store token if remember me is enabled
         if (rememberMe) {
           this.storeToken(result.token);
         }
-        
+
         this.startTokenRefresh();
       }
-      
+
       return result;
     } catch (error) {
       return this.handleError(error, 'login');
@@ -128,14 +128,14 @@ export class AuthService implements IAuthService {
   async loginWithGoogle(): Promise<AuthResult> {
     try {
       const result = await this.performGoogleLogin();
-      
+
       if (result.success && result.user) {
         this.currentUser = result.user;
         this.token = result.token;
         this.storeToken(result.token);
         this.startTokenRefresh();
       }
-      
+
       return result;
     } catch (error) {
       return this.handleError(error, 'google-login');
@@ -166,14 +166,14 @@ export class AuthService implements IAuthService {
 
       // Perform registration
       const result = await this.performRegistration(userData);
-      
+
       if (result.success && result.user) {
         this.currentUser = result.user;
         this.token = result.token;
         this.storeToken(result.token);
         this.startTokenRefresh();
       }
-      
+
       return result;
     } catch (error) {
       return this.handleError(error, 'registration');
@@ -184,13 +184,13 @@ export class AuthService implements IAuthService {
     try {
       // Perform logout
       await this.performLogout();
-      
+
       // Clear local state
       this.currentUser = null;
       this.token = null;
       this.clearStoredToken();
       this.stopTokenRefresh();
-      
+
       return this.createSuccessResult('Logged out successfully');
     } catch (error) {
       return this.handleError(error, 'logout');
@@ -238,16 +238,16 @@ export class AuthService implements IAuthService {
       if (!this.currentUser) {
         return this.createErrorResult({
           code: AUTH_ERROR_CODES.INVALID_TOKEN,
-          message: 'User not authenticated'
+          message: 'User not authenticated',
         });
       }
 
       const result = await this.performUserUpdate(updates);
-      
+
       if (result.success && result.user) {
         this.currentUser = result.user;
       }
-      
+
       return result;
     } catch (error) {
       return this.handleError(error, 'user-update');
@@ -259,19 +259,19 @@ export class AuthService implements IAuthService {
       if (!this.currentUser) {
         return this.createErrorResult({
           code: AUTH_ERROR_CODES.INVALID_TOKEN,
-          message: 'User not authenticated'
+          message: 'User not authenticated',
         });
       }
 
       const result = await this.performUserDeletion();
-      
+
       if (result.success) {
         this.currentUser = null;
         this.token = null;
         this.clearStoredToken();
         this.stopTokenRefresh();
       }
-      
+
       return result;
     } catch (error) {
       return this.handleError(error, 'user-deletion');
@@ -389,11 +389,14 @@ export class AuthService implements IAuthService {
 
   private startTokenRefresh(): void {
     this.stopTokenRefresh();
-    
+
     // Refresh token every 50 minutes (tokens typically expire in 1 hour)
-    this.refreshTimer = setInterval(async () => {
-      await this.refreshToken();
-    }, 50 * 60 * 1000);
+    this.refreshTimer = setInterval(
+      async () => {
+        await this.refreshToken();
+      },
+      50 * 60 * 1000
+    );
   }
 
   private stopTokenRefresh(): void {
@@ -427,24 +430,24 @@ export class AuthService implements IAuthService {
       success: true,
       message,
       user,
-      data
+      data,
     };
   }
 
   private createErrorResult(error: AuthError): AuthResult {
     return {
       success: false,
-      error
+      error,
     };
   }
 
   private handleError(error: any, operation: string): AuthResult {
     console.error(`Auth error in ${operation}:`, error);
-    
+
     const authError: AuthError = {
       code: error.code || AUTH_ERROR_CODES.INTERNAL_ERROR,
       message: error.message || 'An unexpected error occurred',
-      details: error
+      details: error,
     };
 
     return this.createErrorResult(authError);
@@ -460,8 +463,8 @@ export class AuthService implements IAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.VALIDATION_ERROR,
-          message: 'Email and password are required'
-        }
+          message: 'Email and password are required',
+        },
       };
     }
 
@@ -470,8 +473,8 @@ export class AuthService implements IAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.INVALID_EMAIL,
-          message: 'Invalid email format'
-        }
+          message: 'Invalid email format',
+        },
       };
     }
 
@@ -484,8 +487,8 @@ export class AuthService implements IAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.VALIDATION_ERROR,
-          message: 'All required fields must be filled'
-        }
+          message: 'All required fields must be filled',
+        },
       };
     }
 
@@ -494,8 +497,8 @@ export class AuthService implements IAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.INVALID_EMAIL,
-          message: 'Invalid email format'
-        }
+          message: 'Invalid email format',
+        },
       };
     }
 
@@ -504,8 +507,8 @@ export class AuthService implements IAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.WEAK_PASSWORD,
-          message: 'Password must be at least 6 characters long'
-        }
+          message: 'Password must be at least 6 characters long',
+        },
       };
     }
 
@@ -514,8 +517,8 @@ export class AuthService implements IAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.VALIDATION_ERROR,
-          message: 'Passwords do not match'
-        }
+          message: 'Passwords do not match',
+        },
       };
     }
 
@@ -524,8 +527,8 @@ export class AuthService implements IAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.VALIDATION_ERROR,
-          message: 'You must agree to the terms and conditions'
-        }
+          message: 'You must agree to the terms and conditions',
+        },
       };
     }
 
@@ -538,8 +541,8 @@ export class AuthService implements IAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.VALIDATION_ERROR,
-          message: 'Email is required'
-        }
+          message: 'Email is required',
+        },
       };
     }
 
@@ -548,8 +551,8 @@ export class AuthService implements IAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.INVALID_EMAIL,
-          message: 'Invalid email format'
-        }
+          message: 'Invalid email format',
+        },
       };
     }
 

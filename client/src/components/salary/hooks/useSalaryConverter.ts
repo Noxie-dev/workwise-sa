@@ -11,7 +11,7 @@ interface SalaryAmounts {
 
 /**
  * Custom hook for converting salary amounts between different frequencies
- * 
+ *
  * @param amount - The salary amount to convert
  * @param inputType - The frequency of the input amount (hourly, daily, weekly, fortnightly, monthly, annual)
  * @param hoursPerDay - Number of working hours per day (default: 8)
@@ -34,7 +34,7 @@ export const useSalaryConverter = (
     const effHoursPerDay = hoursPerDay > 0 ? hoursPerDay : 8;
     const effDaysPerWeek = daysPerWeek > 0 ? daysPerWeek : 5;
     const effWeeksPerYear = weeksPerYear > 0 ? weeksPerYear : 52; // Using 52 for gross, specific working weeks for hourly if advanced
-    
+
     const hoursPerWeek = effHoursPerDay * effDaysPerWeek;
     const hoursPerYear = hoursPerWeek * effWeeksPerYear;
 
@@ -62,11 +62,11 @@ export const useSalaryConverter = (
     }
 
     const monthly = annualGross / 12;
-    const fortnightly = annualGross / (effWeeksPerYear/2) || annualGross / 26; // Approx 26 fortnights
+    const fortnightly = annualGross / (effWeeksPerYear / 2) || annualGross / 26; // Approx 26 fortnights
     const weekly = annualGross / effWeeksPerYear || annualGross / 52;
     const daily = weekly / effDaysPerWeek || 0;
     const hourly = daily / effHoursPerDay || 0;
-    
+
     return {
       hourly: isFinite(hourly) ? hourly : 0,
       daily: isFinite(daily) ? daily : 0,

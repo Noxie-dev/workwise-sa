@@ -1,21 +1,15 @@
 // @ts-nocheck
 import React, { useState } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { SkillsAnalysisData } from '@/services/dashboardService';
 
@@ -35,11 +29,7 @@ interface SkillsHeatmapProps {
   onExport?: () => void;
 }
 
-const SkillsHeatmap: React.FC<SkillsHeatmapProps> = ({ 
-  data, 
-  isLoading,
-  onExport 
-}) => {
+const SkillsHeatmap: React.FC<SkillsHeatmapProps> = ({ data, isLoading, onExport }) => {
   const [view, setView] = useState<'demand' | 'growth'>('demand');
 
   if (isLoading) {
@@ -89,16 +79,13 @@ const SkillsHeatmap: React.FC<SkillsHeatmapProps> = ({
         <div>
           <CardTitle>Skills Heatmap</CardTitle>
           <CardDescription>
-            {view === 'demand' 
-              ? 'Current market demand for skills' 
+            {view === 'demand'
+              ? 'Current market demand for skills'
               : 'Year-on-year growth rate for skills'}
           </CardDescription>
         </div>
         <div className="flex items-center space-x-2">
-          <Select
-            value={view}
-            onValueChange={(value) => setView(value as 'demand' | 'growth')}
-          >
+          <Select value={view} onValueChange={value => setView(value as 'demand' | 'growth')}>
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="View" />
             </SelectTrigger>
@@ -116,13 +103,13 @@ const SkillsHeatmap: React.FC<SkillsHeatmapProps> = ({
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {data.marketDemand.map((skill) => {
+          {data.marketDemand.map(skill => {
             const value = view === 'demand' ? skill.demand : skill.growth;
             const colorClass = getHeatmapColor(value);
-            
+
             return (
-              <div 
-                key={skill.skill} 
+              <div
+                key={skill.skill}
                 className={`${colorClass} rounded-md p-3 text-center transition-all hover:scale-105`}
               >
                 <div className="font-medium text-white text-shadow">{skill.skill}</div>

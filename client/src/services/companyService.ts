@@ -57,10 +57,11 @@ class CompanyService {
 
         if (params.query) {
           const query = params.query.toLowerCase();
-          filtered = filtered.filter(company => 
-            company.name.toLowerCase().includes(query) ||
-            company.description?.toLowerCase().includes(query) ||
-            company.industry?.toLowerCase().includes(query)
+          filtered = filtered.filter(
+            company =>
+              company.name.toLowerCase().includes(query) ||
+              company.description?.toLowerCase().includes(query) ||
+              company.industry?.toLowerCase().includes(query)
           );
         }
 
@@ -119,8 +120,8 @@ class CompanyService {
             currentPage: page,
             totalPages: Math.ceil(filtered.length / limit),
             totalItems: filtered.length,
-            itemsPerPage: limit
-          }
+            itemsPerPage: limit,
+          },
         });
       }
 
@@ -211,17 +212,17 @@ class CompanyService {
           hiringTrends: {
             thisMonth: 234,
             lastMonth: 198,
-            growth: 18.2
+            growth: 18.2,
           },
           topIndustries: [
             { name: 'Technology', companies: 127, growth: 45 },
             { name: 'FinTech', companies: 89, growth: 38 },
             { name: 'Healthcare', companies: 156, growth: 32 },
-            { name: 'GreenTech', companies: 67, growth: 55 }
+            { name: 'GreenTech', companies: 67, growth: 55 },
           ],
           averageRating: 4.3,
           totalPositions: 2547,
-          remotePercentage: 68
+          remotePercentage: 68,
         };
       }
 
@@ -318,9 +319,10 @@ class CompanyService {
       console.error('Error generating company summary:', error);
       // Return a mock AI summary
       return {
-        summary: "This company is known for its innovative approach and strong company culture. They offer competitive benefits and are actively growing their team across multiple departments.",
-        keyStrengths: ["Innovation", "Growth", "Culture", "Benefits"],
-        matchScore: 85
+        summary:
+          'This company is known for its innovative approach and strong company culture. They offer competitive benefits and are actively growing their team across multiple departments.',
+        keyStrengths: ['Innovation', 'Growth', 'Culture', 'Benefits'],
+        matchScore: 85,
       };
     }
   }
@@ -342,8 +344,13 @@ class CompanyService {
       console.error('Error generating cover letter:', error);
       // Return a mock cover letter
       return {
-        coverLetter: "Dear Hiring Manager,\n\nI am excited to apply for this position at your company. Based on my experience and skills, I believe I would be a great fit for your team...\n\nBest regards,\n[Your Name]",
-        tips: ["Customize the greeting", "Highlight relevant experience", "Show enthusiasm for the company"]
+        coverLetter:
+          'Dear Hiring Manager,\n\nI am excited to apply for this position at your company. Based on my experience and skills, I believe I would be a great fit for your team...\n\nBest regards,\n[Your Name]',
+        tips: [
+          'Customize the greeting',
+          'Highlight relevant experience',
+          'Show enthusiasm for the company',
+        ],
       };
     }
   }

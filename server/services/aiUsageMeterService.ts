@@ -1,13 +1,17 @@
-import { and, eq } from "drizzle-orm";
-import { db } from "../db";
+import { and, eq } from 'drizzle-orm';
+import { db } from '../db';
 import {
   aiGeneratedDocuments,
   aiUsageEvents,
   type AiGeneratedDocument,
   type AiUsageEvent,
-} from "@shared/schema";
-import { Errors } from "../middleware/errorHandler";
-import { entitlementService, type AiDocumentType, type UserEntitlements } from "./entitlementService";
+} from '@shared/schema';
+import { Errors } from '../middleware/errorHandler';
+import {
+  entitlementService,
+  type AiDocumentType,
+  type UserEntitlements,
+} from './entitlementService';
 
 type Reservation = {
   usageEvent: AiUsageEvent;
@@ -18,7 +22,7 @@ type Reservation = {
 const col = (column: unknown) => column as any;
 
 function capabilityFor(documentType: AiDocumentType, entitlements: UserEntitlements) {
-  return documentType === "cv" ? entitlements.canGenerateCv : entitlements.canGenerateCoverLetter;
+  return documentType === 'cv' ? entitlements.canGenerateCv : entitlements.canGenerateCoverLetter;
 }
 
 export class AiUsageMeterService {
@@ -35,9 +39,10 @@ export class AiUsageMeterService {
     jobId?: number;
     entitlements?: UserEntitlements;
   }): Promise<Reservation> {
-    const resolvedEntitlements = entitlements ?? await entitlementService.getEntitlementsForUser(userId);
+    const resolvedEntitlements =
+      entitlements ?? (await entitlementService.getEntitlementsForUser(userId));
     if (!capabilityFor(documentType, resolvedEntitlements)) {
-      throw Errors.forbidden("AI generation quota exhausted or feature disabled");
+      throw Errors.forbidden('AI generation quota exhausted or feature disabled');
     }
 
     const existing = await this.getUsageByIdempotencyKey(userId, idempotencyKey);
@@ -51,17 +56,20 @@ export class AiUsageMeterService {
     }
 
     try {
-      const [usageEvent] = await db.insert(aiUsageEvents).values({
-        userId,
-        documentType,
-        jobId,
-        idempotencyKey,
-        status: "started",
-        success: false,
-        tokens: 0,
-        costEstimateCents: 0,
-        generationTimeMs: 0,
-      }).returning();
+      const [usageEvent] = await db
+        .insert(aiUsageEvents)
+        .values({
+          userId,
+          documentType,
+          jobId,
+          idempotencyKey,
+          status: 'started',
+          success: false,
+          tokens: 0,
+          costEstimateCents: 0,
+          generationTimeMs: 0,
+        })
+        .returning();
 
       return { usageEvent, replay: false };
     } catch (error) {
@@ -93,7 +101,8 @@ export class AiUsageMeterService {
     generationTimeMs: number;
     metadata?: Record<string, unknown>;
   }) {
-    const [usageEvent] = await db.update(aiUsageEvents)
+    const [usageEvent] = await db
+      .update(aiUsageEvents)
       .set({
         model,
         tokens: tokens ?? 0,
@@ -101,7 +110,7 @@ export class AiUsageMeterService {
         generationTimeMs,
         metadata,
         success: true,
-        status: "succeeded",
+        status: 'succeeded',
         completedAt: new Date(),
       })
       .where(eq(col(aiUsageEvents.id), usageEventId))
@@ -111,10 +120,11 @@ export class AiUsageMeterService {
   }
 
   async failUsage(usageEventId: number, errorMessage: string, generationTimeMs = 0) {
-    const [usageEvent] = await db.update(aiUsageEvents)
+    const [usageEvent] = await db
+      .update(aiUsageEvents)
       .set({
         success: false,
-        status: "failed",
+        status: 'failed',
         errorMessage,
         generationTimeMs,
         completedAt: new Date(),
@@ -142,15 +152,18 @@ export class AiUsageMeterService {
     content: Record<string, unknown>;
     model?: string;
   }) {
-    const [document] = await db.insert(aiGeneratedDocuments).values({
-      userId,
-      usageEventId,
-      documentType,
-      jobId,
-      title,
-      content,
-      model,
-    }).returning();
+    const [document] = await db
+      .insert(aiGeneratedDocuments)
+      .values({
+        userId,
+        usageEventId,
+        documentType,
+        jobId,
+        title,
+        content,
+        model,
+      })
+      .returning();
 
     return document;
   }
@@ -159,7 +172,12 @@ export class AiUsageMeterService {
     const [usageEvent] = await db
       .select()
       .from(aiUsageEvents)
-      .where(and(eq(col(aiUsageEvents.userId), userId), eq(col(aiUsageEvents.idempotencyKey), idempotencyKey)))
+      .where(
+        and(
+          eq(col(aiUsageEvents.userId), userId),
+          eq(col(aiUsageEvents.idempotencyKey), idempotencyKey)
+        )
+      )
       .limit(1);
 
     return usageEvent;

@@ -27,13 +27,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { TooltipHelper } from '@/components/ui/tooltip-helper';
 import { useEntitlements } from '@/hooks/useEntitlements';
-import {
-  AlertCircle,
-  HelpCircle,
-  Lightbulb,
-  Sparkles,
-  Info
-} from 'lucide-react';
+import { AlertCircle, HelpCircle, Lightbulb, Sparkles, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AiGenerationTips, SamplePrompts } from '@/components/AiHelpTips';
 
@@ -41,92 +35,102 @@ import { AiGenerationTips, SamplePrompts } from '@/components/AiHelpTips';
 const cvFormSchema = z.object({
   personalInfo: z.object({
     fullName: z.string().min(2, {
-        error: 'Name must be at least 2 characters'
+      error: 'Name must be at least 2 characters',
     }),
     email: z.email({
-            error: 'Please enter a valid email address'
-        }),
+      error: 'Please enter a valid email address',
+    }),
     phone: z.string().min(10, {
-        error: 'Please enter a valid phone number'
+      error: 'Please enter a valid phone number',
     }),
     address: z.string().min(5, {
-        error: 'Please enter your address'
+      error: 'Please enter your address',
     }),
   }),
   professionalSummary: z.string().min(50, {
-      error: 'Please provide a summary of at least 50 characters'
-}),
-  experience: z.array(
-    z.object({
-      jobTitle: z.string().min(2, {
-          error: 'Job title is required'
+    error: 'Please provide a summary of at least 50 characters',
+  }),
+  experience: z
+    .array(
+      z.object({
+        jobTitle: z.string().min(2, {
+          error: 'Job title is required',
+        }),
+        employer: z.string().min(2, {
+          error: 'Employer name is required',
+        }),
+        location: z.string().optional(),
+        startDate: z.string().min(1, {
+          error: 'Start date is required',
+        }),
+        endDate: z.string().optional(),
+        isCurrentJob: z.boolean().prefault(false),
+        description: z.string().min(20, {
+          error: 'Please provide job description of at least 20 characters',
+        }),
+      })
+    )
+    .min(1, {
+      error: 'Add at least one work experience',
     }),
-      employer: z.string().min(2, {
-          error: 'Employer name is required'
+  education: z
+    .array(
+      z.object({
+        degree: z.string().min(2, {
+          error: 'Degree/Certificate name is required',
+        }),
+        school: z.string().min(2, {
+          error: 'School name is required',
+        }),
+        location: z.string().optional(),
+        graduationDate: z.string().min(1, {
+          error: 'Graduation date is required',
+        }),
+      })
+    )
+    .min(1, {
+      error: 'Add at least one education item',
     }),
-      location: z.string().optional(),
-      startDate: z.string().min(1, {
-          error: 'Start date is required'
+  skills: z
+    .array(
+      z.string().min(1, {
+        error: 'Skill cannot be empty',
+      })
+    )
+    .min(1, {
+      error: 'Add at least one skill',
     }),
-      endDate: z.string().optional(),
-      isCurrentJob: z.boolean().prefault(false),
-      description: z.string().min(20, {
-          error: 'Please provide job description of at least 20 characters'
-    }),
-    })
-  ).min(1, {
-      error: 'Add at least one work experience'
-}),
-  education: z.array(
-    z.object({
-      degree: z.string().min(2, {
-          error: 'Degree/Certificate name is required'
-    }),
-      school: z.string().min(2, {
-          error: 'School name is required'
-    }),
-      location: z.string().optional(),
-      graduationDate: z.string().min(1, {
-          error: 'Graduation date is required'
-    }),
-    })
-  ).min(1, {
-      error: 'Add at least one education item'
-}),
-  skills: z.array(
-    z.string().min(1, {
-        error: 'Skill cannot be empty'
-    })
-  ).min(1, {
-      error: 'Add at least one skill'
-}),
-  languages: z.array(
-    z.object({
-      language: z.string().min(1, {
-          error: 'Language name is required'
-    }),
-      proficiency: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Fluent', 'Native']),
-    })
-  ).optional(),
-  references: z.array(
-    z.object({
-      name: z.string().min(2, {
-          error: 'Reference name is required'
-    }),
-      position: z.string().min(2, {
-          error: 'Reference position is required'
-    }),
-      company: z.string().min(2, {
-          error: 'Company name is required'
-    }),
-      email: z.email({
-                error: 'Please enter a valid email'
-          }),
-      phone: z.string().min(10, {
-          error: 'Please enter a valid phone number'
-    }),
-    })
-  ).optional(),
+  languages: z
+    .array(
+      z.object({
+        language: z.string().min(1, {
+          error: 'Language name is required',
+        }),
+        proficiency: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Fluent', 'Native']),
+      })
+    )
+    .optional(),
+  references: z
+    .array(
+      z.object({
+        name: z.string().min(2, {
+          error: 'Reference name is required',
+        }),
+        position: z.string().min(2, {
+          error: 'Reference position is required',
+        }),
+        company: z.string().min(2, {
+          error: 'Company name is required',
+        }),
+        email: z.email({
+          error: 'Please enter a valid email',
+        }),
+        phone: z.string().min(10, {
+          error: 'Please enter a valid phone number',
+        }),
+      })
+    )
+    .optional(),
 });
 
 type CVFormValues = z.infer<typeof cvFormSchema>;
@@ -144,8 +148,15 @@ export default function CVBuilder() {
 
   // Available languages for the CV
   const availableLanguages = [
-    'English', 'Afrikaans', 'Zulu', 'Xhosa', 'Sotho',
-    'Tswana', 'French', 'Portuguese', 'Spanish'
+    'English',
+    'Afrikaans',
+    'Zulu',
+    'Xhosa',
+    'Sotho',
+    'Tswana',
+    'French',
+    'Portuguese',
+    'Spanish',
   ];
 
   // Set default empty values
@@ -363,17 +374,13 @@ export default function CVBuilder() {
     setIsGeneratingSummary(true);
 
     try {
-      const response = await apiRequest(
-        'POST',
-        '/api/cv/generate-summary',
-        {
-          name: personalInfo.fullName,
-          skills: skills.filter(skill => skill), // Filter out empty skills
-          experience,
-          education,
-          language: selectedLanguage
-        }
-      );
+      const response = await apiRequest('POST', '/api/cv/generate-summary', {
+        name: personalInfo.fullName,
+        skills: skills.filter(skill => skill), // Filter out empty skills
+        experience,
+        education,
+        language: selectedLanguage,
+      });
 
       const data = await response.json();
 
@@ -411,14 +418,10 @@ export default function CVBuilder() {
     setIsGeneratingJobDescription(true);
 
     try {
-      const response = await apiRequest(
-        'POST',
-        '/api/cv/generate-job-description',
-        {
-          jobInfo: experience,
-          language: selectedLanguage
-        }
-      );
+      const response = await apiRequest('POST', '/api/cv/generate-job-description', {
+        jobInfo: experience,
+        language: selectedLanguage,
+      });
 
       const data = await response.json();
 
@@ -456,14 +459,10 @@ export default function CVBuilder() {
     try {
       // Translate professional summary
       if (formData.professionalSummary) {
-        const summaryResponse = await apiRequest(
-          'POST',
-          '/api/cv/translate',
-          {
-            text: formData.professionalSummary,
-            targetLanguage: selectedLanguage
-          }
-        );
+        const summaryResponse = await apiRequest('POST', '/api/cv/translate', {
+          text: formData.professionalSummary,
+          targetLanguage: selectedLanguage,
+        });
         const summaryData = await summaryResponse.json();
         if (summaryData.translatedText) {
           form.setValue('professionalSummary', summaryData.translatedText);
@@ -473,14 +472,10 @@ export default function CVBuilder() {
       // Translate job descriptions
       for (let i = 0; i < formData.experience.length; i++) {
         if (formData.experience[i].description) {
-          const descResponse = await apiRequest(
-            'POST',
-            '/api/cv/translate',
-            {
-              text: formData.experience[i].description,
-              targetLanguage: selectedLanguage
-            }
-          );
+          const descResponse = await apiRequest('POST', '/api/cv/translate', {
+            text: formData.experience[i].description,
+            targetLanguage: selectedLanguage,
+          });
           const descData = await descResponse.json();
           if (descData.translatedText) {
             form.setValue(`experience.${i}.description`, descData.translatedText);
@@ -518,14 +513,10 @@ export default function CVBuilder() {
     setIsGeneratingAiCv(true);
 
     try {
-      const response = await apiRequest(
-        'POST',
-        '/api/cv/ai/generate',
-        {
-          language: selectedLanguage,
-          idempotencyKey: `cv-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
-        }
-      );
+      const response = await apiRequest('POST', '/api/cv/ai/generate', {
+        language: selectedLanguage,
+        idempotencyKey: `cv-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+      });
       const payload = await response.json();
       const content = payload.document?.content;
 
@@ -582,7 +573,7 @@ export default function CVBuilder() {
 
       // Get the PDF blob
       const pdfBlob = await response.blob();
-      
+
       // Create a URL for the blob
       const url = URL.createObjectURL(pdfBlob);
 
@@ -743,7 +734,9 @@ export default function CVBuilder() {
 
         <div class="section">
           <h2 class="section-title">Work Experience</h2>
-          ${data.experience.map(exp => `
+          ${data.experience
+            .map(
+              exp => `
             <div class="item">
               <div class="item-header">
                 <div>
@@ -754,12 +747,16 @@ export default function CVBuilder() {
               </div>
               <div class="item-description">${exp.description}</div>
             </div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
 
         <div class="section">
           <h2 class="section-title">Education</h2>
-          ${data.education.map(edu => `
+          ${data.education
+            .map(
+              edu => `
             <div class="item">
               <div class="item-header">
                 <div>
@@ -769,41 +766,63 @@ export default function CVBuilder() {
                 <div class="item-date">${edu.graduationDate}</div>
               </div>
             </div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
 
         <div class="section">
           <h2 class="section-title">Skills</h2>
           <ul class="skills-list">
-            ${data.skills.map(skill => `
+            ${data.skills
+              .map(
+                skill => `
               <li>${skill}</li>
-            `).join('')}
+            `
+              )
+              .join('')}
           </ul>
         </div>
 
-        ${data.languages && data.languages.length > 0 ? `
+        ${
+          data.languages && data.languages.length > 0
+            ? `
           <div class="section">
             <h2 class="section-title">Languages</h2>
             <ul class="languages-list">
-              ${data.languages.map(lang => `
+              ${data.languages
+                .map(
+                  lang => `
                 <li>${lang.language} - ${lang.proficiency}</li>
-              `).join('')}
+              `
+                )
+                .join('')}
             </ul>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
 
-        ${data.references && data.references.length > 0 ? `
+        ${
+          data.references && data.references.length > 0
+            ? `
           <div class="section">
             <h2 class="section-title">References</h2>
-            ${data.references.map(ref => `
+            ${data.references
+              .map(
+                ref => `
               <div class="reference">
                 <div class="item-title">${ref.name}</div>
                 <div class="item-subtitle">${ref.position}, ${ref.company}</div>
                 <div class="contact-info">${ref.email} | ${ref.phone}</div>
               </div>
-            `).join('')}
+            `
+              )
+              .join('')}
           </div>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
     </body>
     </html>
@@ -905,16 +924,15 @@ export default function CVBuilder() {
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium">Professional Summary</h3>
               <div className="flex items-center space-x-2">
-                <Select
-                  value={selectedLanguage}
-                  onValueChange={setSelectedLanguage}
-                >
+                <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
                   <SelectTrigger className="w-[150px]">
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
                   <SelectContent>
                     {availableLanguages.map(lang => (
-                      <SelectItem key={lang} value={lang}>{lang}</SelectItem>
+                      <SelectItem key={lang} value={lang}>
+                        {lang}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -957,7 +975,9 @@ export default function CVBuilder() {
             />
             <div className="bg-blue-50 p-3 border border-blue-100 rounded-md">
               <p className="text-sm text-blue-700">
-                <strong>AI Assistant:</strong> Fill out the personal information, skills, experience, and education sections first, then use the "Generate with AI" button to create a professional summary in your preferred language.
+                <strong>AI Assistant:</strong> Fill out the personal information, skills,
+                experience, and education sections first, then use the "Generate with AI" button to
+                create a professional summary in your preferred language.
               </p>
             </div>
           </div>
@@ -1115,7 +1135,8 @@ export default function CVBuilder() {
                   />
                   <div className="bg-blue-50 p-2 border border-blue-100 rounded-md mt-2">
                     <p className="text-xs text-blue-700">
-                      <strong>Tip:</strong> Enter job title and company first, then click "Generate with AI" to create a professional job description.
+                      <strong>Tip:</strong> Enter job title and company first, then click "Generate
+                      with AI" to create a professional job description.
                     </p>
                   </div>
                 </div>
@@ -1285,10 +1306,7 @@ export default function CVBuilder() {
                     <FormItem className="flex-1">
                       <FormLabel>Proficiency</FormLabel>
                       <FormControl>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
+                        <Select value={field.value} onValueChange={field.onChange}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select proficiency" />
                           </SelectTrigger>
@@ -1459,11 +1477,7 @@ export default function CVBuilder() {
               <Button onClick={downloadCV} variant="outline" className="flex-1">
                 Download CV
               </Button>
-              <Button
-                onClick={() => setGeneratedCV(null)}
-                variant="secondary"
-                className="flex-1"
-              >
+              <Button onClick={() => setGeneratedCV(null)} variant="secondary" className="flex-1">
                 Edit CV
               </Button>
             </div>
@@ -1480,7 +1494,10 @@ export default function CVBuilder() {
                       <h3 className="font-medium">AI-Powered CV Builder</h3>
                     </div>
                     <div className="mb-3 rounded-md border border-blue-100 bg-blue-50 p-3 text-xs text-blue-900">
-                      AI CVs left: {entitlements?.hasUnlimitedAiCv ? 'Unlimited' : entitlements?.remainingFreeCvGenerations ?? 0}
+                      AI CVs left:{' '}
+                      {entitlements?.hasUnlimitedAiCv
+                        ? 'Unlimited'
+                        : (entitlements?.remainingFreeCvGenerations ?? 0)}
                     </div>
                     <nav className="space-y-1">
                       <Button
@@ -1570,9 +1587,7 @@ export default function CVBuilder() {
 
                 {/* Main content */}
                 <div className="md:col-span-3">
-                  <div className="bg-white shadow-md rounded-lg p-6">
-                    {renderForm()}
-                  </div>
+                  <div className="bg-white shadow-md rounded-lg p-6">{renderForm()}</div>
 
                   {/* AI Tips moved below the CV builder */}
                   <div className="mt-6">

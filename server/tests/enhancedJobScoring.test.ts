@@ -3,14 +3,9 @@ import { db } from '../db';
 import {
   calculateEnhancedJobMatchScore,
   UserPreferences,
-  UserInteractionHistory
+  UserInteractionHistory,
 } from '../services/enhancedJobScoring';
-import {
-  users,
-  jobs,
-  userInteractions,
-  userJobPreferences
-} from '@shared/schema';
+import { users, jobs, userInteractions, userJobPreferences } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 // Mock the database
@@ -20,15 +15,15 @@ vi.mock('../db', () => ({
     from: vi.fn(),
     where: vi.fn(),
     and: vi.fn(),
-    eq: vi.fn()
-  }
+    eq: vi.fn(),
+  },
 }));
 
 describe('Enhanced Job Scoring System', () => {
   const mockUser = {
     id: 1,
     skills: ['JavaScript', 'TypeScript', 'React', 'Node.js'],
-    willingToRelocate: true
+    willingToRelocate: true,
   };
 
   const mockJob = {
@@ -36,14 +31,14 @@ describe('Enhanced Job Scoring System', () => {
     title: 'Senior Frontend Developer',
     description: 'Skills: JavaScript, React, TypeScript. Must have strong problem-solving skills.',
     location: 'Riyadh',
-    categoryId: 1
+    categoryId: 1,
   };
 
   const mockUserPreferences = {
     userId: 1,
     preferredCategories: [1, 2, 3],
     preferredLocations: ['Riyadh', 'Jeddah'],
-    willingToRelocate: true
+    willingToRelocate: true,
   };
 
   const mockInteractions = [
@@ -60,12 +55,12 @@ describe('Enhanced Job Scoring System', () => {
     { interactionType: 'share', duration: null },
     { interactionType: 'share', duration: null },
     { interactionType: 'video_watch', duration: 3600 },
-    { interactionType: 'video_watch', duration: 3600 }
+    { interactionType: 'video_watch', duration: 3600 },
   ];
 
   const mockContentInteractions = [
     { interactionType: 'content_view', duration: null },
-    { interactionType: 'content_view', duration: null }
+    { interactionType: 'content_view', duration: null },
   ];
 
   beforeEach(() => {
@@ -77,18 +72,21 @@ describe('Enhanced Job Scoring System', () => {
       callCount++;
       return {
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockImplementation((condition) => {
+          where: vi.fn().mockImplementation(condition => {
             // Return different mock data based on the call sequence
             if (callCount === 1) return Promise.resolve([mockUserPreferences]);
             if (callCount === 2) return Promise.resolve([mockUser]);
             if (callCount === 3) return Promise.resolve(mockInteractions);
-            if (callCount === 4) return Promise.resolve([{ categoryId: 1, interactionType: 'view' }]); // Category interactions
-            if (callCount === 5) return Promise.resolve(mockInteractions.filter(i =>
-              i.interactionType === 'video_watch'));
+            if (callCount === 4)
+              return Promise.resolve([{ categoryId: 1, interactionType: 'view' }]); // Category interactions
+            if (callCount === 5)
+              return Promise.resolve(
+                mockInteractions.filter(i => i.interactionType === 'video_watch')
+              );
             if (callCount === 6) return Promise.resolve(mockContentInteractions);
             return Promise.resolve([]);
-          })
-        })
+          }),
+        }),
       };
     });
   });
@@ -99,10 +97,10 @@ describe('Enhanced Job Scoring System', () => {
       (db.select as any).mockReset().mockImplementation(() => {
         return {
           from: vi.fn().mockReturnValue({
-            where: vi.fn().mockImplementation((condition) => {
+            where: vi.fn().mockImplementation(condition => {
               return Promise.resolve([mockUserPreferences]);
-            })
-          })
+            }),
+          }),
         };
       });
 
@@ -124,8 +122,8 @@ describe('Enhanced Job Scoring System', () => {
       // Mock all db.select calls to return empty arrays
       (db.select as any).mockReset().mockImplementation(() => ({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([])
-        })
+          where: vi.fn().mockResolvedValue([]),
+        }),
       }));
 
       const result = await calculateEnhancedJobMatchScore(1, mockJob);
@@ -143,8 +141,8 @@ describe('Enhanced Job Scoring System', () => {
           from: vi.fn().mockReturnValue({
             where: vi.fn().mockImplementation(() => {
               return Promise.resolve([mockUserPreferences]);
-            })
-          })
+            }),
+          }),
         };
       });
 
@@ -159,8 +157,8 @@ describe('Enhanced Job Scoring System', () => {
       // Mock to throw an error
       (db.select as any).mockImplementationOnce(() => ({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockRejectedValue(new Error('Database error'))
-        })
+          where: vi.fn().mockRejectedValue(new Error('Database error')),
+        }),
       }));
 
       const result = await calculateEnhancedJobMatchScore(1, mockJob);
@@ -182,7 +180,7 @@ describe('Enhanced Job Scoring System', () => {
     it('should handle job with no skills mentioned', async () => {
       const noSkillsJob = {
         ...mockJob,
-        description: 'Looking for a developer with strong problem-solving abilities.'
+        description: 'Looking for a developer with strong problem-solving abilities.',
       };
       const result = await calculateEnhancedJobMatchScore(1, noSkillsJob);
 
@@ -202,8 +200,8 @@ describe('Enhanced Job Scoring System', () => {
               if (callCount === 1) return Promise.resolve([mockUserPreferences]);
               if (callCount === 2) return Promise.resolve([{ ...mockUser, skills: [] }]);
               return Promise.resolve(mockInteractions);
-            })
-          })
+            }),
+          }),
         };
       });
 

@@ -19,15 +19,15 @@ describe('useJobFormState mock', () => {
   it('should update values when handleChange is called', () => {
     // Mock state
     let values = { ...initialState };
-    
+
     // Mock handleChange function
     const handleChange = (field, value) => {
       values = { ...values, [field]: value };
     };
-    
+
     // Call handleChange
     handleChange('title', 'Software Developer');
-    
+
     // Verify the value was updated
     expect(values.title).toBe('Software Developer');
   });
@@ -35,15 +35,15 @@ describe('useJobFormState mock', () => {
   it('should mark field as touched when handleBlur is called', () => {
     // Mock state
     let touched = {};
-    
+
     // Mock handleBlur function
-    const handleBlur = (field) => {
+    const handleBlur = field => {
       touched = { ...touched, [field]: true };
     };
-    
+
     // Call handleBlur
     handleBlur('title');
-    
+
     // Verify the field was marked as touched
     expect(touched.title).toBe(true);
   });
@@ -51,7 +51,7 @@ describe('useJobFormState mock', () => {
   it('should validate required fields', () => {
     // Mock state
     let errors = {};
-    
+
     // Mock validate function
     const validate = (field, value) => {
       if (field === 'title' && !value) {
@@ -60,10 +60,10 @@ describe('useJobFormState mock', () => {
       }
       return true;
     };
-    
+
     // Validate empty title
     const isValid = validate('title', '');
-    
+
     // Verify validation failed and error was set
     expect(isValid).toBe(false);
     expect(errors.title).toBe('Job title is required');
@@ -72,7 +72,7 @@ describe('useJobFormState mock', () => {
   it('should validate email format', () => {
     // Mock state
     let errors = {};
-    
+
     // Mock validate function
     const validate = (field, value) => {
       if (field === 'contactEmail' && value) {
@@ -83,20 +83,20 @@ describe('useJobFormState mock', () => {
       }
       return true;
     };
-    
+
     // Validate invalid email
     let isValid = validate('contactEmail', 'invalid-email');
-    
+
     // Verify validation failed and error was set
     expect(isValid).toBe(false);
     expect(errors.contactEmail).toBe('Invalid email address');
-    
+
     // Reset errors
     errors = {};
-    
+
     // Validate valid email
     isValid = validate('contactEmail', 'valid@example.com');
-    
+
     // Verify validation passed
     expect(isValid).toBe(true);
     expect(errors.contactEmail).toBeUndefined();
@@ -108,7 +108,7 @@ describe('useJobFormState mock', () => {
     let errors = { title: 'Some error' };
     let touched = { title: true };
     let isSubmitting = true;
-    
+
     // Mock reset function
     const reset = () => {
       values = initialState;
@@ -116,10 +116,10 @@ describe('useJobFormState mock', () => {
       touched = {};
       isSubmitting = false;
     };
-    
+
     // Call reset
     reset();
-    
+
     // Verify state was reset
     expect(values).toEqual(initialState);
     expect(errors).toEqual({});

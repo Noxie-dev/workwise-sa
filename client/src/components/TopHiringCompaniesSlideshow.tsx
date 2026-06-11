@@ -1,10 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Star, Users, TrendingUp, Briefcase, Award, Zap, Globe, Clock, MapPin, CheckCircle } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Star,
+  Users,
+  TrendingUp,
+  Briefcase,
+  Award,
+  Zap,
+  Globe,
+  Clock,
+  MapPin,
+  CheckCircle,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getTopHiringCompanies, fetchTopHiringCompanies, type CompanyHiringMetrics } from '@/utils/topHiringAlgorithm';
+import {
+  getTopHiringCompanies,
+  fetchTopHiringCompanies,
+  type CompanyHiringMetrics,
+} from '@/utils/topHiringAlgorithm';
 
 const DEFAULT_COMPANY_LOGO = '/images/workwise-logo-full.svg';
 
@@ -36,24 +53,24 @@ const convertToHiringMetrics = (companies: any[]): CompanyHiringMetrics[] => {
     // Calculate recent hires based on company size and growth rate
     const estimatedSize = parseInt(company.employeeCount?.replace(/[^0-9]/g, '') || '1000');
     const sizeMultiplier = Math.log10(Math.max(estimatedSize, 100)) / 4; // Logarithmic scaling
-    
+
     // Calculate job posting frequency based on open positions
     const postingFrequency = Math.ceil(Math.min(company.openPositions / 30, 10));
-    
+
     // Industry demand based on industry type
-    const industryDemandMap: {[key: string]: number} = {
-      'Retail': 8,
-      'Technology': 10,
-      'Healthcare': 9,
-      'Manufacturing': 7,
+    const industryDemandMap: { [key: string]: number } = {
+      Retail: 8,
+      Technology: 10,
+      Healthcare: 9,
+      Manufacturing: 7,
       'Security Services': 8,
       'Transport & Logistics': 7,
       'Financial Services': 8,
-      'Construction': 7,
-      'Education': 6,
-      'Hospitality': 6
+      Construction: 7,
+      Education: 6,
+      Hospitality: 6,
     };
-    
+
     return {
       id: company.id,
       name: company.name,
@@ -69,7 +86,7 @@ const convertToHiringMetrics = (companies: any[]): CompanyHiringMetrics[] => {
       hiringVelocity: Math.max(5, 30 - Math.floor(company.growthRate / 2)) || 15,
       industryDemand: industryDemandMap[company.industry] || 7,
       urgentPositions: Math.ceil(company.openPositions * 0.2) || 5,
-      locationActivity: Math.random() * 10 // Random for now, would be based on location data
+      locationActivity: Math.random() * 10, // Random for now, would be based on location data
     };
   });
 };
@@ -77,62 +94,66 @@ const convertToHiringMetrics = (companies: any[]): CompanyHiringMetrics[] => {
 // Generate top hiring companies using the enhanced algorithm
 const generateTopHiringCompanies = (allCompanies: any[]): TopHiringCompany[] => {
   if (allCompanies.length === 0) return [];
-  
+
   const hiringMetrics = convertToHiringMetrics(allCompanies);
   const topCompanies = getTopHiringCompanies(hiringMetrics, 3);
-  
+
   // Brand colors for visual variety
   const brandColors = ['#3B82F6', '#10B981', '#F59E0B'];
-  
+
   return topCompanies.map((company, index) => {
     const sourceCompany = allCompanies.find(c => c.id === company.id);
-    
+
     // Generate featured job based on company industry
     let featuredJob = {
       title: 'General Worker',
       salary: 'R5,000 - R8,000 per month',
-      type: 'Full-time'
+      type: 'Full-time',
     };
-    
+
     if (sourceCompany?.industry === 'Retail') {
       featuredJob = {
         title: 'Sales Associate',
         salary: 'R6,000 - R9,000 per month',
-        type: 'Full-time'
+        type: 'Full-time',
       };
     } else if (sourceCompany?.industry === 'Security Services') {
       featuredJob = {
         title: 'Security Guard',
         salary: 'R5,500 - R8,500 per month',
-        type: 'Shift Work'
+        type: 'Shift Work',
       };
     } else if (sourceCompany?.industry === 'Transport & Logistics') {
       featuredJob = {
         title: 'Warehouse Assistant',
         salary: 'R6,500 - R9,500 per month',
-        type: 'Full-time'
+        type: 'Full-time',
       };
     }
-    
+
     // Extract benefits from source company or generate placeholder ones
     const benefits = sourceCompany?.benefits || [
       'Training Provided',
       'Career Growth',
-      'Medical Aid'
+      'Medical Aid',
     ];
-    
+
     return {
       ...company,
       logo: sourceCompany?.logo || DEFAULT_COMPANY_LOGO,
       description: sourceCompany?.description || 'Leading employer actively hiring.',
       location: sourceCompany?.location || 'South Africa',
       industry: sourceCompany?.industry || 'Various',
-      urgentRoles: sourceCompany?.tags?.slice(0, 3) || ['General Worker', 'Sales Assistant', 'Security Guard'],
+      urgentRoles: sourceCompany?.tags?.slice(0, 3) || [
+        'General Worker',
+        'Sales Assistant',
+        'Security Guard',
+      ],
       benefits: benefits.slice(0, 3),
       featuredJobTitle: featuredJob.title,
       featuredJobSalary: featuredJob.salary,
       featuredJobType: featuredJob.type,
-      color: brandColors[index % brandColors.length]
+      color: brandColors[index % brandColors.length],
     };
   });
 };
@@ -143,7 +164,8 @@ const placeholderTopCompanies: TopHiringCompany[] = [
     id: 1,
     name: 'Shoprite Holdings',
     logo: DEFAULT_COMPANY_LOGO,
-    description: 'Africa\'s largest food retailer offering entry-level opportunities in retail, warehousing, and customer service.',
+    description:
+      "Africa's largest food retailer offering entry-level opportunities in retail, warehousing, and customer service.",
     location: 'Cape Town, Western Cape',
     industry: 'Retail',
     openPositions: 245,
@@ -157,13 +179,14 @@ const placeholderTopCompanies: TopHiringCompany[] = [
     featuredJobTitle: 'Retail Assistant',
     featuredJobSalary: 'R5,500 - R7,500 per month',
     featuredJobType: 'Full-time',
-    color: '#3B82F6'
+    color: '#3B82F6',
   },
   {
     id: 2,
     name: 'Bidvest Group',
     logo: DEFAULT_COMPANY_LOGO,
-    description: 'Diversified services group offering entry-level opportunities in cleaning, security, catering, and general services.',
+    description:
+      'Diversified services group offering entry-level opportunities in cleaning, security, catering, and general services.',
     location: 'Johannesburg, Gauteng',
     industry: 'Services',
     openPositions: 203,
@@ -177,13 +200,14 @@ const placeholderTopCompanies: TopHiringCompany[] = [
     featuredJobTitle: 'General Services Worker',
     featuredJobSalary: 'R4,500 - R6,500 per month',
     featuredJobType: 'Full-time',
-    color: '#10B981'
+    color: '#10B981',
   },
   {
     id: 3,
     name: 'Transnet SOC Ltd',
     logo: DEFAULT_COMPANY_LOGO,
-    description: 'State-owned freight transport and logistics company offering general worker, security, and maintenance positions.',
+    description:
+      'State-owned freight transport and logistics company offering general worker, security, and maintenance positions.',
     location: 'Durban, KwaZulu-Natal',
     industry: 'Transport & Logistics',
     openPositions: 156,
@@ -197,8 +221,8 @@ const placeholderTopCompanies: TopHiringCompany[] = [
     featuredJobTitle: 'Logistics Assistant',
     featuredJobSalary: 'R6,000 - R9,000 per month',
     featuredJobType: 'Permanent',
-    color: '#F59E0B'
-  }
+    color: '#F59E0B',
+  },
 ];
 
 interface TopHiringCompaniesSlideshowProps {
@@ -212,23 +236,22 @@ const TopHiringCompaniesSlideshow: React.FC<TopHiringCompaniesSlideshowProps> = 
   companies = [],
   autoPlay = true,
   interval = 5000,
-  limit = 3
+  limit = 3,
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [topCompanies, setTopCompanies] = useState<TopHiringCompany[]>([]);
-  
+
   // Fetch top hiring companies - this would connect to the API when live
   const fetchTopCompanies = useCallback(async () => {
     setIsLoading(true);
-    
+
     try {
       // In production, this would use fetchTopHiringCompanies() to get data from API
       // For now, generate from available companies or use placeholders
-      const result = companies.length > 0 
-        ? generateTopHiringCompanies(companies)
-        : placeholderTopCompanies;
-        
+      const result =
+        companies.length > 0 ? generateTopHiringCompanies(companies) : placeholderTopCompanies;
+
       setTopCompanies(result);
     } catch (error) {
       console.error('Error fetching top hiring companies:', error);
@@ -237,7 +260,7 @@ const TopHiringCompaniesSlideshow: React.FC<TopHiringCompaniesSlideshowProps> = 
       setIsLoading(false);
     }
   }, [companies]);
-  
+
   // Initial fetch
   useEffect(() => {
     fetchTopCompanies();
@@ -246,20 +269,20 @@ const TopHiringCompaniesSlideshow: React.FC<TopHiringCompaniesSlideshowProps> = 
   // Auto-play functionality
   useEffect(() => {
     if (!autoPlay || topCompanies.length === 0) return;
-    
+
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % topCompanies.length);
+      setCurrentSlide(prev => (prev + 1) % topCompanies.length);
     }, interval);
 
     return () => clearInterval(timer);
   }, [autoPlay, interval, topCompanies.length]);
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % topCompanies.length);
+    setCurrentSlide(prev => (prev + 1) % topCompanies.length);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + topCompanies.length) % topCompanies.length);
+    setCurrentSlide(prev => (prev - 1 + topCompanies.length) % topCompanies.length);
   };
 
   const goToSlide = (index: number) => {
@@ -288,7 +311,7 @@ const TopHiringCompaniesSlideshow: React.FC<TopHiringCompaniesSlideshowProps> = 
   return (
     <div className="relative w-full max-w-4xl mx-auto">
       {/* Main Slideshow */}
-      <div 
+      <div
         className="relative h-auto md:h-96 overflow-hidden rounded-2xl shadow-lg border border-gray-100"
         style={{
           background: `linear-gradient(135deg, ${company.color || '#3B82F6'}15 0%, ${company.color || '#3B82F6'}33 100%)`,
@@ -300,7 +323,7 @@ const TopHiringCompaniesSlideshow: React.FC<TopHiringCompaniesSlideshowProps> = 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
             className="absolute inset-0 p-6 md:p-8"
           >
             <div className="flex flex-col h-full">
@@ -315,19 +338,16 @@ const TopHiringCompaniesSlideshow: React.FC<TopHiringCompaniesSlideshowProps> = 
                   </Avatar>
                   <div>
                     <Badge className="bg-yellow-400/20 text-yellow-300 border-yellow-400/30 mb-1">
-                      <Award className="h-3 w-3 mr-1" />
-                      #{currentSlide + 1} Top Hiring
+                      <Award className="h-3 w-3 mr-1" />#{currentSlide + 1} Top Hiring
                     </Badge>
-                    <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
-                      {company.name}
-                    </h3>
+                    <h3 className="text-2xl md:text-3xl font-bold text-gray-900">{company.name}</h3>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <MapPin className="h-3 w-3" />
                       {company.location}
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="hidden md:block">
                   <div className="text-center bg-gray-800/90 backdrop-blur-sm rounded-full px-4 py-2">
                     <div className="text-3xl font-bold text-white">{company.hiringScore}</div>
@@ -335,20 +355,20 @@ const TopHiringCompaniesSlideshow: React.FC<TopHiringCompaniesSlideshowProps> = 
                   </div>
                 </div>
               </div>
-              
+
               {/* Main Content */}
               <div className="grid md:grid-cols-2 gap-6 mt-4">
                 {/* Left Column - Company Info */}
                 <div>
-                  <p className="text-gray-700 mb-4 text-sm md:text-base">
-                    {company.description}
-                  </p>
-                  
+                  <p className="text-gray-700 mb-4 text-sm md:text-base">{company.description}</p>
+
                   {/* Stats */}
                   <div className="grid grid-cols-3 gap-2 mb-4">
                     <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
                       <Briefcase className="h-4 w-4 text-yellow-400 mx-auto mb-1" />
-                      <div className="font-bold text-lg text-yellow-400">{company.openPositions}</div>
+                      <div className="font-bold text-lg text-yellow-400">
+                        {company.openPositions}
+                      </div>
                       <div className="text-xs text-white/80">Open Roles</div>
                     </div>
                     <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
@@ -362,13 +382,17 @@ const TopHiringCompaniesSlideshow: React.FC<TopHiringCompaniesSlideshowProps> = 
                       <div className="text-xs text-white/80">Growth</div>
                     </div>
                   </div>
-                  
+
                   {/* Benefits */}
                   <div className="mb-4">
                     <h4 className="text-white/90 text-sm font-semibold mb-2">Benefits</h4>
                     <div className="flex flex-wrap gap-2">
                       {company.benefits?.map((benefit, index) => (
-                        <Badge key={index} variant="outline" className="bg-white/10 text-white border-white/30 text-xs">
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="bg-white/10 text-white border-white/30 text-xs"
+                        >
                           <CheckCircle className="h-3 w-3 mr-1" />
                           {benefit}
                         </Badge>
@@ -376,16 +400,16 @@ const TopHiringCompaniesSlideshow: React.FC<TopHiringCompaniesSlideshowProps> = 
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Right Column - Featured Job */}
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Zap className="h-4 w-4 text-yellow-400" />
                     <h4 className="text-white font-semibold">Featured Entry-Level Position</h4>
                   </div>
-                  
+
                   <h3 className="text-xl font-bold text-white mb-2">{company.featuredJobTitle}</h3>
-                  
+
                   <div className="flex items-center gap-4 text-sm text-white/80 mb-3">
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
@@ -396,26 +420,30 @@ const TopHiringCompaniesSlideshow: React.FC<TopHiringCompaniesSlideshowProps> = 
                       {company.employeeCount}
                     </div>
                   </div>
-                  
+
                   <div className="bg-white/10 rounded-lg p-3 mb-4">
                     <div className="text-sm text-white/80">Salary Range</div>
                     <div className="text-xl font-bold text-white">{company.featuredJobSalary}</div>
                   </div>
-                  
+
                   {/* Urgent Roles */}
                   <div className="mb-4">
                     <h4 className="text-white/90 text-sm font-semibold mb-2">Other Urgent Roles</h4>
                     <div className="flex flex-wrap gap-2">
                       {company.urgentRoles.map((role, index) => (
-                        <Badge key={index} variant="outline" className="bg-white/10 text-white border-white/30 text-xs">
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="bg-white/10 text-white border-white/30 text-xs"
+                        >
                           {role}
                         </Badge>
                       ))}
                     </div>
                   </div>
-                  
-                  <Button 
-                    size="lg" 
+
+                  <Button
+                    size="lg"
                     className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold"
                   >
                     View All Jobs
@@ -452,9 +480,7 @@ const TopHiringCompaniesSlideshow: React.FC<TopHiringCompaniesSlideshowProps> = 
             key={index}
             onClick={() => goToSlide(index)}
             className={`w-3 h-3 rounded-full transition-all duration-300 ${
-              index === currentSlide 
-                ? 'bg-yellow-400 scale-110' 
-                : 'bg-white/40 hover:bg-white/60'
+              index === currentSlide ? 'bg-yellow-400 scale-110' : 'bg-white/40 hover:bg-white/60'
             }`}
           />
         ))}
@@ -463,8 +489,9 @@ const TopHiringCompaniesSlideshow: React.FC<TopHiringCompaniesSlideshowProps> = 
       {/* Algorithm Info (for development) */}
       {process.env.NODE_ENV === 'development' && (
         <div className="mt-4 p-3 bg-white/10 rounded-lg text-white/70 text-xs">
-          <strong>Algorithm:</strong> Hiring score calculated from: Open positions (25%), Growth rate (10%), 
-          Rating (15%), Hiring activity (20%), Industry demand (10%), Hiring velocity (15%), Urgency (5%)
+          <strong>Algorithm:</strong> Hiring score calculated from: Open positions (25%), Growth
+          rate (10%), Rating (15%), Hiring activity (20%), Industry demand (10%), Hiring velocity
+          (15%), Urgency (5%)
         </div>
       )}
     </div>

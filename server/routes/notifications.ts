@@ -17,13 +17,13 @@ const getNotificationsSchema = z.object({
     limit: z.coerce.number().min(1).max(50).prefault(20),
     sortBy: z.enum(['createdAt', 'priority']).prefault('createdAt'),
     sortOrder: z.enum(['asc', 'desc']).prefault('desc'),
-  })
+  }),
 });
 
 const markNotificationReadSchema = z.object({
   params: z.object({
     notificationId: z.uuid(),
-  })
+  }),
 });
 
 const createJobAlertSchema = z.object({
@@ -38,7 +38,7 @@ const createJobAlertSchema = z.object({
     remote: z.boolean().optional(),
     frequency: z.enum(['daily', 'weekly', 'monthly']).prefault('weekly'),
     isActive: z.boolean().prefault(true),
-  })
+  }),
 });
 
 const updateJobAlertSchema = z.object({
@@ -56,7 +56,7 @@ const updateJobAlertSchema = z.object({
     remote: z.boolean().optional(),
     frequency: z.enum(['daily', 'weekly', 'monthly']).optional(),
     isActive: z.boolean().optional(),
-  })
+  }),
 });
 
 const sendEmailSchema = z.object({
@@ -67,7 +67,7 @@ const sendEmailSchema = z.object({
     content: z.string().optional(),
     data: z.record(z.string(), z.any()).optional(),
     priority: z.enum(['low', 'normal', 'high']).prefault('normal'),
-  })
+  }),
 });
 
 const createMessageSchema = z.object({
@@ -78,39 +78,48 @@ const createMessageSchema = z.object({
     jobId: z.uuid().optional(),
     applicationId: z.uuid().optional(),
     priority: z.enum(['low', 'normal', 'high']).prefault('normal'),
-  })
+  }),
 });
 
 const updateNotificationSettingsSchema = z.object({
   body: z.object({
-    emailNotifications: z.object({
-      jobAlerts: z.boolean().optional(),
-      applications: z.boolean().optional(),
-      messages: z.boolean().optional(),
-      systemUpdates: z.boolean().optional(),
-      marketing: z.boolean().optional(),
-    }).optional(),
-    pushNotifications: z.object({
-      jobAlerts: z.boolean().optional(),
-      applications: z.boolean().optional(),
-      messages: z.boolean().optional(),
-      systemUpdates: z.boolean().optional(),
-    }).optional(),
-    smsNotifications: z.object({
-      jobAlerts: z.boolean().optional(),
-      applications: z.boolean().optional(),
-      messages: z.boolean().optional(),
-      systemUpdates: z.boolean().optional(),
-    }).optional(),
-    frequency: z.object({
-      jobAlerts: z.enum(['immediate', 'daily', 'weekly']).optional(),
-      digest: z.enum(['daily', 'weekly', 'monthly']).optional(),
-    }).optional(),
-  })
+    emailNotifications: z
+      .object({
+        jobAlerts: z.boolean().optional(),
+        applications: z.boolean().optional(),
+        messages: z.boolean().optional(),
+        systemUpdates: z.boolean().optional(),
+        marketing: z.boolean().optional(),
+      })
+      .optional(),
+    pushNotifications: z
+      .object({
+        jobAlerts: z.boolean().optional(),
+        applications: z.boolean().optional(),
+        messages: z.boolean().optional(),
+        systemUpdates: z.boolean().optional(),
+      })
+      .optional(),
+    smsNotifications: z
+      .object({
+        jobAlerts: z.boolean().optional(),
+        applications: z.boolean().optional(),
+        messages: z.boolean().optional(),
+        systemUpdates: z.boolean().optional(),
+      })
+      .optional(),
+    frequency: z
+      .object({
+        jobAlerts: z.enum(['immediate', 'daily', 'weekly']).optional(),
+        digest: z.enum(['daily', 'weekly', 'monthly']).optional(),
+      })
+      .optional(),
+  }),
 });
 
 // Notification Management Routes
-router.get('/',
+router.get(
+  '/',
   authenticate,
   rateLimiter(200, 60), // 200 requests per minute
   validate(getNotificationsSchema),
@@ -148,7 +157,8 @@ router.get('/',
   }
 );
 
-router.post('/:notificationId/read',
+router.post(
+  '/:notificationId/read',
   authenticate,
   rateLimiter(100, 60), // 100 requests per minute
   validate(markNotificationReadSchema),
@@ -175,7 +185,8 @@ router.post('/:notificationId/read',
   }
 );
 
-router.post('/mark-all-read',
+router.post(
+  '/mark-all-read',
   authenticate,
   rateLimiter(20, 60), // 20 requests per minute
   async (req, res, next) => {
@@ -192,7 +203,8 @@ router.post('/mark-all-read',
   }
 );
 
-router.delete('/:notificationId',
+router.delete(
+  '/:notificationId',
   authenticate,
   rateLimiter(100, 60), // 100 requests per minute
   validate(markNotificationReadSchema),
@@ -220,34 +232,32 @@ router.delete('/:notificationId',
 );
 
 // Job Alert Management Routes
-router.get('/job-alerts',
-  authenticate,
-  async (req, res, next) => {
-    try {
-      const userId = req.user.id;
-      const { page = 1, limit = 20 } = req.query;
+router.get('/job-alerts', authenticate, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { page = 1, limit = 20 } = req.query;
 
-      const jobAlerts = await storage.getJobAlerts(userId, {
+    const jobAlerts = await storage.getJobAlerts(userId, {
+      page: Number(page),
+      limit: Number(limit),
+    });
+
+    res.json({
+      jobAlerts: jobAlerts.alerts,
+      pagination: {
         page: Number(page),
         limit: Number(limit),
-      });
-
-      res.json({
-        jobAlerts: jobAlerts.alerts,
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total: jobAlerts.total,
-          totalPages: Math.ceil(jobAlerts.total / Number(limit)),
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
+        total: jobAlerts.total,
+        totalPages: Math.ceil(jobAlerts.total / Number(limit)),
+      },
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
-router.post('/job-alerts',
+router.post(
+  '/job-alerts',
   authenticate,
   rateLimiter(50, 60), // 50 requests per minute
   validate(createJobAlertSchema),
@@ -259,7 +269,7 @@ router.post('/job-alerts',
       // Check if user has reached the limit of job alerts
       const existingAlerts = await storage.getJobAlerts(userId);
       const maxAlerts = req.user.isPremium ? 20 : 5;
-      
+
       if (existingAlerts.total >= maxAlerts) {
         throw Errors.forbidden(`Maximum of ${maxAlerts} job alerts allowed`);
       }
@@ -279,7 +289,8 @@ router.post('/job-alerts',
   }
 );
 
-router.put('/job-alerts/:alertId',
+router.put(
+  '/job-alerts/:alertId',
   authenticate,
   rateLimiter(50, 60), // 50 requests per minute
   validate(updateJobAlertSchema),
@@ -310,7 +321,8 @@ router.put('/job-alerts/:alertId',
   }
 );
 
-router.delete('/job-alerts/:alertId',
+router.delete(
+  '/job-alerts/:alertId',
   authenticate,
   rateLimiter(50, 60), // 50 requests per minute
   validate(updateJobAlertSchema),
@@ -340,7 +352,8 @@ router.delete('/job-alerts/:alertId',
   }
 );
 
-router.get('/job-alerts/:alertId/test',
+router.get(
+  '/job-alerts/:alertId/test',
   authenticate,
   rateLimiter(10, 60), // 10 requests per minute
   validate(updateJobAlertSchema),
@@ -377,7 +390,8 @@ router.get('/job-alerts/:alertId/test',
 );
 
 // Email Management Routes
-router.post('/send-email',
+router.post(
+  '/send-email',
   authenticate,
   rateLimiter(50, 60), // 50 requests per minute
   validate(sendEmailSchema),
@@ -395,7 +409,7 @@ router.post('/send-email',
       // Rate limiting for email sending
       const emailsSentToday = await storage.getEmailsSentToday(userId);
       const maxEmailsPerDay = req.user.isPremium ? 100 : 10;
-      
+
       if (emailsSentToday >= maxEmailsPerDay) {
         throw Errors.forbidden(`Daily email limit of ${maxEmailsPerDay} reached`);
       }
@@ -429,65 +443,60 @@ router.post('/send-email',
   }
 );
 
-router.get('/email-history',
-  authenticate,
-  async (req, res, next) => {
-    try {
-      const userId = req.user.id;
-      const { page = 1, limit = 20, status } = req.query;
+router.get('/email-history', authenticate, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { page = 1, limit = 20, status } = req.query;
 
-      const emailHistory = await storage.getEmailHistory(userId, {
+    const emailHistory = await storage.getEmailHistory(userId, {
+      page: Number(page),
+      limit: Number(limit),
+      status: status as string,
+    });
+
+    res.json({
+      emails: emailHistory.emails,
+      pagination: {
         page: Number(page),
         limit: Number(limit),
-        status: status as string,
-      });
-
-      res.json({
-        emails: emailHistory.emails,
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total: emailHistory.total,
-          totalPages: Math.ceil(emailHistory.total / Number(limit)),
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
+        total: emailHistory.total,
+        totalPages: Math.ceil(emailHistory.total / Number(limit)),
+      },
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 // Internal Messaging Routes
-router.get('/messages',
-  authenticate,
-  async (req, res, next) => {
-    try {
-      const userId = req.user.id;
-      const { page = 1, limit = 20, type = 'all' } = req.query;
+router.get('/messages', authenticate, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { page = 1, limit = 20, type = 'all' } = req.query;
 
-      const messages = await storage.getMessages(userId, {
+    const messages = await storage.getMessages(userId, {
+      page: Number(page),
+      limit: Number(limit),
+      type: type as string,
+    });
+
+    res.json({
+      messages: messages.messages,
+      pagination: {
         page: Number(page),
         limit: Number(limit),
-        type: type as string,
-      });
-
-      res.json({
-        messages: messages.messages,
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total: messages.total,
-          totalPages: Math.ceil(messages.total / Number(limit)),
-        },
-        unreadCount: messages.unreadCount,
-      });
-    } catch (error) {
-      next(error);
-    }
+        total: messages.total,
+        totalPages: Math.ceil(messages.total / Number(limit)),
+      },
+      unreadCount: messages.unreadCount,
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
-router.post('/messages',
+router.post(
+  '/messages',
   authenticate,
   rateLimiter(30, 60), // 30 requests per minute
   validate(createMessageSchema),
@@ -542,77 +551,72 @@ router.post('/messages',
   }
 );
 
-router.get('/messages/:messageId',
-  authenticate,
-  async (req, res, next) => {
-    try {
-      const userId = req.user.id;
-      const { messageId } = req.params;
+router.get('/messages/:messageId', authenticate, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { messageId } = req.params;
 
-      const message = await storage.getMessage(messageId);
-      if (!message) {
-        throw Errors.notFound('Message not found');
-      }
-
-      if (message.senderId !== userId && message.recipientId !== userId) {
-        throw Errors.forbidden('Access denied');
-      }
-
-      // Mark as read if recipient is viewing
-      if (message.recipientId === userId && !message.readAt) {
-        await storage.markMessageRead(messageId);
-      }
-
-      res.json({ message });
-    } catch (error) {
-      next(error);
+    const message = await storage.getMessage(messageId);
+    if (!message) {
+      throw Errors.notFound('Message not found');
     }
+
+    if (message.senderId !== userId && message.recipientId !== userId) {
+      throw Errors.forbidden('Access denied');
+    }
+
+    // Mark as read if recipient is viewing
+    if (message.recipientId === userId && !message.readAt) {
+      await storage.markMessageRead(messageId);
+    }
+
+    res.json({ message });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 // Notification Settings Routes
-router.get('/settings',
-  authenticate,
-  async (req, res, next) => {
-    try {
-      const userId = req.user.id;
+router.get('/settings', authenticate, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
 
-      const settings = await storage.getNotificationSettings(userId);
+    const settings = await storage.getNotificationSettings(userId);
 
-      res.json({
-        settings: settings || {
-          emailNotifications: {
-            jobAlerts: true,
-            applications: true,
-            messages: true,
-            systemUpdates: true,
-            marketing: false,
-          },
-          pushNotifications: {
-            jobAlerts: true,
-            applications: true,
-            messages: true,
-            systemUpdates: true,
-          },
-          smsNotifications: {
-            jobAlerts: false,
-            applications: false,
-            messages: false,
-            systemUpdates: false,
-          },
-          frequency: {
-            jobAlerts: 'immediate',
-            digest: 'weekly',
-          },
+    res.json({
+      settings: settings || {
+        emailNotifications: {
+          jobAlerts: true,
+          applications: true,
+          messages: true,
+          systemUpdates: true,
+          marketing: false,
         },
-      });
-    } catch (error) {
-      next(error);
-    }
+        pushNotifications: {
+          jobAlerts: true,
+          applications: true,
+          messages: true,
+          systemUpdates: true,
+        },
+        smsNotifications: {
+          jobAlerts: false,
+          applications: false,
+          messages: false,
+          systemUpdates: false,
+        },
+        frequency: {
+          jobAlerts: 'immediate',
+          digest: 'weekly',
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
-router.put('/settings',
+router.put(
+  '/settings',
   authenticate,
   rateLimiter(20, 60), // 20 requests per minute
   validate(updateNotificationSettingsSchema),
@@ -634,54 +638,48 @@ router.put('/settings',
 );
 
 // Email Templates Routes
-router.get('/email-templates',
-  authenticate,
-  async (req, res, next) => {
-    try {
-      const userId = req.user.id;
+router.get('/email-templates', authenticate, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
 
-      // Check if user has admin privileges
-      const user = await storage.getUser(userId);
-      if (!user.isAdmin) {
-        throw Errors.forbidden('Admin access required');
-      }
-
-      const templates = await storage.getEmailTemplates();
-
-      res.json({
-        templates,
-      });
-    } catch (error) {
-      next(error);
+    // Check if user has admin privileges
+    const user = await storage.getUser(userId);
+    if (!user.isAdmin) {
+      throw Errors.forbidden('Admin access required');
     }
+
+    const templates = await storage.getEmailTemplates();
+
+    res.json({
+      templates,
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 // Analytics Routes
-router.get('/analytics',
-  authenticate,
-  async (req, res, next) => {
-    try {
-      const userId = req.user.id;
-      const { period = '30d' } = req.query;
+router.get('/analytics', authenticate, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { period = '30d' } = req.query;
 
-      const analytics = await storage.getNotificationAnalytics(userId, period as string);
+    const analytics = await storage.getNotificationAnalytics(userId, period as string);
 
-      res.json({
-        analytics: {
-          totalNotifications: analytics.totalNotifications,
-          notificationsByType: analytics.notificationsByType,
-          readRate: analytics.readRate,
-          emailsSent: analytics.emailsSent,
-          emailDeliveryRate: analytics.emailDeliveryRate,
-          jobAlertPerformance: analytics.jobAlertPerformance,
-          messageActivity: analytics.messageActivity,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
+    res.json({
+      analytics: {
+        totalNotifications: analytics.totalNotifications,
+        notificationsByType: analytics.notificationsByType,
+        readRate: analytics.readRate,
+        emailsSent: analytics.emailsSent,
+        emailDeliveryRate: analytics.emailDeliveryRate,
+        jobAlertPerformance: analytics.jobAlertPerformance,
+        messageActivity: analytics.messageActivity,
+      },
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 export default router;

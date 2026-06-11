@@ -27,39 +27,41 @@ async function checkNetlifyDev() {
 async function startNetlifyDev() {
   console.log('🚀 Starting Netlify dev...');
   console.log('   This may take a moment...');
-  
+
   return new Promise((resolve, reject) => {
     const netlifyProcess = spawn('netlify', ['dev', '--port', '8888'], {
       stdio: 'pipe',
-      detached: false
+      detached: false,
     });
-    
+
     let output = '';
     let started = false;
-    
-    netlifyProcess.stdout.on('data', (data) => {
+
+    netlifyProcess.stdout.on('data', data => {
       output += data.toString();
       console.log(`   ${data.toString().trim()}`);
-      
+
       // Check if server has started
-      if (data.toString().includes('Server now ready on') || 
-          data.toString().includes('Local:') ||
-          data.toString().includes('Functions server is listening')) {
+      if (
+        data.toString().includes('Server now ready on') ||
+        data.toString().includes('Local:') ||
+        data.toString().includes('Functions server is listening')
+      ) {
         if (!started) {
           started = true;
           setTimeout(() => resolve(netlifyProcess), 3000); // Wait 3 seconds for full startup
         }
       }
     });
-    
-    netlifyProcess.stderr.on('data', (data) => {
+
+    netlifyProcess.stderr.on('data', data => {
       console.log(`   Error: ${data.toString().trim()}`);
     });
-    
-    netlifyProcess.on('error', (error) => {
+
+    netlifyProcess.on('error', error => {
       reject(error);
     });
-    
+
     // Timeout after 30 seconds
     setTimeout(() => {
       if (!started) {
@@ -73,18 +75,18 @@ async function startNetlifyDev() {
 async function runTest(testFile, testName) {
   console.log(`\n🧪 Running ${testName}...`);
   console.log('='.repeat(50));
-  
-  return new Promise((resolve) => {
+
+  return new Promise(resolve => {
     const testProcess = spawn('node', [testFile], {
-      stdio: 'inherit'
+      stdio: 'inherit',
     });
-    
-    testProcess.on('close', (code) => {
+
+    testProcess.on('close', code => {
       console.log(`\n✅ ${testName} completed with exit code: ${code}`);
       resolve(code === 0);
     });
-    
-    testProcess.on('error', (error) => {
+
+    testProcess.on('error', error => {
       console.log(`❌ ${testName} failed: ${error.message}`);
       resolve(false);
     });
@@ -96,19 +98,19 @@ async function main() {
   console.log('==============================');
   console.log('This script will test all profile upload functionality');
   console.log('including image uploads and error handling.\n');
-  
+
   let netlifyProcess = null;
-  
+
   try {
     // Check if Netlify dev is already running
     const isRunning = await checkNetlifyDev();
-    
+
     if (!isRunning) {
       console.log('\n📋 Netlify dev is not running. Starting it now...');
       try {
         netlifyProcess = await startNetlifyDev();
         console.log('✅ Netlify dev started successfully');
-        
+
         // Wait a bit more and verify it's working
         await new Promise(resolve => setTimeout(resolve, 2000));
         const isNowRunning = await checkNetlifyDev();
@@ -124,24 +126,24 @@ async function main() {
         process.exit(1);
       }
     }
-    
+
     // Run the tests
     const testResults = [];
-    
+
     // Test 1: Simple upload tests
     testResults.push(await runTest('test-upload-simple.js', 'Simple Upload Tests'));
-    
+
     // Test 2: Client-side profile service tests
     testResults.push(await runTest('test-profile-client.js', 'Profile Client Service Tests'));
-    
+
     // Summary
     console.log('\n📊 Test Summary');
     console.log('================');
     const passedTests = testResults.filter(Boolean).length;
     const totalTests = testResults.length;
-    
+
     console.log(`✅ Passed: ${passedTests}/${totalTests} test suites`);
-    
+
     if (passedTests === totalTests) {
       console.log('\n🎉 All tests passed! Profile upload functionality is working correctly.');
       console.log('\n📝 What was tested:');
@@ -153,7 +155,6 @@ async function main() {
     } else {
       console.log('\n⚠️  Some tests failed. Please check the output above for details.');
     }
-    
   } catch (error) {
     console.log(`❌ Test runner failed: ${error.message}`);
   } finally {

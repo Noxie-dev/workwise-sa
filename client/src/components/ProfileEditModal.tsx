@@ -5,16 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { 
-  X, 
-  Save, 
-  User, 
-  Phone, 
-  MapPin, 
-  FileText,
-  Plus,
-  Trash2
-} from 'lucide-react';
+import { X, Save, User, Phone, MapPin, FileText, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { profileService } from '@/services/profileService';
 
@@ -31,7 +22,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  userId
+  userId,
 }) => {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
@@ -51,7 +42,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       locations: profile?.preferences?.locations || [],
       minSalary: profile?.preferences?.minSalary || 0,
       willingToRelocate: profile?.preferences?.willingToRelocate || false,
-    }
+    },
   });
 
   const [newSkill, setNewSkill] = useState('');
@@ -66,8 +57,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       ...prev,
       [section]: {
         ...prev[section as keyof typeof prev],
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
   };
 
@@ -77,8 +68,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         ...prev,
         skills: {
           ...prev.skills,
-          skills: [...prev.skills.skills, newSkill.trim()]
-        }
+          skills: [...prev.skills.skills, newSkill.trim()],
+        },
       }));
       setNewSkill('');
     }
@@ -89,8 +80,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       ...prev,
       skills: {
         ...prev.skills,
-        skills: prev.skills.skills.filter(s => s !== skill)
-      }
+        skills: prev.skills.skills.filter(s => s !== skill),
+      },
     }));
   };
 
@@ -100,8 +91,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         ...prev,
         skills: {
           ...prev.skills,
-          languages: [...prev.skills.languages, newLanguage.trim()]
-        }
+          languages: [...prev.skills.languages, newLanguage.trim()],
+        },
       }));
       setNewLanguage('');
     }
@@ -112,8 +103,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       ...prev,
       skills: {
         ...prev.skills,
-        languages: prev.skills.languages.filter(l => l !== language)
-      }
+        languages: prev.skills.languages.filter(l => l !== language),
+      },
     }));
   };
 
@@ -123,8 +114,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         ...prev,
         preferences: {
           ...prev.preferences,
-          jobTypes: [...prev.preferences.jobTypes, newJobType.trim()]
-        }
+          jobTypes: [...prev.preferences.jobTypes, newJobType.trim()],
+        },
       }));
       setNewJobType('');
     }
@@ -135,8 +126,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       ...prev,
       preferences: {
         ...prev.preferences,
-        jobTypes: prev.preferences.jobTypes.filter(jt => jt !== jobType)
-      }
+        jobTypes: prev.preferences.jobTypes.filter(jt => jt !== jobType),
+      },
     }));
   };
 
@@ -146,8 +137,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         ...prev,
         preferences: {
           ...prev.preferences,
-          locations: [...prev.preferences.locations, newLocation.trim()]
-        }
+          locations: [...prev.preferences.locations, newLocation.trim()],
+        },
       }));
       setNewLocation('');
     }
@@ -158,8 +149,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       ...prev,
       preferences: {
         ...prev.preferences,
-        locations: prev.preferences.locations.filter(l => l !== location)
-      }
+        locations: prev.preferences.locations.filter(l => l !== location),
+      },
     }));
   };
 
@@ -167,24 +158,24 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
     setSaving(true);
     try {
       await profileService.updateProfile(userId, formData);
-      
+
       const updatedProfile = {
         ...profile,
-        ...formData
+        ...formData,
       };
-      
+
       onSave(updatedProfile);
       onClose();
-      
+
       toast({
-        title: "Profile Updated",
-        description: "Your profile has been successfully updated.",
+        title: 'Profile Updated',
+        description: 'Your profile has been successfully updated.',
       });
     } catch (error: any) {
       toast({
-        variant: "destructive",
-        title: "Update Failed",
-        description: error.message || "Failed to update profile. Please try again.",
+        variant: 'destructive',
+        title: 'Update Failed',
+        description: error.message || 'Failed to update profile. Please try again.',
       });
     } finally {
       setSaving(false);
@@ -196,11 +187,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-4 border-b flex items-center justify-between">
           <h2 className="text-lg font-semibold">Edit Profile</h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-          >
+          <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -220,7 +207,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                 <Input
                   id="fullName"
                   value={formData.personal.fullName}
-                  onChange={(e) => handleInputChange('personal', 'fullName', e.target.value)}
+                  onChange={e => handleInputChange('personal', 'fullName', e.target.value)}
                   placeholder="Enter your full name"
                 />
               </div>
@@ -229,7 +216,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                 <Input
                   id="phoneNumber"
                   value={formData.personal.phoneNumber}
-                  onChange={(e) => handleInputChange('personal', 'phoneNumber', e.target.value)}
+                  onChange={e => handleInputChange('personal', 'phoneNumber', e.target.value)}
                   placeholder="Enter your phone number"
                 />
               </div>
@@ -238,7 +225,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                 <Input
                   id="location"
                   value={formData.personal.location}
-                  onChange={(e) => handleInputChange('personal', 'location', e.target.value)}
+                  onChange={e => handleInputChange('personal', 'location', e.target.value)}
                   placeholder="Enter your location"
                 />
               </div>
@@ -247,7 +234,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                 <Textarea
                   id="bio"
                   value={formData.personal.bio}
-                  onChange={(e) => handleInputChange('personal', 'bio', e.target.value)}
+                  onChange={e => handleInputChange('personal', 'bio', e.target.value)}
                   placeholder="Tell us about yourself"
                   rows={3}
                 />
@@ -280,9 +267,9 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
               <div className="flex gap-2">
                 <Input
                   value={newSkill}
-                  onChange={(e) => setNewSkill(e.target.value)}
+                  onChange={e => setNewSkill(e.target.value)}
                   placeholder="Add a skill"
-                  onKeyPress={(e) => e.key === 'Enter' && addSkill()}
+                  onKeyPress={e => e.key === 'Enter' && addSkill()}
                 />
                 <Button onClick={addSkill} size="sm">
                   <Plus className="h-4 w-4" />
@@ -316,9 +303,9 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
               <div className="flex gap-2">
                 <Input
                   value={newLanguage}
-                  onChange={(e) => setNewLanguage(e.target.value)}
+                  onChange={e => setNewLanguage(e.target.value)}
                   placeholder="Add a language"
-                  onKeyPress={(e) => e.key === 'Enter' && addLanguage()}
+                  onKeyPress={e => e.key === 'Enter' && addLanguage()}
                 />
                 <Button onClick={addLanguage} size="sm">
                   <Plus className="h-4 w-4" />
@@ -351,9 +338,9 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                 <div className="flex gap-2 mt-2">
                   <Input
                     value={newJobType}
-                    onChange={(e) => setNewJobType(e.target.value)}
+                    onChange={e => setNewJobType(e.target.value)}
                     placeholder="Add job type (e.g., Full-time, Part-time)"
-                    onKeyPress={(e) => e.key === 'Enter' && addJobType()}
+                    onKeyPress={e => e.key === 'Enter' && addJobType()}
                   />
                   <Button onClick={addJobType} size="sm">
                     <Plus className="h-4 w-4" />
@@ -379,9 +366,9 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                 <div className="flex gap-2 mt-2">
                   <Input
                     value={newLocation}
-                    onChange={(e) => setNewLocation(e.target.value)}
+                    onChange={e => setNewLocation(e.target.value)}
                     placeholder="Add preferred location"
-                    onKeyPress={(e) => e.key === 'Enter' && addPreferredLocation()}
+                    onKeyPress={e => e.key === 'Enter' && addPreferredLocation()}
                   />
                   <Button onClick={addPreferredLocation} size="sm">
                     <Plus className="h-4 w-4" />
@@ -395,7 +382,9 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                   id="minSalary"
                   type="number"
                   value={formData.preferences.minSalary}
-                  onChange={(e) => handleInputChange('preferences', 'minSalary', parseInt(e.target.value) || 0)}
+                  onChange={e =>
+                    handleInputChange('preferences', 'minSalary', parseInt(e.target.value) || 0)
+                  }
                   placeholder="Enter minimum salary"
                 />
               </div>
@@ -405,7 +394,9 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                   type="checkbox"
                   id="willingToRelocate"
                   checked={formData.preferences.willingToRelocate}
-                  onChange={(e) => handleInputChange('preferences', 'willingToRelocate', e.target.checked)}
+                  onChange={e =>
+                    handleInputChange('preferences', 'willingToRelocate', e.target.checked)
+                  }
                   className="rounded"
                 />
                 <Label htmlFor="willingToRelocate">Willing to relocate for work</Label>

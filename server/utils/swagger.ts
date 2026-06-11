@@ -310,7 +310,8 @@ export const setupSwagger = (app: Express) => {
     get: {
       tags: ['WebSocket'],
       summary: 'WebSocket connection endpoint',
-      description: 'Connect to this endpoint using a WebSocket client to receive real-time updates. See the WebSocket documentation for details on message formats and protocols.',
+      description:
+        'Connect to this endpoint using a WebSocket client to receive real-time updates. See the WebSocket documentation for details on message formats and protocols.',
       responses: {
         '101': {
           description: 'Switching Protocols - WebSocket connection established',
@@ -321,10 +322,14 @@ export const setupSwagger = (app: Express) => {
   };
 
   // Serve Swagger UI
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
-    explorer: true,
-    customCss: '.swagger-ui .topbar { display: none }',
-  }));
+  app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(specs, {
+      explorer: true,
+      customCss: '.swagger-ui .topbar { display: none }',
+    })
+  );
 
   // Serve Swagger JSON
   app.get('/api-docs.json', (req, res) => {

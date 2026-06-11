@@ -93,9 +93,9 @@ const CVTemplates: React.FC = () => {
   const processImage = async () => {
     if (!profileImage) {
       toast({
-        title: "No image selected",
-        description: "Please upload an image first.",
-        variant: "destructive",
+        title: 'No image selected',
+        description: 'Please upload an image first.',
+        variant: 'destructive',
       });
       return;
     }
@@ -107,16 +107,16 @@ const CVTemplates: React.FC = () => {
       const result = await processImageWithVertexAI(profileImage);
       setProcessedImage(result.processedImageUrl);
       toast({
-        title: "Image processed successfully",
-        description: "Your profile photo has been enhanced.",
+        title: 'Image processed successfully',
+        description: 'Your profile photo has been enhanced.',
       });
     } catch (error) {
       toast({
-        title: "Processing failed",
-        description: "Failed to process the image. Please try again.",
-        variant: "destructive",
+        title: 'Processing failed',
+        description: 'Failed to process the image. Please try again.',
+        variant: 'destructive',
       });
-      console.error("Image processing error:", error);
+      console.error('Image processing error:', error);
     } finally {
       setIsProcessingImage(false);
     }
@@ -147,25 +147,25 @@ const CVTemplates: React.FC = () => {
     try {
       // Dynamically load and use CV service
       const { generateCV } = await loadCVService();
-      
+
       // Generate the CV with form data and processed image
       const cvData = await generateCV({
         ...data,
         profileImage: processedImage ?? profileImage ?? undefined,
       });
-      
+
       setGeneratedCVUrl(cvData.downloadUrl);
       toast({
-        title: "CV Generated Successfully",
-        description: "Your CV is ready to download.",
+        title: 'CV Generated Successfully',
+        description: 'Your CV is ready to download.',
       });
     } catch (error) {
       toast({
-        title: "Generation Failed",
-        description: "Failed to generate CV. Please try again.",
-        variant: "destructive",
+        title: 'Generation Failed',
+        description: 'Failed to generate CV. Please try again.',
+        variant: 'destructive',
       });
-      console.error("CV generation error:", error);
+      console.error('CV generation error:', error);
     } finally {
       setIsGeneratingCV(false);
     }
@@ -181,7 +181,7 @@ const CVTemplates: React.FC = () => {
       <main className="flex-grow">
         <div className="container mx-auto p-4 max-w-6xl">
           <h1 className="text-3xl font-bold mb-6 text-center">Professional CV Builder</h1>
-          
+
           {!generatedCVUrl ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Form Section */}
@@ -199,42 +199,42 @@ const CVTemplates: React.FC = () => {
                     <TabsContent value="personalInfo">
                       <Card className="p-6">
                         <h2 className="text-xl font-semibold mb-4">Personal Information</h2>
-                        
+
                         <div className="mb-6">
                           <label className="block mb-1">Profile Photo</label>
                           <div className="flex items-center gap-4">
-                            <div 
+                            <div
                               className="w-32 h-32 bg-gray-100 flex items-center justify-center cursor-pointer border rounded-md overflow-hidden"
                               onClick={() => fileInputRef.current?.click()}
                             >
-                              {(processedImage || profileImage) ? (
-                                <img 
-                                  src={processedImage || profileImage || ''} 
-                                  alt="Profile" 
+                              {processedImage || profileImage ? (
+                                <img
+                                  src={processedImage || profileImage || ''}
+                                  alt="Profile"
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
                                 <span className="text-gray-400">Upload Photo</span>
                               )}
                             </div>
-                            <input 
-                              type="file" 
+                            <input
+                              type="file"
                               ref={fileInputRef}
-                              accept="image/*" 
-                              onChange={handleFileChange} 
-                              className="hidden" 
+                              accept="image/*"
+                              onChange={handleFileChange}
+                              className="hidden"
                             />
                             <div className="flex flex-col gap-2">
-                              <Button 
-                                type="button" 
+                              <Button
+                                type="button"
                                 onClick={() => fileInputRef.current?.click()}
                                 variant="outline"
                               >
                                 Select Image
                               </Button>
-                              <Button 
-                                type="button" 
-                                onClick={processImage} 
+                              <Button
+                                type="button"
+                                onClick={processImage}
                                 disabled={!profileImage || isProcessingImage}
                                 variant="secondary"
                               >
@@ -244,13 +244,14 @@ const CVTemplates: React.FC = () => {
                                     Processing...
                                   </>
                                 ) : (
-                                  "Enhance Image"
+                                  'Enhance Image'
                                 )}
                               </Button>
                             </div>
                           </div>
                           <p className="text-sm text-gray-500 mt-2">
-                            Your image will be automatically processed to remove the background and enhance quality.
+                            Your image will be automatically processed to remove the background and
+                            enhance quality.
                           </p>
                         </div>
 
@@ -260,13 +261,13 @@ const CVTemplates: React.FC = () => {
                             <Controller
                               name="personalInfo.fullName"
                               control={control}
-                              rules={{ required: "Name is required" }}
-                              render={({ field }) => (
-                                <Input {...field} placeholder="John Doe" />
-                              )}
+                              rules={{ required: 'Name is required' }}
+                              render={({ field }) => <Input {...field} placeholder="John Doe" />}
                             />
                             {errors.personalInfo?.fullName && (
-                              <p className="text-red-500 text-sm mt-1">{errors.personalInfo.fullName.message}</p>
+                              <p className="text-red-500 text-sm mt-1">
+                                {errors.personalInfo.fullName.message}
+                              </p>
                             )}
                           </div>
 
@@ -275,19 +276,21 @@ const CVTemplates: React.FC = () => {
                             <Controller
                               name="personalInfo.email"
                               control={control}
-                              rules={{ 
-                                required: "Email is required",
+                              rules={{
+                                required: 'Email is required',
                                 pattern: {
                                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                  message: "Invalid email address"
-                                }
+                                  message: 'Invalid email address',
+                                },
                               }}
                               render={({ field }) => (
                                 <Input {...field} placeholder="john.doe@example.com" />
                               )}
                             />
                             {errors.personalInfo?.email && (
-                              <p className="text-red-500 text-sm mt-1">{errors.personalInfo.email.message}</p>
+                              <p className="text-red-500 text-sm mt-1">
+                                {errors.personalInfo.email.message}
+                              </p>
                             )}
                           </div>
 
@@ -296,13 +299,15 @@ const CVTemplates: React.FC = () => {
                             <Controller
                               name="personalInfo.phone"
                               control={control}
-                              rules={{ required: "Phone number is required" }}
+                              rules={{ required: 'Phone number is required' }}
                               render={({ field }) => (
                                 <Input {...field} placeholder="081 234 5678" />
                               )}
                             />
                             {errors.personalInfo?.phone && (
-                              <p className="text-red-500 text-sm mt-1">{errors.personalInfo.phone.message}</p>
+                              <p className="text-red-500 text-sm mt-1">
+                                {errors.personalInfo.phone.message}
+                              </p>
                             )}
                           </div>
 
@@ -323,8 +328,8 @@ const CVTemplates: React.FC = () => {
                               name="personalInfo.aboutMe"
                               control={control}
                               render={({ field }) => (
-                                <Textarea 
-                                  {...field} 
+                                <Textarea
+                                  {...field}
                                   placeholder="Write a short professional summary about yourself..."
                                   rows={4}
                                 />
@@ -337,9 +342,7 @@ const CVTemplates: React.FC = () => {
                             <Controller
                               name="personalInfo.dateOfBirth"
                               control={control}
-                              render={({ field }) => (
-                                <Input {...field} placeholder="25/09/2001" />
-                              )}
+                              render={({ field }) => <Input {...field} placeholder="25/09/2001" />}
                             />
                           </div>
 
@@ -348,9 +351,7 @@ const CVTemplates: React.FC = () => {
                             <Controller
                               name="personalInfo.maritalStatus"
                               control={control}
-                              render={({ field }) => (
-                                <Input {...field} placeholder="Single" />
-                              )}
+                              render={({ field }) => <Input {...field} placeholder="Single" />}
                             />
                           </div>
 
@@ -370,18 +371,13 @@ const CVTemplates: React.FC = () => {
                             <Controller
                               name="personalInfo.gender"
                               control={control}
-                              render={({ field }) => (
-                                <Input {...field} placeholder="Male" />
-                              )}
+                              render={({ field }) => <Input {...field} placeholder="Male" />}
                             />
                           </div>
                         </div>
 
                         <div className="flex justify-end">
-                          <Button 
-                            type="button" 
-                            onClick={() => setActiveTab("education")}
-                          >
+                          <Button type="button" onClick={() => setActiveTab('education')}>
                             Next: Education
                           </Button>
                         </div>
@@ -392,7 +388,7 @@ const CVTemplates: React.FC = () => {
                     <TabsContent value="education">
                       <Card className="p-6">
                         <h2 className="text-xl font-semibold mb-4">Education</h2>
-                        
+
                         {watch('education').map((_, index) => (
                           <div key={`education-${index}`} className="mb-6 p-4 border rounded-md">
                             <h3 className="font-medium mb-3">Education {index + 1}</h3>
@@ -433,8 +429,8 @@ const CVTemplates: React.FC = () => {
                           </div>
                         ))}
 
-                        <Button 
-                          type="button" 
+                        <Button
+                          type="button"
                           onClick={addEducationField}
                           variant="outline"
                           className="mb-6"
@@ -443,17 +439,14 @@ const CVTemplates: React.FC = () => {
                         </Button>
 
                         <div className="flex justify-between">
-                          <Button 
-                            type="button" 
-                            onClick={() => setActiveTab("personalInfo")}
+                          <Button
+                            type="button"
+                            onClick={() => setActiveTab('personalInfo')}
                             variant="outline"
                           >
                             Back
                           </Button>
-                          <Button 
-                            type="button" 
-                            onClick={() => setActiveTab("experience")}
-                          >
+                          <Button type="button" onClick={() => setActiveTab('experience')}>
                             Next: Experience
                           </Button>
                         </div>
@@ -464,7 +457,7 @@ const CVTemplates: React.FC = () => {
                     <TabsContent value="experience">
                       <Card className="p-6">
                         <h2 className="text-xl font-semibold mb-4">Work Experience</h2>
-                        
+
                         {watch('experience').map((_, index) => (
                           <div key={`experience-${index}`} className="mb-6 p-4 border rounded-md">
                             <h3 className="font-medium mb-3">Experience {index + 1}</h3>
@@ -474,9 +467,7 @@ const CVTemplates: React.FC = () => {
                                 <Controller
                                   name={`experience.${index}.position`}
                                   control={control}
-                                  render={({ field }) => (
-                                    <Input {...field} placeholder="Teacher" />
-                                  )}
+                                  render={({ field }) => <Input {...field} placeholder="Teacher" />}
                                 />
                               </div>
 
@@ -505,8 +496,8 @@ const CVTemplates: React.FC = () => {
                           </div>
                         ))}
 
-                        <Button 
-                          type="button" 
+                        <Button
+                          type="button"
                           onClick={addExperienceField}
                           variant="outline"
                           className="mb-6"
@@ -515,17 +506,14 @@ const CVTemplates: React.FC = () => {
                         </Button>
 
                         <div className="flex justify-between">
-                          <Button 
-                            type="button" 
-                            onClick={() => setActiveTab("education")}
+                          <Button
+                            type="button"
+                            onClick={() => setActiveTab('education')}
                             variant="outline"
                           >
                             Back
                           </Button>
-                          <Button 
-                            type="button" 
-                            onClick={() => setActiveTab("skills")}
-                          >
+                          <Button type="button" onClick={() => setActiveTab('skills')}>
                             Next: Skills
                           </Button>
                         </div>
@@ -536,7 +524,7 @@ const CVTemplates: React.FC = () => {
                     <TabsContent value="skills">
                       <Card className="p-6">
                         <h2 className="text-xl font-semibold mb-4">Skills</h2>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                           {watch('skills').map((_, index) => (
                             <div key={`skill-${index}`}>
@@ -552,8 +540,8 @@ const CVTemplates: React.FC = () => {
                           ))}
                         </div>
 
-                        <Button 
-                          type="button" 
+                        <Button
+                          type="button"
                           onClick={addSkillField}
                           variant="outline"
                           className="mb-6"
@@ -562,17 +550,14 @@ const CVTemplates: React.FC = () => {
                         </Button>
 
                         <div className="flex justify-between">
-                          <Button 
-                            type="button" 
-                            onClick={() => setActiveTab("experience")}
+                          <Button
+                            type="button"
+                            onClick={() => setActiveTab('experience')}
                             variant="outline"
                           >
                             Back
                           </Button>
-                          <Button 
-                            type="button" 
-                            onClick={() => setActiveTab("references")}
-                          >
+                          <Button type="button" onClick={() => setActiveTab('references')}>
                             Next: References
                           </Button>
                         </div>
@@ -583,7 +568,7 @@ const CVTemplates: React.FC = () => {
                     <TabsContent value="references">
                       <Card className="p-6">
                         <h2 className="text-xl font-semibold mb-4">References</h2>
-                        
+
                         {watch('references').map((_, index) => (
                           <div key={`reference-${index}`} className="mb-6 p-4 border rounded-md">
                             <h3 className="font-medium mb-3">Reference {index + 1}</h3>
@@ -624,8 +609,8 @@ const CVTemplates: React.FC = () => {
                           </div>
                         ))}
 
-                        <Button 
-                          type="button" 
+                        <Button
+                          type="button"
                           onClick={addReferenceField}
                           variant="outline"
                           className="mb-6"
@@ -634,14 +619,14 @@ const CVTemplates: React.FC = () => {
                         </Button>
 
                         <div className="flex justify-between">
-                          <Button 
-                            type="button" 
-                            onClick={() => setActiveTab("skills")}
+                          <Button
+                            type="button"
+                            onClick={() => setActiveTab('skills')}
                             variant="outline"
                           >
                             Back
                           </Button>
-                          <Button 
+                          <Button
                             type="submit"
                             disabled={isGeneratingCV}
                             className="bg-blue-600 hover:bg-blue-700"
@@ -652,7 +637,7 @@ const CVTemplates: React.FC = () => {
                                 Generating...
                               </>
                             ) : (
-                              "Generate CV (R30)"
+                              'Generate CV (R30)'
                             )}
                           </Button>
                         </div>
@@ -670,11 +655,11 @@ const CVTemplates: React.FC = () => {
                     <div className="flex flex-col h-full">
                       {/* Header */}
                       <div className="bg-blue-600 text-white p-4 flex gap-4 items-center">
-                        {(processedImage || profileImage) ? (
+                        {processedImage || profileImage ? (
                           <div className="w-20 h-20 rounded-full overflow-hidden bg-white flex-shrink-0">
-                            <img 
-                              src={processedImage || profileImage || ''} 
-                              alt="Profile" 
+                            <img
+                              src={processedImage || profileImage || ''}
+                              alt="Profile"
                               className="w-full h-full object-cover"
                             />
                           </div>
@@ -686,9 +671,15 @@ const CVTemplates: React.FC = () => {
                             {watch('personalInfo.fullName') || 'Your Name'}
                           </h1>
                           <div className="text-sm opacity-90">
-                            {watch('personalInfo.email') && <div>{watch('personalInfo.email')}</div>}
-                            {watch('personalInfo.phone') && <div>{watch('personalInfo.phone')}</div>}
-                            {watch('personalInfo.address') && <div>{watch('personalInfo.address')}</div>}
+                            {watch('personalInfo.email') && (
+                              <div>{watch('personalInfo.email')}</div>
+                            )}
+                            {watch('personalInfo.phone') && (
+                              <div>{watch('personalInfo.phone')}</div>
+                            )}
+                            {watch('personalInfo.address') && (
+                              <div>{watch('personalInfo.address')}</div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -700,19 +691,39 @@ const CVTemplates: React.FC = () => {
                           <div>
                             <h2 className="font-bold text-blue-600 mb-1">PERSONAL DETAILS</h2>
                             <div className="space-y-1">
-                              {watch('personalInfo.dateOfBirth') && <div><span className="font-medium">Date of Birth:</span> {watch('personalInfo.dateOfBirth')}</div>}
-                              {watch('personalInfo.maritalStatus') && <div><span className="font-medium">Marital Status:</span> {watch('personalInfo.maritalStatus')}</div>}
-                              {watch('personalInfo.nationality') && <div><span className="font-medium">Nationality:</span> {watch('personalInfo.nationality')}</div>}
-                              {watch('personalInfo.gender') && <div><span className="font-medium">Gender:</span> {watch('personalInfo.gender')}</div>}
+                              {watch('personalInfo.dateOfBirth') && (
+                                <div>
+                                  <span className="font-medium">Date of Birth:</span>{' '}
+                                  {watch('personalInfo.dateOfBirth')}
+                                </div>
+                              )}
+                              {watch('personalInfo.maritalStatus') && (
+                                <div>
+                                  <span className="font-medium">Marital Status:</span>{' '}
+                                  {watch('personalInfo.maritalStatus')}
+                                </div>
+                              )}
+                              {watch('personalInfo.nationality') && (
+                                <div>
+                                  <span className="font-medium">Nationality:</span>{' '}
+                                  {watch('personalInfo.nationality')}
+                                </div>
+                              )}
+                              {watch('personalInfo.gender') && (
+                                <div>
+                                  <span className="font-medium">Gender:</span>{' '}
+                                  {watch('personalInfo.gender')}
+                                </div>
+                              )}
                             </div>
                           </div>
 
                           <div>
                             <h2 className="font-bold text-blue-600 mb-1">SKILLS</h2>
                             <ul className="list-disc list-inside space-y-1">
-                              {watch('skills').map((skill, index) => (
+                              {watch('skills').map((skill, index) =>
                                 skill ? <li key={index}>{skill}</li> : null
-                              ))}
+                              )}
                             </ul>
                           </div>
                         </div>
@@ -729,30 +740,36 @@ const CVTemplates: React.FC = () => {
                           <div>
                             <h2 className="font-bold text-blue-600 mb-1">EDUCATION</h2>
                             <div className="space-y-2">
-                              {watch('education').map((edu, index) => (
+                              {watch('education').map((edu, index) =>
                                 edu.institution || edu.qualification ? (
                                   <div key={index} className="border-l-2 border-blue-600 pl-2">
-                                    {edu.institution && <div className="font-medium">{edu.institution}</div>}
+                                    {edu.institution && (
+                                      <div className="font-medium">{edu.institution}</div>
+                                    )}
                                     {edu.qualification && <div>{edu.qualification}</div>}
                                     {edu.year && <div className="text-gray-500">{edu.year}</div>}
                                   </div>
                                 ) : null
-                              ))}
+                              )}
                             </div>
                           </div>
 
                           <div>
                             <h2 className="font-bold text-blue-600 mb-1">EXPERIENCE</h2>
                             <div className="space-y-2">
-                              {watch('experience').map((exp, index) => (
+                              {watch('experience').map((exp, index) =>
                                 exp.position || exp.company ? (
                                   <div key={index} className="border-l-2 border-blue-600 pl-2">
-                                    {exp.position && <div className="font-medium">{exp.position}</div>}
+                                    {exp.position && (
+                                      <div className="font-medium">{exp.position}</div>
+                                    )}
                                     {exp.company && <div>{exp.company}</div>}
-                                    {exp.duration && <div className="text-gray-500">{exp.duration}</div>}
+                                    {exp.duration && (
+                                      <div className="text-gray-500">{exp.duration}</div>
+                                    )}
                                   </div>
                                 ) : null
-                              ))}
+                              )}
                             </div>
                           </div>
                         </div>
@@ -770,15 +787,11 @@ const CVTemplates: React.FC = () => {
               <div className="w-full max-w-2xl mb-6">
                 <div className="bg-white border rounded-lg shadow-lg p-6 mb-4">
                   <h2 className="text-xl font-bold text-center mb-6">Your CV is Ready!</h2>
-                  
+
                   <div className="aspect-[3/4] mb-6 bg-gray-100 rounded-md overflow-hidden">
-                    <iframe 
-                      src={generatedCVUrl} 
-                      className="w-full h-full"
-                      title="CV Preview"
-                    />
+                    <iframe src={generatedCVUrl} className="w-full h-full" title="CV Preview" />
                   </div>
-                  
+
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Button
                       onClick={() => window.open(generatedCVUrl, '_blank')}
@@ -795,7 +808,7 @@ const CVTemplates: React.FC = () => {
                     </Button>
                   </div>
                 </div>
-                
+
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h3 className="font-medium text-blue-800 mb-2">What's Next?</h3>
                   <ul className="list-disc list-inside space-y-1 text-blue-700">
@@ -808,7 +821,6 @@ const CVTemplates: React.FC = () => {
               </div>
             </div>
           )}
-
         </div>
       </main>
     </>

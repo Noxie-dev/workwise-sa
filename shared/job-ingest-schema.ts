@@ -1,7 +1,7 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const jobIngestSchema = z.object({
-  schemaVersion: z.literal("job-ingest.v1").default("job-ingest.v1"),
+  schemaVersion: z.literal('job-ingest.v1').default('job-ingest.v1'),
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().min(1).max(10000),
   companyName: z.string().trim().min(1).max(200),

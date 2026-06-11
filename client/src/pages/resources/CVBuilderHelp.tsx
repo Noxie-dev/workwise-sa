@@ -1,6 +1,13 @@
 import React, { lazy, Suspense } from 'react';
 import CustomHelmet from '@/components/CustomHelmet';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Lazy load the CVBuilderHelpGuide component
@@ -35,11 +42,15 @@ const CVBuilderHelp: React.FC = () => {
           <Breadcrumb className="mb-4">
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/" className="text-primary hover:text-primary/80">Home</BreadcrumbLink>
+                <BreadcrumbLink href="/" className="text-primary hover:text-primary/80">
+                  Home
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href="/resources" className="text-primary hover:text-primary/80">Resources</BreadcrumbLink>
+                <BreadcrumbLink href="/resources" className="text-primary hover:text-primary/80">
+                  Resources
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -49,7 +60,7 @@ const CVBuilderHelp: React.FC = () => {
           </Breadcrumb>
 
           <h1 className="text-3xl font-bold mb-6">CV Builder Help Guide</h1>
-          
+
           <Suspense fallback={<GuideLoading />}>
             <CVBuilderHelpGuide />
           </Suspense>

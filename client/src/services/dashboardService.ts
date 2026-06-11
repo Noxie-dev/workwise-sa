@@ -25,9 +25,12 @@ export const dashboardService = {
     page: number = 1,
     limit: number = 10
   ): Promise<PaginatedResponse<JobDistributionData>> {
-    const response = await apiClient.get<PaginatedResponse<JobDistributionData>>('/dashboard/job-distribution', {
-      params: { categoryFilter, dateRange, page, limit }
-    });
+    const response = await apiClient.get<PaginatedResponse<JobDistributionData>>(
+      '/dashboard/job-distribution',
+      {
+        params: { categoryFilter, dateRange, page, limit },
+      }
+    );
     return response.data;
   },
 
@@ -40,9 +43,12 @@ export const dashboardService = {
     page: number = 1,
     pageLimit: number = 10
   ): Promise<PaginatedResponse<JobRecommendation[]>> {
-    const response = await apiClient.get<PaginatedResponse<JobRecommendation[]>>('/dashboard/job-recommendations', {
-      params: { recommendationLimit: limit, userId, page, limit: pageLimit }
-    });
+    const response = await apiClient.get<PaginatedResponse<JobRecommendation[]>>(
+      '/dashboard/job-recommendations',
+      {
+        params: { recommendationLimit: limit, userId, page, limit: pageLimit },
+      }
+    );
     return response.data;
   },
 
@@ -54,9 +60,12 @@ export const dashboardService = {
     page: number = 1,
     limit: number = 10
   ): Promise<PaginatedResponse<SkillsAnalysisData>> {
-    const response = await apiClient.get<PaginatedResponse<SkillsAnalysisData>>('/dashboard/skills-analysis', {
-      params: { userId, page, limit }
-    });
+    const response = await apiClient.get<PaginatedResponse<SkillsAnalysisData>>(
+      '/dashboard/skills-analysis',
+      {
+        params: { userId, page, limit },
+      }
+    );
     return response.data;
   },
 
@@ -98,7 +107,7 @@ export const dashboardService = {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }
+  },
 };
 
 export default dashboardService;

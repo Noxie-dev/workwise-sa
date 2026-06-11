@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EntitlementService, type AiDocumentType } from "../../services/entitlementService";
-import { featureFlagService } from "../../services/featureFlagService";
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { EntitlementService, type AiDocumentType } from '../../services/entitlementService';
+import { featureFlagService } from '../../services/featureFlagService';
 
 const defaultFlags = {
   ENABLE_PLUS_SUBSCRIPTIONS: true,
@@ -12,7 +12,7 @@ const defaultFlags = {
 
 const plusPlan = {
   id: 2,
-  code: "workwise_plus",
+  code: 'workwise_plus',
   entitlements: {
     unlimitedAiCv: true,
     unlimitedAiCoverLetters: true,
@@ -34,24 +34,23 @@ function makeService({
   coverLetterUses?: number;
 }) {
   const service = new EntitlementService();
-  (service as any).getCurrentSubscription = vi.fn().mockResolvedValue(
-    subscription ? { subscription, plan: plusPlan } : null,
-  );
-  vi.spyOn(service, "getSuccessfulUsageCount").mockImplementation(
-    async (_userId: number, documentType: AiDocumentType) => (
-      documentType === "cv" ? cvUses : coverLetterUses
-    ),
+  (service as any).getCurrentSubscription = vi
+    .fn()
+    .mockResolvedValue(subscription ? { subscription, plan: plusPlan } : null);
+  vi.spyOn(service, 'getSuccessfulUsageCount').mockImplementation(
+    async (_userId: number, documentType: AiDocumentType) =>
+      documentType === 'cv' ? cvUses : coverLetterUses
   );
   return service;
 }
 
-describe("EntitlementService", () => {
+describe('EntitlementService', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    vi.spyOn(featureFlagService, "getFlags").mockResolvedValue(defaultFlags);
+    vi.spyOn(featureFlagService, 'getFlags').mockResolvedValue(defaultFlags);
   });
 
-  it("returns free usage capabilities until the free quota is exhausted", async () => {
+  it('returns free usage capabilities until the free quota is exhausted', async () => {
     const service = makeService({ cvUses: 2, coverLetterUses: 3 });
 
     const entitlements = await service.getEntitlementsForUser(9);
@@ -63,11 +62,11 @@ describe("EntitlementService", () => {
     expect(entitlements.workwisePlusActive).toBe(false);
   });
 
-  it("grants unlimited AI, ad suppression, and promotion while Plus is active", async () => {
+  it('grants unlimited AI, ad suppression, and promotion while Plus is active', async () => {
     const service = makeService({
       subscription: {
         id: 12,
-        status: "active",
+        status: 'active',
         currentPeriodEnd: daysFromNow(20),
       },
       cvUses: 8,
@@ -88,12 +87,12 @@ describe("EntitlementService", () => {
     });
   });
 
-  it("keeps Plus capabilities during the subscription grace period", async () => {
+  it('keeps Plus capabilities during the subscription grace period', async () => {
     const gracePeriodEndsAt = daysFromNow(7);
     const service = makeService({
       subscription: {
         id: 13,
-        status: "grace_period",
+        status: 'grace_period',
         gracePeriodEndsAt,
       },
       cvUses: 5,
@@ -107,11 +106,11 @@ describe("EntitlementService", () => {
     expect(entitlements.gracePeriodEndsAt).toBe(gracePeriodEndsAt.toISOString());
   });
 
-  it("does not treat cancelled or expired subscriptions as usable", async () => {
+  it('does not treat cancelled or expired subscriptions as usable', async () => {
     const cancelled = makeService({
       subscription: {
         id: 14,
-        status: "cancelled",
+        status: 'cancelled',
         currentPeriodEnd: daysFromNow(20),
       },
       cvUses: 3,
@@ -120,7 +119,7 @@ describe("EntitlementService", () => {
     const expired = makeService({
       subscription: {
         id: 15,
-        status: "active",
+        status: 'active',
         currentPeriodEnd: daysFromNow(-1),
       },
       cvUses: 3,
@@ -139,8 +138,8 @@ describe("EntitlementService", () => {
     });
   });
 
-  it("lets runtime feature flags disable Plus and AI capabilities", async () => {
-    vi.spyOn(featureFlagService, "getFlags").mockResolvedValue({
+  it('lets runtime feature flags disable Plus and AI capabilities', async () => {
+    vi.spyOn(featureFlagService, 'getFlags').mockResolvedValue({
       ...defaultFlags,
       ENABLE_PLUS_SUBSCRIPTIONS: false,
       ENABLE_AI_CV: false,
@@ -149,7 +148,7 @@ describe("EntitlementService", () => {
     const service = makeService({
       subscription: {
         id: 16,
-        status: "active",
+        status: 'active',
         currentPeriodEnd: daysFromNow(20),
       },
     });

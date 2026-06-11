@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { AdPlacement, AdSlotConfig } from "@shared/monetization";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { AdPlacement, AdSlotConfig } from '@shared/monetization';
 
 type AdSlotProps = {
   placement: AdPlacement;
@@ -14,9 +14,9 @@ function createSessionId() {
 
 export default function AdSlot({
   placement,
-  className = "",
-  title = "Sponsored placement",
-  description = "This slot is ready for ad-server integration and event tracking.",
+  className = '',
+  title = 'Sponsored placement',
+  description = 'This slot is ready for ad-server integration and event tracking.',
 }: AdSlotProps) {
   const [slot, setSlot] = useState<AdSlotConfig | null>(null);
   const sessionId = useMemo(() => createSessionId(), []);
@@ -25,12 +25,12 @@ export default function AdSlot({
   useEffect(() => {
     let active = true;
 
-    const token = localStorage.getItem("auth_token") || localStorage.getItem("authToken");
+    const token = localStorage.getItem('auth_token') || localStorage.getItem('authToken');
 
     fetch(`/api/monetization/slots/${placement}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     })
-      .then(async (response) => {
+      .then(async response => {
         if (!response.ok) {
           throw new Error(`Failed to load ad slot ${placement}`);
         }
@@ -58,14 +58,14 @@ export default function AdSlot({
     }
 
     hasTrackedRef.current = true;
-    void fetch("/api/monetization/events", {
-      method: "POST",
+    void fetch('/api/monetization/events', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         placement,
-        eventType: "impression",
+        eventType: 'impression',
         creativeId: `${placement}-placeholder`,
         sessionId,
         metadata: {
@@ -87,11 +87,9 @@ export default function AdSlot({
     >
       <div className="mb-3 flex items-center justify-between gap-3">
         <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-orange-700">
-          {slot?.fallbackLabel ?? "Sponsored"}
+          {slot?.fallbackLabel ?? 'Sponsored'}
         </span>
-        <span className="text-xs text-slate-500">
-          {placement}
-        </span>
+        <span className="text-xs text-slate-500">{placement}</span>
       </div>
       <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
       <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>

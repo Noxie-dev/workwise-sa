@@ -1,47 +1,45 @@
 // @ts-nocheck
-import { Router, type Request } from "express";
-import bcrypt from "bcrypt";
-import { and, desc, eq } from "drizzle-orm";
-import { z } from "zod";
-import { insertUserSchema } from "@shared/schema";
+import { Router, type Request } from 'express';
+import bcrypt from 'bcrypt';
+import { and, desc, eq } from 'drizzle-orm';
+import { z } from 'zod';
+import { insertUserSchema } from '@shared/schema';
 import {
   wiseup_ad_impressions,
   wiseup_ads,
   wiseup_bookmarks,
   wiseup_content,
-} from "@shared/wiseup-schema";
-import { jobIngestBatchSchema } from "@shared/job-ingest-schema";
-import { storage } from "../storage";
-import { db } from "../db";
-import recommendationRoutes from "../recommendationRoutes";
-import {
-  generateProfessionalSummary,
-  generateJobDescription,
-  translateText,
-} from "../ai";
+} from '@shared/wiseup-schema';
+import { jobIngestBatchSchema } from '@shared/job-ingest-schema';
+import { storage } from '../storage';
+import { db } from '../db';
+import recommendationRoutes from '../recommendationRoutes';
+import { generateProfessionalSummary, generateJobDescription, translateText } from '../ai';
 import {
   analyzeImage,
   generateJobDescriptionWithClaude,
   generateProfessionalSummaryWithClaude,
   translateTextWithClaude,
-} from "../anthropic";
-import { generateCVPDF } from "../services/cvTemplateService";
-import { ingestJobs } from "../services/jobIngestionService";
-import { secretManager } from "../services/secretManager";
-import { authenticate, authorize, authorizeOwnership, type AuthenticatedRequest } from "../middleware/auth";
-import { rateLimiters } from "../../src/middleware/rateLimit";
+} from '../anthropic';
+import { generateCVPDF } from '../services/cvTemplateService';
+import { ingestJobs } from '../services/jobIngestionService';
+import { secretManager } from '../services/secretManager';
+import {
+  authenticate,
+  authorize,
+  authorizeOwnership,
+  type AuthenticatedRequest,
+} from '../middleware/auth';
+import { rateLimiters } from '../../src/middleware/rateLimit';
 
 const v1Router = Router();
 
 const bookmarkSchema = z.object({
   wiseUpItemId: z.string(),
-  itemType: z.enum(["content", "ad"]),
+  itemType: z.enum(['content', 'ad']),
 });
 
-const ingestBodySchema = z.union([
-  jobIngestBatchSchema,
-  z.object({ jobs: jobIngestBatchSchema }),
-]);
+const ingestBodySchema = z.union([jobIngestBatchSchema, z.object({ jobs: jobIngestBatchSchema })]);
 
 function hasValidIngestToken(req: Request) {
   const configuredToken = process.env.SCRAPING_INGEST_TOKEN;
@@ -49,12 +47,12 @@ function hasValidIngestToken(req: Request) {
     return true;
   }
 
-  const headerValue = req.header("x-ingest-token") ?? req.header("authorization");
+  const headerValue = req.header('x-ingest-token') ?? req.header('authorization');
   if (!headerValue) {
     return false;
   }
 
-  const normalized = headerValue.replace(/^Bearer\s+/i, "");
+  const normalized = headerValue.replace(/^Bearer\s+/i, '');
   return normalized === configuredToken;
 }
 
@@ -70,7 +68,7 @@ function calculateTopHiringCompanies(companies: any[], limit: number) {
   };
 
   return companies
-    .map((company) => {
+    .map(company => {
       const positionScore = Math.min(company.openPositions / 100, 1) * WEIGHTS.OPEN_POSITIONS;
 
       let activityScore = 0;
@@ -131,17 +129,17 @@ function calculateTopHiringCompanies(companies: any[], limit: number) {
 
 function isValidHiringMetrics(metrics: Record<string, unknown>): boolean {
   const validFields = [
-    "openPositions",
-    "recentHires",
-    "jobPostingFrequency",
-    "applicationResponseRate",
-    "hiringVelocity",
-    "industryDemand",
-    "urgentPositions",
-    "isHiringNow",
+    'openPositions',
+    'recentHires',
+    'jobPostingFrequency',
+    'applicationResponseRate',
+    'hiringVelocity',
+    'industryDemand',
+    'urgentPositions',
+    'isHiringNow',
   ];
 
-  return Object.keys(metrics).some((key) => validFields.includes(key));
+  return Object.keys(metrics).some(key => validFields.includes(key));
 }
 
 async function buildCVTemplate(req: Request, res: any) {
@@ -155,151 +153,151 @@ async function buildCVTemplate(req: Request, res: any) {
     !education?.length ||
     !skills?.length
   ) {
-    return res.status(400).json({ message: "Missing required CV information" });
+    return res.status(400).json({ message: 'Missing required CV information' });
   }
 
   const pdfBuffer = await generateCVPDF(cvData);
-  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader('Content-Type', 'application/pdf');
   res.setHeader(
-    "Content-Disposition",
-    `attachment; filename="cv-${personalInfo.fullName.replace(/\s+/g, "_")}.pdf"`
+    'Content-Disposition',
+    `attachment; filename="cv-${personalInfo.fullName.replace(/\s+/g, '_')}.pdf"`
   );
   res.send(pdfBuffer);
 }
 
 v1Router.use(rateLimiters.general);
 
-v1Router.get("/categories", async (_req, res) => {
+v1Router.get('/categories', async (_req, res) => {
   try {
     res.json(await storage.getCategories());
   } catch (error) {
-    console.error("Error fetching categories:", error);
-    res.status(500).json({ message: "Failed to fetch categories" });
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ message: 'Failed to fetch categories' });
   }
 });
 
-v1Router.get("/categories/:slug", async (req, res) => {
+v1Router.get('/categories/:slug', async (req, res) => {
   try {
     const category = await storage.getCategoryBySlug(req.params.slug);
     if (!category) {
-      return res.status(404).json({ message: "Category not found" });
+      return res.status(404).json({ message: 'Category not found' });
     }
     res.json(category);
   } catch (error) {
-    console.error("Error fetching category:", error);
-    res.status(500).json({ message: "Failed to fetch category" });
+    console.error('Error fetching category:', error);
+    res.status(500).json({ message: 'Failed to fetch category' });
   }
 });
 
-v1Router.get("/companies", async (_req, res) => {
+v1Router.get('/companies', async (_req, res) => {
   try {
     res.json(await storage.getCompanies());
   } catch (error) {
-    console.error("Error fetching companies:", error);
-    res.status(500).json({ message: "Failed to fetch companies" });
+    console.error('Error fetching companies:', error);
+    res.status(500).json({ message: 'Failed to fetch companies' });
   }
 });
 
-v1Router.get("/companies/:slug", async (req, res) => {
+v1Router.get('/companies/:slug', async (req, res) => {
   try {
     const company = await storage.getCompanyBySlug(req.params.slug);
     if (!company) {
-      return res.status(404).json({ message: "Company not found" });
+      return res.status(404).json({ message: 'Company not found' });
     }
     res.json(company);
   } catch (error) {
-    console.error("Error fetching company:", error);
-    res.status(500).json({ message: "Failed to fetch company" });
+    console.error('Error fetching company:', error);
+    res.status(500).json({ message: 'Failed to fetch company' });
   }
 });
 
-v1Router.get("/jobs", async (_req, res) => {
+v1Router.get('/jobs', async (_req, res) => {
   try {
     res.json(await storage.getJobsWithCompanies());
   } catch (error) {
-    console.error("Error fetching jobs:", error);
-    res.status(500).json({ message: "Failed to fetch jobs" });
+    console.error('Error fetching jobs:', error);
+    res.status(500).json({ message: 'Failed to fetch jobs' });
   }
 });
 
-v1Router.get("/jobs/featured", async (_req, res) => {
+v1Router.get('/jobs/featured', async (_req, res) => {
   try {
     res.json(await storage.getFeaturedJobs());
   } catch (error) {
-    console.error("Error fetching featured jobs:", error);
-    res.status(500).json({ message: "Failed to fetch featured jobs" });
+    console.error('Error fetching featured jobs:', error);
+    res.status(500).json({ message: 'Failed to fetch featured jobs' });
   }
 });
 
-v1Router.get("/jobs/search", async (req, res) => {
+v1Router.get('/jobs/search', async (req, res) => {
   try {
-    const query = (req.query.q as string) || "";
+    const query = (req.query.q as string) || '';
     res.json(await storage.searchJobs(query));
   } catch (error) {
-    console.error("Error searching jobs:", error);
-    res.status(500).json({ message: "Failed to search jobs" });
+    console.error('Error searching jobs:', error);
+    res.status(500).json({ message: 'Failed to search jobs' });
   }
 });
 
-v1Router.get("/jobs/company/:id", async (req, res) => {
+v1Router.get('/jobs/company/:id', async (req, res) => {
   try {
     const companyId = parseInt(req.params.id, 10);
     if (Number.isNaN(companyId)) {
-      return res.status(400).json({ message: "Invalid company ID" });
+      return res.status(400).json({ message: 'Invalid company ID' });
     }
     res.json(await storage.getJobsByCompany(companyId));
   } catch (error) {
-    console.error("Error fetching jobs by company:", error);
-    res.status(500).json({ message: "Failed to fetch jobs by company" });
+    console.error('Error fetching jobs by company:', error);
+    res.status(500).json({ message: 'Failed to fetch jobs by company' });
   }
 });
 
-v1Router.get("/jobs/category/:id", async (req, res) => {
+v1Router.get('/jobs/category/:id', async (req, res) => {
   try {
     const categoryId = parseInt(req.params.id, 10);
     if (Number.isNaN(categoryId)) {
-      return res.status(400).json({ message: "Invalid category ID" });
+      return res.status(400).json({ message: 'Invalid category ID' });
     }
     res.json(await storage.getJobsByCategory(categoryId));
   } catch (error) {
-    console.error("Error fetching jobs by category:", error);
-    res.status(500).json({ message: "Failed to fetch jobs by category" });
+    console.error('Error fetching jobs by category:', error);
+    res.status(500).json({ message: 'Failed to fetch jobs by category' });
   }
 });
 
-v1Router.get("/jobs/:id", async (req, res) => {
+v1Router.get('/jobs/:id', async (req, res) => {
   try {
     const jobId = parseInt(req.params.id, 10);
     if (Number.isNaN(jobId)) {
-      return res.status(400).json({ message: "Invalid job ID" });
+      return res.status(400).json({ message: 'Invalid job ID' });
     }
 
     const job = await storage.getJob(jobId);
     if (!job) {
-      return res.status(404).json({ message: "Job not found" });
+      return res.status(404).json({ message: 'Job not found' });
     }
 
     const company = await storage.getCompany(job.companyId);
     if (!company) {
-      return res.status(404).json({ message: "Company not found" });
+      return res.status(404).json({ message: 'Company not found' });
     }
 
     res.json({ ...job, company });
   } catch (error) {
-    console.error("Error fetching job:", error);
-    res.status(500).json({ message: "Failed to fetch job" });
+    console.error('Error fetching job:', error);
+    res.status(500).json({ message: 'Failed to fetch job' });
   }
 });
 
-v1Router.post("/jobs/ingest", async (req, res) => {
+v1Router.post('/jobs/ingest', async (req, res) => {
   if (!hasValidIngestToken(req)) {
-    return res.status(401).json({ message: "Invalid ingest token" });
+    return res.status(401).json({ message: 'Invalid ingest token' });
   }
 
   const parsed = ingestBodySchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({
-      message: "Invalid ingestion payload",
+      message: 'Invalid ingestion payload',
       errors: parsed.error.issues,
     });
   }
@@ -307,24 +305,28 @@ v1Router.post("/jobs/ingest", async (req, res) => {
   try {
     const jobs = Array.isArray(parsed.data) ? parsed.data : parsed.data.jobs;
     if (jobs.length > 500) {
-      return res.status(413).json({ message: "Batch size exceeds maximum of 500 jobs" });
+      return res.status(413).json({ message: 'Batch size exceeds maximum of 500 jobs' });
     }
 
     res.status(200).json(await ingestJobs(jobs));
   } catch (error) {
     res.status(500).json({
-      message: "Failed to ingest jobs",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: 'Failed to ingest jobs',
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
 
-v1Router.post("/users/login", rateLimiters.auth, async (req, res) => {
+v1Router.post('/users/login', rateLimiters.auth, async (req, res) => {
   try {
     const { username, email, password } = req.body;
     if (!password) {
       return res.status(400).json({
-        error: { type: "ValidationError", message: "Password is required", details: { field: "password" } },
+        error: {
+          type: 'ValidationError',
+          message: 'Password is required',
+          details: { field: 'password' },
+        },
       });
     }
 
@@ -333,32 +335,34 @@ v1Router.post("/users/login", rateLimiters.auth, async (req, res) => {
       user = await storage.getUserByUsername(username);
     } else if (email) {
       const users = await storage.getUsers();
-      user = users.find((item) => item.email === email);
+      user = users.find(item => item.email === email);
     } else {
       return res.status(400).json({
         error: {
-          type: "ValidationError",
-          message: "Username or email is required",
-          details: { field: "username_or_email" },
+          type: 'ValidationError',
+          message: 'Username or email is required',
+          details: { field: 'username_or_email' },
         },
       });
     }
 
     if (!user?.password || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({
-        error: { type: "AuthenticationError", message: "Invalid credentials", details: {} },
+        error: { type: 'AuthenticationError', message: 'Invalid credentials', details: {} },
       });
     }
 
     const { password: _password, ...userWithoutPassword } = user;
-    res.json({ success: true, data: userWithoutPassword, message: "Login successful" });
+    res.json({ success: true, data: userWithoutPassword, message: 'Login successful' });
   } catch (error) {
-    console.error("Error logging in user:", error);
-    res.status(500).json({ error: { type: "ServerError", message: "Failed to login", details: {} } });
+    console.error('Error logging in user:', error);
+    res
+      .status(500)
+      .json({ error: { type: 'ServerError', message: 'Failed to login', details: {} } });
   }
 });
 
-v1Router.post("/users/register", rateLimiters.auth, async (req, res) => {
+v1Router.post('/users/register', rateLimiters.auth, async (req, res) => {
   try {
     const userData = insertUserSchema.parse(req.body);
 
@@ -366,15 +370,23 @@ v1Router.post("/users/register", rateLimiters.auth, async (req, res) => {
       const existingUser = await storage.getUserByUsername(userData.username);
       if (existingUser) {
         return res.status(409).json({
-          error: { type: "ConflictError", message: "Username already exists", details: { field: "username" } },
+          error: {
+            type: 'ConflictError',
+            message: 'Username already exists',
+            details: { field: 'username' },
+          },
         });
       }
     }
 
     const existingUsers = await storage.getUsers();
-    if (existingUsers.some((user) => user.email === userData.email)) {
+    if (existingUsers.some(user => user.email === userData.email)) {
       return res.status(409).json({
-        error: { type: "ConflictError", message: "Email already exists", details: { field: "email" } },
+        error: {
+          type: 'ConflictError',
+          message: 'Email already exists',
+          details: { field: 'email' },
+        },
       });
     }
 
@@ -387,99 +399,112 @@ v1Router.post("/users/register", rateLimiters.auth, async (req, res) => {
     res.status(201).json({
       success: true,
       data: userWithoutPassword,
-      message: "User registered successfully",
+      message: 'User registered successfully',
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         error: {
-          type: "ValidationError",
-          message: "Invalid user data",
-          details: error.issues.reduce((acc, issue) => {
-            acc[issue.path.join(".")] = issue.message;
-            return acc;
-          }, {} as Record<string, string>),
+          type: 'ValidationError',
+          message: 'Invalid user data',
+          details: error.issues.reduce(
+            (acc, issue) => {
+              acc[issue.path.join('.')] = issue.message;
+              return acc;
+            },
+            {} as Record<string, string>
+          ),
         },
       });
     }
 
-    console.error("Error registering user:", error);
+    console.error('Error registering user:', error);
     res.status(500).json({
-      error: { type: "ServerError", message: "Failed to register user", details: {} },
+      error: { type: 'ServerError', message: 'Failed to register user', details: {} },
     });
   }
 });
 
-v1Router.get("/users/:userId", authenticate, authorizeOwnership("userId"), async (req: AuthenticatedRequest, res) => {
-  try {
-    const userId = parseInt(req.params.userId, 10);
-    if (Number.isNaN(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
-    }
+v1Router.get(
+  '/users/:userId',
+  authenticate,
+  authorizeOwnership('userId'),
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = parseInt(req.params.userId, 10);
+      if (Number.isNaN(userId)) {
+        return res.status(400).json({ message: 'Invalid user ID' });
+      }
 
-    const user = await storage.getUserById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
 
-    const { password, ...userWithoutPassword } = user;
-    res.json(userWithoutPassword);
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    res.status(500).json({ message: "Failed to fetch user" });
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ message: 'Failed to fetch user' });
+    }
   }
-});
+);
 
-v1Router.put("/users/:userId", authenticate, authorizeOwnership("userId"), async (req: AuthenticatedRequest, res) => {
-  try {
-    const userId = parseInt(req.params.userId, 10);
-    if (Number.isNaN(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
+v1Router.put(
+  '/users/:userId',
+  authenticate,
+  authorizeOwnership('userId'),
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = parseInt(req.params.userId, 10);
+      if (Number.isNaN(userId)) {
+        return res.status(400).json({ message: 'Invalid user ID' });
+      }
+
+      const updatedUser = await storage.updateUser(userId, req.body);
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      res.status(500).json({ message: 'Failed to update user' });
     }
-
-    const updatedUser = await storage.updateUser(userId, req.body);
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const { password, ...userWithoutPassword } = updatedUser;
-    res.json(userWithoutPassword);
-  } catch (error) {
-    console.error("Error updating user:", error);
-    res.status(500).json({ message: "Failed to update user" });
   }
-});
+);
 
-v1Router.get("/users", authenticate, authorize(["admin"]), async (_req, res) => {
+v1Router.get('/users', authenticate, authorize(['admin']), async (_req, res) => {
   try {
     const users = await storage.getUsers();
     res.json(users.map(({ password, ...user }) => user));
   } catch (error) {
-    console.error("Error fetching users:", error);
-    res.status(500).json({ message: "Failed to fetch users" });
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Failed to fetch users' });
   }
 });
 
-v1Router.delete("/users/:userId", authenticate, authorize(["admin"]), async (req, res) => {
+v1Router.delete('/users/:userId', authenticate, authorize(['admin']), async (req, res) => {
   try {
     const userId = parseInt(req.params.userId, 10);
     if (Number.isNaN(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
+      return res.status(400).json({ message: 'Invalid user ID' });
     }
 
     const success = await storage.deleteUser(userId);
     if (!success) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: 'User not found' });
     }
 
     res.status(204).end();
   } catch (error) {
-    console.error("Error deleting user:", error);
-    res.status(500).json({ message: "Failed to delete user" });
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Failed to delete user' });
   }
 });
 
-v1Router.get("/companies/top-hiring", async (req, res) => {
+v1Router.get('/companies/top-hiring', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string, 10) || 3;
     const companies = await storage.getCompaniesWithHiringMetrics();
@@ -489,62 +514,71 @@ v1Router.get("/companies/top-hiring", async (req, res) => {
         companies: calculateTopHiringCompanies(companies, limit),
         lastUpdated: new Date().toISOString(),
         algorithm: {
-          version: "1.0",
+          version: '1.0',
           factors: [
-            "Open positions (25%)",
-            "Hiring activity (20%)",
-            "Company quality (15%)",
-            "Hiring velocity (15%)",
-            "Industry demand (10%)",
-            "Growth rate (10%)",
-            "Urgency (5%)",
+            'Open positions (25%)',
+            'Hiring activity (20%)',
+            'Company quality (15%)',
+            'Hiring velocity (15%)',
+            'Industry demand (10%)',
+            'Growth rate (10%)',
+            'Urgency (5%)',
           ],
         },
       },
     });
   } catch (error) {
-    console.error("Error fetching top hiring companies:", error);
+    console.error('Error fetching top hiring companies:', error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch top hiring companies",
-      error: process.env.NODE_ENV === "development" && error instanceof Error ? error.message : undefined,
+      message: 'Failed to fetch top hiring companies',
+      error:
+        process.env.NODE_ENV === 'development' && error instanceof Error
+          ? error.message
+          : undefined,
     });
   }
 });
 
-v1Router.get("/analytics/hiring-trends", async (_req, res) => {
+v1Router.get('/analytics/hiring-trends', async (_req, res) => {
   try {
     res.json({ success: true, data: await storage.getHiringTrends() });
   } catch (error) {
-    console.error("Error fetching hiring trends:", error);
+    console.error('Error fetching hiring trends:', error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch hiring trends",
-      error: process.env.NODE_ENV === "development" && error instanceof Error ? error.message : undefined,
+      message: 'Failed to fetch hiring trends',
+      error:
+        process.env.NODE_ENV === 'development' && error instanceof Error
+          ? error.message
+          : undefined,
     });
   }
 });
 
-v1Router.patch("/companies/:id/hiring-metrics", async (req, res) => {
+v1Router.patch('/companies/:id/hiring-metrics', async (req, res) => {
   try {
     const companyId = parseInt(req.params.id, 10);
     const metrics = req.body;
     if (Number.isNaN(companyId) || !isValidHiringMetrics(metrics)) {
-      return res.status(400).json({ success: false, message: "Invalid hiring metrics data" });
+      return res.status(400).json({ success: false, message: 'Invalid hiring metrics data' });
     }
 
     const updated = await storage.updateCompanyHiringMetrics(companyId, metrics);
     if (!updated) {
-      return res.status(404).json({ success: false, message: "Company not found" });
+      return res.status(404).json({ success: false, message: 'Company not found' });
     }
 
-    res.json({ success: true, message: "Hiring metrics updated successfully" });
+    res.json({ success: true, message: 'Hiring metrics updated successfully' });
   } catch (error) {
-    console.error("Error updating hiring metrics:", error);
+    console.error('Error updating hiring metrics:', error);
     res.status(500).json({
       success: false,
-      message: "Failed to update hiring metrics",
-      error: process.env.NODE_ENV === "development" && error instanceof Error ? error.message : undefined,
+      message: 'Failed to update hiring metrics',
+      error:
+        process.env.NODE_ENV === 'development' && error instanceof Error
+          ? error.message
+          : undefined,
     });
   }
 });
@@ -552,65 +586,69 @@ v1Router.patch("/companies/:id/hiring-metrics", async (req, res) => {
 const cvRouter = Router();
 cvRouter.use(authenticate, rateLimiters.ai);
 
-cvRouter.post("/generate-summary", async (req, res) => {
+cvRouter.post('/generate-summary', async (req, res) => {
   try {
-    const { name, skills, experience, education, language = "English" } = req.body;
+    const { name, skills, experience, education, language = 'English' } = req.body;
     if (!name || !skills || !experience || !education) {
-      return res.status(400).json({ message: "Missing required fields for generating a professional summary" });
+      return res
+        .status(400)
+        .json({ message: 'Missing required fields for generating a professional summary' });
     }
     res.json({
       summary: await generateProfessionalSummary({ name, skills, experience, education, language }),
     });
   } catch (error) {
-    console.error("Error generating professional summary:", error);
+    console.error('Error generating professional summary:', error);
     res.status(500).json({
-      message: "Failed to generate professional summary",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: 'Failed to generate professional summary',
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
 
-cvRouter.post("/generate-job-description", async (req, res) => {
+cvRouter.post('/generate-job-description', async (req, res) => {
   try {
-    const { jobInfo, language = "English" } = req.body;
+    const { jobInfo, language = 'English' } = req.body;
     if (!jobInfo || !jobInfo.jobTitle || !jobInfo.employer) {
-      return res.status(400).json({ message: "Missing required job information" });
+      return res.status(400).json({ message: 'Missing required job information' });
     }
     res.json({ description: await generateJobDescription(jobInfo, language) });
   } catch (error) {
-    console.error("Error generating job description:", error);
+    console.error('Error generating job description:', error);
     res.status(500).json({
-      message: "Failed to generate job description",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: 'Failed to generate job description',
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
 
-cvRouter.post("/translate", async (req, res) => {
+cvRouter.post('/translate', async (req, res) => {
   try {
     const { text, targetLanguage } = req.body;
     if (!text || !targetLanguage) {
-      return res.status(400).json({ message: "Missing text or target language" });
+      return res.status(400).json({ message: 'Missing text or target language' });
     }
     res.json({ translatedText: await translateText(text, targetLanguage) });
   } catch (error) {
-    console.error("Error translating text:", error);
+    console.error('Error translating text:', error);
     res.status(500).json({
-      message: "Failed to translate text",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: 'Failed to translate text',
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
 
-cvRouter.post("/claude/generate-summary", async (req, res) => {
+cvRouter.post('/claude/generate-summary', async (req, res) => {
   try {
-    if (!(await secretManager.getSecret("ANTHROPIC_API_KEY"))) {
-      return res.status(500).json({ message: "Anthropic API key is not configured" });
+    if (!(await secretManager.getSecret('ANTHROPIC_API_KEY'))) {
+      return res.status(500).json({ message: 'Anthropic API key is not configured' });
     }
 
-    const { name, skills, experience, education, language = "English" } = req.body;
+    const { name, skills, experience, education, language = 'English' } = req.body;
     if (!name || !skills || !experience || !education) {
-      return res.status(400).json({ message: "Missing required fields for generating a professional summary" });
+      return res
+        .status(400)
+        .json({ message: 'Missing required fields for generating a professional summary' });
     }
 
     res.json({
@@ -623,97 +661,101 @@ cvRouter.post("/claude/generate-summary", async (req, res) => {
       }),
     });
   } catch (error) {
-    console.error("Error generating professional summary with Claude:", error);
+    console.error('Error generating professional summary with Claude:', error);
     res.status(500).json({
-      message: "Failed to generate professional summary with Claude",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: 'Failed to generate professional summary with Claude',
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
 
-cvRouter.post("/claude/generate-job-description", async (req, res) => {
+cvRouter.post('/claude/generate-job-description', async (req, res) => {
   try {
-    if (!(await secretManager.getSecret("ANTHROPIC_API_KEY"))) {
-      return res.status(500).json({ message: "Anthropic API key is not configured" });
+    if (!(await secretManager.getSecret('ANTHROPIC_API_KEY'))) {
+      return res.status(500).json({ message: 'Anthropic API key is not configured' });
     }
 
-    const { jobInfo, language = "English" } = req.body;
+    const { jobInfo, language = 'English' } = req.body;
     if (!jobInfo || !jobInfo.jobTitle || !jobInfo.employer) {
-      return res.status(400).json({ message: "Missing required job information" });
+      return res.status(400).json({ message: 'Missing required job information' });
     }
 
     res.json({ description: await generateJobDescriptionWithClaude(jobInfo, language) });
   } catch (error) {
-    console.error("Error generating job description with Claude:", error);
+    console.error('Error generating job description with Claude:', error);
     res.status(500).json({
-      message: "Failed to generate job description with Claude",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: 'Failed to generate job description with Claude',
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
 
-cvRouter.post("/claude/translate", async (req, res) => {
+cvRouter.post('/claude/translate', async (req, res) => {
   try {
-    if (!(await secretManager.getSecret("ANTHROPIC_API_KEY"))) {
-      return res.status(500).json({ message: "Anthropic API key is not configured" });
+    if (!(await secretManager.getSecret('ANTHROPIC_API_KEY'))) {
+      return res.status(500).json({ message: 'Anthropic API key is not configured' });
     }
 
     const { text, targetLanguage } = req.body;
     if (!text || !targetLanguage) {
-      return res.status(400).json({ message: "Missing text or target language" });
+      return res.status(400).json({ message: 'Missing text or target language' });
     }
 
     res.json({ translatedText: await translateTextWithClaude(text, targetLanguage) });
   } catch (error) {
-    console.error("Error translating text with Claude:", error);
+    console.error('Error translating text with Claude:', error);
     res.status(500).json({
-      message: "Failed to translate text with Claude",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: 'Failed to translate text with Claude',
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
 
-cvRouter.post("/claude/analyze-image", async (req, res) => {
+cvRouter.post('/claude/analyze-image', async (req, res) => {
   try {
-    if (!(await secretManager.getSecret("ANTHROPIC_API_KEY"))) {
-      return res.status(500).json({ message: "Anthropic API key is not configured" });
+    if (!(await secretManager.getSecret('ANTHROPIC_API_KEY'))) {
+      return res.status(500).json({ message: 'Anthropic API key is not configured' });
     }
 
     const imageUrl = req.body.imageUrl ?? req.body.image;
     if (!imageUrl) {
-      return res.status(400).json({ message: "Missing image URL" });
+      return res.status(400).json({ message: 'Missing image URL' });
     }
 
     res.json({ analysis: await analyzeImage(imageUrl) });
   } catch (error) {
-    console.error("Error analyzing image with Claude:", error);
+    console.error('Error analyzing image with Claude:', error);
     res.status(500).json({
-      message: "Failed to analyze image with Claude",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: 'Failed to analyze image with Claude',
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
 
-cvRouter.post("/generate-template", buildCVTemplate);
-cvRouter.post("/cv/generate-template", buildCVTemplate);
+cvRouter.post('/generate-template', buildCVTemplate);
+cvRouter.post('/cv/generate-template', buildCVTemplate);
 
-v1Router.use("/cv", cvRouter);
-v1Router.use("/recommendations", authenticate, rateLimiters.strict, recommendationRoutes);
+v1Router.use('/cv', cvRouter);
+v1Router.use('/recommendations', authenticate, rateLimiters.strict, recommendationRoutes);
 
 const wiseupRouter = Router();
 
-wiseupRouter.get("/content", async (req, res) => {
+wiseupRouter.get('/content', async (req, res) => {
   try {
     const maxItems = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
-    const contentItems = await db.select().from(wiseup_content).orderBy(desc(wiseup_content.createdAt)).limit(maxItems);
+    const contentItems = await db
+      .select()
+      .from(wiseup_content)
+      .orderBy(desc(wiseup_content.createdAt))
+      .limit(maxItems);
     res.json(contentItems);
   } catch (error) {
-    console.error("Error fetching content:", error);
-    res.status(500).json({ message: "Failed to fetch content" });
+    console.error('Error fetching content:', error);
+    res.status(500).json({ message: 'Failed to fetch content' });
   }
 });
 
-wiseupRouter.get("/ads", async (req, res) => {
+wiseupRouter.get('/ads', async (req, res) => {
   try {
     const maxItems = req.query.limit ? parseInt(req.query.limit as string, 10) : 5;
     const adItems = await db
@@ -723,35 +765,35 @@ wiseupRouter.get("/ads", async (req, res) => {
       .limit(maxItems);
     res.json(adItems);
   } catch (error) {
-    console.error("Error fetching ads:", error);
-    res.status(500).json({ message: "Failed to fetch ads" });
+    console.error('Error fetching ads:', error);
+    res.status(500).json({ message: 'Failed to fetch ads' });
   }
 });
 
-wiseupRouter.post("/ads/impression", authenticate, async (req: AuthenticatedRequest, res) => {
+wiseupRouter.post('/ads/impression', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const { adId } = req.body;
     if (!adId) {
-      return res.status(400).json({ message: "Ad ID is required" });
+      return res.status(400).json({ message: 'Ad ID is required' });
     }
 
     await db.insert(wiseup_ad_impressions).values({
       adId: Number(adId),
-      userId: req.user?.uid || "anonymous",
-      platform: "web",
+      userId: req.user?.uid || 'anonymous',
+      platform: 'web',
     });
 
     res.json({ success: true });
   } catch (error) {
-    console.error("Error tracking ad impression:", error);
-    res.status(500).json({ message: "Failed to track ad impression" });
+    console.error('Error tracking ad impression:', error);
+    res.status(500).json({ message: 'Failed to track ad impression' });
   }
 });
 
-wiseupRouter.get("/bookmarks", authenticate, async (req: AuthenticatedRequest, res) => {
+wiseupRouter.get('/bookmarks', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.uid) {
-      return res.status(401).json({ message: "Authentication required" });
+      return res.status(401).json({ message: 'Authentication required' });
     }
 
     const bookmarks = await db
@@ -761,8 +803,8 @@ wiseupRouter.get("/bookmarks", authenticate, async (req: AuthenticatedRequest, r
       .orderBy(desc(wiseup_bookmarks.bookmarkedAt));
 
     const items = await Promise.all(
-      bookmarks.map(async (bookmark) => {
-        if (bookmark.itemType === "content") {
+      bookmarks.map(async bookmark => {
+        if (bookmark.itemType === 'content') {
           const [content] = await db
             .select()
             .from(wiseup_content)
@@ -780,15 +822,15 @@ wiseupRouter.get("/bookmarks", authenticate, async (req: AuthenticatedRequest, r
 
     res.json(items.filter(Boolean));
   } catch (error) {
-    console.error("Error fetching bookmarks:", error);
-    res.status(500).json({ message: "Failed to fetch bookmarks" });
+    console.error('Error fetching bookmarks:', error);
+    res.status(500).json({ message: 'Failed to fetch bookmarks' });
   }
 });
 
-wiseupRouter.post("/bookmarks", authenticate, async (req: AuthenticatedRequest, res) => {
+wiseupRouter.post('/bookmarks', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.uid) {
-      return res.status(401).json({ message: "Authentication required" });
+      return res.status(401).json({ message: 'Authentication required' });
     }
 
     const validatedData = bookmarkSchema.parse(req.body);
@@ -804,7 +846,7 @@ wiseupRouter.post("/bookmarks", authenticate, async (req: AuthenticatedRequest, 
       );
 
     if (existingBookmark) {
-      return res.status(409).json({ message: "Item already bookmarked" });
+      return res.status(409).json({ message: 'Item already bookmarked' });
     }
 
     const [newBookmark] = await db
@@ -819,18 +861,18 @@ wiseupRouter.post("/bookmarks", authenticate, async (req: AuthenticatedRequest, 
 
     res.status(201).json(newBookmark);
   } catch (error) {
-    console.error("Error adding bookmark:", error);
+    console.error('Error adding bookmark:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: "Invalid request data", errors: error.issues });
+      return res.status(400).json({ message: 'Invalid request data', errors: error.issues });
     }
-    res.status(500).json({ message: "Failed to add bookmark" });
+    res.status(500).json({ message: 'Failed to add bookmark' });
   }
 });
 
-wiseupRouter.delete("/bookmarks/:id", authenticate, async (req: AuthenticatedRequest, res) => {
+wiseupRouter.delete('/bookmarks/:id', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.uid) {
-      return res.status(401).json({ message: "Authentication required" });
+      return res.status(401).json({ message: 'Authentication required' });
     }
 
     const bookmarkId = parseInt(req.params.id, 10);
@@ -840,17 +882,17 @@ wiseupRouter.delete("/bookmarks/:id", authenticate, async (req: AuthenticatedReq
       .where(and(eq(wiseup_bookmarks.id, bookmarkId), eq(wiseup_bookmarks.userId, req.user.uid)));
 
     if (!bookmark) {
-      return res.status(404).json({ message: "Bookmark not found" });
+      return res.status(404).json({ message: 'Bookmark not found' });
     }
 
     await db.delete(wiseup_bookmarks).where(eq(wiseup_bookmarks.id, bookmarkId));
     res.json({ success: true });
   } catch (error) {
-    console.error("Error removing bookmark:", error);
-    res.status(500).json({ message: "Failed to remove bookmark" });
+    console.error('Error removing bookmark:', error);
+    res.status(500).json({ message: 'Failed to remove bookmark' });
   }
 });
 
-v1Router.use("/wiseup", wiseupRouter);
+v1Router.use('/wiseup', wiseupRouter);
 
 export default v1Router;

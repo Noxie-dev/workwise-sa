@@ -9,7 +9,7 @@ console.log('🔥 Starting Firebase deployment...');
 try {
   const projects = execSync('firebase projects:list', { encoding: 'utf8' });
   console.log('✅ Firebase authentication verified');
-  
+
   // Check current project
   const currentProject = execSync('firebase use', { encoding: 'utf8' });
   console.log(`📋 Current project: ${currentProject.trim()}`);
@@ -32,12 +32,12 @@ if (!fs.existsSync('.firebaserc')) {
 // Check if build exists and is recent
 const distPath = 'dist/public';
 const buildTime = fs.existsSync(distPath) ? fs.statSync(distPath).mtime : null;
-const shouldRebuild = !buildTime || (Date.now() - buildTime.getTime()) > 5 * 60 * 1000; // 5 minutes
+const shouldRebuild = !buildTime || Date.now() - buildTime.getTime() > 5 * 60 * 1000; // 5 minutes
 
 if (shouldRebuild) {
   console.log('📦 Building application...');
   try {
-    execSync('npm run build', { stdio: 'inherit' });
+    execSync('pnpm run build', { stdio: 'inherit' });
     console.log('✅ Build completed successfully');
   } catch (error) {
     console.error('❌ Build failed:', error.message);
@@ -49,9 +49,7 @@ if (shouldRebuild) {
 
 // Validate build output
 const criticalFiles = ['index.html'];
-const missingFiles = criticalFiles.filter(file => 
-  !fs.existsSync(`${distPath}/${file}`)
-);
+const missingFiles = criticalFiles.filter(file => !fs.existsSync(`${distPath}/${file}`));
 
 if (missingFiles.length > 0) {
   console.error('❌ Missing critical files in build:', missingFiles);
@@ -63,7 +61,7 @@ console.log('🚀 Deploying to Firebase...');
 try {
   // Get deployment target from command line args or default to hosting
   const deployTarget = process.argv[2] || 'hosting';
-  
+
   if (deployTarget === 'all') {
     console.log('📡 Deploying all services (hosting + functions + firestore)...');
     execSync('firebase deploy', { stdio: 'inherit' });
@@ -74,14 +72,14 @@ try {
     console.log('📡 Deploying hosting...');
     execSync('firebase deploy --only hosting', { stdio: 'inherit' });
   }
-  
+
   // Post-deployment verification
   console.log('🔍 Verifying deployment...');
   try {
     const projectInfo = execSync('firebase projects:list --json', { encoding: 'utf8' });
     const projects = JSON.parse(projectInfo);
     const currentProject = projects.find(p => p.id === 'workwise-sa-project');
-    
+
     if (currentProject) {
       console.log('✅ Firebase deployment successful!');
       console.log(`🌐 Your app is live at: https://${currentProject.id}.web.app`);
@@ -90,17 +88,16 @@ try {
   } catch (verifyError) {
     console.warn('⚠️  Could not verify deployment, but deploy command succeeded');
   }
-  
+
   // Show next steps
   console.log('\n📋 Post-deployment checklist:');
   console.log('□ Test the live site');
   console.log('□ Check Firebase Console for any issues');
   console.log('□ Verify security rules if updated');
   console.log('□ Monitor function logs if functions were deployed');
-  
 } catch (error) {
   console.error('❌ Firebase deployment failed:', error.message);
-  
+
   // Try to get more detailed error info
   try {
     console.log('📋 Getting Firebase project status...');
@@ -108,6 +105,6 @@ try {
   } catch (statusError) {
     console.warn('Could not get project status');
   }
-  
+
   process.exit(1);
 }

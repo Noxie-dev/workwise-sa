@@ -13,7 +13,7 @@ import {
   Search,
   Building2,
   MapPin,
-  Briefcase
+  Briefcase,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -50,15 +50,16 @@ const CompanySearchAssistant: React.FC = () => {
     {
       id: '1',
       type: 'assistant',
-      content: "Hi! I'm here to help you find entry-level job opportunities. I can help you discover companies that hire people with no experience and provide training. Try asking me something like 'Which companies hire general workers?' or 'Show me retail companies in my area'.",
+      content:
+        "Hi! I'm here to help you find entry-level job opportunities. I can help you discover companies that hire people with no experience and provide training. Try asking me something like 'Which companies hire general workers?' or 'Show me retail companies in my area'.",
       timestamp: new Date(),
       suggestions: [
-        "Companies hiring general workers",
-        "Retail jobs with training",
-        "Security companies near me",
-        "Entry-level jobs with benefits"
-      ]
-    }
+        'Companies hiring general workers',
+        'Retail jobs with training',
+        'Security companies near me',
+        'Entry-level jobs with benefits',
+      ],
+    },
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -79,7 +80,7 @@ const CompanySearchAssistant: React.FC = () => {
       id: Date.now().toString(),
       type: 'user',
       content: message,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -96,13 +97,14 @@ const CompanySearchAssistant: React.FC = () => {
 
   const generateAIResponse = (userMessage: string): Message => {
     const lowerMessage = userMessage.toLowerCase();
-    
+
     // Mock AI responses based on keywords
     if (lowerMessage.includes('general worker') || lowerMessage.includes('general')) {
       return {
         id: Date.now().toString(),
         type: 'assistant',
-        content: "I found several companies actively hiring general workers with no experience required! Here are the top matches:",
+        content:
+          'I found several companies actively hiring general workers with no experience required! Here are the top matches:',
         timestamp: new Date(),
         companyResults: [
           {
@@ -113,7 +115,7 @@ const CompanySearchAssistant: React.FC = () => {
             openPositions: 245,
             rating: 4.1,
             isHiringNow: true,
-            matchScore: 95
+            matchScore: 95,
           },
           {
             id: 3,
@@ -123,15 +125,15 @@ const CompanySearchAssistant: React.FC = () => {
             openPositions: 156,
             rating: 3.8,
             isHiringNow: true,
-            matchScore: 88
-          }
+            matchScore: 88,
+          },
         ],
         suggestions: [
-          "What training does Shoprite provide?",
-          "Tell me about Transnet benefits",
-          "Show me more general worker jobs",
-          "Companies with transport allowance"
-        ]
+          'What training does Shoprite provide?',
+          'Tell me about Transnet benefits',
+          'Show me more general worker jobs',
+          'Companies with transport allowance',
+        ],
       };
     }
 
@@ -139,7 +141,8 @@ const CompanySearchAssistant: React.FC = () => {
       return {
         id: Date.now().toString(),
         type: 'assistant',
-        content: "Here are retail companies that offer great entry-level opportunities with training:",
+        content:
+          'Here are retail companies that offer great entry-level opportunities with training:',
         timestamp: new Date(),
         companyResults: [
           {
@@ -150,7 +153,7 @@ const CompanySearchAssistant: React.FC = () => {
             openPositions: 189,
             rating: 4.2,
             isHiringNow: true,
-            matchScore: 92
+            matchScore: 92,
           },
           {
             id: 7,
@@ -160,15 +163,15 @@ const CompanySearchAssistant: React.FC = () => {
             openPositions: 98,
             rating: 4.4,
             isHiringNow: true,
-            matchScore: 88
-          }
+            matchScore: 88,
+          },
         ],
         suggestions: [
-          "What benefits does Pick n Pay offer?",
-          "Tell me about Clicks training programs",
-          "Show me more retail companies",
-          "Entry-level cashier positions"
-        ]
+          'What benefits does Pick n Pay offer?',
+          'Tell me about Clicks training programs',
+          'Show me more retail companies',
+          'Entry-level cashier positions',
+        ],
       };
     }
 
@@ -176,7 +179,7 @@ const CompanySearchAssistant: React.FC = () => {
       return {
         id: Date.now().toString(),
         type: 'assistant',
-        content: "I found security companies that provide full training and equipment:",
+        content: 'I found security companies that provide full training and equipment:',
         timestamp: new Date(),
         companyResults: [
           {
@@ -187,15 +190,15 @@ const CompanySearchAssistant: React.FC = () => {
             openPositions: 278,
             rating: 3.7,
             isHiringNow: true,
-            matchScore: 90
-          }
+            matchScore: 90,
+          },
         ],
         suggestions: [
-          "What training does ADT provide?",
-          "Security guard shift patterns",
-          "More security companies",
-          "Armed vs unarmed positions"
-        ]
+          'What training does ADT provide?',
+          'Security guard shift patterns',
+          'More security companies',
+          'Armed vs unarmed positions',
+        ],
       };
     }
 
@@ -203,14 +206,15 @@ const CompanySearchAssistant: React.FC = () => {
     return {
       id: Date.now().toString(),
       type: 'assistant',
-      content: "I understand you're looking for job opportunities. I can help you find entry-level positions that don't require experience. You could ask me about:\n\n• Types of work (retail, security, cleaning, warehouse)\n• Location preferences (your city or area)\n• Work schedule (full-time, part-time, shifts)\n• Benefits you need (transport, medical aid, training)\n\nWhat kind of work interests you most?",
+      content:
+        "I understand you're looking for job opportunities. I can help you find entry-level positions that don't require experience. You could ask me about:\n\n• Types of work (retail, security, cleaning, warehouse)\n• Location preferences (your city or area)\n• Work schedule (full-time, part-time, shifts)\n• Benefits you need (transport, medical aid, training)\n\nWhat kind of work interests you most?",
       timestamp: new Date(),
       suggestions: [
-        "General worker positions",
-        "Retail jobs with training",
-        "Security guard opportunities",
-        "Companies near me"
-      ]
+        'General worker positions',
+        'Retail jobs with training',
+        'Security guard opportunities',
+        'Companies near me',
+      ],
     };
   };
 
@@ -245,7 +249,9 @@ const CompanySearchAssistant: React.FC = () => {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       className="fixed bottom-6 right-6 z-50"
     >
-      <Card className={`w-96 shadow-2xl border-0 bg-card ${isMinimized ? 'h-16' : 'h-[600px]'} transition-all duration-300`}>
+      <Card
+        className={`w-96 shadow-2xl border-0 bg-card ${isMinimized ? 'h-16' : 'h-[600px]'} transition-all duration-300`}
+      >
         {/* Header */}
         <CardHeader className="pb-3 border-b bg-gradient-to-r from-[#1a365d] to-[#2a4365] text-white rounded-t-lg">
           <div className="flex items-center justify-between">
@@ -265,7 +271,11 @@ const CompanySearchAssistant: React.FC = () => {
                 onClick={() => setIsMinimized(!isMinimized)}
                 className="text-white hover:bg-white/20 w-8 h-8 p-0"
               >
-                {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+                {isMinimized ? (
+                  <Maximize2 className="h-4 w-4" />
+                ) : (
+                  <Minimize2 className="h-4 w-4" />
+                )}
               </Button>
               <Button
                 variant="ghost"
@@ -284,8 +294,11 @@ const CompanySearchAssistant: React.FC = () => {
             {/* Messages */}
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
-                {messages.map((message) => (
-                  <div key={message.id} className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {messages.map(message => (
+                  <div
+                    key={message.id}
+                    className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
                     {message.type === 'assistant' && (
                       <Avatar className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500">
                         <AvatarFallback className="text-white text-xs">
@@ -293,21 +306,26 @@ const CompanySearchAssistant: React.FC = () => {
                         </AvatarFallback>
                       </Avatar>
                     )}
-                    
+
                     <div className={`max-w-[80%] ${message.type === 'user' ? 'order-2' : ''}`}>
-                      <div className={`p-3 rounded-lg ${
-                        message.type === 'user' 
-                          ? 'bg-primary text-primary-foreground ml-auto' 
-                          : 'bg-muted text-foreground'
-                      }`}>
+                      <div
+                        className={`p-3 rounded-lg ${
+                          message.type === 'user'
+                            ? 'bg-primary text-primary-foreground ml-auto'
+                            : 'bg-muted text-foreground'
+                        }`}
+                      >
                         <p className="text-sm whitespace-pre-line">{message.content}</p>
                       </div>
-                      
+
                       {/* Company Results */}
                       {message.companyResults && (
                         <div className="mt-3 space-y-2">
-                          {message.companyResults.map((company) => (
-                            <Card key={company.id} className="border border-border hover:border-primary/50 transition-colors cursor-pointer">
+                          {message.companyResults.map(company => (
+                            <Card
+                              key={company.id}
+                              className="border border-border hover:border-primary/50 transition-colors cursor-pointer"
+                            >
                               <CardContent className="p-3">
                                 <div className="flex items-center justify-between mb-2">
                                   <h4 className="font-semibold text-sm">{company.name}</h4>
@@ -339,7 +357,7 @@ const CompanySearchAssistant: React.FC = () => {
                           ))}
                         </div>
                       )}
-                      
+
                       {/* Suggestions */}
                       {message.suggestions && (
                         <div className="mt-3 flex flex-wrap gap-1">
@@ -356,9 +374,12 @@ const CompanySearchAssistant: React.FC = () => {
                           ))}
                         </div>
                       )}
-                      
+
                       <p className="text-xs text-gray-500 mt-2">
-                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {message.timestamp.toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
                       </p>
                     </div>
 
@@ -371,7 +392,7 @@ const CompanySearchAssistant: React.FC = () => {
                     )}
                   </div>
                 ))}
-                
+
                 {/* Typing Indicator */}
                 <AnimatePresence>
                   {isTyping && (
@@ -389,14 +410,20 @@ const CompanySearchAssistant: React.FC = () => {
                       <div className="bg-gray-100 p-3 rounded-lg">
                         <div className="flex gap-1">
                           <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                          <div
+                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: '0.1s' }}
+                          />
+                          <div
+                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: '0.2s' }}
+                          />
                         </div>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
-                
+
                 <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
@@ -406,9 +433,9 @@ const CompanySearchAssistant: React.FC = () => {
               <div className="flex gap-2">
                 <Input
                   value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
+                  onChange={e => setInputValue(e.target.value)}
                   placeholder="Ask about companies..."
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(inputValue)}
+                  onKeyPress={e => e.key === 'Enter' && handleSendMessage(inputValue)}
                   className="flex-1 text-sm"
                 />
                 <Button

@@ -8,18 +8,53 @@ import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, Upload, FilePlus, CheckCircle, PlusCircle, XCircle, FileText, AlertCircle, FileSearch, Info, ChevronLeft, ChevronRight, Send } from 'lucide-react';
+import {
+  Loader2,
+  Upload,
+  FilePlus,
+  CheckCircle,
+  PlusCircle,
+  XCircle,
+  FileText,
+  AlertCircle,
+  FileSearch,
+  Info,
+  ChevronLeft,
+  ChevronRight,
+  Send,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { API_URL } from '@/lib/env';
 import { profileService } from '@/services/profileService';
 import { fileUploadService } from '@/services/fileUploadService';
@@ -27,13 +62,13 @@ import { getCurrentUser } from '@/lib/firebase';
 
 // Form schemas
 const personalInfoSchema = z.object({
-  fullName: z.string().min(2, "Name must be at least 2 characters"),
-  phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
-  location: z.string().min(2, "Location must be at least 2 characters"),
+  fullName: z.string().min(2, 'Name must be at least 2 characters'),
+  phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits'),
+  location: z.string().min(2, 'Location must be at least 2 characters'),
   idNumber: z.string().optional(),
   dateOfBirth: z.string().optional(),
   gender: z.string().optional(),
-  bio: z.string().max(300, "Bio must be less than 300 characters").optional(),
+  bio: z.string().max(300, 'Bio must be less than 300 characters').optional(),
   profilePicture: z.any().optional(),
 });
 
@@ -41,7 +76,7 @@ type PersonalInfoValues = z.infer<typeof personalInfoSchema>;
 
 const educationSchema = z.object({
   highestEducation: z.string(),
-  schoolName: z.string().min(2, "Please enter your school name"),
+  schoolName: z.string().min(2, 'Please enter your school name'),
   yearCompleted: z.string().optional(),
   achievements: z.string().optional(),
   additionalCourses: z.string().optional(),
@@ -87,7 +122,7 @@ const ProfileSetup = () => {
     personal: {},
     education: {},
     experience: {},
-    skills: {}
+    skills: {},
   });
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
@@ -105,32 +140,36 @@ const ProfileSetup = () => {
   const [isProcessingAiPrompt, setIsProcessingAiPrompt] = useState(false);
   const [customSkillInput, setCustomSkillInput] = useState('');
   const [customSkills, setCustomSkills] = useState<string[]>([]);
-  const [scanWarnings, setScanWarnings] = useState<{
-    type: 'handwritten' | 'scratched' | 'missing' | 'unclear';
-    section: string;
-    message: string;
-    suggestedFix?: string;
-  }[]>([]);
-  const [scanConfidence, setScanConfidence] = useState<{
-    section: string;
-    confidence: number;
-    notes?: string;
-  }[]>([]);
+  const [scanWarnings, setScanWarnings] = useState<
+    {
+      type: 'handwritten' | 'scratched' | 'missing' | 'unclear';
+      section: string;
+      message: string;
+      suggestedFix?: string;
+    }[]
+  >([]);
+  const [scanConfidence, setScanConfidence] = useState<
+    {
+      section: string;
+      confidence: number;
+      notes?: string;
+    }[]
+  >([]);
 
   // Use useEffect for authentication check instead of immediate return
   useEffect(() => {
     // Add a delay to allow auth state to fully initialize
     const checkAuth = setTimeout(() => {
       if (!isLoading && !currentUser) {
-        console.log("User not authenticated, redirecting to login");
+        console.log('User not authenticated, redirecting to login');
         toast({
-          variant: "destructive",
-          title: "Authentication Required",
-          description: "Please log in to set up your profile.",
+          variant: 'destructive',
+          title: 'Authentication Required',
+          description: 'Please log in to set up your profile.',
         });
         navigate('/login');
       } else if (currentUser) {
-        console.log("User authenticated:", currentUser.email);
+        console.log('User authenticated:', currentUser.email);
       }
     }, 1000);
 
@@ -148,7 +187,7 @@ const ProfileSetup = () => {
       dateOfBirth: '',
       gender: '',
       bio: '',
-    }
+    },
   });
 
   // Initialize form for education info
@@ -160,7 +199,7 @@ const ProfileSetup = () => {
       yearCompleted: '',
       achievements: '',
       additionalCourses: '',
-    }
+    },
   });
 
   // Initialize form for work experience
@@ -177,7 +216,7 @@ const ProfileSetup = () => {
       previousExperience: '',
       volunteerWork: '',
       references: '',
-    }
+    },
   });
 
   // Initialize form for skills and CV
@@ -190,7 +229,7 @@ const ProfileSetup = () => {
       hasDriversLicense: false,
       hasTransport: false,
       createCV: false,
-    }
+    },
   });
 
   // Handle profile image upload
@@ -201,9 +240,9 @@ const ProfileSetup = () => {
       // Check if file is an image
       if (!file.type.startsWith('image/')) {
         toast({
-          variant: "destructive",
-          title: "Invalid File",
-          description: "Please upload an image file (JPG, JPEG, or PNG).",
+          variant: 'destructive',
+          title: 'Invalid File',
+          description: 'Please upload an image file (JPG, JPEG, or PNG).',
         });
         return;
       }
@@ -218,7 +257,7 @@ const ProfileSetup = () => {
       try {
         // Show loading state
         toast({
-          title: "Enhancing Image",
+          title: 'Enhancing Image',
           description: "We're optimizing your profile picture for better quality...",
         });
 
@@ -231,17 +270,17 @@ const ProfileSetup = () => {
           setProfileImage(file);
 
           toast({
-            title: "Image Enhanced",
-            description: "Your profile picture has been optimized for better quality.",
+            title: 'Image Enhanced',
+            description: 'Your profile picture has been optimized for better quality.',
           });
         } else {
-          throw new Error(result.error || "Failed to enhance image");
+          throw new Error(result.error || 'Failed to enhance image');
         }
       } catch (error: any) {
-        console.error("Image enhancement error:", error);
+        console.error('Image enhancement error:', error);
         toast({
-          variant: "destructive",
-          title: "Enhancement Failed",
+          variant: 'destructive',
+          title: 'Enhancement Failed',
           description: "We couldn't enhance your image, but you can still use the original.",
         });
         // Keep the original image if enhancement fails
@@ -269,7 +308,7 @@ const ProfileSetup = () => {
       }
 
       toast({
-        title: "CV Uploaded",
+        title: 'CV Uploaded',
         description: `File "${file.name}" has been selected.`,
       });
     }
@@ -314,7 +353,7 @@ const ProfileSetup = () => {
       personal: personalForm.getValues(),
       education: educationForm.getValues(),
       experience: experienceForm.getValues(),
-      skills: skillsForm.getValues()
+      skills: skillsForm.getValues(),
     });
   };
 
@@ -322,9 +361,9 @@ const ProfileSetup = () => {
   const scanCVWithGemini = async () => {
     if (!cvFile) {
       toast({
-        variant: "destructive",
-        title: "No CV File",
-        description: "Please upload a CV file first before scanning.",
+        variant: 'destructive',
+        title: 'No CV File',
+        description: 'Please upload a CV file first before scanning.',
       });
       return;
     }
@@ -354,26 +393,30 @@ const ProfileSetup = () => {
 
         if (warnings?.length > 0) {
           toast({
-            title: "CV Scanned with Warnings",
-            description: "Some sections need your attention. Please review the preview.",
-            variant: "warning"
+            title: 'CV Scanned with Warnings',
+            description: 'Some sections need your attention. Please review the preview.',
+            variant: 'warning',
           });
         } else {
           toast({
-            title: "CV Scanned Successfully",
-            description: "Your information has been extracted. Please review and make any necessary adjustments.",
+            title: 'CV Scanned Successfully',
+            description:
+              'Your information has been extracted. Please review and make any necessary adjustments.',
           });
         }
       } else {
-        throw new Error(result.error || "Failed to scan CV");
+        throw new Error(result.error || 'Failed to scan CV');
       }
     } catch (error: any) {
-      console.error("CV scanning error:", error);
-      setScanError(error.message || "Failed to scan CV. Please try again or fill in the forms manually.");
+      console.error('CV scanning error:', error);
+      setScanError(
+        error.message || 'Failed to scan CV. Please try again or fill in the forms manually.'
+      );
       toast({
-        variant: "destructive",
-        title: "Scanning Failed",
-        description: error.message || "Failed to scan CV. Please try again or fill in the forms manually.",
+        variant: 'destructive',
+        title: 'Scanning Failed',
+        description:
+          error.message || 'Failed to scan CV. Please try again or fill in the forms manually.',
       });
     } finally {
       setIsScanningCV(false);
@@ -400,46 +443,96 @@ const ProfileSetup = () => {
       if (result.success) {
         // Update forms with AI-suggested improvements
         if (result.data.personal) {
-          personalForm.setValue('fullName', result.data.personal.fullName || personalForm.getValues('fullName'));
-          personalForm.setValue('phoneNumber', result.data.personal.phoneNumber || personalForm.getValues('phoneNumber'));
-          personalForm.setValue('location', result.data.personal.location || personalForm.getValues('location'));
+          personalForm.setValue(
+            'fullName',
+            result.data.personal.fullName || personalForm.getValues('fullName')
+          );
+          personalForm.setValue(
+            'phoneNumber',
+            result.data.personal.phoneNumber || personalForm.getValues('phoneNumber')
+          );
+          personalForm.setValue(
+            'location',
+            result.data.personal.location || personalForm.getValues('location')
+          );
           personalForm.setValue('bio', result.data.personal.bio || personalForm.getValues('bio'));
         }
 
         if (result.data.education) {
-          educationForm.setValue('highestEducation', result.data.education.highestEducation || educationForm.getValues('highestEducation'));
-          educationForm.setValue('schoolName', result.data.education.schoolName || educationForm.getValues('schoolName'));
-          educationForm.setValue('yearCompleted', result.data.education.yearCompleted || educationForm.getValues('yearCompleted'));
-          educationForm.setValue('achievements', result.data.education.achievements || educationForm.getValues('achievements'));
-          educationForm.setValue('additionalCourses', result.data.education.additionalCourses || educationForm.getValues('additionalCourses'));
+          educationForm.setValue(
+            'highestEducation',
+            result.data.education.highestEducation || educationForm.getValues('highestEducation')
+          );
+          educationForm.setValue(
+            'schoolName',
+            result.data.education.schoolName || educationForm.getValues('schoolName')
+          );
+          educationForm.setValue(
+            'yearCompleted',
+            result.data.education.yearCompleted || educationForm.getValues('yearCompleted')
+          );
+          educationForm.setValue(
+            'achievements',
+            result.data.education.achievements || educationForm.getValues('achievements')
+          );
+          educationForm.setValue(
+            'additionalCourses',
+            result.data.education.additionalCourses || educationForm.getValues('additionalCourses')
+          );
         }
 
         if (result.data.experience) {
-          experienceForm.setValue('jobTitle', result.data.experience.jobTitle || experienceForm.getValues('jobTitle'));
-          experienceForm.setValue('employer', result.data.experience.employer || experienceForm.getValues('employer'));
-          experienceForm.setValue('startDate', result.data.experience.startDate || experienceForm.getValues('startDate'));
-          experienceForm.setValue('endDate', result.data.experience.endDate || experienceForm.getValues('endDate'));
-          experienceForm.setValue('jobDescription', result.data.experience.jobDescription || experienceForm.getValues('jobDescription'));
-          experienceForm.setValue('previousExperience', result.data.experience.previousExperience || experienceForm.getValues('previousExperience'));
-          experienceForm.setValue('volunteerWork', result.data.experience.volunteerWork || experienceForm.getValues('volunteerWork'));
+          experienceForm.setValue(
+            'jobTitle',
+            result.data.experience.jobTitle || experienceForm.getValues('jobTitle')
+          );
+          experienceForm.setValue(
+            'employer',
+            result.data.experience.employer || experienceForm.getValues('employer')
+          );
+          experienceForm.setValue(
+            'startDate',
+            result.data.experience.startDate || experienceForm.getValues('startDate')
+          );
+          experienceForm.setValue(
+            'endDate',
+            result.data.experience.endDate || experienceForm.getValues('endDate')
+          );
+          experienceForm.setValue(
+            'jobDescription',
+            result.data.experience.jobDescription || experienceForm.getValues('jobDescription')
+          );
+          experienceForm.setValue(
+            'previousExperience',
+            result.data.experience.previousExperience ||
+              experienceForm.getValues('previousExperience')
+          );
+          experienceForm.setValue(
+            'volunteerWork',
+            result.data.experience.volunteerWork || experienceForm.getValues('volunteerWork')
+          );
         }
 
         if (result.data.skills) {
-          skillsForm.setValue('skills', result.data.skills.skills || skillsForm.getValues('skills'));
+          skillsForm.setValue(
+            'skills',
+            result.data.skills.skills || skillsForm.getValues('skills')
+          );
         }
 
         toast({
-          title: "AI Suggestions Applied",
-          description: "The AI has made improvements based on your prompt. Please review the changes.",
+          title: 'AI Suggestions Applied',
+          description:
+            'The AI has made improvements based on your prompt. Please review the changes.',
         });
       } else {
-        throw new Error(result.error || "Failed to process AI prompt");
+        throw new Error(result.error || 'Failed to process AI prompt');
       }
     } catch (error: any) {
       toast({
-        variant: "destructive",
-        title: "AI Processing Failed",
-        description: error.message || "Failed to process your request. Please try again.",
+        variant: 'destructive',
+        title: 'AI Processing Failed',
+        description: error.message || 'Failed to process your request. Please try again.',
       });
     } finally {
       setIsProcessingAiPrompt(false);
@@ -468,7 +561,7 @@ const ProfileSetup = () => {
   const onPersonalSubmit = (data: PersonalInfoValues) => {
     setProfileData(prev => ({
       ...prev,
-      personal: data
+      personal: data,
     }));
     setCurrentStep('education');
   };
@@ -477,7 +570,7 @@ const ProfileSetup = () => {
   const onEducationSubmit = (data: EducationValues) => {
     setProfileData(prev => ({
       ...prev,
-      education: data
+      education: data,
     }));
     setCurrentStep('experience');
   };
@@ -486,7 +579,7 @@ const ProfileSetup = () => {
   const onExperienceSubmit = (data: ExperienceValues) => {
     setProfileData(prev => ({
       ...prev,
-      experience: data
+      experience: data,
     }));
     setCurrentStep('skills');
   };
@@ -495,7 +588,7 @@ const ProfileSetup = () => {
   const onSkillsSubmit = async (data: SkillsValues) => {
     setProfileData(prev => ({
       ...prev,
-      skills: data
+      skills: data,
     }));
     await handleProfileUpdate();
   };
@@ -507,31 +600,31 @@ const ProfileSetup = () => {
     try {
       // Save user profile (will implement later)
       // This is where you would send all collected data to your backend
-      console.log("Complete profile data:", profileData);
+      console.log('Complete profile data:', profileData);
 
       // Handle file uploads if needed
       if (profileImage) {
-        console.log("Profile image to upload:", profileImage);
+        console.log('Profile image to upload:', profileImage);
         // Upload the profile image
       }
 
       if (cvFile) {
-        console.log("CV file to upload:", cvFile);
+        console.log('CV file to upload:', cvFile);
         // Upload the CV file
       }
 
       toast({
-        title: "Profile Setup Complete",
-        description: "Your profile has been successfully set up.",
+        title: 'Profile Setup Complete',
+        description: 'Your profile has been successfully set up.',
       });
 
       // Navigate to the profile page
       navigate('/profile');
     } catch (error: any) {
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to set up your profile. Please try again.",
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message || 'Failed to set up your profile. Please try again.',
       });
     } finally {
       setIsSubmitting(false);
@@ -548,14 +641,14 @@ const ProfileSetup = () => {
         experience: experienceForm.getValues(),
         skills: {
           ...skillsForm.getValues(),
-          customSkills: customSkills.join(', ')
-        }
+          customSkills: customSkills.join(', '),
+        },
       };
 
       // Get the current user
       const user = getCurrentUser();
       if (!user) {
-        throw new Error("User not authenticated");
+        throw new Error('User not authenticated');
       }
 
       // Upload files to Firebase Storage
@@ -566,13 +659,13 @@ const ProfileSetup = () => {
       if (profileImage) {
         try {
           profileImageUrl = await fileUploadService.uploadProfileImage(profileImage, user.uid);
-          console.log("Profile image uploaded:", profileImageUrl);
+          console.log('Profile image uploaded:', profileImageUrl);
         } catch (uploadError) {
-          console.error("Profile image upload error:", uploadError);
+          console.error('Profile image upload error:', uploadError);
           toast({
-            variant: "destructive",
-            title: "Image Upload Failed",
-            description: "Failed to upload profile image. Profile will be saved without the image.",
+            variant: 'destructive',
+            title: 'Image Upload Failed',
+            description: 'Failed to upload profile image. Profile will be saved without the image.',
           });
         }
       }
@@ -581,13 +674,13 @@ const ProfileSetup = () => {
       if (cvFile) {
         try {
           cvFileUrl = await fileUploadService.uploadCV(cvFile, user.uid);
-          console.log("CV file uploaded:", cvFileUrl);
+          console.log('CV file uploaded:', cvFileUrl);
         } catch (uploadError) {
-          console.error("CV file upload error:", uploadError);
+          console.error('CV file upload error:', uploadError);
           toast({
-            variant: "destructive",
-            title: "CV Upload Failed",
-            description: "Failed to upload CV file. Profile will be saved without the CV.",
+            variant: 'destructive',
+            title: 'CV Upload Failed',
+            description: 'Failed to upload CV file. Profile will be saved without the CV.',
           });
         }
       }
@@ -597,59 +690,59 @@ const ProfileSetup = () => {
         ...profileData,
         personal: {
           ...profileData.personal,
-          profileImageUrl
+          profileImageUrl,
         },
         skills: {
           ...profileData.skills,
-          cvFileUrl
-        }
+          cvFileUrl,
+        },
       };
 
       try {
         // For now, we'll simulate a successful API call
         // In a real implementation, you would send the profile data to your backend
-        console.log("Profile data to save:", completeProfileData);
+        console.log('Profile data to save:', completeProfileData);
 
         // Update user profile in Firebase Auth if profile image was uploaded
         if (profileImageUrl && user) {
           await user.updateProfile({
             displayName: profileData.personal.fullName,
-            photoURL: profileImageUrl
+            photoURL: profileImageUrl,
           });
         }
 
         toast({
-          title: "Profile Updated",
-          description: "Your profile has been successfully set up.",
+          title: 'Profile Updated',
+          description: 'Your profile has been successfully set up.',
         });
 
         // Navigate to profile page
-        console.log("Redirecting to profile page");
+        console.log('Redirecting to profile page');
         navigate('/profile');
       } catch (apiError) {
-        console.error("API call failed:", apiError);
+        console.error('API call failed:', apiError);
 
         // For development/testing - simulate success if API is not available
-        console.log("Simulating successful profile update for development");
+        console.log('Simulating successful profile update for development');
         toast({
-          title: "Profile Setup Complete",
-          description: "Your profile has been successfully set up.",
+          title: 'Profile Setup Complete',
+          description: 'Your profile has been successfully set up.',
         });
 
         // Navigate to profile page even if API fails (for testing)
-        console.log("Redirecting to profile page");
+        console.log('Redirecting to profile page');
         navigate('/profile');
       }
     } catch (error: any) {
-      console.error("Profile update error:", error);
+      console.error('Profile update error:', error);
       toast({
-        variant: "destructive",
-        title: "Update Failed",
-        description: error.message || "Failed to update your profile. Please try again.",
+        variant: 'destructive',
+        title: 'Update Failed',
+        description: error.message || 'Failed to update your profile. Please try again.',
       });
 
       // For development/testing - navigate anyway
-      console.log("Redirecting to profile page despite error");
+      console.log('Redirecting to profile page despite error');
       navigate('/profile');
     } finally {
       setIsSubmitting(false);
@@ -658,43 +751,46 @@ const ProfileSetup = () => {
 
   // Common skills for entry-level jobs
   const commonSkills = [
-    "Customer Service",
-    "Communication",
-    "Time Management",
-    "Problem Solving",
-    "Teamwork",
-    "Cash Handling",
-    "Computer Basics",
-    "Microsoft Office",
-    "Inventory Management",
-    "Sales",
-    "Food Service",
-    "Cleaning",
-    "Organization",
-    "Attention to Detail",
-    "Reliability"
+    'Customer Service',
+    'Communication',
+    'Time Management',
+    'Problem Solving',
+    'Teamwork',
+    'Cash Handling',
+    'Computer Basics',
+    'Microsoft Office',
+    'Inventory Management',
+    'Sales',
+    'Food Service',
+    'Cleaning',
+    'Organization',
+    'Attention to Detail',
+    'Reliability',
   ];
 
   // Common languages in South Africa
   const languages = [
-    "English",
-    "Afrikaans",
-    "Zulu (isiZulu)",
-    "Xhosa (isiXhosa)",
-    "Sotho (Sesotho)",
-    "Tswana (Setswana)",
-    "Tsonga (Xitsonga)",
-    "Swati (siSwati)",
-    "Venda (Tshivenda)",
-    "Ndebele (isiNdebele)",
-    "Other"
+    'English',
+    'Afrikaans',
+    'Zulu (isiZulu)',
+    'Xhosa (isiXhosa)',
+    'Sotho (Sesotho)',
+    'Tswana (Setswana)',
+    'Tsonga (Xitsonga)',
+    'Swati (siSwati)',
+    'Venda (Tshivenda)',
+    'Ndebele (isiNdebele)',
+    'Other',
   ];
 
   return (
     <>
       <Helmet>
         <title>Complete Your Profile | WorkWise SA</title>
-        <meta name="description" content="Set up your WorkWise SA profile to find better job opportunities." />
+        <meta
+          name="description"
+          content="Set up your WorkWise SA profile to find better job opportunities."
+        />
       </Helmet>
 
       <main className="flex-grow bg-light py-10">
@@ -710,7 +806,8 @@ const ProfileSetup = () => {
               </div>
               <CardTitle className="text-2xl font-bold">Complete Your Profile</CardTitle>
               <CardDescription>
-                Help us understand your skills and experience so we can find the best opportunities for you.
+                Help us understand your skills and experience so we can find the best opportunities
+                for you.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -724,7 +821,10 @@ const ProfileSetup = () => {
 
                 <TabsContent value="personal">
                   <Form {...personalForm}>
-                    <form onSubmit={personalForm.handleSubmit(onPersonalSubmit)} className="space-y-6">
+                    <form
+                      onSubmit={personalForm.handleSubmit(onPersonalSubmit)}
+                      className="space-y-6"
+                    >
                       <div className="flex flex-col items-center mb-6">
                         <div className="mb-4 text-center">
                           <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
@@ -738,7 +838,10 @@ const ProfileSetup = () => {
                               <Upload className="h-8 w-8 text-gray-400" />
                             )}
                           </div>
-                          <FormLabel htmlFor="profile-picture" className="block mt-2 text-sm font-medium text-gray-700">
+                          <FormLabel
+                            htmlFor="profile-picture"
+                            className="block mt-2 text-sm font-medium text-gray-700"
+                          >
                             Profile Picture
                           </FormLabel>
                           <Input
@@ -801,9 +904,7 @@ const ProfileSetup = () => {
                               <FormControl>
                                 <Input placeholder="e.g. Johannesburg, Gauteng" {...field} />
                               </FormControl>
-                              <FormDescription>
-                                Where you're currently based
-                              </FormDescription>
+                              <FormDescription>Where you're currently based</FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -818,9 +919,7 @@ const ProfileSetup = () => {
                               <FormControl>
                                 <Input placeholder="Optional - Enter your ID number" {...field} />
                               </FormControl>
-                              <FormDescription>
-                                This helps verify your identity
-                              </FormDescription>
+                              <FormDescription>This helps verify your identity</FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -856,7 +955,9 @@ const ProfileSetup = () => {
                                   <SelectItem value="male">Male</SelectItem>
                                   <SelectItem value="female">Female</SelectItem>
                                   <SelectItem value="non-binary">Non-binary</SelectItem>
-                                  <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                                  <SelectItem value="prefer-not-to-say">
+                                    Prefer not to say
+                                  </SelectItem>
                                 </SelectContent>
                               </Select>
                               <FormMessage />
@@ -879,7 +980,8 @@ const ProfileSetup = () => {
                               />
                             </FormControl>
                             <FormDescription>
-                              Brief introduction that will appear on your profile (max 300 characters)
+                              Brief introduction that will appear on your profile (max 300
+                              characters)
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -913,7 +1015,10 @@ const ProfileSetup = () => {
                                   <Info className="ml-2 h-4 w-4" />
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p>Upload your CV to automatically fill in your education, experience, and skills</p>
+                                  <p>
+                                    Upload your CV to automatically fill in your education,
+                                    experience, and skills
+                                  </p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -929,7 +1034,10 @@ const ProfileSetup = () => {
 
                 <TabsContent value="education">
                   <Form {...educationForm}>
-                    <form onSubmit={educationForm.handleSubmit(onEducationSubmit)} className="space-y-6">
+                    <form
+                      onSubmit={educationForm.handleSubmit(onEducationSubmit)}
+                      className="space-y-6"
+                    >
                       <div className="space-y-4">
                         <FormField
                           control={educationForm.control}
@@ -970,7 +1078,10 @@ const ProfileSetup = () => {
                             <FormItem>
                               <FormLabel>School/Institution Name*</FormLabel>
                               <FormControl>
-                                <Input placeholder="Enter the name of your school or institution" {...field} />
+                                <Input
+                                  placeholder="Enter the name of your school or institution"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -991,7 +1102,10 @@ const ProfileSetup = () => {
                                 </FormControl>
                                 <SelectContent>
                                   <SelectItem value="in-progress">Currently Studying</SelectItem>
-                                  {Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                                  {Array.from(
+                                    { length: 50 },
+                                    (_, i) => new Date().getFullYear() - i
+                                  ).map(year => (
                                     <SelectItem key={year} value={year.toString()}>
                                       {year}
                                     </SelectItem>
@@ -1017,7 +1131,8 @@ const ProfileSetup = () => {
                                 />
                               </FormControl>
                               <FormDescription>
-                                For example: "Passed with distinction in mathematics", "Computer literacy certificate"
+                                For example: "Passed with distinction in mathematics", "Computer
+                                literacy certificate"
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -1038,7 +1153,8 @@ const ProfileSetup = () => {
                                 />
                               </FormControl>
                               <FormDescription>
-                                Include short courses, online certifications, or any training programs
+                                Include short courses, online certifications, or any training
+                                programs
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -1054,9 +1170,7 @@ const ProfileSetup = () => {
                         >
                           Back to Personal Info
                         </Button>
-                        <Button type="submit">
-                          Next: Work Experience
-                        </Button>
+                        <Button type="submit">Next: Work Experience</Button>
                       </div>
                     </form>
                   </Form>
@@ -1064,7 +1178,10 @@ const ProfileSetup = () => {
 
                 <TabsContent value="experience">
                   <Form {...experienceForm}>
-                    <form onSubmit={experienceForm.handleSubmit(onExperienceSubmit)} className="space-y-6">
+                    <form
+                      onSubmit={experienceForm.handleSubmit(onExperienceSubmit)}
+                      className="space-y-6"
+                    >
                       <div className="border rounded-lg p-4 bg-gray-50">
                         <div className="flex items-start mb-4">
                           <FormField
@@ -1089,12 +1206,14 @@ const ProfileSetup = () => {
                         </div>
 
                         <p className="text-sm text-gray-500">
-                          It's okay if you don't have formal work experience yet. Many employers value potential and willingness to learn.
-                          You can still list informal work like helping at a family business, community projects, or volunteer positions.
+                          It's okay if you don't have formal work experience yet. Many employers
+                          value potential and willingness to learn. You can still list informal work
+                          like helping at a family business, community projects, or volunteer
+                          positions.
                         </p>
                       </div>
 
-                      {experienceForm.watch("hasExperience") && (
+                      {experienceForm.watch('hasExperience') && (
                         <div className="space-y-4">
                           <div className="border rounded-lg p-4">
                             <h3 className="font-medium mb-4">Current or Most Recent Job</h3>
@@ -1164,7 +1283,7 @@ const ProfileSetup = () => {
                                 )}
                               />
 
-                              {!experienceForm.watch("currentlyEmployed") && (
+                              {!experienceForm.watch('currentlyEmployed') && (
                                 <FormField
                                   control={experienceForm.control}
                                   name="endDate"
@@ -1196,7 +1315,8 @@ const ProfileSetup = () => {
                                       />
                                     </FormControl>
                                     <FormDescription>
-                                      For example: "Helped customers find products, operated the cash register, kept the store tidy"
+                                      For example: "Helped customers find products, operated the
+                                      cash register, kept the store tidy"
                                     </FormDescription>
                                     <FormMessage />
                                   </FormItem>
@@ -1219,7 +1339,8 @@ const ProfileSetup = () => {
                                   />
                                 </FormControl>
                                 <FormDescription>
-                                  Include informal work like helping at a family business or temporary jobs
+                                  Include informal work like helping at a family business or
+                                  temporary jobs
                                 </FormDescription>
                                 <FormMessage />
                               </FormItem>
@@ -1242,7 +1363,8 @@ const ProfileSetup = () => {
                               />
                             </FormControl>
                             <FormDescription>
-                              Include church activities, community projects, or helping neighbors - these build valuable skills!
+                              Include church activities, community projects, or helping neighbors -
+                              these build valuable skills!
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -1263,7 +1385,8 @@ const ProfileSetup = () => {
                               />
                             </FormControl>
                             <FormDescription>
-                              These could be previous employers, teachers, or community leaders who know your abilities
+                              These could be previous employers, teachers, or community leaders who
+                              know your abilities
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -1278,9 +1401,7 @@ const ProfileSetup = () => {
                         >
                           Back to Education
                         </Button>
-                        <Button type="submit">
-                          Next: Skills & CV
-                        </Button>
+                        <Button type="submit">Next: Skills & CV</Button>
                       </div>
                     </form>
                   </Form>
@@ -1292,7 +1413,8 @@ const ProfileSetup = () => {
                       <div>
                         <h3 className="text-lg font-medium mb-4">Your Skills</h3>
                         <p className="text-sm text-gray-500 mb-4">
-                          Select skills that you have. Don't worry if you're just starting out - everyone has valuable skills!
+                          Select skills that you have. Don't worry if you're just starting out -
+                          everyone has valuable skills!
                         </p>
 
                         <FormField
@@ -1301,7 +1423,7 @@ const ProfileSetup = () => {
                           render={() => (
                             <FormItem>
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                                {commonSkills.map((skill) => (
+                                {commonSkills.map(skill => (
                                   <FormField
                                     key={skill}
                                     control={skillsForm.control}
@@ -1315,14 +1437,12 @@ const ProfileSetup = () => {
                                           <FormControl>
                                             <Checkbox
                                               checked={field.value?.includes(skill)}
-                                              onCheckedChange={(checked) => {
+                                              onCheckedChange={checked => {
                                                 return checked
-                                                  ? field.onChange([...field.value || [], skill])
+                                                  ? field.onChange([...(field.value || []), skill])
                                                   : field.onChange(
-                                                      field.value?.filter(
-                                                        (value) => value !== skill
-                                                      )
-                                                    )
+                                                      field.value?.filter(value => value !== skill)
+                                                    );
                                               }}
                                             />
                                           </FormControl>
@@ -1330,7 +1450,7 @@ const ProfileSetup = () => {
                                             {skill}
                                           </FormLabel>
                                         </FormItem>
-                                      )
+                                      );
                                     }}
                                   />
                                 ))}
@@ -1350,7 +1470,7 @@ const ProfileSetup = () => {
                         <div className="flex items-center space-x-2 mb-4">
                           <Input
                             value={customSkillInput}
-                            onChange={(e) => setCustomSkillInput(e.target.value)}
+                            onChange={e => setCustomSkillInput(e.target.value)}
                             placeholder="Type a skill and click Add"
                             className="flex-1"
                           />
@@ -1398,7 +1518,7 @@ const ProfileSetup = () => {
                           render={() => (
                             <FormItem>
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                                {languages.map((language) => (
+                                {languages.map(language => (
                                   <FormField
                                     key={language}
                                     control={skillsForm.control}
@@ -1412,14 +1532,17 @@ const ProfileSetup = () => {
                                           <FormControl>
                                             <Checkbox
                                               checked={field.value?.includes(language)}
-                                              onCheckedChange={(checked) => {
+                                              onCheckedChange={checked => {
                                                 return checked
-                                                  ? field.onChange([...field.value || [], language])
+                                                  ? field.onChange([
+                                                      ...(field.value || []),
+                                                      language,
+                                                    ])
                                                   : field.onChange(
                                                       field.value?.filter(
-                                                        (value) => value !== language
+                                                        value => value !== language
                                                       )
-                                                    )
+                                                    );
                                               }}
                                             />
                                           </FormControl>
@@ -1427,7 +1550,7 @@ const ProfileSetup = () => {
                                             {language}
                                           </FormLabel>
                                         </FormItem>
-                                      )
+                                      );
                                     }}
                                   />
                                 ))}
@@ -1445,10 +1568,7 @@ const ProfileSetup = () => {
                           render={({ field }) => (
                             <FormItem className="flex items-start space-x-3 space-y-0 rounded-md border p-4">
                               <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                               </FormControl>
                               <div className="space-y-1 leading-none">
                                 <FormLabel className="font-medium cursor-pointer">
@@ -1468,10 +1588,7 @@ const ProfileSetup = () => {
                           render={({ field }) => (
                             <FormItem className="flex items-start space-x-3 space-y-0 rounded-md border p-4">
                               <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                               </FormControl>
                               <div className="space-y-1 leading-none">
                                 <FormLabel className="font-medium cursor-pointer">
@@ -1489,7 +1606,8 @@ const ProfileSetup = () => {
                       <div className="border rounded-lg p-6 bg-gray-50 space-y-4">
                         <h3 className="text-lg font-medium">Upload Your CV</h3>
                         <p className="text-sm text-gray-500">
-                          Upload your CV to auto-populate your profile information using AI. We support PDF, Word documents, and image formats.
+                          Upload your CV to auto-populate your profile information using AI. We
+                          support PDF, Word documents, and image formats.
                         </p>
 
                         <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg bg-white">
@@ -1570,23 +1688,39 @@ const ProfileSetup = () => {
                         )}
 
                         {cvScanComplete && (
-                          <Alert variant="success" className="mt-4 bg-green-50 border-green-200 text-green-800">
+                          <Alert
+                            variant="success"
+                            className="mt-4 bg-green-50 border-green-200 text-green-800"
+                          >
                             <CheckCircle className="h-4 w-4" />
                             <AlertTitle>CV Scan Complete</AlertTitle>
                             <AlertDescription>
-                              Your CV was successfully analyzed and the information has been used to populate your profile forms.
-                              Please review all sections to ensure accuracy.
+                              Your CV was successfully analyzed and the information has been used to
+                              populate your profile forms. Please review all sections to ensure
+                              accuracy.
                             </AlertDescription>
                           </Alert>
                         )}
 
                         <div className="flex flex-wrap gap-1 mt-4">
-                          <Badge variant="outline" className="text-xs">PDF</Badge>
-                          <Badge variant="outline" className="text-xs">DOCX</Badge>
-                          <Badge variant="outline" className="text-xs">DOC</Badge>
-                          <Badge variant="outline" className="text-xs">JPG</Badge>
-                          <Badge variant="outline" className="text-xs">PNG</Badge>
-                          <Badge variant="outline" className="text-xs">TIF</Badge>
+                          <Badge variant="outline" className="text-xs">
+                            PDF
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            DOCX
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            DOC
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            JPG
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            PNG
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            TIF
+                          </Badge>
                         </div>
 
                         <FormField
@@ -1595,17 +1729,15 @@ const ProfileSetup = () => {
                           render={({ field }) => (
                             <FormItem className="flex items-start space-x-3 space-y-0 mt-4">
                               <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                               </FormControl>
                               <div className="space-y-1 leading-none">
                                 <FormLabel className="font-medium cursor-pointer">
                                   I don't have a CV - help me create one
                                 </FormLabel>
                                 <FormDescription>
-                                  We'll use the information you provide to generate a professional CV for you
+                                  We'll use the information you provide to generate a professional
+                                  CV for you
                                 </FormDescription>
                               </div>
                             </FormItem>
@@ -1633,7 +1765,9 @@ const ProfileSetup = () => {
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Saving...
                             </>
-                          ) : "Complete Profile Setup"}
+                          ) : (
+                            'Complete Profile Setup'
+                          )}
                         </Button>
                       </div>
                     </form>
@@ -1698,7 +1832,8 @@ const ProfileSetup = () => {
                             {warning.message}
                             {warning.suggestedFix && (
                               <p className="mt-2 text-sm">
-                                <span className="font-medium">Suggested Fix:</span> {warning.suggestedFix}
+                                <span className="font-medium">Suggested Fix:</span>{' '}
+                                {warning.suggestedFix}
                               </p>
                             )}
                           </AlertDescription>
@@ -1728,8 +1863,8 @@ const ProfileSetup = () => {
                                   item.confidence > 0.8
                                     ? 'bg-green-500'
                                     : item.confidence > 0.5
-                                    ? 'bg-yellow-500'
-                                    : 'bg-red-500'
+                                      ? 'bg-yellow-500'
+                                      : 'bg-red-500'
                                 }`}
                                 style={{ width: `${item.confidence * 100}%` }}
                               />
@@ -1751,7 +1886,7 @@ const ProfileSetup = () => {
                     <Textarea
                       placeholder="Describe any issues or ask for help with specific sections..."
                       value={aiPrompt}
-                      onChange={(e) => setAiPrompt(e.target.value)}
+                      onChange={e => setAiPrompt(e.target.value)}
                       className="min-h-[100px]"
                     />
                     <Button
@@ -1773,10 +1908,7 @@ const ProfileSetup = () => {
 
                 {/* Action Buttons */}
                 <div className="flex justify-end space-x-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowCvPreview(false)}
-                  >
+                  <Button variant="outline" onClick={() => setShowCvPreview(false)}>
                     Close
                   </Button>
                   <Button

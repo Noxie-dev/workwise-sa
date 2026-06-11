@@ -1,15 +1,15 @@
-import { and, count, desc, eq } from "drizzle-orm";
-import { db } from "../db";
+import { and, count, desc, eq } from 'drizzle-orm';
+import { db } from '../db';
 import {
   aiUsageEvents,
   billingPlans,
   billingSubscriptions,
   type BillingPlan,
   type BillingSubscription,
-} from "@shared/schema";
-import { featureFlagService } from "./featureFlagService";
+} from '@shared/schema';
+import { featureFlagService } from './featureFlagService';
 
-export type AiDocumentType = "cv" | "cover_letter";
+export type AiDocumentType = 'cv' | 'cover_letter';
 
 export type UserEntitlements = {
   canGenerateCv: boolean;
@@ -37,7 +37,7 @@ function parseEntitlements(plan: BillingPlan | undefined): Record<string, any> {
     return {};
   }
 
-  if (typeof plan.entitlements === "string") {
+  if (typeof plan.entitlements === 'string') {
     try {
       return JSON.parse(plan.entitlements);
     } catch {
@@ -54,12 +54,16 @@ function isSubscriptionUsable(subscription: BillingSubscription | undefined) {
   }
 
   const now = Date.now();
-  if (subscription.status === "active") {
-    return !subscription.currentPeriodEnd || new Date(subscription.currentPeriodEnd).getTime() >= now;
+  if (subscription.status === 'active') {
+    return (
+      !subscription.currentPeriodEnd || new Date(subscription.currentPeriodEnd).getTime() >= now
+    );
   }
 
-  if (subscription.status === "grace_period") {
-    return Boolean(subscription.gracePeriodEndsAt && new Date(subscription.gracePeriodEndsAt).getTime() >= now);
+  if (subscription.status === 'grace_period') {
+    return Boolean(
+      subscription.gracePeriodEndsAt && new Date(subscription.gracePeriodEndsAt).getTime() >= now
+    );
   }
 
   return false;
@@ -71,11 +75,13 @@ export class EntitlementService {
       const [result] = await db
         .select({ total: count() })
         .from(aiUsageEvents)
-        .where(and(
-          eq(col(aiUsageEvents.userId), userId),
-          eq(col(aiUsageEvents.documentType), documentType),
-          eq(col(aiUsageEvents.success), true),
-        ));
+        .where(
+          and(
+            eq(col(aiUsageEvents.userId), userId),
+            eq(col(aiUsageEvents.documentType), documentType),
+            eq(col(aiUsageEvents.success), true)
+          )
+        );
 
       return Number(result?.total || 0);
     } catch {
@@ -121,8 +127,8 @@ export class EntitlementService {
 
     const [subscriptionWithPlan, cvUses, coverLetterUses] = await Promise.all([
       this.getCurrentSubscription(userId),
-      this.getSuccessfulUsageCount(userId, "cv"),
-      this.getSuccessfulUsageCount(userId, "cover_letter"),
+      this.getSuccessfulUsageCount(userId, 'cv'),
+      this.getSuccessfulUsageCount(userId, 'cover_letter'),
     ]);
 
     const subscription = subscriptionWithPlan?.subscription;
@@ -131,22 +137,26 @@ export class EntitlementService {
     const hasUsableSubscription =
       flags.ENABLE_PLUS_SUBSCRIPTIONS &&
       isSubscriptionUsable(subscription) &&
-      plan?.code === "workwise_plus";
+      plan?.code === 'workwise_plus';
 
     const hasUnlimitedAiCv = Boolean(hasUsableSubscription && planEntitlements.unlimitedAiCv);
-    const hasUnlimitedAiCoverLetters = Boolean(hasUsableSubscription && planEntitlements.unlimitedAiCoverLetters);
+    const hasUnlimitedAiCoverLetters = Boolean(
+      hasUsableSubscription && planEntitlements.unlimitedAiCoverLetters
+    );
     const remainingFreeCvGenerations = Math.max(0, FREE_LIMIT - cvUses);
     const remainingFreeCoverLetterGenerations = Math.max(0, FREE_LIMIT - coverLetterUses);
 
     return {
       canGenerateCv: flags.ENABLE_AI_CV && (hasUnlimitedAiCv || remainingFreeCvGenerations > 0),
-      canGenerateCoverLetter: flags.ENABLE_AI_COVER_LETTER && (
-        hasUnlimitedAiCoverLetters || remainingFreeCoverLetterGenerations > 0
-      ),
+      canGenerateCoverLetter:
+        flags.ENABLE_AI_COVER_LETTER &&
+        (hasUnlimitedAiCoverLetters || remainingFreeCoverLetterGenerations > 0),
       hasUnlimitedAiCv,
       hasUnlimitedAiCoverLetters,
       adsEnabled: flags.ENABLE_AD_SUPPRESSION ? !hasUsableSubscription : true,
-      candidatePromotionLite: Boolean(hasUsableSubscription && planEntitlements.candidatePromotionLite),
+      candidatePromotionLite: Boolean(
+        hasUsableSubscription && planEntitlements.candidatePromotionLite
+      ),
       remainingFreeCvGenerations,
       remainingFreeCoverLetterGenerations,
       workwisePlusActive: hasUsableSubscription,

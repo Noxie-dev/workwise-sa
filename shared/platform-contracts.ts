@@ -1,31 +1,31 @@
-import { z } from "zod";
+import { z } from 'zod';
 
-export const employerJobStatusSchema = z.enum(["draft", "active", "paused", "closed", "archived"]);
+export const employerJobStatusSchema = z.enum(['draft', 'active', 'paused', 'closed', 'archived']);
 
 export const employerJobFormSchema = z.object({
   title: z.string().min(1),
   category: z.string().min(1),
   jobType: z.string().min(1),
-  location: z.string().default(""),
+  location: z.string().default(''),
   isRemote: z.boolean().default(false),
   applicationDeadline: z.string().optional().nullable(),
-  salaryMin: z.string().default(""),
-  salaryMax: z.string().default(""),
+  salaryMin: z.string().default(''),
+  salaryMax: z.string().default(''),
   isSalaryNegotiable: z.boolean().default(false),
   description: z.string().min(1),
-  responsibilities: z.string().default(""),
-  requirements: z.string().default(""),
+  responsibilities: z.string().default(''),
+  requirements: z.string().default(''),
   companyName: z.string().min(1),
   companyLogo: z.string().optional().nullable(),
-  companyBio: z.string().default(""),
+  companyBio: z.string().default(''),
   contactName: z.string().min(1),
   contactEmail: z.string().email(),
-  contactPhone: z.string().default(""),
-  website: z.string().default(""),
-  howToApply: z.enum(["email", "url", "custom"]).default("email"),
-  applicationEmail: z.string().default(""),
-  applicationUrl: z.string().default(""),
-  customInstructions: z.string().default(""),
+  contactPhone: z.string().default(''),
+  website: z.string().default(''),
+  howToApply: z.enum(['email', 'url', 'custom']).default('email'),
+  applicationEmail: z.string().default(''),
+  applicationUrl: z.string().default(''),
+  customInstructions: z.string().default(''),
   isConfidential: z.boolean().default(false),
   isDraft: z.boolean().default(false),
   screenerQuestions: z.array(z.string()).default([]),
@@ -57,18 +57,24 @@ export const paginatedResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =
   });
 
 export const jobDistributionPayloadSchema = z.object({
-  categories: z.array(z.object({
-    category: z.string(),
-    count: z.number().int().min(0),
-  })),
-  locations: z.array(z.object({
-    name: z.string(),
-    value: z.number().int().min(0),
-  })),
-  trends: z.array(z.object({
-    date: z.string(),
-    applications: z.number().int().min(0),
-  })),
+  categories: z.array(
+    z.object({
+      category: z.string(),
+      count: z.number().int().min(0),
+    })
+  ),
+  locations: z.array(
+    z.object({
+      name: z.string(),
+      value: z.number().int().min(0),
+    })
+  ),
+  trends: z.array(
+    z.object({
+      date: z.string(),
+      applications: z.number().int().min(0),
+    })
+  ),
 });
 
 export const jobRecommendationSchema = z.object({
@@ -84,19 +90,25 @@ export const jobRecommendationSchema = z.object({
 });
 
 export const skillsAnalysisPayloadSchema = z.object({
-  marketDemand: z.array(z.object({
-    skill: z.string(),
-    demand: z.number().int().min(0),
-    growth: z.number().int().min(0),
-  })),
-  userSkills: z.array(z.object({
-    skill: z.string(),
-    level: z.string(),
-  })),
-  recommendations: z.array(z.object({
-    skill: z.string(),
-    reason: z.string(),
-  })),
+  marketDemand: z.array(
+    z.object({
+      skill: z.string(),
+      demand: z.number().int().min(0),
+      growth: z.number().int().min(0),
+    })
+  ),
+  userSkills: z.array(
+    z.object({
+      skill: z.string(),
+      level: z.string(),
+    })
+  ),
+  recommendations: z.array(
+    z.object({
+      skill: z.string(),
+      reason: z.string(),
+    })
+  ),
 });
 
 export const employerDashboardSchema = z.object({
@@ -108,21 +120,27 @@ export const employerDashboardSchema = z.object({
     totalViews: z.number().int().min(0),
   }),
   charts: z.object({
-    applications: z.array(z.object({
-      date: z.string(),
-      applications: z.number().int().min(0),
-    })),
-    jobPerformance: z.array(z.object({
-      jobTitle: z.string(),
-      views: z.number().int().min(0),
-      applications: z.number().int().min(0),
-    })),
+    applications: z.array(
+      z.object({
+        date: z.string(),
+        applications: z.number().int().min(0),
+      })
+    ),
+    jobPerformance: z.array(
+      z.object({
+        jobTitle: z.string(),
+        views: z.number().int().min(0),
+        applications: z.number().int().min(0),
+      })
+    ),
   }),
-  recentActivity: z.array(z.object({
-    title: z.string(),
-    description: z.string(),
-    timestamp: z.string(),
-  })),
+  recentActivity: z.array(
+    z.object({
+      title: z.string(),
+      description: z.string(),
+      timestamp: z.string(),
+    })
+  ),
 });
 
 export const employerJobSummarySchema = z.object({

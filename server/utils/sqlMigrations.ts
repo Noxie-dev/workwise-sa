@@ -39,7 +39,7 @@ const MIGRATIONS_TABLE_POSTGRES = `
 export function getMigrationFiles(migrationsFolder: string): string[] {
   return fs
     .readdirSync(migrationsFolder)
-    .filter((file) => /^\d+.*\.sql$/.test(file))
+    .filter(file => /^\d+.*\.sql$/.test(file))
     .sort();
 }
 
@@ -81,7 +81,7 @@ export function runSqliteMigrations({
     db.exec(MIGRATIONS_TABLE_SQLITE);
 
     const appliedRows = db.prepare('SELECT name FROM migrations').all() as Array<{ name: string }>;
-    const appliedNames = new Set(appliedRows.map((row) => row.name));
+    const appliedNames = new Set(appliedRows.map(row => row.name));
     const result: MigrationRunResult = { applied: [], skipped: [] };
 
     const applyMigration = db.transaction((migrationFile: string, migrationSql: string) => {
@@ -120,7 +120,7 @@ export async function runPostgresMigrations({
     await sql.unsafe(MIGRATIONS_TABLE_POSTGRES);
 
     const appliedRows = await sql<{ name: string }[]>`SELECT name FROM migrations`;
-    const appliedNames = new Set(appliedRows.map((row) => row.name));
+    const appliedNames = new Set(appliedRows.map(row => row.name));
     const result: MigrationRunResult = { applied: [], skipped: [] };
 
     for (const migrationFile of getMigrationFiles(migrationsFolder)) {
@@ -132,7 +132,7 @@ export async function runPostgresMigrations({
 
       logger.info(`Applying migration: ${migrationFile}`);
       const migrationSql = fs.readFileSync(path.join(migrationsFolder, migrationFile), 'utf8');
-      await sql.begin(async (transaction) => {
+      await sql.begin(async transaction => {
         await transaction.unsafe(migrationSql);
         await transaction.unsafe('INSERT INTO migrations (name) VALUES ($1)', [migrationFile]);
       });

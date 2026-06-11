@@ -14,7 +14,7 @@ export class WebSocketService {
    * Connect to the WebSocket server
    */
   public connect(userId: string): Promise<boolean> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
         console.log('WebSocket already connected');
         resolve(true);
@@ -50,13 +50,13 @@ export class WebSocketService {
           // Send authentication message
           this.send({
             type: 'auth',
-            userId
+            userId,
           });
 
           resolve(true);
         };
 
-        this.socket.onmessage = (event) => {
+        this.socket.onmessage = event => {
           try {
             const data = JSON.parse(event.data);
 
@@ -83,7 +83,7 @@ export class WebSocketService {
           resolve(false);
         };
 
-        this.socket.onerror = (error) => {
+        this.socket.onerror = error => {
           console.error('WebSocket error:', error);
           this.socket?.close();
         };
@@ -104,7 +104,9 @@ export class WebSocketService {
     }
 
     if (this.reconnectAttempts < this.maxReconnectAttempts && this.userId) {
-      console.log(`Attempting to reconnect (${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})...`);
+      console.log(
+        `Attempting to reconnect (${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})...`
+      );
 
       this.reconnectTimer = window.setTimeout(() => {
         this.reconnectAttempts++;

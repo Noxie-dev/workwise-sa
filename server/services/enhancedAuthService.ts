@@ -5,24 +5,38 @@
  * Replaces the basic auth service with production-ready features
  */
 
-import { 
-  AppUser, 
-  AuthResult, 
-  AuthError, 
-  RegisterData, 
-  LoginData, 
-  UserRole, 
+import {
+  AppUser,
+  AuthResult,
+  AuthError,
+  RegisterData,
+  LoginData,
+  UserRole,
   Permission,
   ROLE_PERMISSIONS,
   AUTH_ERROR_CODES,
   AuthErrorCode,
   UserUpdate,
-  UserCreate
+  UserCreate,
 } from '../../shared/auth-types';
 
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  sendPasswordResetEmail,
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from 'firebase/auth';
 import * as admin from 'firebase-admin';
-import { cacheService, cacheUserData, getCachedUserData, invalidateUserCache } from './cacheService';
+import {
+  cacheService,
+  cacheUserData,
+  getCachedUserData,
+  invalidateUserCache,
+} from './cacheService';
 import { tokenRefreshService } from './tokenRefreshService';
 import { logger } from '../utils/logger';
 import { serializeError } from '../utils/serializeError';
@@ -49,11 +63,14 @@ export class EnhancedAuthService {
     try {
       // Initialize cache service
       await cacheService.initialize();
-      
+
       // Check for existing session
       const storedTokens = this.getStoredTokens();
       if (storedTokens.accessToken && storedTokens.refreshToken) {
-        const user = await this.verifyAndRefreshTokens(storedTokens.accessToken, storedTokens.refreshToken);
+        const user = await this.verifyAndRefreshTokens(
+          storedTokens.accessToken,
+          storedTokens.refreshToken
+        );
         if (user) {
           this.currentUser = user;
           this.accessToken = storedTokens.accessToken;
@@ -94,37 +111,36 @@ export class EnhancedAuthService {
 
       // Get or create user profile
       const user = await this.getOrCreateUserProfile(firebaseUser);
-      
+
       // Generate tokens
       const tokens = await this.generateTokens(user.uid);
-      
+
       // Update local state
       this.currentUser = user;
       this.accessToken = tokens.accessToken;
       this.refreshToken = tokens.refreshToken;
-      
+
       // Store tokens if remember me is enabled
       if (rememberMe) {
         this.storeTokens(tokens.accessToken, tokens.refreshToken);
       }
-      
+
       // Cache user data
       await cacheUserData(user.uid, user, 3600); // Cache for 1 hour
-      
+
       // Start token refresh
       this.startTokenRefresh();
-      
+
       // Update last login
       await this.updateLastLogin(user.uid);
-      
+
       logger.info(`User ${email} logged in successfully`);
-      
+
       return this.createSuccessResult('Login successful', user, {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
-        expiresIn: 3600
+        expiresIn: 3600,
       });
-
     } catch (error: any) {
       logger.error('Login error', { error: serializeError(error) });
       return this.handleError(error, 'login');
@@ -135,45 +151,44 @@ export class EnhancedAuthService {
     try {
       const auth = getAuth();
       const provider = new GoogleAuthProvider();
-      
+
       // Add additional scopes if needed
       provider.addScope('email');
       provider.addScope('profile');
-      
+
       const result = await signInWithPopup(auth, provider);
       const firebaseUser = result.user;
 
       // Get or create user profile
       const user = await this.getOrCreateUserProfile(firebaseUser);
-      
+
       // Generate tokens
       const tokens = await this.generateTokens(user.uid);
-      
+
       // Update local state
       this.currentUser = user;
       this.accessToken = tokens.accessToken;
       this.refreshToken = tokens.refreshToken;
-      
+
       // Store tokens
       this.storeTokens(tokens.accessToken, tokens.refreshToken);
-      
+
       // Cache user data
       await cacheUserData(user.uid, user, 3600);
-      
+
       // Start token refresh
       this.startTokenRefresh();
-      
+
       // Update last login
       await this.updateLastLogin(user.uid);
-      
+
       logger.info(`User ${user.email} logged in with Google successfully`);
-      
+
       return this.createSuccessResult('Google login successful', user, {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
-        expiresIn: 3600
+        expiresIn: 3600,
       });
-
     } catch (error: any) {
       logger.error('Google login error', { error: serializeError(error) });
       return this.handleError(error, 'google-login');
@@ -191,9 +206,8 @@ export class EnhancedAuthService {
       // For now, return a placeholder
       return this.createErrorResult({
         code: AUTH_ERROR_CODES.OPERATION_NOT_ALLOWED,
-        message: 'Email link authentication not yet implemented'
+        message: 'Email link authentication not yet implemented',
       });
-
     } catch (error: any) {
       logger.error('Email link login error', { error: serializeError(error) });
       return this.handleError(error, 'email-link-login');
@@ -213,13 +227,17 @@ export class EnhancedAuthService {
       if (existingUser) {
         return this.createErrorResult({
           code: AUTH_ERROR_CODES.EMAIL_ALREADY_IN_USE,
-          message: 'An account with this email already exists'
+          message: 'An account with this email already exists',
         });
       }
 
       // Create Firebase user
       const auth = getAuth();
-      const userCredential = await createUserWithEmailAndPassword(auth, userData.email, userData.password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        userData.email,
+        userData.password
+      );
       const firebaseUser = userCredential.user;
 
       // Update Firebase profile
@@ -229,32 +247,31 @@ export class EnhancedAuthService {
 
       // Create user profile in database
       const user = await this.createUserProfile(firebaseUser, userData);
-      
+
       // Generate tokens
       const tokens = await this.generateTokens(user.uid);
-      
+
       // Update local state
       this.currentUser = user;
       this.accessToken = tokens.accessToken;
       this.refreshToken = tokens.refreshToken;
-      
+
       // Store tokens
       this.storeTokens(tokens.accessToken, tokens.refreshToken);
-      
+
       // Cache user data
       await cacheUserData(user.uid, user, 3600);
-      
+
       // Start token refresh
       this.startTokenRefresh();
-      
+
       logger.info(`User ${userData.email} registered successfully`);
-      
+
       return this.createSuccessResult('Registration successful', user, {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
-        expiresIn: 3600
+        expiresIn: 3600,
       });
-
     } catch (error: any) {
       logger.error('Registration error', { error: serializeError(error) });
       return this.handleError(error, 'registration');
@@ -271,23 +288,22 @@ export class EnhancedAuthService {
       // Perform Firebase logout
       const auth = getAuth();
       await signOut(auth);
-      
+
       // Clear local state
       this.currentUser = null;
       this.accessToken = null;
       this.refreshToken = null;
       this.clearStoredTokens();
       this.stopTokenRefresh();
-      
+
       // Invalidate user cache
       if (this.currentUser?.uid) {
         await invalidateUserCache(this.currentUser.uid);
       }
-      
-      logger.info('User logged out successfully');
-      
-      return this.createSuccessResult('Logged out successfully');
 
+      logger.info('User logged out successfully');
+
+      return this.createSuccessResult('Logged out successfully');
     } catch (error: any) {
       logger.error('Logout error', { error: serializeError(error) });
       return this.handleError(error, 'logout');
@@ -303,11 +319,10 @@ export class EnhancedAuthService {
 
       const auth = getAuth();
       await sendPasswordResetEmail(auth, email);
-      
-      logger.info(`Password reset email sent to ${email}`);
-      
-      return this.createSuccessResult('Password reset email sent');
 
+      logger.info(`Password reset email sent to ${email}`);
+
+      return this.createSuccessResult('Password reset email sent');
     } catch (error: any) {
       logger.error('Password reset error', { error: serializeError(error) });
       return this.handleError(error, 'password-reset');
@@ -326,7 +341,10 @@ export class EnhancedAuthService {
     // Try to get user from stored tokens
     const storedTokens = this.getStoredTokens();
     if (storedTokens.accessToken && storedTokens.refreshToken) {
-      const user = await this.verifyAndRefreshTokens(storedTokens.accessToken, storedTokens.refreshToken);
+      const user = await this.verifyAndRefreshTokens(
+        storedTokens.accessToken,
+        storedTokens.refreshToken
+      );
       if (user) {
         this.currentUser = user;
         return user;
@@ -341,29 +359,28 @@ export class EnhancedAuthService {
       if (!this.currentUser) {
         return this.createErrorResult({
           code: AUTH_ERROR_CODES.INVALID_TOKEN,
-          message: 'User not authenticated'
+          message: 'User not authenticated',
         });
       }
 
       // Update user in database
       const updatedUser = await this.updateUserProfile(this.currentUser.uid, updates);
-      
+
       if (updatedUser) {
         this.currentUser = updatedUser;
-        
+
         // Update cache
         await cacheUserData(updatedUser.uid, updatedUser, 3600);
-        
+
         logger.info(`User ${updatedUser.uid} profile updated`);
-        
+
         return this.createSuccessResult('Profile updated successfully', updatedUser);
       } else {
         return this.createErrorResult({
           code: AUTH_ERROR_CODES.INTERNAL_ERROR,
-          message: 'Failed to update profile'
+          message: 'Failed to update profile',
         });
       }
-
     } catch (error: any) {
       logger.error('User update error', { error: serializeError(error) });
       return this.handleError(error, 'user-update');
@@ -375,30 +392,29 @@ export class EnhancedAuthService {
       if (!this.currentUser) {
         return this.createErrorResult({
           code: AUTH_ERROR_CODES.INVALID_TOKEN,
-          message: 'User not authenticated'
+          message: 'User not authenticated',
         });
       }
 
       // Revoke all tokens
       await tokenRefreshService.revokeAllUserTokens(this.currentUser.uid);
-      
+
       // Delete user from database
       await this.deleteUserProfile(this.currentUser.uid);
-      
+
       // Invalidate cache
       await invalidateUserCache(this.currentUser.uid);
-      
+
       // Clear local state
       this.currentUser = null;
       this.accessToken = null;
       this.refreshToken = null;
       this.clearStoredTokens();
       this.stopTokenRefresh();
-      
-      logger.info(`User ${this.currentUser.uid} deleted successfully`);
-      
-      return this.createSuccessResult('Account deleted successfully');
 
+      logger.info(`User ${this.currentUser.uid} deleted successfully`);
+
+      return this.createSuccessResult('Account deleted successfully');
     } catch (error: any) {
       logger.error('User deletion error', { error: serializeError(error) });
       return this.handleError(error, 'user-deletion');
@@ -416,7 +432,10 @@ export class EnhancedAuthService {
 
     const storedTokens = this.getStoredTokens();
     if (storedTokens.accessToken && storedTokens.refreshToken) {
-      const user = await this.verifyAndRefreshTokens(storedTokens.accessToken, storedTokens.refreshToken);
+      const user = await this.verifyAndRefreshTokens(
+        storedTokens.accessToken,
+        storedTokens.refreshToken
+      );
       if (user) {
         this.accessToken = storedTokens.accessToken;
         return storedTokens.accessToken;
@@ -434,22 +453,21 @@ export class EnhancedAuthService {
 
       const result = await tokenRefreshService.refreshToken(this.refreshToken, {
         ipAddress: 'unknown', // Would get from request context
-        userAgent: 'unknown'  // Would get from request context
+        userAgent: 'unknown', // Would get from request context
       });
 
       if (result.success && result.accessToken) {
         this.accessToken = result.accessToken;
-        
+
         if (result.refreshToken) {
           this.refreshToken = result.refreshToken;
           this.storeTokens(result.accessToken, result.refreshToken);
         }
-        
+
         return result.accessToken;
       }
 
       return null;
-
     } catch (error) {
       logger.error('Token refresh failed', { error: serializeError(error) });
       return null;
@@ -525,7 +543,10 @@ export class EnhancedAuthService {
   // PRIVATE HELPER METHODS
   // ============================================================================
 
-  private async verifyAndRefreshTokens(accessToken: string, refreshToken: string): Promise<AppUser | null> {
+  private async verifyAndRefreshTokens(
+    accessToken: string,
+    refreshToken: string
+  ): Promise<AppUser | null> {
     try {
       // First try to verify the access token
       const decodedToken = await admin.auth().verifyIdToken(accessToken);
@@ -536,7 +557,7 @@ export class EnhancedAuthService {
       try {
         const result = await tokenRefreshService.refreshToken(refreshToken, {
           ipAddress: 'unknown',
-          userAgent: 'unknown'
+          userAgent: 'unknown',
         });
 
         if (result.success && result.accessToken) {
@@ -545,7 +566,9 @@ export class EnhancedAuthService {
           return user;
         }
       } catch (refreshError) {
-        logger.error('Token refresh failed during verification', { error: serializeError(refreshError) });
+        logger.error('Token refresh failed during verification', {
+          error: serializeError(refreshError),
+        });
       }
     }
 
@@ -599,28 +622,30 @@ export class EnhancedAuthService {
   private async getOrCreateUserProfile(firebaseUser: any): Promise<AppUser> {
     // Try to get existing user
     let user = await this.getCachedUserById(firebaseUser.uid);
-    
+
     if (!user) {
       // Create new user profile
       user = await this.createUserProfile(firebaseUser, {
         email: firebaseUser.email,
         displayName: firebaseUser.displayName || '',
         username: firebaseUser.email.split('@')[0],
-        agreeTerms: true
+        agreeTerms: true,
       });
     }
 
     return user;
   }
 
-  private async generateTokens(userId: string): Promise<{ accessToken: string; refreshToken: string }> {
+  private async generateTokens(
+    userId: string
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
       // Generate access token
       const accessToken = await admin.auth().createCustomToken(userId);
-      
+
       // Generate refresh token (this would be handled by the token refresh service)
       const refreshToken = `rt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       return { accessToken, refreshToken };
     } catch (error) {
       logger.error('Error generating tokens', { error: serializeError(error) });
@@ -630,11 +655,14 @@ export class EnhancedAuthService {
 
   private startTokenRefresh(): void {
     this.stopTokenRefresh();
-    
+
     // Refresh token every 50 minutes (tokens typically expire in 1 hour)
-    this.tokenRefreshTimer = setInterval(async () => {
-      await this.refreshToken();
-    }, 50 * 60 * 1000);
+    this.tokenRefreshTimer = setInterval(
+      async () => {
+        await this.refreshToken();
+      },
+      50 * 60 * 1000
+    );
   }
 
   private stopTokenRefresh(): void {
@@ -655,7 +683,7 @@ export class EnhancedAuthService {
     if (typeof window !== 'undefined') {
       return {
         accessToken: localStorage.getItem('access_token'),
-        refreshToken: localStorage.getItem('refresh_token')
+        refreshToken: localStorage.getItem('refresh_token'),
       };
     }
     return { accessToken: null, refreshToken: null };
@@ -673,24 +701,24 @@ export class EnhancedAuthService {
       success: true,
       message,
       user,
-      data
+      data,
     };
   }
 
   private createErrorResult(error: AuthError): AuthResult {
     return {
       success: false,
-      error
+      error,
     };
   }
 
   private handleError(error: any, operation: string): AuthResult {
     logger.error(`Auth error in ${operation}`, { error: serializeError(error) });
-    
+
     const authError: AuthError = {
       code: error.code || AUTH_ERROR_CODES.INTERNAL_ERROR,
       message: error.message || 'An unexpected error occurred',
-      details: error
+      details: error,
     };
 
     return this.createErrorResult(authError);
@@ -706,8 +734,8 @@ export class EnhancedAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.VALIDATION_ERROR,
-          message: 'Email and password are required'
-        }
+          message: 'Email and password are required',
+        },
       };
     }
 
@@ -716,8 +744,8 @@ export class EnhancedAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.INVALID_EMAIL,
-          message: 'Invalid email format'
-        }
+          message: 'Invalid email format',
+        },
       };
     }
 
@@ -730,8 +758,8 @@ export class EnhancedAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.VALIDATION_ERROR,
-          message: 'All required fields must be filled'
-        }
+          message: 'All required fields must be filled',
+        },
       };
     }
 
@@ -740,8 +768,8 @@ export class EnhancedAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.INVALID_EMAIL,
-          message: 'Invalid email format'
-        }
+          message: 'Invalid email format',
+        },
       };
     }
 
@@ -750,8 +778,8 @@ export class EnhancedAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.WEAK_PASSWORD,
-          message: 'Password must be at least 6 characters long'
-        }
+          message: 'Password must be at least 6 characters long',
+        },
       };
     }
 
@@ -760,8 +788,8 @@ export class EnhancedAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.VALIDATION_ERROR,
-          message: 'You must agree to the terms and conditions'
-        }
+          message: 'You must agree to the terms and conditions',
+        },
       };
     }
 
@@ -774,8 +802,8 @@ export class EnhancedAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.VALIDATION_ERROR,
-          message: 'Email is required'
-        }
+          message: 'Email is required',
+        },
       };
     }
 
@@ -784,8 +812,8 @@ export class EnhancedAuthService {
         valid: false,
         error: {
           code: AUTH_ERROR_CODES.INVALID_EMAIL,
-          message: 'Invalid email format'
-        }
+          message: 'Invalid email format',
+        },
       };
     }
 
@@ -825,27 +853,27 @@ export class EnhancedAuthService {
           preferredCategories: [],
           preferredLocations: [],
           preferredJobTypes: [],
-          workMode: ['remote', 'on-site', 'hybrid']
+          workMode: ['remote', 'on-site', 'hybrid'],
         },
         experience: {
           yearsOfExperience: 0,
-          previousPositions: []
+          previousPositions: [],
         },
         education: {
           highestDegree: '',
           fieldOfStudy: '',
           institution: '',
-          additionalCertifications: []
+          additionalCertifications: [],
         },
         skills: [],
         engagementScore: 0,
-        notificationPreference: true
-      }
+        notificationPreference: true,
+      },
     };
 
     // Cache the new user
     await cacheUserData(user.uid, user, 3600);
-    
+
     return user;
   }
 

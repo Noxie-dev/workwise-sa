@@ -1,4 +1,4 @@
-import { db } from "./db";
+import { db } from './db';
 import {
   users,
   jobs,
@@ -10,9 +10,9 @@ import {
   userSessions,
   User,
   Job,
-  JobWithCompany
-} from "@shared/schema";
-import { eq, and, desc, sql, inArray, like, or } from "drizzle-orm";
+  JobWithCompany,
+} from '@shared/schema';
+import { eq, and, desc, sql, inArray, like, or } from 'drizzle-orm';
 import { calculateEnhancedJobMatchScore } from './services/enhancedJobScoring';
 
 /**
@@ -33,19 +33,19 @@ import { calculateEnhancedJobMatchScore } from './services/enhancedJobScoring';
 
 // Engagement score thresholds
 const ENGAGEMENT_THRESHOLDS = {
-  LOW: 0,     // New user or minimal engagement
+  LOW: 0, // New user or minimal engagement
   MEDIUM: 50, // Regular user with some engagement
-  HIGH: 150,  // Active user with significant engagement
-  PREMIUM: 300 // Power user with very high engagement
+  HIGH: 150, // Active user with significant engagement
+  PREMIUM: 300, // Power user with very high engagement
 };
 
 // Scoring weights for different recommendation factors
 const RECOMMENDATION_WEIGHTS = {
-  CATEGORY_MATCH: 35,       // Weight for matching job category
-  LOCATION_MATCH: 25,       // Weight for location match
-  SKILLS_MATCH: 20,         // Weight for skills match
-  INTERACTION_HISTORY: 15,  // Weight for job interaction history
-  WISE_UP_CONTENT: 5        // Weight for Wise-Up content engagement
+  CATEGORY_MATCH: 35, // Weight for matching job category
+  LOCATION_MATCH: 25, // Weight for location match
+  SKILLS_MATCH: 20, // Weight for skills match
+  INTERACTION_HISTORY: 15, // Weight for job interaction history
+  WISE_UP_CONTENT: 5, // Weight for Wise-Up content engagement
 };
 
 // Types for job recommendation algorithm
@@ -71,7 +71,10 @@ export async function calculateUserEngagementScore(userId: number): Promise<numb
     const sessions = await db.select().from(userSessions).where(eq(userSessions.userId, userId));
 
     // Get user interactions (job views, applications, video watches)
-    const interactions = await db.select().from(userInteractions).where(eq(userInteractions.userId, userId));
+    const interactions = await db
+      .select()
+      .from(userInteractions)
+      .where(eq(userInteractions.userId, userId));
 
     let score = 0;
 
@@ -112,9 +115,7 @@ export async function calculateUserEngagementScore(userId: number): Promise<numb
     });
 
     // Update user's engagement score in database
-    await db.update(users)
-      .set({ engagementScore: score })
-      .where(eq(users.id, userId));
+    await db.update(users).set({ engagementScore: score }).where(eq(users.id, userId));
 
     return score;
   } catch (error) {
@@ -126,7 +127,9 @@ export async function calculateUserEngagementScore(userId: number): Promise<numb
 /**
  * Get user's engagement tier based on their engagement score
  */
-export function getUserEngagementTier(engagementScore: number): 'low' | 'medium' | 'high' | 'premium' {
+export function getUserEngagementTier(
+  engagementScore: number
+): 'low' | 'medium' | 'high' | 'premium' {
   if (engagementScore >= ENGAGEMENT_THRESHOLDS.PREMIUM) {
     return 'premium';
   } else if (engagementScore >= ENGAGEMENT_THRESHOLDS.HIGH) {
@@ -142,12 +145,10 @@ export function getUserEngagementTier(engagementScore: number): 'low' | 'medium'
  * Get jobs a user has already applied for
  */
 async function getUserAppliedJobs(userId: number): Promise<number[]> {
-  const appliedJobInteractions = await db.select()
+  const appliedJobInteractions = await db
+    .select()
     .from(userInteractions)
-    .where(and(
-      eq(userInteractions.userId, userId),
-      eq(userInteractions.interactionType, 'apply')
-    ));
+    .where(and(eq(userInteractions.userId, userId), eq(userInteractions.interactionType, 'apply')));
 
   return appliedJobInteractions
     .filter(interaction => interaction.jobId !== null)
@@ -159,7 +160,8 @@ async function getUserAppliedJobs(userId: number): Promise<number[]> {
  */
 async function calculateCategoryMatchScore(userId: number, job: Job): Promise<number> {
   // Get user preferences
-  const [userPreference] = await db.select()
+  const [userPreference] = await db
+    .select()
     .from(userJobPreferences)
     .where(eq(userJobPreferences.userId, userId));
 
@@ -176,12 +178,12 @@ async function calculateCategoryMatchScore(userId: number, job: Job): Promise<nu
   }
 
   // Get user interactions with categories
-  const categoryInteractions = await db.select()
+  const categoryInteractions = await db
+    .select()
     .from(userInteractions)
-    .where(and(
-      eq(userInteractions.userId, userId),
-      eq(userInteractions.categoryId, job.categoryId)
-    ));
+    .where(
+      and(eq(userInteractions.userId, userId), eq(userInteractions.categoryId, job.categoryId))
+    );
 
   if (categoryInteractions.length > 0) {
     return 25; // User has interacted with this category before
@@ -196,7 +198,8 @@ async function calculateCategoryMatchScore(userId: number, job: Job): Promise<nu
 async function calculateLocationMatchScore(userId: number, job: Job): Promise<number> {
   // Get user data and preferences
   const [user] = await db.select().from(users).where(eq(users.id, userId));
-  const [userPreference] = await db.select()
+  const [userPreference] = await db
+    .select()
     .from(userJobPreferences)
     .where(eq(userJobPreferences.userId, userId));
 
@@ -233,21 +236,19 @@ async function calculateLocationMatchScore(userId: number, job: Job): Promise<nu
  */
 async function calculateInteractionHistoryScore(userId: number, job: Job): Promise<number> {
   // Get interactions with same category
-  const categoryInteractions = await db.select()
+  const categoryInteractions = await db
+    .select()
     .from(userInteractions)
-    .where(and(
-      eq(userInteractions.userId, userId),
-      eq(userInteractions.categoryId, job.categoryId)
-    ));
+    .where(
+      and(eq(userInteractions.userId, userId), eq(userInteractions.categoryId, job.categoryId))
+    );
 
   // Get interactions with similar jobs
-  const jobInteractions = await db.select()
+  const jobInteractions = await db
+    .select()
     .from(userInteractions)
     .innerJoin(jobs, eq(userInteractions.jobId, jobs.id))
-    .where(and(
-      eq(userInteractions.userId, userId),
-      eq(jobs.categoryId, job.categoryId)
-    ));
+    .where(and(eq(userInteractions.userId, userId), eq(jobs.categoryId, job.categoryId)));
 
   const interactionScore = categoryInteractions.length * 2 + jobInteractions.length * 3;
 
@@ -261,13 +262,16 @@ async function calculateInteractionHistoryScore(userId: number, job: Job): Promi
 async function calculateWiseUpContentScore(userId: number, job: Job): Promise<number> {
   // Get video interactions related to this job category
   // We're checking for videos that might be tagged with the same category
-  const videoInteractions = await db.select()
+  const videoInteractions = await db
+    .select()
     .from(userInteractions)
-    .where(and(
-      eq(userInteractions.userId, userId),
-      eq(userInteractions.interactionType, 'video_watch'),
-      eq(userInteractions.categoryId, job.categoryId)
-    ));
+    .where(
+      and(
+        eq(userInteractions.userId, userId),
+        eq(userInteractions.interactionType, 'video_watch'),
+        eq(userInteractions.categoryId, job.categoryId)
+      )
+    );
 
   // Score based on number of relevant videos watched
   const watchCount = videoInteractions.length;
@@ -294,12 +298,14 @@ async function calculateJobMatchScore(userId: number, job: Job): Promise<Recomme
       return {
         jobId: job.id,
         score: enhancedResult.score,
-        matchingFactors: enhancedResult.matchingFactors
+        matchingFactors: enhancedResult.matchingFactors,
       };
     }
 
     // If enhanced algorithm returns null, fall back to original implementation
-    console.log(`Enhanced scoring returned null for user ${userId} and job ${job.id}, falling back to original implementation`);
+    console.log(
+      `Enhanced scoring returned null for user ${userId} and job ${job.id}, falling back to original implementation`
+    );
     return await calculateFallbackScore(userId, job);
   } catch (error) {
     console.error('Enhanced scoring failed, falling back to original implementation:', error);
@@ -336,7 +342,7 @@ async function calculateFallbackScore(userId: number, job: Job): Promise<Recomme
   return {
     jobId: job.id,
     score: totalScore,
-    matchingFactors
+    matchingFactors,
   };
 }
 
@@ -351,12 +357,12 @@ export async function getJobRecommendations(
     limit = 10,
     includeApplied = false,
     includeRelocation = true,
-    maxDistance = 50
+    maxDistance = 50,
   } = options;
 
   try {
     // Get user engagement score or calculate if not available
-    let [user] = await db.select().from(users).where(eq(users.id, userId));
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
 
     if (!user) {
       throw new Error(`User with ID ${userId} not found`);
@@ -400,7 +406,7 @@ export async function getJobRecommendations(
         categoryId: jobs.categoryId,
         isFeatured: jobs.isFeatured,
         createdAt: jobs.createdAt,
-        company: companies
+        company: companies,
       })
       .from(jobs)
       .innerJoin(companies, eq(jobs.companyId, companies.id))
@@ -434,10 +440,7 @@ export async function isEligibleForEarlyNotifications(userId: number): Promise<b
 /**
  * Send personalized job notification to user
  */
-export async function sendJobNotificationToUser(
-  userId: number,
-  jobId: number
-): Promise<boolean> {
+export async function sendJobNotificationToUser(userId: number, jobId: number): Promise<boolean> {
   try {
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     const [job] = await db
@@ -466,7 +469,7 @@ export async function sendJobNotificationToUser(
       jobId: job.id,
       isRead: false,
       createdAt: new Date(),
-      sentAt: new Date()
+      sentAt: new Date(),
     });
 
     // In a real app, we would send a push notification here
@@ -503,7 +506,7 @@ export async function trackUserInteraction(
       videoId: data.videoId,
       categoryId: data.categoryId,
       duration: data.duration,
-      metadata: data.metadata ? data.metadata : undefined
+      metadata: data.metadata ? data.metadata : undefined,
     });
 
     // Update engagement score when interaction happens
@@ -524,19 +527,18 @@ export async function startUserSession(
   }
 ): Promise<number> {
   try {
-    const [session] = await db.insert(userSessions)
+    const [session] = await db
+      .insert(userSessions)
       .values({
         userId,
         startTime: new Date(),
         device: data.device,
-        ipAddress: data.ipAddress
+        ipAddress: data.ipAddress,
       })
       .returning();
 
     // Update user's last active timestamp
-    await db.update(users)
-      .set({ lastActive: new Date() })
-      .where(eq(users.id, userId));
+    await db.update(users).set({ lastActive: new Date() }).where(eq(users.id, userId));
 
     return session?.id || 0;
   } catch (error) {
@@ -550,9 +552,7 @@ export async function startUserSession(
  */
 export async function endUserSession(sessionId: number): Promise<void> {
   try {
-    const [session] = await db.select()
-      .from(userSessions)
-      .where(eq(userSessions.id, sessionId));
+    const [session] = await db.select().from(userSessions).where(eq(userSessions.id, sessionId));
 
     if (!session) {
       return;
@@ -562,10 +562,11 @@ export async function endUserSession(sessionId: number): Promise<void> {
     const endTime = new Date().getTime();
     const duration = Math.floor((endTime - startTime) / 1000); // Duration in seconds
 
-    await db.update(userSessions)
+    await db
+      .update(userSessions)
       .set({
         endTime: new Date(),
-        duration
+        duration,
       })
       .where(eq(userSessions.id, sessionId));
 
@@ -588,10 +589,14 @@ export async function personalizedJobSearch(
 
   try {
     // Split query into keywords
-    const keywords = query.toLowerCase().split(/\s+/).filter(k => k.length > 2);
+    const keywords = query
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(k => k.length > 2);
 
     // Get user preferences
-    const [userPreference] = await db.select()
+    const [userPreference] = await db
+      .select()
       .from(userJobPreferences)
       .where(eq(userJobPreferences.userId, userId));
 
@@ -625,7 +630,7 @@ export async function personalizedJobSearch(
         categoryId: jobs.categoryId,
         isFeatured: jobs.isFeatured,
         createdAt: jobs.createdAt,
-        company: companies
+        company: companies,
       })
       .from(jobs)
       .innerJoin(companies, eq(jobs.companyId, companies.id))
@@ -658,7 +663,7 @@ export async function personalizedJobSearch(
 
       return {
         job,
-        score: matchScore.score
+        score: matchScore.score,
       };
     });
 

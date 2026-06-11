@@ -43,8 +43,10 @@ interface PerformanceContext {
  */
 export const performanceMonitoring = (req: Request, res: Response, next: NextFunction) => {
   const startTime = Date.now();
-  const requestId = req.headers['x-request-id'] as string || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+  const requestId =
+    (req.headers['x-request-id'] as string) ||
+    `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
   // Create performance context
   const perfContext: PerformanceContext = {
     startTime,
@@ -55,7 +57,7 @@ export const performanceMonitoring = (req: Request, res: Response, next: NextFun
     ipAddress: req.ip,
     userId: (req as any).user?.uid,
     databaseOperations: [],
-    cacheOperations: []
+    cacheOperations: [],
   };
 
   // Attach to request for use in other middleware
@@ -64,7 +66,7 @@ export const performanceMonitoring = (req: Request, res: Response, next: NextFun
   // Track request start
   metricsService.setGauge('http_requests_in_flight', 1, {
     method: req.method,
-    path: req.path
+    path: req.path,
   });
 
   // Override response methods to track completion
@@ -99,7 +101,7 @@ export const performanceMonitoring = (req: Request, res: Response, next: NextFun
     // Update in-flight requests
     metricsService.setGauge('http_requests_in_flight', -1, {
       method: req.method,
-      path: req.path
+      path: req.path,
     });
 
     // Log performance data
@@ -113,21 +115,21 @@ export const performanceMonitoring = (req: Request, res: Response, next: NextFun
       databaseOperations: perfContext.databaseOperations.length,
       cacheOperations: perfContext.cacheOperations.length,
       userAgent: perfContext.userAgent,
-      ipAddress: perfContext.ipAddress
+      ipAddress: perfContext.ipAddress,
     });
   };
 
-  res.send = function(body: any) {
+  res.send = function (body: any) {
     recordCompletion();
     return originalSend.call(this, body);
   };
 
-  res.json = function(body: any) {
+  res.json = function (body: any) {
     recordCompletion();
     return originalJson.call(this, body);
   };
 
-  res.end = function(chunk?: any, encoding?: any) {
+  res.end = function (chunk?: any, encoding?: any) {
     recordCompletion();
     return originalEnd.call(this, chunk, encoding);
   };
@@ -149,14 +151,12 @@ export const trackDatabaseOperation = (operation: string, table: string) => {
     const dbOp: PerformanceContext['databaseOperations'][number] = {
       operation,
       table,
-      startTime
+      startTime,
     };
 
     perfContext.databaseOperations.push(dbOp);
 
-    // Override next to track completion
-    const originalNext = next;
-    next = function(err?: any) {
+    const trackedNext = function (err?: any) {
       const duration = Date.now() - startTime;
       const success = !err;
 
@@ -167,14 +167,14 @@ export const trackDatabaseOperation = (operation: string, table: string) => {
         logger.error(`Database operation failed: ${operation} on ${table}`, {
           requestId: perfContext.requestId,
           error: err.message,
-          duration
+          duration,
         });
       }
 
-      return originalNext(err);
+      return next(err);
     };
 
-    return next;
+    return trackedNext;
   };
 };
 
@@ -191,7 +191,7 @@ export const trackCacheOperation = (operation: string, hit: boolean) => {
     perfContext.cacheOperations.push({
       operation,
       hit,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     next();
@@ -204,13 +204,13 @@ export const trackCacheOperation = (operation: string, hit: boolean) => {
 export const trackAuthOperation = (operation: string, success: boolean) => {
   return (req: Request, res: Response, next: NextFunction) => {
     metricsService.recordAuthOperation(operation, success);
-    
+
     if (!success) {
       logger.warn(`Authentication operation failed: ${operation}`, {
         requestId: (req as any).perfContext?.requestId,
         userId: (req as any).user?.uid,
         ipAddress: req.ip,
-        userAgent: req.get('User-Agent')
+        userAgent: req.get('User-Agent'),
       });
     }
 
@@ -221,14 +221,19 @@ export const trackAuthOperation = (operation: string, success: boolean) => {
 /**
  * Batch operation tracking middleware
  */
-export const trackBatchOperation = (operation: string, count: number, success: boolean, duration: number) => {
+export const trackBatchOperation = (
+  operation: string,
+  count: number,
+  success: boolean,
+  duration: number
+) => {
   metricsService.recordBatchOperation(operation, count, success, duration);
-  
+
   if (!success) {
     logger.error(`Batch operation failed: ${operation}`, {
       count,
       duration,
-      error: 'Batch processing failed'
+      error: 'Batch processing failed',
     });
   }
 };
@@ -246,13 +251,13 @@ export function measureExecutionTime<T>(
   labels?: Record<string, string>
 ): Promise<T> {
   const startTime = Date.now();
-  
+
   return fn()
     .then(result => {
       const duration = Date.now() - startTime;
       metricsService.observeHistogram('operation_duration_seconds', duration / 1000, {
         operation,
-        ...labels
+        ...labels,
       });
       return result;
     })
@@ -261,7 +266,7 @@ export function measureExecutionTime<T>(
       metricsService.observeHistogram('operation_duration_seconds', duration / 1000, {
         operation,
         status: 'error',
-        ...labels
+        ...labels,
       });
       throw error;
     });
@@ -276,24 +281,24 @@ export async function measureDatabaseOperation<T>(
   table: string
 ): Promise<T> {
   const startTime = Date.now();
-  
+
   try {
     const result = await operation();
     const duration = Date.now() - startTime;
-    
+
     metricsService.recordDatabaseOperation(operationType, table, true, duration);
-    
+
     return result;
   } catch (error) {
     const duration = Date.now() - startTime;
-    
+
     metricsService.recordDatabaseOperation(operationType, table, false, duration);
-    
+
     logger.error(`Database operation failed: ${operationType} on ${table}`, {
       error: error instanceof Error ? error.message : 'Unknown error',
-      duration
+      duration,
     });
-    
+
     throw error;
   }
 }
@@ -307,7 +312,7 @@ export function measureCacheOperation<T>(
   hit: boolean
 ): Promise<T> {
   metricsService.recordCacheOperation(operationType, hit);
-  
+
   return operation();
 }
 
@@ -329,7 +334,7 @@ export class PerformanceTimer {
     const duration = Date.now() - this.startTime;
     metricsService.observeHistogram('operation_duration_seconds', duration / 1000, {
       operation: this.operation,
-      ...this.labels
+      ...this.labels,
     });
     return duration;
   }
@@ -339,7 +344,7 @@ export class PerformanceTimer {
     metricsService.observeHistogram('operation_duration_seconds', duration / 1000, {
       operation: this.operation,
       status: 'error',
-      ...this.labels
+      ...this.labels,
     });
     return duration;
   }
@@ -355,13 +360,13 @@ export class PerformanceTimer {
 export const getPerformanceMetrics = (req: Request, res: Response) => {
   try {
     const metrics = metricsService.exportPrometheusFormat();
-    
+
     res.set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
     res.send(metrics);
   } catch (error) {
     logger.error('Error getting performance metrics:', error);
     res.status(500).json({
-      error: 'Failed to retrieve performance metrics'
+      error: 'Failed to retrieve performance metrics',
     });
   }
 };
@@ -375,12 +380,12 @@ export const getPerformanceSummary = (req: Request, res: Response) => {
       http: {
         requestsTotal: metricsService.getMetricValue('http_requests_total'),
         requestsFailed: metricsService.getMetricValue('http_requests_failed_total'),
-        averageResponseTime: metricsService.getMetricValue('http_request_duration_seconds')
+        averageResponseTime: metricsService.getMetricValue('http_request_duration_seconds'),
       },
       database: {
         operationsTotal: metricsService.getMetricValue('database_operations_total'),
         operationsFailed: metricsService.getMetricValue('database_operations_failed_total'),
-        averageOperationTime: metricsService.getMetricValue('database_operation_duration_seconds')
+        averageOperationTime: metricsService.getMetricValue('database_operation_duration_seconds'),
       },
       cache: {
         hitsTotal: metricsService.getMetricValue('cache_hits_total'),
@@ -390,28 +395,28 @@ export const getPerformanceSummary = (req: Request, res: Response) => {
           const misses = metricsService.getMetricValue('cache_misses_total') || 0;
           const total = hits + misses;
           return total > 0 ? (hits / total) * 100 : 0;
-        })()
+        })(),
       },
       auth: {
         requestsTotal: metricsService.getMetricValue('auth_requests_total'),
         requestsFailed: metricsService.getMetricValue('auth_requests_failed_total'),
-        activeSessions: metricsService.getMetricValue('auth_active_sessions')
+        activeSessions: metricsService.getMetricValue('auth_active_sessions'),
       },
       system: {
         memoryUsage: metricsService.getMetricValue('system_memory_usage_bytes'),
         cpuUsage: metricsService.getMetricValue('system_cpu_usage_percent'),
-        uptime: metricsService.getMetricValue('system_uptime_seconds')
-      }
+        uptime: metricsService.getMetricValue('system_uptime_seconds'),
+      },
     };
 
     res.json({
       success: true,
-      data: summary
+      data: summary,
     });
   } catch (error) {
     logger.error('Error getting performance summary:', error);
     res.status(500).json({
-      error: 'Failed to retrieve performance summary'
+      error: 'Failed to retrieve performance summary',
     });
   }
 };
@@ -434,13 +439,14 @@ export const checkPerformanceThresholds = () => {
 
   // Check response time threshold
   const avgResponseTime = metricsService.getMetricValue('http_request_duration_seconds');
-  if (avgResponseTime && avgResponseTime > 2) { // 2 seconds
+  if (avgResponseTime && avgResponseTime > 2) {
+    // 2 seconds
     alerts.push({
       type: 'response_time',
       severity: avgResponseTime > 5 ? 'CRITICAL' : 'HIGH',
       message: `Average response time is ${avgResponseTime.toFixed(2)}s`,
       value: avgResponseTime,
-      threshold: 2
+      threshold: 2,
     });
   }
 
@@ -448,41 +454,45 @@ export const checkPerformanceThresholds = () => {
   const totalRequests = metricsService.getMetricValue('http_requests_total') || 0;
   const failedRequests = metricsService.getMetricValue('http_requests_failed_total') || 0;
   const errorRate = totalRequests > 0 ? (failedRequests / totalRequests) * 100 : 0;
-  
-  if (errorRate > 5) { // 5% error rate
+
+  if (errorRate > 5) {
+    // 5% error rate
     alerts.push({
       type: 'error_rate',
       severity: errorRate > 20 ? 'CRITICAL' : errorRate > 10 ? 'HIGH' : 'MEDIUM',
       message: `Error rate is ${errorRate.toFixed(2)}%`,
       value: errorRate,
-      threshold: 5
+      threshold: 5,
     });
   }
 
   // Check memory usage threshold
   const memoryUsage = metricsService.getMetricValue('system_memory_usage_bytes');
-  if (memoryUsage && memoryUsage > 1024 * 1024 * 1024) { // 1GB
+  if (memoryUsage && memoryUsage > 1024 * 1024 * 1024) {
+    // 1GB
     alerts.push({
       type: 'memory_usage',
       severity: memoryUsage > 2 * 1024 * 1024 * 1024 ? 'CRITICAL' : 'HIGH',
       message: `Memory usage is ${(memoryUsage / 1024 / 1024 / 1024).toFixed(2)}GB`,
       value: memoryUsage,
-      threshold: 1024 * 1024 * 1024
+      threshold: 1024 * 1024 * 1024,
     });
   }
 
   // Check cache hit rate threshold
   const cacheHits = metricsService.getMetricValue('cache_hits_total') || 0;
   const cacheMisses = metricsService.getMetricValue('cache_misses_total') || 0;
-  const cacheHitRate = (cacheHits + cacheMisses) > 0 ? (cacheHits / (cacheHits + cacheMisses)) * 100 : 100;
-  
-  if (cacheHitRate < 80) { // 80% hit rate
+  const cacheHitRate =
+    cacheHits + cacheMisses > 0 ? (cacheHits / (cacheHits + cacheMisses)) * 100 : 100;
+
+  if (cacheHitRate < 80) {
+    // 80% hit rate
     alerts.push({
       type: 'cache_hit_rate',
       severity: cacheHitRate < 50 ? 'HIGH' : 'MEDIUM',
       message: `Cache hit rate is ${cacheHitRate.toFixed(2)}%`,
       value: cacheHitRate,
-      threshold: 80
+      threshold: 80,
     });
   }
 
@@ -495,20 +505,20 @@ export const checkPerformanceThresholds = () => {
 export const getPerformanceAlerts = (req: Request, res: Response) => {
   try {
     const alerts = checkPerformanceThresholds();
-    
+
     res.json({
       success: true,
       data: {
         alerts,
         count: alerts.length,
         criticalCount: alerts.filter(a => a.severity === 'CRITICAL').length,
-        highCount: alerts.filter(a => a.severity === 'HIGH').length
-      }
+        highCount: alerts.filter(a => a.severity === 'HIGH').length,
+      },
     });
   } catch (error) {
     logger.error('Error getting performance alerts:', error);
     res.status(500).json({
-      error: 'Failed to retrieve performance alerts'
+      error: 'Failed to retrieve performance alerts',
     });
   }
 };

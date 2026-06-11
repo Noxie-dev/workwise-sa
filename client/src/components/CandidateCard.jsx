@@ -13,7 +13,7 @@ const CandidateCard = ({ candidate }) => {
     experiencedRoles, // Array of strings
     cvUrl,
     profileUrl,
-    assessmentUrl
+    assessmentUrl,
   } = candidate;
 
   return (
@@ -23,7 +23,9 @@ const CandidateCard = ({ candidate }) => {
           <span className="font-mono">Ref: {referenceNumber}</span>
           <div className="flex items-center gap-1">
             <TrendingUp size={14} className="text-green-500" />
-            <span className="font-semibold text-green-600 dark:text-green-400">{interactionScore}%</span>
+            <span className="font-semibold text-green-600 dark:text-green-400">
+              {interactionScore}%
+            </span>
           </div>
         </div>
       </CardHeader>
@@ -32,7 +34,10 @@ const CandidateCard = ({ candidate }) => {
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
           <div className="flex-shrink-0">
             <img
-              src={imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=100`}
+              src={
+                imageUrl ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=100`
+              }
               alt={name}
               className="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover border-2 border-primary/30 shadow-md"
             />
@@ -47,7 +52,9 @@ const CandidateCard = ({ candidate }) => {
             )}
             {experiencedRoles && experiencedRoles.length > 0 && (
               <div className="mb-3">
-                <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-medium">Experienced In:</p>
+                <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-medium">
+                  Experienced In:
+                </p>
                 <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                   {experiencedRoles.map((role, index) => (
                     <span
@@ -96,4 +103,3 @@ const CandidateCard = ({ candidate }) => {
 };
 
 export default CandidateCard;
-

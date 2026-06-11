@@ -25,6 +25,7 @@
    - Copy the token
 
 3. **Configure Image Variants** (Optional):
+
    ```
    public → Original size
    optimized → Max 1080px, auto-webp, quality 85
@@ -70,6 +71,7 @@ service cloud.firestore {
 ### 4. Deploy Functions
 
 Your Netlify Functions are ready! Make sure they're deployed:
+
 - `/.netlify/functions/generateUploadUrl`
 - `/.netlify/functions/cloudflareWebhook`
 - `/.netlify/functions/getUserImages`
@@ -84,18 +86,18 @@ import ImageUploader from './src/components/ImageUploader';
 function ProfilePage() {
   return (
     <div>
-      <ImageUploader 
-        label="Profile Picture" 
+      <ImageUploader
+        label="Profile Picture"
         type="profile"
-        onUploadComplete={(imageData) => {
+        onUploadComplete={imageData => {
           console.log('Upload complete:', imageData);
         }}
       />
-      
-      <ImageUploader 
-        label="Professional Photo" 
+
+      <ImageUploader
+        label="Professional Photo"
         type="professional"
-        onUploadComplete={(imageData) => {
+        onUploadComplete={imageData => {
           console.log('Upload complete:', imageData);
         }}
       />
@@ -117,11 +119,11 @@ function DisplayUserImages() {
     async function fetchImages() {
       const auth = getAuth();
       const token = await auth.currentUser?.getIdToken();
-      
+
       const response = await fetch('/.netlify/functions/getUserImages', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       const data = await response.json();
       setImages(data.images);
     }
@@ -131,12 +133,8 @@ function DisplayUserImages() {
 
   return (
     <div>
-      {images?.profile && (
-        <img src={images.profile.thumbnailUrl} alt="Profile" />
-      )}
-      {images?.professional && (
-        <img src={images.professional.optimizedUrl} alt="Professional" />
-      )}
+      {images?.profile && <img src={images.profile.thumbnailUrl} alt="Profile" />}
+      {images?.professional && <img src={images.professional.optimizedUrl} alt="Professional" />}
     </div>
   );
 }
@@ -145,18 +143,21 @@ function DisplayUserImages() {
 ## 🔧 API Endpoints
 
 ### POST `/.netlify/functions/generateUploadUrl`
+
 **Purpose**: Generate signed upload URL for Cloudflare Images
 **Auth**: Required (Firebase Bearer token)
 **Body**: `{ "type": "profile" | "professional" }`
 **Response**: `{ "uploadUrl": "...", "imageId": "..." }`
 
 ### GET `/.netlify/functions/getUserImages?type=profile`
+
 **Purpose**: Get user's uploaded images
 **Auth**: Required (Firebase Bearer token)
 **Query**: `type` (optional) - "profile" or "professional"
 **Response**: `{ "images": { "profile": {...}, "professional": {...} } }`
 
 ### POST `/.netlify/functions/cloudflareWebhook`
+
 **Purpose**: Webhook receiver for Cloudflare Images processing
 **Auth**: Webhook secret verification
 **Body**: Cloudflare webhook payload
@@ -189,18 +190,22 @@ Optimized: https://imagedelivery.net/{HASH}/{IMAGE_ID}/w=1080,h=1080,fit=scale-d
 ## 🛠️ Troubleshooting
 
 ### Upload fails with 401
+
 - Check Firebase token is valid
 - Verify FIREBASE_API_KEY in environment
 
 ### Webhook not triggering
+
 - Check webhook URL in Cloudflare dashboard
 - Verify CLOUDFLARE_WEBHOOK_SECRET matches
 
 ### Images not processing
+
 - Check Cloudflare Images quota/limits
 - Verify CLOUDFLARE_IMAGES_HASH is correct
 
 ### Database updates failing
+
 - Check Firestore security rules
 - Verify FIREBASE_PROJECT_ID is correct
 

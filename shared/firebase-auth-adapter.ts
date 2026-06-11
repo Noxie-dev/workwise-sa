@@ -4,12 +4,12 @@
  * providing a clean separation between business logic and Firebase implementation.
  */
 
-import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  sendPasswordResetEmail, 
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  sendPasswordResetEmail,
   updateProfile,
   GoogleAuthProvider,
   signInWithPopup,
@@ -18,18 +18,18 @@ import {
   signInWithEmailLink,
   onAuthStateChanged,
   User as FirebaseUser,
-  ActionCodeSettings
+  ActionCodeSettings,
 } from 'firebase/auth';
-import { 
-  AppUser, 
-  AuthResult, 
-  AuthError, 
-  RegisterData, 
-  UserRole, 
+import {
+  AppUser,
+  AuthResult,
+  AuthError,
+  RegisterData,
+  UserRole,
   Permission,
   ROLE_PERMISSIONS,
   AUTH_ERROR_CODES,
-  UserUpdate
+  UserUpdate,
 } from './auth-types';
 
 // ============================================================================
@@ -71,20 +71,22 @@ export class FirebaseAuthAdapter {
       url: this.getEmailLinkUrl(),
       handleCodeInApp: true,
       iOS: {
-        bundleId: import.meta.env.VITE_IOS_BUNDLE_ID || ''
+        bundleId: import.meta.env.VITE_IOS_BUNDLE_ID || '',
       },
       android: {
         packageName: import.meta.env.VITE_ANDROID_PACKAGE_NAME || '',
         installApp: true,
-        minimumVersion: '12'
+        minimumVersion: '12',
       },
-      dynamicLinkDomain: import.meta.env.VITE_FIREBASE_DYNAMIC_LINK_DOMAIN
+      dynamicLinkDomain: import.meta.env.VITE_FIREBASE_DYNAMIC_LINK_DOMAIN,
     };
   }
 
   private getEmailLinkUrl(): string {
-    return import.meta.env.VITE_AUTH_EMAIL_LINK_SIGN_IN_URL || 
-           `${window.location.origin}/auth/email-signin-complete`;
+    return (
+      import.meta.env.VITE_AUTH_EMAIL_LINK_SIGN_IN_URL ||
+      `${window.location.origin}/auth/email-signin-complete`
+    );
   }
 
   // ============================================================================
@@ -113,12 +115,12 @@ export class FirebaseAuthAdapter {
     try {
       const userCredential = await signInWithEmailAndPassword(this.auth!, email, password);
       const appUser = await this.convertFirebaseUserToAppUser(userCredential.user);
-      
+
       return {
         success: true,
         message: 'Login successful',
         user: appUser,
-        data: { token: await userCredential.user.getIdToken() }
+        data: { token: await userCredential.user.getIdToken() },
       };
     } catch (error: any) {
       return this.handleFirebaseError(error, 'login');
@@ -132,12 +134,12 @@ export class FirebaseAuthAdapter {
     try {
       const result = await signInWithPopup(this.auth!, this.googleProvider);
       const appUser = await this.convertFirebaseUserToAppUser(result.user);
-      
+
       return {
         success: true,
         message: 'Google login successful',
         user: appUser,
-        data: { token: await result.user.getIdToken() }
+        data: { token: await result.user.getIdToken() },
       };
     } catch (error: any) {
       return this.handleFirebaseError(error, 'google-login');
@@ -150,15 +152,15 @@ export class FirebaseAuthAdapter {
 
     try {
       await sendSignInLinkToEmail(this.auth!, email, this.actionCodeSettings);
-      
+
       // Store email for verification
       if (typeof window !== 'undefined') {
         localStorage.setItem('emailForSignIn', email);
       }
-      
+
       return {
         success: true,
-        message: 'Sign-in link sent to your email'
+        message: 'Sign-in link sent to your email',
       };
     } catch (error: any) {
       return this.handleFirebaseError(error, 'email-link-login');
@@ -175,24 +177,24 @@ export class FirebaseAuthAdapter {
           success: false,
           error: {
             code: AUTH_ERROR_CODES.INVALID_TOKEN,
-            message: 'Invalid sign-in link'
-          }
+            message: 'Invalid sign-in link',
+          },
         };
       }
 
       const result = await signInWithEmailLink(this.auth!, email, link);
       const appUser = await this.convertFirebaseUserToAppUser(result.user);
-      
+
       // Clear stored email
       if (typeof window !== 'undefined') {
         localStorage.removeItem('emailForSignIn');
       }
-      
+
       return {
         success: true,
         message: 'Email link sign-in successful',
         user: appUser,
-        data: { token: await result.user.getIdToken() }
+        data: { token: await result.user.getIdToken() },
       };
     } catch (error: any) {
       return this.handleFirebaseError(error, 'email-link-completion');
@@ -206,13 +208,13 @@ export class FirebaseAuthAdapter {
     try {
       const userCredential = await createUserWithEmailAndPassword(
         this.auth!,
-        userData.email, 
+        userData.email,
         userData.password
       );
 
       // Update user profile
       await updateProfile(userCredential.user, {
-        displayName: userData.displayName
+        displayName: userData.displayName,
       });
 
       // Create app user with additional data
@@ -220,14 +222,14 @@ export class FirebaseAuthAdapter {
         username: userData.username,
         location: userData.location,
         bio: userData.bio,
-        willingToRelocate: userData.willingToRelocate || false
+        willingToRelocate: userData.willingToRelocate || false,
       });
 
       return {
         success: true,
         message: 'Registration successful',
         user: appUser,
-        data: { token: await userCredential.user.getIdToken() }
+        data: { token: await userCredential.user.getIdToken() },
       };
     } catch (error: any) {
       return this.handleFirebaseError(error, 'registration');
@@ -242,7 +244,7 @@ export class FirebaseAuthAdapter {
       await signOut(this.auth!);
       return {
         success: true,
-        message: 'Logout successful'
+        message: 'Logout successful',
       };
     } catch (error: any) {
       return this.handleFirebaseError(error, 'logout');
@@ -257,7 +259,7 @@ export class FirebaseAuthAdapter {
       await sendPasswordResetEmail(this.auth!, email);
       return {
         success: true,
-        message: 'Password reset email sent'
+        message: 'Password reset email sent',
       };
     } catch (error: any) {
       return this.handleFirebaseError(error, 'password-reset');
@@ -279,8 +281,8 @@ export class FirebaseAuthAdapter {
           success: false,
           error: {
             code: AUTH_ERROR_CODES.INVALID_TOKEN,
-            message: 'No authenticated user'
-          }
+            message: 'No authenticated user',
+          },
         };
       }
 
@@ -288,17 +290,17 @@ export class FirebaseAuthAdapter {
       if (updates.displayName || updates.photoURL) {
         await updateProfile(currentUser, {
           displayName: updates.displayName || undefined,
-          photoURL: updates.photoURL || undefined
+          photoURL: updates.photoURL || undefined,
         });
       }
 
       // Convert to app user
       const appUser = await this.convertFirebaseUserToAppUser(currentUser);
-      
+
       return {
         success: true,
         message: 'Profile updated successfully',
-        user: appUser
+        user: appUser,
       };
     } catch (error: any) {
       return this.handleFirebaseError(error, 'profile-update');
@@ -358,7 +360,7 @@ export class FirebaseAuthAdapter {
       return () => {};
     }
 
-    return onAuthStateChanged(this.auth, async (firebaseUser) => {
+    return onAuthStateChanged(this.auth, async firebaseUser => {
       if (firebaseUser) {
         const appUser = await this.convertFirebaseUserToAppUser(firebaseUser);
         callback(appUser);
@@ -395,7 +397,7 @@ export class FirebaseAuthAdapter {
   // ============================================================================
 
   private async convertFirebaseUserToAppUser(
-    firebaseUser: FirebaseUser, 
+    firebaseUser: FirebaseUser,
     additionalData?: Partial<AppUser> & Record<string, unknown>
   ): Promise<AppUser> {
     // Get user role and permissions (this would typically come from your backend)
@@ -421,24 +423,24 @@ export class FirebaseAuthAdapter {
           preferredCategories: [],
           preferredLocations: [],
           preferredJobTypes: [],
-          workMode: ['remote', 'on-site', 'hybrid']
+          workMode: ['remote', 'on-site', 'hybrid'],
         },
         experience: {
           yearsOfExperience: 0,
-          previousPositions: []
+          previousPositions: [],
         },
         education: {
           highestDegree: '',
           fieldOfStudy: '',
           institution: '',
-          additionalCertifications: []
+          additionalCertifications: [],
         },
         skills: [],
         engagementScore: 0,
         notificationPreference: true,
-        ...additionalData?.metadata
+        ...additionalData?.metadata,
       },
-      ...additionalData
+      ...additionalData,
     };
 
     return appUser;
@@ -466,79 +468,80 @@ export class FirebaseAuthAdapter {
       case 'auth/wrong-password':
         authError = {
           code: AUTH_ERROR_CODES.USER_NOT_FOUND,
-          message: 'Invalid email or password'
+          message: 'Invalid email or password',
         };
         break;
       case 'auth/email-already-in-use':
         authError = {
           code: AUTH_ERROR_CODES.EMAIL_ALREADY_IN_USE,
-          message: 'This email is already registered'
+          message: 'This email is already registered',
         };
         break;
       case 'auth/weak-password':
         authError = {
           code: AUTH_ERROR_CODES.WEAK_PASSWORD,
-          message: 'Password is too weak'
+          message: 'Password is too weak',
         };
         break;
       case 'auth/invalid-email':
         authError = {
           code: AUTH_ERROR_CODES.INVALID_EMAIL,
-          message: 'Invalid email address'
+          message: 'Invalid email address',
         };
         break;
       case 'auth/too-many-requests':
         authError = {
           code: AUTH_ERROR_CODES.TOO_MANY_REQUESTS,
-          message: 'Too many failed attempts. Please try again later'
+          message: 'Too many failed attempts. Please try again later',
         };
         break;
       case 'auth/network-request-failed':
         authError = {
           code: AUTH_ERROR_CODES.NETWORK_REQUEST_FAILED,
-          message: 'Network error. Please check your connection'
+          message: 'Network error. Please check your connection',
         };
         break;
       case 'auth/invalid-api-key':
         authError = {
           code: AUTH_ERROR_CODES.INTERNAL_ERROR,
-          message: 'Firebase client keys are missing or invalid. Add Firebase config to client/.env or use the emulators.'
+          message:
+            'Firebase client keys are missing or invalid. Add Firebase config to client/.env or use the emulators.',
         };
         break;
       case 'auth/operation-not-allowed':
         authError = {
           code: AUTH_ERROR_CODES.OPERATION_NOT_ALLOWED,
-          message: 'This sign-in method is not enabled'
+          message: 'This sign-in method is not enabled',
         };
         break;
       case 'auth/popup-closed-by-user':
         authError = {
           code: AUTH_ERROR_CODES.POPUP_CLOSED_BY_USER,
-          message: 'Sign-in popup was closed'
+          message: 'Sign-in popup was closed',
         };
         break;
       case 'auth/popup-blocked':
         authError = {
           code: AUTH_ERROR_CODES.POPUP_BLOCKED,
-          message: 'Sign-in popup was blocked by browser'
+          message: 'Sign-in popup was blocked by browser',
         };
         break;
       case 'auth/cancelled-popup-request':
         authError = {
           code: AUTH_ERROR_CODES.CANCELLED_POPUP_REQUEST,
-          message: 'Multiple popup requests detected'
+          message: 'Multiple popup requests detected',
         };
         break;
       default:
         authError = {
           code: AUTH_ERROR_CODES.INTERNAL_ERROR,
-          message: error.message || 'An unexpected error occurred'
+          message: error.message || 'An unexpected error occurred',
         };
     }
 
     return {
       success: false,
-      error: authError
+      error: authError,
     };
   }
 }

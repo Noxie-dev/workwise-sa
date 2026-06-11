@@ -73,8 +73,8 @@ export default function AccessibilitySettingsModal({
             User Empowerment Dashboard
           </DialogTitle>
           <DialogDescription>
-            Customize your WorkWise experience with accessibility and preference settings.
-            All changes are saved automatically.
+            Customize your WorkWise experience with accessibility and preference settings. All
+            changes are saved automatically.
           </DialogDescription>
         </DialogHeader>
 
@@ -115,7 +115,7 @@ export default function AccessibilitySettingsModal({
                 <div>
                   <Label className="text-base font-medium">Font Size</Label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-                    {(['small', 'medium', 'large', 'extra-large'] as const).map((size) => (
+                    {(['small', 'medium', 'large', 'extra-large'] as const).map(size => (
                       <Button
                         key={size}
                         variant={settings.fontSize === size ? 'default' : 'outline'}
@@ -131,7 +131,19 @@ export default function AccessibilitySettingsModal({
                     ))}
                   </div>
                   <p className="text-sm text-gray-500 mt-2">
-                    Preview: <span style={{ fontSize: settings.fontSize === 'small' ? '14px' : settings.fontSize === 'large' ? '18px' : settings.fontSize === 'extra-large' ? '20px' : '16px' }}>
+                    Preview:{' '}
+                    <span
+                      style={{
+                        fontSize:
+                          settings.fontSize === 'small'
+                            ? '14px'
+                            : settings.fontSize === 'large'
+                              ? '18px'
+                              : settings.fontSize === 'extra-large'
+                                ? '20px'
+                                : '16px',
+                      }}
+                    >
                       This is how text will appear
                     </span>
                   </p>
@@ -142,7 +154,7 @@ export default function AccessibilitySettingsModal({
                 <div>
                   <Label className="text-base font-medium">Line Spacing</Label>
                   <div className="grid grid-cols-2 gap-2 mt-2">
-                    {(['normal', 'looser'] as const).map((spacing) => (
+                    {(['normal', 'looser'] as const).map(spacing => (
                       <Button
                         key={spacing}
                         variant={settings.lineSpacing === spacing ? 'default' : 'outline'}
@@ -172,7 +184,7 @@ export default function AccessibilitySettingsModal({
                 <div>
                   <Label className="text-base font-medium">Color Theme</Label>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
-                    {(['light', 'dark', 'high-contrast'] as const).map((theme) => (
+                    {(['light', 'dark', 'high-contrast'] as const).map(theme => (
                       <Button
                         key={theme}
                         variant={settings.colorTheme === theme ? 'default' : 'outline'}
@@ -198,7 +210,7 @@ export default function AccessibilitySettingsModal({
                   </div>
                   <Switch
                     checked={settings.enhancedFocusOutlines}
-                    onCheckedChange={(checked) => {
+                    onCheckedChange={checked => {
                       updateSetting('enhancedFocusOutlines', checked);
                       announceChange(`Enhanced focus outlines ${checked ? 'enabled' : 'disabled'}`);
                     }}
@@ -221,13 +233,11 @@ export default function AccessibilitySettingsModal({
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-base font-medium">Reduce Motion</Label>
-                    <p className="text-sm text-gray-500">
-                      Minimize animations and transitions
-                    </p>
+                    <p className="text-sm text-gray-500">Minimize animations and transitions</p>
                   </div>
                   <Switch
                     checked={settings.reduceMotion}
-                    onCheckedChange={(checked) => {
+                    onCheckedChange={checked => {
                       updateSetting('reduceMotion', checked);
                       announceChange(`Motion reduction ${checked ? 'enabled' : 'disabled'}`);
                     }}
@@ -245,7 +255,7 @@ export default function AccessibilitySettingsModal({
                   </div>
                   <Switch
                     checked={settings.expandedTapTargets}
-                    onCheckedChange={(checked) => {
+                    onCheckedChange={checked => {
                       updateSetting('expandedTapTargets', checked);
                       announceChange(`Expanded tap targets ${checked ? 'enabled' : 'disabled'}`);
                     }}
@@ -263,7 +273,7 @@ export default function AccessibilitySettingsModal({
                   </div>
                   <Switch
                     checked={settings.simplifiedUI}
-                    onCheckedChange={(checked) => {
+                    onCheckedChange={checked => {
                       updateSetting('simplifiedUI', checked);
                       announceChange(`Simplified UI ${checked ? 'enabled' : 'disabled'}`);
                     }}
@@ -275,13 +285,11 @@ export default function AccessibilitySettingsModal({
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-base font-medium">ARIA Announcements</Label>
-                    <p className="text-sm text-gray-500">
-                      Screen reader friendly status updates
-                    </p>
+                    <p className="text-sm text-gray-500">Screen reader friendly status updates</p>
                   </div>
                   <Switch
                     checked={settings.ariaAnnouncements}
-                    onCheckedChange={(checked) => {
+                    onCheckedChange={checked => {
                       updateSetting('ariaAnnouncements', checked);
                       if (checked) {
                         announceChange('ARIA announcements enabled');
@@ -312,7 +320,7 @@ export default function AccessibilitySettingsModal({
                   </div>
                   <Switch
                     checked={settings.autoPlayMedia}
-                    onCheckedChange={(checked) => {
+                    onCheckedChange={checked => {
                       updateSetting('autoPlayMedia', checked);
                       announceChange(`Auto-play media ${checked ? 'enabled' : 'disabled'}`);
                     }}
@@ -330,7 +338,7 @@ export default function AccessibilitySettingsModal({
                   </div>
                   <Switch
                     checked={settings.captionsEnabled}
-                    onCheckedChange={(checked) => {
+                    onCheckedChange={checked => {
                       updateSetting('captionsEnabled', checked);
                       announceChange(`Captions ${checked ? 'enabled' : 'disabled'}`);
                     }}
@@ -359,7 +367,7 @@ export default function AccessibilitySettingsModal({
                   </div>
                   <Switch
                     checked={settings.oneHandedMode}
-                    onCheckedChange={(checked) => {
+                    onCheckedChange={checked => {
                       updateSetting('oneHandedMode', checked);
                       announceChange(`One-handed mode ${checked ? 'enabled' : 'disabled'}`);
                     }}
@@ -377,7 +385,7 @@ export default function AccessibilitySettingsModal({
                   </div>
                   <Switch
                     checked={settings.gestureAlternatives}
-                    onCheckedChange={(checked) => {
+                    onCheckedChange={checked => {
                       updateSetting('gestureAlternatives', checked);
                       announceChange(`Gesture alternatives ${checked ? 'enabled' : 'disabled'}`);
                     }}
@@ -389,7 +397,7 @@ export default function AccessibilitySettingsModal({
                 <div>
                   <Label className="text-base font-medium">Orientation Lock</Label>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
-                    {(['none', 'portrait', 'landscape'] as const).map((orientation) => (
+                    {(['none', 'portrait', 'landscape'] as const).map(orientation => (
                       <Button
                         key={orientation}
                         variant={settings.orientationLock === orientation ? 'default' : 'outline'}
@@ -428,7 +436,7 @@ export default function AccessibilitySettingsModal({
                   </div>
                   <Switch
                     checked={settings.readingMode}
-                    onCheckedChange={(checked) => {
+                    onCheckedChange={checked => {
                       updateSetting('readingMode', checked);
                       announceChange(`Reading mode ${checked ? 'enabled' : 'disabled'}`);
                     }}
@@ -447,8 +455,11 @@ export default function AccessibilitySettingsModal({
                     </div>
                     <Switch
                       checked={settings.textToSpeech.enabled}
-                      onCheckedChange={(checked) => {
-                        updateSetting('textToSpeech', { ...settings.textToSpeech, enabled: checked });
+                      onCheckedChange={checked => {
+                        updateSetting('textToSpeech', {
+                          ...settings.textToSpeech,
+                          enabled: checked,
+                        });
                         announceChange(`Text-to-speech ${checked ? 'enabled' : 'disabled'}`);
                       }}
                     />
@@ -462,7 +473,10 @@ export default function AccessibilitySettingsModal({
                           <Slider
                             value={[settings.textToSpeech.speed]}
                             onValueChange={([value]) => {
-                              updateSetting('textToSpeech', { ...settings.textToSpeech, speed: value });
+                              updateSetting('textToSpeech', {
+                                ...settings.textToSpeech,
+                                speed: value,
+                              });
                             }}
                             min={0.5}
                             max={2.0}

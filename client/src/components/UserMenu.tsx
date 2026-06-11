@@ -8,19 +8,11 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  User,
-  Settings,
-  LogOut,
-  FileText,
-  Briefcase,
-  BarChart3,
-  LineChart
-} from 'lucide-react';
+import { User, Settings, LogOut, FileText, Briefcase, BarChart3, LineChart } from 'lucide-react';
 import { useUserMenu } from '@/hooks/useUserMenu';
 
 interface UserMenuProps {
@@ -41,7 +33,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
     userPhotoURL,
     userInitials,
     isAdmin,
-    handleLogout
+    handleLogout,
   } = useUserMenu();
 
   // Render login and register buttons for unauthenticated users
@@ -54,10 +46,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
         >
           Login
         </Link>
-        <Button
-          asChild
-          className="bg-primary text-white hover:bg-blue-500 transition-colors"
-        >
+        <Button asChild className="bg-primary text-white hover:bg-blue-500 transition-colors">
           <Link href="/register">Register</Link>
         </Button>
       </div>
@@ -75,14 +64,8 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
             aria-label="User menu"
           >
             <Avatar>
-              <AvatarImage
-                src={userPhotoURL}
-                alt={userDisplayName}
-                loading="lazy"
-              />
-              <AvatarFallback className="bg-primary text-white">
-                {userInitials}
-              </AvatarFallback>
+              <AvatarImage src={userPhotoURL} alt={userDisplayName} loading="lazy" />
+              <AvatarFallback className="bg-primary text-white">{userInitials}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
@@ -90,9 +73,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
           <DropdownMenuLabel>
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium">{userDisplayName}</p>
-              <p className="text-xs text-muted-foreground truncate">
-                {userEmail}
-              </p>
+              <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />

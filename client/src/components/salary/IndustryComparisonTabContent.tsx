@@ -1,10 +1,27 @@
 // @ts-nocheck
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend,
+  ResponsiveContainer,
+  ReferenceLine,
+} from 'recharts';
 import { TrendingUp, AlertCircle, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -12,7 +29,7 @@ import {
   lowLevelJobAverages,
   jobCategoryInfo,
   MINIMUM_WAGE,
-  regionalVariations
+  regionalVariations,
 } from '@/data/salaryData';
 
 interface IndustryComparisonTabContentProps {
@@ -35,7 +52,7 @@ const IndustryComparisonTabContent: React.FC<IndustryComparisonTabContentProps> 
   comparisonData,
   calculatedAmounts,
   formatCurrency,
-  jobLevel = 'professional'
+  jobLevel = 'professional',
 }) => {
   // Always use entry-level job data for industry dropdown
   const industryData = lowLevelJobAverages;
@@ -44,8 +61,16 @@ const IndustryComparisonTabContent: React.FC<IndustryComparisonTabContentProps> 
       return (
         <div className="bg-background p-2 shadow rounded-md border">
           <p className="font-medium">{label}</p>
-          {payload.find(p => p.dataKey === "Gross") && <p className="text-sm" style={{color: payload.find(p => p.dataKey === "Gross").fill}}>Gross: {formatCurrency(payload.find(p => p.dataKey === "Gross").value)}</p>}
-          {payload.find(p => p.dataKey === "Net") && <p className="text-sm" style={{color: payload.find(p => p.dataKey === "Net").fill}}>Net: {formatCurrency(payload.find(p => p.dataKey === "Net").value)}</p>}
+          {payload.find(p => p.dataKey === 'Gross') && (
+            <p className="text-sm" style={{ color: payload.find(p => p.dataKey === 'Gross').fill }}>
+              Gross: {formatCurrency(payload.find(p => p.dataKey === 'Gross').value)}
+            </p>
+          )}
+          {payload.find(p => p.dataKey === 'Net') && (
+            <p className="text-sm" style={{ color: payload.find(p => p.dataKey === 'Net').fill }}>
+              Net: {formatCurrency(payload.find(p => p.dataKey === 'Net').value)}
+            </p>
+          )}
         </div>
       );
     }
@@ -75,7 +100,11 @@ const IndustryComparisonTabContent: React.FC<IndustryComparisonTabContentProps> 
   }, [industry]);
 
   if (!industryData[industry]) {
-      return <div className="p-4 text-muted-foreground">Please select an industry in the 'Salary Input' section to see comparisons.</div>
+    return (
+      <div className="p-4 text-muted-foreground">
+        Please select an industry in the 'Salary Input' section to see comparisons.
+      </div>
+    );
   }
 
   return (
@@ -87,8 +116,9 @@ const IndustryComparisonTabContent: React.FC<IndustryComparisonTabContentProps> 
             Entry-Level Salary Comparison: {industry}
           </CardTitle>
           <CardDescription>
-            Compare your GROSS monthly salary ({formatCurrency(calculatedAmounts.monthly)}) with {industry} averages.
-            Minimum wage in South Africa is {formatCurrency(MINIMUM_WAGE.monthly)} monthly.
+            Compare your GROSS monthly salary ({formatCurrency(calculatedAmounts.monthly)}) with{' '}
+            {industry} averages. Minimum wage in South Africa is{' '}
+            {formatCurrency(MINIMUM_WAGE.monthly)} monthly.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -98,7 +128,8 @@ const IndustryComparisonTabContent: React.FC<IndustryComparisonTabContentProps> 
               <p>{categoryInfo.description}</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
                 <div>
-                  <span className="font-medium">Typical Requirements:</span> {categoryInfo.qualifications}
+                  <span className="font-medium">Typical Requirements:</span>{' '}
+                  {categoryInfo.qualifications}
                 </div>
                 <div>
                   <span className="font-medium">Market Outlook:</span> {categoryInfo.growth}
@@ -116,38 +147,63 @@ const IndustryComparisonTabContent: React.FC<IndustryComparisonTabContentProps> 
                 <BarChart data={comparisonData} margin={{ top: 5, right: 0, left: -10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
-                  <YAxis tickFormatter={(value) => new Intl.NumberFormat('en-ZA', { notation: 'compact', compactDisplay: 'short' }).format(value)} />
+                  <YAxis
+                    tickFormatter={value =>
+                      new Intl.NumberFormat('en-ZA', {
+                        notation: 'compact',
+                        compactDisplay: 'short',
+                      }).format(value)
+                    }
+                  />
                   <RechartsTooltip content={<CustomBarTooltip />} />
                   <Legend />
                   <ReferenceLine
                     y={MINIMUM_WAGE.monthly}
                     stroke="red"
                     strokeDasharray="3 3"
-                    label={{ value: 'Minimum Wage', position: 'insideBottomRight', fill: 'red', fontSize: 12 }}
+                    label={{
+                      value: 'Minimum Wage',
+                      position: 'insideBottomRight',
+                      fill: 'red',
+                      fontSize: 12,
+                    }}
                   />
                   <Bar dataKey="Gross" fill="#8884d8" />
                   <Bar dataKey="Net" fill="#82ca9d" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          ) : <p className="text-muted-foreground">No comparison data available for the selected criteria or your current salary.</p>}
+          ) : (
+            <p className="text-muted-foreground">
+              No comparison data available for the selected criteria or your current salary.
+            </p>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-lg font-medium mb-2">How You Compare (Gross Monthly)</h3>
               <Table>
-                <TableHeader><TableRow><TableHead>Level</TableHead><TableHead>Avg. Gross</TableHead><TableHead>Difference</TableHead></TableRow></TableHeader>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Level</TableHead>
+                    <TableHead>Avg. Gross</TableHead>
+                    <TableHead>Difference</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {['entry', 'mid', 'senior'].map(level => {
-                    const avgSalary = industryData[industry][level as keyof typeof industryData[typeof industry]];
+                    const avgSalary =
+                      industryData[industry][level as keyof (typeof industryData)[typeof industry]];
                     const diff = calculatedAmounts.monthly - avgSalary;
                     return (
                       <TableRow key={level}>
                         <TableCell className="font-medium capitalize">{level} Level</TableCell>
                         <TableCell>{formatCurrency(avgSalary)}</TableCell>
                         <TableCell>
-                          <Badge variant={diff >= 0 ? "default" : "destructive"}>
-                            {diff >= 0 ? `+${formatCurrency(diff)}` : `-${formatCurrency(Math.abs(diff))}`}
+                          <Badge variant={diff >= 0 ? 'default' : 'destructive'}>
+                            {diff >= 0
+                              ? `+${formatCurrency(diff)}`
+                              : `-${formatCurrency(Math.abs(diff))}`}
                           </Badge>
                         </TableCell>
                       </TableRow>
@@ -157,7 +213,13 @@ const IndustryComparisonTabContent: React.FC<IndustryComparisonTabContentProps> 
                     <TableCell className="font-medium">Minimum Wage</TableCell>
                     <TableCell>{formatCurrency(MINIMUM_WAGE.monthly)}</TableCell>
                     <TableCell>
-                      <Badge variant={calculatedAmounts.monthly >= MINIMUM_WAGE.monthly ? "default" : "destructive"}>
+                      <Badge
+                        variant={
+                          calculatedAmounts.monthly >= MINIMUM_WAGE.monthly
+                            ? 'default'
+                            : 'destructive'
+                        }
+                      >
                         {calculatedAmounts.monthly >= MINIMUM_WAGE.monthly
                           ? `+${formatCurrency(calculatedAmounts.monthly - MINIMUM_WAGE.monthly)}`
                           : `-${formatCurrency(MINIMUM_WAGE.monthly - calculatedAmounts.monthly)}`}
@@ -180,7 +242,9 @@ const IndustryComparisonTabContent: React.FC<IndustryComparisonTabContentProps> 
                       <p>Salaries for entry-level jobs can vary significantly by province:</p>
                       <ul className="list-disc pl-4 mt-1">
                         {Object.entries(regionalVariations).map(([region, multiplier]) => (
-                          <li key={region}>{region}: {(multiplier * 100).toFixed(0)}% of Gauteng rates</li>
+                          <li key={region}>
+                            {region}: {(multiplier * 100).toFixed(0)}% of Gauteng rates
+                          </li>
                         ))}
                       </ul>
                     </TooltipContent>
@@ -190,7 +254,9 @@ const IndustryComparisonTabContent: React.FC<IndustryComparisonTabContentProps> 
             </div>
 
             <div>
-              <h3 className="text-lg font-medium mb-2">Your Gross Salary Position within {industry}</h3>
+              <h3 className="text-lg font-medium mb-2">
+                Your Gross Salary Position within {industry}
+              </h3>
               <div className="space-y-4 pt-2">
                 <div className="space-y-1">
                   <div className="flex justify-between text-sm mb-1">
@@ -199,7 +265,8 @@ const IndustryComparisonTabContent: React.FC<IndustryComparisonTabContentProps> 
                   </div>
                   <Progress value={yourPositionValue} className="h-4" />
                   <p className="text-xs text-muted-foreground text-center mt-1">
-                    Your gross salary is approximately at the {yourPositionValue.toFixed(0)}th percentile between entry and senior levels.
+                    Your gross salary is approximately at the {yourPositionValue.toFixed(0)}th
+                    percentile between entry and senior levels.
                   </p>
                 </div>
 
@@ -211,16 +278,18 @@ const IndustryComparisonTabContent: React.FC<IndustryComparisonTabContentProps> 
                   <Progress
                     value={Math.min(100, minimumWagePercentage)}
                     className="h-4"
-                    color={minimumWagePercentage < 100 ? "bg-red-500" : ""}
+                    color={minimumWagePercentage < 100 ? 'bg-red-500' : ''}
                   />
                   <p className="text-xs text-muted-foreground text-center mt-1">
-                    Your salary is {minimumWagePercentage < 100 ? 'below' : 'above'} the South African minimum wage.
+                    Your salary is {minimumWagePercentage < 100 ? 'below' : 'above'} the South
+                    African minimum wage.
                   </p>
                 </div>
 
                 <div className="text-sm p-3 bg-muted/30 rounded-md">
                   <AlertCircle className="inline h-4 w-4 mr-1 mb-0.5 text-blue-500" />
-                  This is a general comparison. Actual roles, responsibilities, location, and company size greatly influence salaries.
+                  This is a general comparison. Actual roles, responsibilities, location, and
+                  company size greatly influence salaries.
                 </div>
               </div>
             </div>

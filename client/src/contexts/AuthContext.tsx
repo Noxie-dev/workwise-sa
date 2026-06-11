@@ -19,7 +19,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   React.useEffect(() => {
     // Subscribe to auth state changes
-    const unsubscribe = onAuthChange(async (user) => {
+    const unsubscribe = onAuthChange(async user => {
       setCurrentUser(user);
 
       if (!user) {
@@ -51,19 +51,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Memoize the context value to prevent unnecessary re-renders
-  const contextValue = React.useMemo(() => ({
-    currentUser,
-    user: currentUser, // For compatibility with WiseUpPage
-    role,
-    isLoading,
-    isAuthenticated: !!currentUser,
-  }), [currentUser, role, isLoading]);
-
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {!isLoading && children}
-    </AuthContext.Provider>
+  const contextValue = React.useMemo(
+    () => ({
+      currentUser,
+      user: currentUser, // For compatibility with WiseUpPage
+      role,
+      isLoading,
+      isAuthenticated: !!currentUser,
+    }),
+    [currentUser, role, isLoading]
   );
+
+  return <AuthContext.Provider value={contextValue}>{!isLoading && children}</AuthContext.Provider>;
 };
 
 // Custom hook for using auth context

@@ -18,9 +18,11 @@ const FeedbackTabContent = () => {
         <div className="space-y-6">
           <div className="space-y-2">
             <h3 className="text-lg font-medium">Rate AI-Generated Content</h3>
-            <p className="text-muted-foreground">How would you rate the quality of our AI-generated content?</p>
+            <p className="text-muted-foreground">
+              How would you rate the quality of our AI-generated content?
+            </p>
             <div className="flex items-center space-x-1 mt-2">
-              {[1, 2, 3, 4, 5].map((star) => (
+              {[1, 2, 3, 4, 5].map(star => (
                 <Button
                   key={star}
                   variant="outline"
@@ -34,11 +36,15 @@ const FeedbackTabContent = () => {
               ))}
             </div>
           </div>
-          
+
           <div className="grid gap-4">
             <div className="space-y-2">
-              <label htmlFor="feature-feedback" className="text-lg font-medium">Feature Feedback</label>
-              <p className="text-muted-foreground">Which CV builder feature would you like to comment on?</p>
+              <label htmlFor="feature-feedback" className="text-lg font-medium">
+                Feature Feedback
+              </label>
+              <p className="text-muted-foreground">
+                Which CV builder feature would you like to comment on?
+              </p>
               <select
                 id="feature-feedback"
                 className="w-full p-2 border rounded-md"
@@ -53,10 +59,14 @@ const FeedbackTabContent = () => {
                 <option value="other">Other</option>
               </select>
             </div>
-            
+
             <div className="space-y-2">
-              <label htmlFor="feedback-text" className="text-lg font-medium">Your Feedback</label>
-              <p className="text-muted-foreground">Please share your thoughts, suggestions or report any issues</p>
+              <label htmlFor="feedback-text" className="text-lg font-medium">
+                Your Feedback
+              </label>
+              <p className="text-muted-foreground">
+                Please share your thoughts, suggestions or report any issues
+              </p>
               <textarea
                 id="feedback-text"
                 rows={5}
@@ -65,9 +75,11 @@ const FeedbackTabContent = () => {
                 // TODO: Add value and onChange handler
               ></textarea>
             </div>
-            
+
             <div className="space-y-2">
-              <label htmlFor="email" className="text-lg font-medium">Email (Optional)</label>
+              <label htmlFor="email" className="text-lg font-medium">
+                Email (Optional)
+              </label>
               <p className="text-muted-foreground">If you'd like us to follow up with you</p>
               <input
                 type="email"
@@ -77,7 +89,7 @@ const FeedbackTabContent = () => {
                 // TODO: Add value and onChange handler
               />
             </div>
-            
+
             <Button
               className="w-full bg-primary"
               // TODO: Add onClick handler for submission

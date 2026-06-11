@@ -1,4 +1,3 @@
-
 import { Request, Response, NextFunction } from 'express';
 import { auth } from '../firebase';
 
@@ -42,7 +41,9 @@ export const authorize = (requiredRoles: string[] = ['admin']) => {
     }
 
     if (!req.user.role || !requiredRoles.includes(req.user.role)) {
-      return res.status(403).json({ error: `Requires one of these roles: ${requiredRoles.join(', ')}` });
+      return res
+        .status(403)
+        .json({ error: `Requires one of these roles: ${requiredRoles.join(', ')}` });
     }
 
     next();
@@ -66,7 +67,9 @@ export const authorizeOwnership = (userIdParam: string = 'userId') => {
 
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   if ((req as any).user.role !== 'admin') {
-    return res.status(403).json({ error: 'Forbidden: You do not have permission to perform this action' });
+    return res
+      .status(403)
+      .json({ error: 'Forbidden: You do not have permission to perform this action' });
   }
   next();
 };

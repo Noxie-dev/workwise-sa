@@ -10,7 +10,7 @@ import {
   ArrowRight,
   Crown,
   Rocket,
-  Heart
+  Heart,
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,7 +49,7 @@ const featuredCompanies: FeaturedCompany[] = [
     isTrending: true,
     isTopRated: true,
     employees: '10,000+',
-    description: 'Africa\'s largest food retailer - always hiring entry-level staff'
+    description: "Africa's largest food retailer - always hiring entry-level staff",
   },
   {
     id: 2,
@@ -63,7 +63,7 @@ const featuredCompanies: FeaturedCompany[] = [
     isTrending: true,
     isTopRated: false,
     employees: '12,000+',
-    description: 'Leading security provider with training programs'
+    description: 'Leading security provider with training programs',
   },
   {
     id: 3,
@@ -77,15 +77,15 @@ const featuredCompanies: FeaturedCompany[] = [
     isTrending: false,
     isTopRated: false,
     employees: '5,000+',
-    description: 'Community-focused retailer with growth opportunities'
-  }
+    description: 'Community-focused retailer with growth opportunities',
+  },
 ];
 
 const topIndustries = [
   { name: 'Retail & Wholesale', growth: 25, companies: 340 },
   { name: 'Security Services', growth: 18, companies: 156 },
   { name: 'Transport & Logistics', growth: 15, companies: 89 },
-  { name: 'Cleaning & Maintenance', growth: 22, companies: 234 }
+  { name: 'Cleaning & Maintenance', growth: 22, companies: 234 },
 ];
 
 const FeaturedCompaniesWidget: React.FC = () => {
@@ -97,7 +97,9 @@ const FeaturedCompaniesWidget: React.FC = () => {
           <CardTitle className="flex items-center gap-2 text-lg">
             <TrendingUp className="h-5 w-5 text-green-500" />
             Top Entry-Level Employers
-            <Badge variant="secondary" className="ml-auto text-xs">This Week</Badge>
+            <Badge variant="secondary" className="ml-auto text-xs">
+              This Week
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -121,17 +123,15 @@ const FeaturedCompaniesWidget: React.FC = () => {
                     <Crown className="absolute -top-1 -right-1 h-4 w-4 text-yellow-500" />
                   )}
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <h4 className="font-semibold text-sm truncate group-hover:text-blue-600 transition-colors">
                       {company.name}
                     </h4>
-                    {company.isTrending && (
-                      <Rocket className="h-3 w-3 text-orange-500" />
-                    )}
+                    {company.isTrending && <Rocket className="h-3 w-3 text-orange-500" />}
                   </div>
-                  
+
                   <div className="flex items-center gap-3 text-xs text-gray-600 mb-2">
                     <div className="flex items-center gap-1">
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
@@ -142,7 +142,7 @@ const FeaturedCompaniesWidget: React.FC = () => {
                       {company.employees}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">{company.industry}</span>
                     <div className="flex items-center gap-1">
@@ -158,7 +158,7 @@ const FeaturedCompaniesWidget: React.FC = () => {
               </div>
             </motion.div>
           ))}
-          
+
           <Button variant="outline" className="w-full mt-4 text-sm">
             View All Companies
             <ArrowRight className="h-4 w-4 ml-2" />
@@ -216,13 +216,14 @@ const FeaturedCompaniesWidget: React.FC = () => {
                 G
               </AvatarFallback>
             </Avatar>
-            
+
             <div>
               <h3 className="font-bold text-lg mb-1">Clicks Group</h3>
               <p className="text-sm text-gray-600 mb-3">
-                Health & beauty retailer offering entry-level positions with excellent training and career growth
+                Health & beauty retailer offering entry-level positions with excellent training and
+                career growth
               </p>
-              
+
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="text-center">
                   <div className="font-bold text-primary">98</div>
@@ -233,7 +234,7 @@ const FeaturedCompaniesWidget: React.FC = () => {
                   <div className="text-xs text-muted-foreground">Rating</div>
                 </div>
               </div>
-              
+
               <div className="flex gap-2">
                 <Button size="sm" className="flex-1 bg-primary hover:bg-primary/90">
                   <Building2 className="h-4 w-4 mr-2" />
@@ -262,7 +263,7 @@ const FeaturedCompaniesWidget: React.FC = () => {
               { name: 'Shoprite Holdings', followers: '25.3K', change: '+8%' },
               { name: 'Pick n Pay', followers: '18.7K', change: '+12%' },
               { name: 'Woolworths', followers: '22.1K', change: '+6%' },
-              { name: 'ADT Security', followers: '14.5K', change: '+15%' }
+              { name: 'ADT Security', followers: '14.5K', change: '+15%' },
             ].map((company, index) => (
               <div key={company.name} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

@@ -8,22 +8,22 @@ dotenv.config();
 
 async function generateMigrations() {
   logger.info('Generating database migrations...');
-  
+
   return new Promise<void>((resolve, reject) => {
-    exec('npx drizzle-kit generate', (error, stdout, stderr) => {
+    exec('pnpm exec drizzle-kit generate', (error, stdout, stderr) => {
       if (error) {
         logger.error('Failed to generate migrations', { error, stderr });
         reject(error);
         return;
       }
-      
+
       logger.info('Migration files generated successfully');
       logger.debug(stdout);
-      
+
       if (stderr) {
         logger.warn('Warnings during migration generation', { stderr });
       }
-      
+
       resolve();
     });
   });

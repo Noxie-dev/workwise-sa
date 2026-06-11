@@ -7,7 +7,7 @@ interface LazyLoadOptions {
 
 /**
  * Helper function to lazy load components with Suspense
- * 
+ *
  * @param importFn - Dynamic import function
  * @param options - Options for lazy loading
  * @returns Lazy loaded component with Suspense
@@ -17,9 +17,10 @@ export function lazyLoad<T extends React.ComponentType<any>>(
   options: LazyLoadOptions = {}
 ) {
   const LazyComponent = lazy(importFn);
-  const { fallback = <div>Loading...</div>, errorFallback = <div>Error loading component</div> } = options;
+  const { fallback = <div>Loading...</div>, errorFallback = <div>Error loading component</div> } =
+    options;
 
-  return (props: React.ComponentProps<T>) => {
+  return function (props: React.ComponentProps<T>) {
     return (
       <Suspense fallback={fallback}>
         <ErrorBoundary fallback={errorFallback}>

@@ -5,13 +5,13 @@ import { logger } from '../server/utils/logger';
 async function main() {
   try {
     const migrationName = process.argv[2];
-    
+
     if (!migrationName) {
       logger.error('Migration name is required');
-      console.error('Usage: npm run db:generate-migration -- <migration-name>');
+      console.error('Usage: pnpm run db:generate-migration -- <migration-name>');
       process.exit(1);
     }
-    
+
     logger.info(`Generating migration: ${migrationName}`);
     await generateMigration(migrationName);
     logger.info('Migration generated successfully');

@@ -9,15 +9,22 @@ export default function TroubleshootingSupportContent() {
       <div className="space-y-3">
         <div className="bg-gray-50 p-3 rounded border">
           <p className="font-medium">Problem: Can't proceed to the next section</p>
-          <p className="text-sm mt-1">Solution: Ensure all required fields in the current section are filled out</p>
+          <p className="text-sm mt-1">
+            Solution: Ensure all required fields in the current section are filled out
+          </p>
         </div>
         <div className="bg-gray-50 p-3 rounded border">
           <p className="font-medium">Problem: CV not generating</p>
-          <p className="text-sm mt-1">Solution: Try refreshing the page and ensure all required sections are complete</p>
+          <p className="text-sm mt-1">
+            Solution: Try refreshing the page and ensure all required sections are complete
+          </p>
         </div>
         <div className="bg-gray-50 p-3 rounded border">
           <p className="font-medium">Problem: Information not saving</p>
-          <p className="text-sm mt-1">Solution: Check your internet connection and make sure you're logged into your WorkWise SA account</p>
+          <p className="text-sm mt-1">
+            Solution: Check your internet connection and make sure you're logged into your WorkWise
+            SA account
+          </p>
         </div>
       </div>
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mt-6">
@@ -38,8 +45,8 @@ export default function TroubleshootingSupportContent() {
         </ul>
       </div>
       <p className="text-center text-gray-600 italic mt-6">
-        Remember, a well-crafted CV is your first step toward landing your dream job.
-        Take the time to make it accurate, professional, and tailored to the position you want.
+        Remember, a well-crafted CV is your first step toward landing your dream job. Take the time
+        to make it accurate, professional, and tailored to the position you want.
       </p>
     </div>
   );

@@ -17,20 +17,20 @@ import {
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import AuthGuard from '@/components/AuthGuard';
-import { 
-  MapPin, 
-  Building2, 
-  Clock, 
-  DollarSign, 
-  Users, 
-  Calendar, 
-  Briefcase, 
-  CheckCircle, 
+import {
+  MapPin,
+  Building2,
+  Clock,
+  DollarSign,
+  Users,
+  Calendar,
+  Briefcase,
+  CheckCircle,
   Send,
   ArrowLeft,
   ExternalLink,
   Star,
-  Sparkles
+  Sparkles,
 } from 'lucide-react';
 import { JobWithDetails, JobApplicationInput } from '../../../shared/job-types';
 import { tieredJobsService } from '@/services/tieredJobsService';
@@ -48,7 +48,7 @@ const JobDetails: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
   const [coverLetter, setCoverLetter] = useState('');
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
@@ -57,18 +57,22 @@ const JobDetails: React.FC = () => {
   const jobId = id ? parseInt(id) : null;
 
   // Fetch job details
-  const { data: job, isLoading, error } = useQuery({
+  const {
+    data: job,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['job-details', jobId],
-    queryFn: () => jobId ? tieredJobsService.getJobDetails(jobId) : null,
+    queryFn: () => (jobId ? tieredJobsService.getJobDetails(jobId) : null),
     enabled: !!jobId && !!user,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
   // Apply for job mutation
   const applyMutation = useMutation({
-    mutationFn: (applicationData: JobApplicationInput) => 
+    mutationFn: (applicationData: JobApplicationInput) =>
       tieredJobsService.applyForJob(applicationData),
-    onSuccess: (data) => {
+    onSuccess: data => {
       toast({
         title: 'Application Submitted!',
         description: data.message,
@@ -89,7 +93,7 @@ const JobDetails: React.FC = () => {
 
   const handleApply = () => {
     if (!jobId) return;
-    
+
     applyMutation.mutate({
       jobId,
       coverLetter: coverLetter.trim() || undefined,
@@ -143,7 +147,7 @@ const JobDetails: React.FC = () => {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 1) return '1 day ago';
     if (diffDays < 7) return `${diffDays} days ago`;
     if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
@@ -169,18 +173,16 @@ const JobDetails: React.FC = () => {
       <div className="min-h-screen bg-gray-50">
         {job && (
           <Helmet>
-            <title>{job.title} at {job.company.name} | WorkWise SA</title>
+            <title>
+              {job.title} at {job.company.name} | WorkWise SA
+            </title>
             <meta name="description" content={job.shortDescription} />
           </Helmet>
         )}
 
         <div className="container mx-auto px-4 py-8">
           {/* Back button */}
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/jobs')}
-            className="mb-6"
-          >
+          <Button variant="ghost" onClick={() => navigate('/jobs')} className="mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Jobs
           </Button>
@@ -193,9 +195,7 @@ const JobDetails: React.FC = () => {
               <p className="text-muted mb-4">
                 {error instanceof Error ? error.message : 'Something went wrong'}
               </p>
-              <Button onClick={() => navigate('/jobs')}>
-                Back to Jobs
-              </Button>
+              <Button onClick={() => navigate('/jobs')}>Back to Jobs</Button>
             </div>
           ) : job ? (
             <div className="grid lg:grid-cols-3 gap-8">
@@ -328,8 +328,8 @@ const JobDetails: React.FC = () => {
                         <DialogHeader>
                           <DialogTitle>Apply for {job.title}</DialogTitle>
                           <DialogDescription>
-                            Submit your application details for {job.company.name}. Add a cover letter if you
-                            want to provide extra context.
+                            Submit your application details for {job.company.name}. Add a cover
+                            letter if you want to provide extra context.
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
@@ -350,26 +350,26 @@ const JobDetails: React.FC = () => {
                               </Button>
                             </div>
                             <p className="mb-2 text-xs text-muted-foreground">
-                              AI cover letters left: {entitlements?.hasUnlimitedAiCoverLetters ? 'Unlimited' : entitlements?.remainingFreeCoverLetterGenerations ?? 0}
+                              AI cover letters left:{' '}
+                              {entitlements?.hasUnlimitedAiCoverLetters
+                                ? 'Unlimited'
+                                : (entitlements?.remainingFreeCoverLetterGenerations ?? 0)}
                             </p>
                             <Textarea
                               placeholder="Tell us why you're interested in this position..."
                               value={coverLetter}
-                              onChange={(e) => setCoverLetter(e.target.value)}
+                              onChange={e => setCoverLetter(e.target.value)}
                               rows={6}
                             />
                           </div>
                           <div className="flex justify-end space-x-2">
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               onClick={() => setIsApplicationModalOpen(false)}
                             >
                               Cancel
                             </Button>
-                            <Button 
-                              onClick={handleApply}
-                              disabled={applyMutation.isPending}
-                            >
+                            <Button onClick={handleApply} disabled={applyMutation.isPending}>
                               {applyMutation.isPending ? 'Submitting...' : 'Submit Application'}
                             </Button>
                           </div>
@@ -392,7 +392,7 @@ const JobDetails: React.FC = () => {
                       </div>
                       <span className="text-sm font-medium">{job.jobType}</span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <Users className="w-4 h-4 mr-2 text-muted" />
@@ -429,12 +429,10 @@ const JobDetails: React.FC = () => {
                     <CardTitle>About {job.company.name}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-sm text-muted">
-                      {job.details.companyDetails.about}
-                    </p>
-                    
+                    <p className="text-sm text-muted">{job.details.companyDetails.about}</p>
+
                     {job.details.companyDetails.website && (
-                      <a 
+                      <a
                         href={job.details.companyDetails.website}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -446,7 +444,7 @@ const JobDetails: React.FC = () => {
                     )}
 
                     <Separator />
-                    
+
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted">Industry</span>
@@ -492,44 +490,48 @@ const JobDetailsSkeleton: React.FC = () => (
           </div>
         </CardHeader>
       </Card>
-      
-      {Array(4).fill(0).map((_, i) => (
-        <Card key={i}>
-          <CardHeader>
-            <Skeleton className="h-6 w-40" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+
+      {Array(4)
+        .fill(0)
+        .map((_, i) => (
+          <Card key={i}>
+            <CardHeader>
+              <Skeleton className="h-6 w-40" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
     </div>
-    
+
     <div className="space-y-6">
       <Card>
         <CardContent className="p-6">
           <Skeleton className="h-12 w-full" />
         </CardContent>
       </Card>
-      
-      {Array(2).fill(0).map((_, i) => (
-        <Card key={i}>
-          <CardHeader>
-            <Skeleton className="h-6 w-32" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-2/3" />
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+
+      {Array(2)
+        .fill(0)
+        .map((_, i) => (
+          <Card key={i}>
+            <CardHeader>
+              <Skeleton className="h-6 w-32" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
     </div>
   </div>
 );

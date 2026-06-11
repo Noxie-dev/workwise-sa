@@ -107,7 +107,7 @@ function renderJobDetails() {
       <QueryClientProvider client={queryClient}>
         <JobDetails />
       </QueryClientProvider>
-    </HelmetProvider>,
+    </HelmetProvider>
   );
 }
 
@@ -151,7 +151,9 @@ describe('JobDetails', () => {
   });
 
   it('shows the API error state when loading fails', async () => {
-    vi.mocked(tieredJobsService.getJobDetails).mockRejectedValue(new Error('Please sign in to view full job details'));
+    vi.mocked(tieredJobsService.getJobDetails).mockRejectedValue(
+      new Error('Please sign in to view full job details')
+    );
 
     renderJobDetails();
 
@@ -177,7 +179,7 @@ describe('JobDetails', () => {
     fireEvent.click(screen.getByRole('button', { name: /apply for this job/i }));
 
     const coverLetterInput = await screen.findByPlaceholderText(
-      "Tell us why you're interested in this position...",
+      "Tell us why you're interested in this position..."
     );
     fireEvent.change(coverLetterInput, {
       target: { value: 'I have experience handling customers and payments.' },
@@ -196,7 +198,7 @@ describe('JobDetails', () => {
       expect.objectContaining({
         title: 'Application Submitted!',
         description: 'Application submitted successfully',
-      }),
+      })
     );
   });
 
@@ -217,7 +219,7 @@ describe('JobDetails', () => {
           variant: 'destructive',
           title: 'Application Failed',
           description: 'Application failed',
-        }),
+        })
       );
     });
   });

@@ -2,15 +2,15 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Eye, 
-  Heart, 
-  MessageSquare, 
-  TrendingUp, 
-  Users, 
+import {
+  Eye,
+  Heart,
+  MessageSquare,
+  TrendingUp,
+  Users,
   Calendar,
   Award,
-  Target
+  Target,
 } from 'lucide-react';
 
 interface ProfileAnalyticsProps {
@@ -18,46 +18,43 @@ interface ProfileAnalyticsProps {
   className?: string;
 }
 
-const ProfileAnalytics: React.FC<ProfileAnalyticsProps> = ({
-  profile,
-  className = ''
-}) => {
+const ProfileAnalytics: React.FC<ProfileAnalyticsProps> = ({ profile, className = '' }) => {
   // Mock analytics data - in real implementation, this would come from the backend
   const analytics = {
     profileViews: {
       total: 127,
       thisWeek: 23,
-      trend: '+15%'
+      trend: '+15%',
     },
     jobMatches: {
       total: 45,
       thisWeek: 8,
-      trend: '+12%'
+      trend: '+12%',
     },
     recruiterInterest: {
       total: 12,
       thisWeek: 3,
-      trend: '+25%'
+      trend: '+25%',
     },
     applicationSuccess: {
       rate: 18,
-      trend: '+5%'
+      trend: '+5%',
     },
     profileStrength: {
       score: profile?.engagementScore || 25,
-      maxScore: 100
+      maxScore: 100,
     },
     topSkillsViewed: [
       { skill: 'Customer Service', views: 34 },
       { skill: 'Communication', views: 28 },
       { skill: 'Time Management', views: 22 },
-      { skill: 'Problem Solving', views: 19 }
+      { skill: 'Problem Solving', views: 19 },
     ],
     recentActivity: [
       { type: 'view', count: 5, label: 'Profile views today' },
       { type: 'match', count: 2, label: 'New job matches' },
-      { type: 'interest', count: 1, label: 'Recruiter saved your profile' }
-    ]
+      { type: 'interest', count: 1, label: 'Recruiter saved your profile' },
+    ],
   };
 
   const getScoreColor = (score: number) => {
@@ -88,17 +85,14 @@ const ProfileAnalytics: React.FC<ProfileAnalyticsProps> = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Overall Score</span>
-              <Badge 
-                variant="outline" 
+              <Badge
+                variant="outline"
                 className={`${getScoreColor(analytics.profileStrength.score)} ${getScoreBgColor(analytics.profileStrength.score)} border-current`}
               >
                 {analytics.profileStrength.score}/100
               </Badge>
             </div>
-            <Progress 
-              value={analytics.profileStrength.score} 
-              className="h-3"
-            />
+            <Progress value={analytics.profileStrength.score} className="h-3" />
             <div className="text-xs text-gray-500">
               {analytics.profileStrength.score < 50 && (
                 <p>Complete more sections to improve your profile strength and visibility.</p>
@@ -152,7 +146,9 @@ const ProfileAnalytics: React.FC<ProfileAnalyticsProps> = ({
               <div>
                 <p className="text-sm font-medium text-gray-600">Recruiter Interest</p>
                 <p className="text-2xl font-bold">{analytics.recruiterInterest.total}</p>
-                <p className="text-xs text-green-600">{analytics.recruiterInterest.trend} this week</p>
+                <p className="text-xs text-green-600">
+                  {analytics.recruiterInterest.trend} this week
+                </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-full">
                 <Users className="h-6 w-6 text-purple-600" />
@@ -167,7 +163,9 @@ const ProfileAnalytics: React.FC<ProfileAnalyticsProps> = ({
               <div>
                 <p className="text-sm font-medium text-gray-600">Success Rate</p>
                 <p className="text-2xl font-bold">{analytics.applicationSuccess.rate}%</p>
-                <p className="text-xs text-green-600">{analytics.applicationSuccess.trend} this month</p>
+                <p className="text-xs text-green-600">
+                  {analytics.applicationSuccess.trend} this month
+                </p>
               </div>
               <div className="p-3 bg-orange-100 rounded-full">
                 <TrendingUp className="h-6 w-6 text-orange-600" />
@@ -197,9 +195,11 @@ const ProfileAnalytics: React.FC<ProfileAnalyticsProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-16 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full" 
-                      style={{ width: `${(item.views / analytics.topSkillsViewed[0].views) * 100}%` }}
+                    <div
+                      className="bg-blue-600 h-2 rounded-full"
+                      style={{
+                        width: `${(item.views / analytics.topSkillsViewed[0].views) * 100}%`,
+                      }}
                     />
                   </div>
                   <span className="text-xs text-gray-500 w-8">{item.views}</span>

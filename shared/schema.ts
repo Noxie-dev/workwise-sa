@@ -1,31 +1,42 @@
-import { pgTable, text, serial, integer, timestamp, boolean, jsonb, uniqueIndex, index, primaryKey } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-import { relations } from "drizzle-orm";
-import { z } from "zod";
+import {
+  pgTable,
+  text,
+  serial,
+  integer,
+  timestamp,
+  boolean,
+  jsonb,
+  uniqueIndex,
+  index,
+  primaryKey,
+} from 'drizzle-orm/pg-core';
+import { createInsertSchema } from 'drizzle-zod';
+import { relations } from 'drizzle-orm';
+import { z } from 'zod';
 
 // Enhanced user schema for job matching
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password"),
-  email: text("email").notNull().unique(),
-  name: text("name").notNull(),
-  firebaseUid: text("firebase_uid").unique(),
-  role: text("role").default("user"),
-  location: text("location"),
-  bio: text("bio"),
-  phoneNumber: text("phone_number"),
-  willingToRelocate: boolean("willing_to_relocate").default(false),
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  username: text('username').notNull().unique(),
+  password: text('password'),
+  email: text('email').notNull().unique(),
+  name: text('name').notNull(),
+  firebaseUid: text('firebase_uid').unique(),
+  role: text('role').default('user'),
+  location: text('location'),
+  bio: text('bio'),
+  phoneNumber: text('phone_number'),
+  willingToRelocate: boolean('willing_to_relocate').default(false),
   // Store preferences as JSON
-  preferences: jsonb("preferences"), // JSON with preferred categories, job types, etc
-  experience: jsonb("experience"), // JSON with experience details
-  education: jsonb("education"), // JSON with education details
-  skills: jsonb("skills"), // JSON with skills
-  referredByUserId: integer("referred_by_user_id"),
-  lastActive: timestamp("last_active"),
-  engagementScore: integer("engagement_score").default(0), // Tracks user engagement
-  notificationPreference: boolean("notification_preference").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
+  preferences: jsonb('preferences'), // JSON with preferred categories, job types, etc
+  experience: jsonb('experience'), // JSON with experience details
+  education: jsonb('education'), // JSON with education details
+  skills: jsonb('skills'), // JSON with skills
+  referredByUserId: integer('referred_by_user_id'),
+  lastActive: timestamp('last_active'),
+  engagementScore: integer('engagement_score').default(0), // Tracks user engagement
+  notificationPreference: boolean('notification_preference').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -48,12 +59,12 @@ export const insertUserSchema = createInsertSchema(users).pick({
 });
 
 // Job categories schema
-export const categories = pgTable("categories", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  icon: text("icon").notNull(),
-  slug: text("slug").notNull().unique(),
-  jobCount: integer("job_count").default(0),
+export const categories = pgTable('categories', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  icon: text('icon').notNull(),
+  slug: text('slug').notNull().unique(),
+  jobCount: integer('job_count').default(0),
 });
 
 export const insertCategorySchema = createInsertSchema(categories).pick({
@@ -64,13 +75,13 @@ export const insertCategorySchema = createInsertSchema(categories).pick({
 });
 
 // Companies schema
-export const companies = pgTable("companies", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  logo: text("logo"),
-  location: text("location"),
-  slug: text("slug").notNull().unique(),
-  openPositions: integer("open_positions").default(0),
+export const companies = pgTable('companies', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  logo: text('logo'),
+  location: text('location'),
+  slug: text('slug').notNull().unique(),
+  openPositions: integer('open_positions').default(0),
 });
 
 export const insertCompanySchema = createInsertSchema(companies).pick({
@@ -82,45 +93,55 @@ export const insertCompanySchema = createInsertSchema(companies).pick({
 });
 
 // Jobs schema
-export const jobs = pgTable("jobs", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  location: text("location").notNull(),
-  salary: text("salary"),
-  jobType: text("job_type").notNull(), // Full-time, Part-time, Contract
-  workMode: text("work_mode").notNull(), // Remote, On-site, Hybrid
-  companyId: integer("company_id").notNull().references(() => companies.id),
-  categoryId: integer("category_id").notNull().references(() => categories.id),
-  status: text("status").notNull().default("active"),
-  isFeatured: boolean("is_featured").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  createdAtIdx: index("idx_jobs_created_at").on(table.createdAt),
-  statusCreatedAtIdx: index("idx_jobs_status_created_at").on(table.status, table.createdAt),
-}));
+export const jobs = pgTable(
+  'jobs',
+  {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),
+    description: text('description').notNull(),
+    location: text('location').notNull(),
+    salary: text('salary'),
+    jobType: text('job_type').notNull(), // Full-time, Part-time, Contract
+    workMode: text('work_mode').notNull(), // Remote, On-site, Hybrid
+    companyId: integer('company_id')
+      .notNull()
+      .references(() => companies.id),
+    categoryId: integer('category_id')
+      .notNull()
+      .references(() => categories.id),
+    status: text('status').notNull().default('active'),
+    isFeatured: boolean('is_featured').default(false),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  table => ({
+    createdAtIdx: index('idx_jobs_created_at').on(table.createdAt),
+    statusCreatedAtIdx: index('idx_jobs_status_created_at').on(table.status, table.createdAt),
+  })
+);
 
 export const jobIngestRecords = pgTable(
-  "job_ingest_records",
+  'job_ingest_records',
   {
-    id: serial("id").primaryKey(),
-    jobId: integer("job_id").notNull().references(() => jobs.id),
-    sourceSite: text("source_site").notNull(),
-    sourceUrl: text("source_url").notNull(),
-    externalId: text("external_id").notNull(),
-    applyUrl: text("apply_url"),
-    postedAt: timestamp("posted_at"),
-    fingerprint: text("fingerprint").notNull(),
-    metadata: jsonb("metadata"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    id: serial('id').primaryKey(),
+    jobId: integer('job_id')
+      .notNull()
+      .references(() => jobs.id),
+    sourceSite: text('source_site').notNull(),
+    sourceUrl: text('source_url').notNull(),
+    externalId: text('external_id').notNull(),
+    applyUrl: text('apply_url'),
+    postedAt: timestamp('posted_at'),
+    fingerprint: text('fingerprint').notNull(),
+    metadata: jsonb('metadata'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
-  (table) => ({
-    sourceExternalUnique: uniqueIndex("job_ingest_records_source_external_idx").on(
+  table => ({
+    sourceExternalUnique: uniqueIndex('job_ingest_records_source_external_idx').on(
       table.sourceSite,
       table.externalId
     ),
-    fingerprintUnique: uniqueIndex("job_ingest_records_fingerprint_idx").on(table.fingerprint),
+    fingerprintUnique: uniqueIndex('job_ingest_records_fingerprint_idx').on(table.fingerprint),
   })
 );
 
@@ -185,219 +206,303 @@ export const jobIngestRecordsRelations = relations(jobIngestRecords, ({ one }) =
 }));
 
 // User engagement tracking tables
-export const userSessions = pgTable("user_sessions", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  startTime: timestamp("start_time").notNull().defaultNow(),
-  endTime: timestamp("end_time"),
-  duration: integer("duration"), // in seconds
-  device: text("device"),
-  ipAddress: text("ip_address"),
+export const userSessions = pgTable('user_sessions', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id),
+  startTime: timestamp('start_time').notNull().defaultNow(),
+  endTime: timestamp('end_time'),
+  duration: integer('duration'), // in seconds
+  device: text('device'),
+  ipAddress: text('ip_address'),
 });
 
-export const userInteractions = pgTable("user_interactions", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  interactionType: text("interaction_type").notNull(), // 'view', 'apply', 'save', 'share', 'video_watch'
-  interactionTime: timestamp("interaction_time").notNull().defaultNow(),
-  jobId: integer("job_id").references(() => jobs.id),
-  videoId: text("video_id"), // For Wise-Up videos
-  categoryId: integer("category_id").references(() => categories.id),
-  duration: integer("duration"), // For video watches, in seconds
-  metadata: jsonb("metadata"), // Additional data
-}, (table) => ({
-  jobTimeIdx: index("idx_user_interactions_job_time").on(table.jobId, table.interactionTime),
-}));
+export const userInteractions = pgTable(
+  'user_interactions',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    interactionType: text('interaction_type').notNull(), // 'view', 'apply', 'save', 'share', 'video_watch'
+    interactionTime: timestamp('interaction_time').notNull().defaultNow(),
+    jobId: integer('job_id').references(() => jobs.id),
+    videoId: text('video_id'), // For Wise-Up videos
+    categoryId: integer('category_id').references(() => categories.id),
+    duration: integer('duration'), // For video watches, in seconds
+    metadata: jsonb('metadata'), // Additional data
+  },
+  table => ({
+    jobTimeIdx: index('idx_user_interactions_job_time').on(table.jobId, table.interactionTime),
+  })
+);
 
-export const jobApplications = pgTable("job_applications", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  jobId: integer("job_id").notNull().references(() => jobs.id),
-  status: text("status").notNull().default("applied"), // applied, reviewed, interview, rejected, hired
-  appliedAt: timestamp("applied_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  resumeUrl: text("resume_url"),
-  coverLetter: text("cover_letter"),
-  notes: text("notes"),
-}, (table) => ({
-  userJobUnique: uniqueIndex("idx_job_applications_user_job_unique").on(table.userId, table.jobId),
-  jobStatusIdx: index("idx_job_applications_job_status").on(table.jobId, table.status),
-}));
+export const jobApplications = pgTable(
+  'job_applications',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    jobId: integer('job_id')
+      .notNull()
+      .references(() => jobs.id),
+    status: text('status').notNull().default('applied'), // applied, reviewed, interview, rejected, hired
+    appliedAt: timestamp('applied_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    resumeUrl: text('resume_url'),
+    coverLetter: text('cover_letter'),
+    notes: text('notes'),
+  },
+  table => ({
+    userJobUnique: uniqueIndex('idx_job_applications_user_job_unique').on(
+      table.userId,
+      table.jobId
+    ),
+    jobStatusIdx: index('idx_job_applications_job_status').on(table.jobId, table.status),
+  })
+);
 
-export const userNotifications = pgTable("user_notifications", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  type: text("type").notNull(), // 'job_match', 'status_update', etc.
-  content: text("content").notNull(),
-  jobId: integer("job_id").references(() => jobs.id),
-  isRead: boolean("is_read").default(false),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  sentAt: timestamp("sent_at"),
-}, (table) => ({
-  userReadCreatedIdx: index("idx_user_notifications_user_read_created").on(
-    table.userId,
-    table.isRead,
-    table.createdAt
-  ),
-}));
+export const userNotifications = pgTable(
+  'user_notifications',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    type: text('type').notNull(), // 'job_match', 'status_update', etc.
+    content: text('content').notNull(),
+    jobId: integer('job_id').references(() => jobs.id),
+    isRead: boolean('is_read').default(false),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    sentAt: timestamp('sent_at'),
+  },
+  table => ({
+    userReadCreatedIdx: index('idx_user_notifications_user_read_created').on(
+      table.userId,
+      table.isRead,
+      table.createdAt
+    ),
+  })
+);
 
-export const userFavoriteJobs = pgTable("user_favorite_jobs", {
-  userId: integer("user_id").notNull().references(() => users.id),
-  jobId: integer("job_id").notNull().references(() => jobs.id),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-}, (table) => ({
-  pk: primaryKey({ columns: [table.userId, table.jobId] }),
-  userCreatedIdx: index("idx_user_favorite_jobs_user_created").on(table.userId, table.createdAt),
-}));
+export const userFavoriteJobs = pgTable(
+  'user_favorite_jobs',
+  {
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    jobId: integer('job_id')
+      .notNull()
+      .references(() => jobs.id),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  table => ({
+    pk: primaryKey({ columns: [table.userId, table.jobId] }),
+    userCreatedIdx: index('idx_user_favorite_jobs_user_created').on(table.userId, table.createdAt),
+  })
+);
 
-export const userJobPreferences = pgTable("user_job_preferences", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id).unique(),
-  preferredCategories: jsonb("preferred_categories"), // Array of category IDs
-  preferredLocations: jsonb("preferred_locations"), // Array of locations
-  preferredJobTypes: jsonb("preferred_job_types"), // Array of job types
-  willingToRelocate: boolean("willing_to_relocate").default(false),
-  minSalary: integer("min_salary"),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+export const userJobPreferences = pgTable('user_job_preferences', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id)
+    .unique(),
+  preferredCategories: jsonb('preferred_categories'), // Array of category IDs
+  preferredLocations: jsonb('preferred_locations'), // Array of locations
+  preferredJobTypes: jsonb('preferred_job_types'), // Array of job types
+  willingToRelocate: boolean('willing_to_relocate').default(false),
+  minSalary: integer('min_salary'),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const systemConfig = pgTable("system_config", {
-  id: serial("id").primaryKey(),
-  key: text("key").notNull().unique(),
-  value: text("value").notNull(),
-  description: text("description"),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+export const systemConfig = pgTable('system_config', {
+  id: serial('id').primaryKey(),
+  key: text('key').notNull().unique(),
+  value: text('value').notNull(),
+  description: text('description'),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const billingPlans = pgTable("billing_plans", {
-  id: serial("id").primaryKey(),
-  code: text("code").notNull().unique(),
-  displayName: text("display_name").notNull(),
-  description: text("description"),
-  priceCents: integer("price_cents").notNull().default(0),
-  currency: text("currency").notNull().default("ZAR"),
-  billingInterval: text("billing_interval").notNull().default("month"),
-  entitlements: jsonb("entitlements"),
-  isActive: boolean("is_active").notNull().default(true),
-  sortOrder: integer("sort_order").notNull().default(0),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+export const billingPlans = pgTable('billing_plans', {
+  id: serial('id').primaryKey(),
+  code: text('code').notNull().unique(),
+  displayName: text('display_name').notNull(),
+  description: text('description'),
+  priceCents: integer('price_cents').notNull().default(0),
+  currency: text('currency').notNull().default('ZAR'),
+  billingInterval: text('billing_interval').notNull().default('month'),
+  entitlements: jsonb('entitlements'),
+  isActive: boolean('is_active').notNull().default(true),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const billingSubscriptions = pgTable("billing_subscriptions", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  planId: integer("plan_id").notNull().references(() => billingPlans.id),
-  provider: text("provider").notNull().default("payfast"),
-  providerSubscriptionId: text("provider_subscription_id"),
-  providerToken: text("provider_token"),
-  status: text("status").notNull().default("active"),
-  currentPeriodStart: timestamp("current_period_start"),
-  currentPeriodEnd: timestamp("current_period_end"),
-  gracePeriodEndsAt: timestamp("grace_period_ends_at"),
-  cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
-  cancelledAt: timestamp("cancelled_at"),
-  expiredAt: timestamp("expired_at"),
-  metadata: jsonb("metadata"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-}, (table) => ({
-  userStatusIdx: index("idx_billing_subscriptions_user_status").on(table.userId, table.status),
-  providerSubscriptionIdx: uniqueIndex("idx_billing_subscriptions_provider_subscription").on(
-    table.provider,
-    table.providerSubscriptionId,
-  ),
-}));
+export const billingSubscriptions = pgTable(
+  'billing_subscriptions',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    planId: integer('plan_id')
+      .notNull()
+      .references(() => billingPlans.id),
+    provider: text('provider').notNull().default('payfast'),
+    providerSubscriptionId: text('provider_subscription_id'),
+    providerToken: text('provider_token'),
+    status: text('status').notNull().default('active'),
+    currentPeriodStart: timestamp('current_period_start'),
+    currentPeriodEnd: timestamp('current_period_end'),
+    gracePeriodEndsAt: timestamp('grace_period_ends_at'),
+    cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
+    cancelledAt: timestamp('cancelled_at'),
+    expiredAt: timestamp('expired_at'),
+    metadata: jsonb('metadata'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  table => ({
+    userStatusIdx: index('idx_billing_subscriptions_user_status').on(table.userId, table.status),
+    providerSubscriptionIdx: uniqueIndex('idx_billing_subscriptions_provider_subscription').on(
+      table.provider,
+      table.providerSubscriptionId
+    ),
+  })
+);
 
-export const billingTransactions = pgTable("billing_transactions", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  planId: integer("plan_id").references(() => billingPlans.id),
-  subscriptionId: integer("subscription_id").references(() => billingSubscriptions.id),
-  provider: text("provider").notNull().default("payfast"),
-  providerPaymentId: text("provider_payment_id"),
-  merchantReference: text("merchant_reference").notNull().unique(),
-  amountCents: integer("amount_cents").notNull(),
-  currency: text("currency").notNull().default("ZAR"),
-  status: text("status").notNull().default("pending"),
-  paymentType: text("payment_type").notNull().default("subscription"),
-  checkoutUrl: text("checkout_url"),
-  metadata: jsonb("metadata"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-}, (table) => ({
-  userCreatedIdx: index("idx_billing_transactions_user_created").on(table.userId, table.createdAt),
-  providerPaymentIdx: index("idx_billing_transactions_provider_payment").on(table.provider, table.providerPaymentId),
-}));
+export const billingTransactions = pgTable(
+  'billing_transactions',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    planId: integer('plan_id').references(() => billingPlans.id),
+    subscriptionId: integer('subscription_id').references(() => billingSubscriptions.id),
+    provider: text('provider').notNull().default('payfast'),
+    providerPaymentId: text('provider_payment_id'),
+    merchantReference: text('merchant_reference').notNull().unique(),
+    amountCents: integer('amount_cents').notNull(),
+    currency: text('currency').notNull().default('ZAR'),
+    status: text('status').notNull().default('pending'),
+    paymentType: text('payment_type').notNull().default('subscription'),
+    checkoutUrl: text('checkout_url'),
+    metadata: jsonb('metadata'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  table => ({
+    userCreatedIdx: index('idx_billing_transactions_user_created').on(
+      table.userId,
+      table.createdAt
+    ),
+    providerPaymentIdx: index('idx_billing_transactions_provider_payment').on(
+      table.provider,
+      table.providerPaymentId
+    ),
+  })
+);
 
-export const billingWebhookEvents = pgTable("billing_webhook_events", {
-  id: serial("id").primaryKey(),
-  provider: text("provider").notNull().default("payfast"),
-  eventId: text("event_id").notNull(),
-  eventType: text("event_type").notNull(),
-  payload: jsonb("payload"),
-  verified: boolean("verified").notNull().default(false),
-  processedAt: timestamp("processed_at"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-}, (table) => ({
-  providerEventUnique: uniqueIndex("idx_billing_webhook_events_provider_event").on(table.provider, table.eventId),
-}));
+export const billingWebhookEvents = pgTable(
+  'billing_webhook_events',
+  {
+    id: serial('id').primaryKey(),
+    provider: text('provider').notNull().default('payfast'),
+    eventId: text('event_id').notNull(),
+    eventType: text('event_type').notNull(),
+    payload: jsonb('payload'),
+    verified: boolean('verified').notNull().default(false),
+    processedAt: timestamp('processed_at'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  table => ({
+    providerEventUnique: uniqueIndex('idx_billing_webhook_events_provider_event').on(
+      table.provider,
+      table.eventId
+    ),
+  })
+);
 
-export const aiUsageEvents = pgTable("ai_usage_events", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  documentType: text("document_type").notNull(),
-  jobId: integer("job_id").references(() => jobs.id),
-  model: text("model"),
-  tokens: integer("tokens").notNull().default(0),
-  costEstimateCents: integer("cost_estimate_cents").notNull().default(0),
-  generationTimeMs: integer("generation_time_ms").notNull().default(0),
-  success: boolean("success").notNull().default(false),
-  status: text("status").notNull().default("started"),
-  idempotencyKey: text("idempotency_key").notNull(),
-  errorMessage: text("error_message"),
-  metadata: jsonb("metadata"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  completedAt: timestamp("completed_at"),
-}, (table) => ({
-  userDocumentIdx: index("idx_ai_usage_events_user_document").on(table.userId, table.documentType),
-  userIdempotencyUnique: uniqueIndex("idx_ai_usage_events_user_idempotency").on(table.userId, table.idempotencyKey),
-}));
+export const aiUsageEvents = pgTable(
+  'ai_usage_events',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    documentType: text('document_type').notNull(),
+    jobId: integer('job_id').references(() => jobs.id),
+    model: text('model'),
+    tokens: integer('tokens').notNull().default(0),
+    costEstimateCents: integer('cost_estimate_cents').notNull().default(0),
+    generationTimeMs: integer('generation_time_ms').notNull().default(0),
+    success: boolean('success').notNull().default(false),
+    status: text('status').notNull().default('started'),
+    idempotencyKey: text('idempotency_key').notNull(),
+    errorMessage: text('error_message'),
+    metadata: jsonb('metadata'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    completedAt: timestamp('completed_at'),
+  },
+  table => ({
+    userDocumentIdx: index('idx_ai_usage_events_user_document').on(
+      table.userId,
+      table.documentType
+    ),
+    userIdempotencyUnique: uniqueIndex('idx_ai_usage_events_user_idempotency').on(
+      table.userId,
+      table.idempotencyKey
+    ),
+  })
+);
 
-export const aiGeneratedDocuments = pgTable("ai_generated_documents", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  usageEventId: integer("usage_event_id").references(() => aiUsageEvents.id),
-  documentType: text("document_type").notNull(),
-  jobId: integer("job_id").references(() => jobs.id),
-  title: text("title"),
-  content: jsonb("content").notNull(),
-  model: text("model"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+export const aiGeneratedDocuments = pgTable('ai_generated_documents', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id),
+  usageEventId: integer('usage_event_id').references(() => aiUsageEvents.id),
+  documentType: text('document_type').notNull(),
+  jobId: integer('job_id').references(() => jobs.id),
+  title: text('title'),
+  content: jsonb('content').notNull(),
+  model: text('model'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-export const candidatePromotionState = pgTable("candidate_promotion_state", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id).unique(),
-  boostScore: integer("boost_score").notNull().default(0),
-  visibilityMultiplier: integer("visibility_multiplier").notNull().default(100),
-  profileStrength: integer("profile_strength").notNull().default(0),
-  active: boolean("active").notNull().default(false),
-  source: text("source").notNull().default("system"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+export const candidatePromotionState = pgTable('candidate_promotion_state', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id)
+    .unique(),
+  boostScore: integer('boost_score').notNull().default(0),
+  visibilityMultiplier: integer('visibility_multiplier').notNull().default(100),
+  profileStrength: integer('profile_strength').notNull().default(0),
+  active: boolean('active').notNull().default(false),
+  source: text('source').notNull().default('system'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const proInterest = pgTable("pro_interest", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  email: text("email").notNull(),
-  source: text("source").notNull().default("plus_page"),
-  metadata: jsonb("metadata"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-}, (table) => ({
-  emailUnique: uniqueIndex("idx_pro_interest_email").on(table.email),
-}));
+export const proInterest = pgTable(
+  'pro_interest',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').references(() => users.id),
+    email: text('email').notNull(),
+    source: text('source').notNull().default('plus_page'),
+    metadata: jsonb('metadata'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  table => ({
+    emailUnique: uniqueIndex('idx_pro_interest_email').on(table.email),
+  })
+);
 
 // Combined types for the frontend
 export type JobWithCompany = Job & {
@@ -409,18 +514,18 @@ export type CategoryWithJobs = Category & {
 };
 
 // Files storage schema
-export const files = pgTable("files", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  originalName: text("original_name").notNull(),
-  storagePath: text("storage_path").notNull(),
-  fileUrl: text("file_url").notNull(),
-  mimeType: text("mime_type").notNull(),
-  size: integer("size").notNull(), // in bytes
-  fileType: text("file_type").notNull(), // 'profile_image', 'cv', etc.
-  metadata: jsonb("metadata"), // Additional file metadata
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+export const files = pgTable('files', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id),
+  originalName: text('original_name').notNull(),
+  storagePath: text('storage_path').notNull(),
+  fileUrl: text('file_url').notNull(),
+  mimeType: text('mime_type').notNull(),
+  size: integer('size').notNull(), // in bytes
+  fileType: text('file_type').notNull(), // 'profile_image', 'cv', etc.
+  metadata: jsonb('metadata'), // Additional file metadata
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 export const insertFileSchema = createInsertSchema(files).pick({

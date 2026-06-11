@@ -7,12 +7,12 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, Bell, BellOff } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import websocketService from '@/services/websocketService';
 import analyticsService from '@/services/analyticsService';
 
@@ -59,14 +59,19 @@ const RealtimeUpdates: React.FC<RealtimeUpdatesProps> = ({ userId }) => {
                 type: 'job',
                 message: data.message,
                 timestamp: new Date(data.timestamp),
-                read: false
+                read: false,
               };
 
               setUpdates(prev => [newUpdate, ...prev].slice(0, 10)); // Keep only the 10 most recent
 
               // Track notification
               if (userId) {
-                analyticsService.trackNotificationInteraction(userId, 'job', 'received', newUpdate.id);
+                analyticsService.trackNotificationInteraction(
+                  userId,
+                  'job',
+                  'received',
+                  newUpdate.id
+                );
               }
             }
           };
@@ -78,14 +83,19 @@ const RealtimeUpdates: React.FC<RealtimeUpdatesProps> = ({ userId }) => {
                 type: 'skill',
                 message: data.message,
                 timestamp: new Date(data.timestamp),
-                read: false
+                read: false,
               };
 
               setUpdates(prev => [newUpdate, ...prev].slice(0, 10)); // Keep only the 10 most recent
 
               // Track notification
               if (userId) {
-                analyticsService.trackNotificationInteraction(userId, 'skill', 'received', newUpdate.id);
+                analyticsService.trackNotificationInteraction(
+                  userId,
+                  'skill',
+                  'received',
+                  newUpdate.id
+                );
               }
             }
           };
@@ -97,14 +107,19 @@ const RealtimeUpdates: React.FC<RealtimeUpdatesProps> = ({ userId }) => {
                 type: 'market',
                 message: data.message,
                 timestamp: new Date(data.timestamp),
-                read: false
+                read: false,
               };
 
               setUpdates(prev => [newUpdate, ...prev].slice(0, 10)); // Keep only the 10 most recent
 
               // Track notification
               if (userId) {
-                analyticsService.trackNotificationInteraction(userId, 'market', 'received', newUpdate.id);
+                analyticsService.trackNotificationInteraction(
+                  userId,
+                  'market',
+                  'received',
+                  newUpdate.id
+                );
               }
             }
           };
@@ -168,7 +183,12 @@ const RealtimeUpdates: React.FC<RealtimeUpdatesProps> = ({ userId }) => {
     let message = '';
     switch (type) {
       case 'job':
-        const jobTitles = ['Warehouse Assistant', 'Retail Clerk', 'Security Guard', 'Admin Assistant'];
+        const jobTitles = [
+          'Warehouse Assistant',
+          'Retail Clerk',
+          'Security Guard',
+          'Admin Assistant',
+        ];
         const jobTitle = jobTitles[Math.floor(Math.random() * jobTitles.length)];
         message = `New ${jobTitle} position matching your profile`;
         break;
@@ -189,7 +209,7 @@ const RealtimeUpdates: React.FC<RealtimeUpdatesProps> = ({ userId }) => {
       type,
       message,
       timestamp: new Date(),
-      read: false
+      read: false,
     };
   };
 
@@ -231,10 +251,14 @@ const RealtimeUpdates: React.FC<RealtimeUpdatesProps> = ({ userId }) => {
   // Get badge color based on update type
   const getBadgeVariant = (type: 'job' | 'skill' | 'market') => {
     switch (type) {
-      case 'job': return 'default';
-      case 'skill': return 'secondary';
-      case 'market': return 'outline';
-      default: return 'default';
+      case 'job':
+        return 'default';
+      case 'skill':
+        return 'secondary';
+      case 'market':
+        return 'outline';
+      default:
+        return 'default';
     }
   };
 

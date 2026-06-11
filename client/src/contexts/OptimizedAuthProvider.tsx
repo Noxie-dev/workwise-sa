@@ -28,30 +28,36 @@ const AuthContextCoordinator: React.FC<AuthContextCoordinatorProps> = ({ childre
   // COORDINATED ACTIONS
   // ============================================================================
 
-  const handleUserChange = useCallback((user: AppUser | null) => {
-    if (user) {
-      setUser(user);
-      setPermissions(user.permissions, user.role);
-    } else {
-      clearUser();
-      clearPermissions();
-    }
-  }, [setUser, setPermissions, clearUser, clearPermissions]);
+  const handleUserChange = useCallback(
+    (user: AppUser | null) => {
+      if (user) {
+        setUser(user);
+        setPermissions(user.permissions, user.role);
+      } else {
+        clearUser();
+        clearPermissions();
+      }
+    },
+    [setUser, setPermissions, clearUser, clearPermissions]
+  );
 
-  const handlePermissionsChange = useCallback((permissions: Permission[], role: UserRole | null) => {
-    if (permissions.length > 0 && role) {
-      setPermissions(permissions, role);
-    } else {
-      clearPermissions();
-    }
-  }, [setPermissions, clearPermissions]);
+  const handlePermissionsChange = useCallback(
+    (permissions: Permission[], role: UserRole | null) => {
+      if (permissions.length > 0 && role) {
+        setPermissions(permissions, role);
+      } else {
+        clearPermissions();
+      }
+    },
+    [setPermissions, clearPermissions]
+  );
 
   // ============================================================================
   // FIREBASE AUTH STATE LISTENER
   // ============================================================================
 
   useEffect(() => {
-    const unsubscribe = firebaseAuthAdapter.onAuthStateChanged((appUser) => {
+    const unsubscribe = firebaseAuthAdapter.onAuthStateChanged(appUser => {
       if (appUser) {
         handleUserChange(appUser);
       } else {
@@ -67,7 +73,7 @@ const AuthContextCoordinator: React.FC<AuthContextCoordinatorProps> = ({ childre
   // ============================================================================
 
   return (
-    <AuthActionsProvider 
+    <AuthActionsProvider
       onUserChange={handleUserChange}
       onPermissionsChange={handlePermissionsChange}
     >
@@ -88,9 +94,7 @@ export const OptimizedAuthProvider: React.FC<OptimizedAuthProviderProps> = ({ ch
   return (
     <UserProvider>
       <PermissionsProvider>
-        <AuthContextCoordinator>
-          {children}
-        </AuthContextCoordinator>
+        <AuthContextCoordinator>{children}</AuthContextCoordinator>
       </PermissionsProvider>
     </UserProvider>
   );
@@ -117,12 +121,12 @@ export const useOptimizedAuth = () => {
     userInitials: userContext.userInitials,
     isProfileComplete: userContext.isProfileComplete,
     userRole: userContext.userRole,
-    
+
     // Auth state
     status: authActionsContext.status,
     isLoading: authActionsContext.isLoading,
     isAuthenticated: userContext.isAuthenticated,
-    
+
     // Permissions
     permissions: permissionsContext.permissions,
     role: permissionsContext.role,
@@ -130,14 +134,14 @@ export const useOptimizedAuth = () => {
     isModerator: permissionsContext.isModerator,
     isEmployer: permissionsContext.isEmployer,
     isUser: permissionsContext.isUser,
-    
+
     // Permission checks
     hasPermission: permissionsContext.hasPermission,
     hasAnyPermission: permissionsContext.hasAnyPermission,
     hasAllPermissions: permissionsContext.hasAllPermissions,
     hasRole: permissionsContext.hasRole,
     hasAnyRole: permissionsContext.hasAnyRole,
-    
+
     // Auth actions
     login: authActionsContext.login,
     loginWithGoogle: authActionsContext.loginWithGoogle,
@@ -146,7 +150,7 @@ export const useOptimizedAuth = () => {
     logout: authActionsContext.logout,
     resetPassword: authActionsContext.resetPassword,
     updateProfile: authActionsContext.updateProfile,
-    refreshUser: authActionsContext.refreshUser
+    refreshUser: authActionsContext.refreshUser,
   };
 };
 

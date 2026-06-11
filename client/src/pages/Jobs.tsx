@@ -101,18 +101,21 @@ const Jobs: React.FC = () => {
   }, [location]);
 
   // Handle job card click
-  const handleJobClick = useCallback((job: JobPreview) => {
-    if (!user) {
-      // Show authentication modal for anonymous users
-      dispatch({
-        type: JobsActionType.SET_AUTH_MODAL,
-        payload: { isOpen: true, job },
-      });
-    } else {
-      // Navigate directly to job details for authenticated users
-      navigate(`/jobs/${job.id}`);
-    }
-  }, [user, navigate]);
+  const handleJobClick = useCallback(
+    (job: JobPreview) => {
+      if (!user) {
+        // Show authentication modal for anonymous users
+        dispatch({
+          type: JobsActionType.SET_AUTH_MODAL,
+          payload: { isOpen: true, job },
+        });
+      } else {
+        // Navigate directly to job details for authenticated users
+        navigate(`/jobs/${job.id}`);
+      }
+    },
+    [user, navigate]
+  );
 
   // Handle auth modal close
   const handleAuthModalClose = useCallback(() => {
@@ -139,7 +142,9 @@ const Jobs: React.FC = () => {
     query: searchQuery,
     page: parseInt(searchParams.get('page') || '1'),
     limit: 20,
-    categoryId: searchParams.get('categoryId') ? parseInt(searchParams.get('categoryId')!) : undefined,
+    categoryId: searchParams.get('categoryId')
+      ? parseInt(searchParams.get('categoryId')!)
+      : undefined,
     location: searchParams.get('location') || undefined,
     jobType: searchParams.get('jobType') || undefined,
     workMode: searchParams.get('workMode') || undefined,
@@ -152,49 +157,55 @@ const Jobs: React.FC = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const renderJobSkeleton = () => (
-    Array(6).fill(0).map((_, i) => (
-      <div key={i} className="bg-white rounded-lg shadow-card overflow-hidden">
-        <div className="p-4 border-b border-border">
-          <div className="flex justify-between items-start">
-            <div className="flex items-center">
-              <Skeleton className="w-12 h-12 rounded-md mr-3" />
-              <div>
-                <Skeleton className="h-5 w-40 mb-2" />
-                <Skeleton className="h-4 w-32" />
+  const renderJobSkeleton = () =>
+    Array(6)
+      .fill(0)
+      .map((_, i) => (
+        <div key={i} className="bg-white rounded-lg shadow-card overflow-hidden">
+          <div className="p-4 border-b border-border">
+            <div className="flex justify-between items-start">
+              <div className="flex items-center">
+                <Skeleton className="w-12 h-12 rounded-md mr-3" />
+                <div>
+                  <Skeleton className="h-5 w-40 mb-2" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              </div>
+              <Skeleton className="h-8 w-8 rounded-full" />
+            </div>
+          </div>
+          <div className="p-4">
+            <div className="mb-3">
+              <div className="flex gap-2">
+                <Skeleton className="h-5 w-16 rounded-full" />
+                <Skeleton className="h-5 w-16 rounded-full" />
               </div>
             </div>
-            <Skeleton className="h-8 w-8 rounded-full" />
-          </div>
-        </div>
-        <div className="p-4">
-          <div className="mb-3">
-            <div className="flex gap-2">
-              <Skeleton className="h-5 w-16 rounded-full" />
-              <Skeleton className="h-5 w-16 rounded-full" />
+            <div className="flex justify-between items-center">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-4 w-20" />
             </div>
           </div>
-          <div className="flex justify-between items-center">
-            <Skeleton className="h-5 w-24" />
-            <Skeleton className="h-4 w-20" />
-          </div>
         </div>
-      </div>
-    ))
-  );
+      ));
 
   return (
     <>
       <Helmet>
         <title>Browse Jobs | WorkWise SA</title>
-        <meta name="description" content="Find job opportunities in South Africa. Search, filter and apply for jobs across all industries." />
+        <meta
+          name="description"
+          content="Find job opportunities in South Africa. Search, filter and apply for jobs across all industries."
+        />
       </Helmet>
 
       <main className="flex-grow bg-light py-8">
         <div className="container mx-auto px-4">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Find Your Dream Job</h1>
-            <p className="text-muted">Browse through our comprehensive list of jobs across South Africa</p>
+            <p className="text-muted">
+              Browse through our comprehensive list of jobs across South Africa
+            </p>
           </div>
 
           <JobSearch initialQuery={searchQuery} className="mb-8" />
@@ -219,33 +230,33 @@ const Jobs: React.FC = () => {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {isLoading ? renderJobSkeleton() : (
-                data?.jobs?.length ? (
-                  data.jobs.map((job) => (
-                    <JobPreviewCard
-                      key={job.id}
-                      job={job}
-                      onClick={() => handleJobClick(job)}
-                      showAuthPrompt={!user}
-                    />
-                  ))
-                ) : (
-                  <div className="col-span-full text-center p-8 bg-white rounded-lg shadow">
-                    <p className="text-xl font-medium mb-2">No jobs found</p>
-                    <p className="text-muted mb-4">Try adjusting your search criteria</p>
-                    {data && data.total === 0 && searchQuery && (
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          dispatch({ type: JobsActionType.SET_SEARCH_QUERY, payload: '' });
-                          window.history.pushState({}, '', '/jobs');
-                        }}
-                      >
-                        Clear search
-                      </Button>
-                    )}
-                  </div>
-                )
+              {isLoading ? (
+                renderJobSkeleton()
+              ) : data?.jobs?.length ? (
+                data.jobs.map(job => (
+                  <JobPreviewCard
+                    key={job.id}
+                    job={job}
+                    onClick={() => handleJobClick(job)}
+                    showAuthPrompt={!user}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center p-8 bg-white rounded-lg shadow">
+                  <p className="text-xl font-medium mb-2">No jobs found</p>
+                  <p className="text-muted mb-4">Try adjusting your search criteria</p>
+                  {data && data.total === 0 && searchQuery && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        dispatch({ type: JobsActionType.SET_SEARCH_QUERY, payload: '' });
+                        window.history.pushState({}, '', '/jobs');
+                      }}
+                    >
+                      Clear search
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -263,7 +274,7 @@ const Jobs: React.FC = () => {
           {data && data.totalPages > 1 && (
             <div className="flex justify-center mt-8">
               <div className="flex space-x-2">
-                {Array.from({ length: data.totalPages }, (_, i) => i + 1).map((page) => (
+                {Array.from({ length: data.totalPages }, (_, i) => i + 1).map(page => (
                   <Button
                     key={page}
                     variant={page === data.page ? 'default' : 'outline'}

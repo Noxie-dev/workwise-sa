@@ -121,7 +121,9 @@ export const profileService = {
    * Get user profile data
    */
   async getProfile(userId: string): Promise<ProfileData> {
-    const response = await apiClient.get<{success: boolean; data: ProfileData}>(`/profile/${userId}`);
+    const response = await apiClient.get<{ success: boolean; data: ProfileData }>(
+      `/profile/${userId}`
+    );
     return response.data.data;
   },
 
@@ -145,7 +147,7 @@ export const profileService = {
         'Content-Type': 'multipart/form-data',
       },
     });
-    
+
     return response.data;
   },
 
@@ -161,7 +163,7 @@ export const profileService = {
         'Content-Type': 'multipart/form-data',
       },
     });
-    
+
     return response.data;
   },
 
@@ -169,8 +171,8 @@ export const profileService = {
    * Process AI prompt for profile improvements
    */
   async processAIPrompt(
-    prompt: string, 
-    cvData: Partial<ProfileData>, 
+    prompt: string,
+    cvData: Partial<ProfileData>,
     warnings: Array<{
       type: string;
       section: string;
@@ -183,7 +185,7 @@ export const profileService = {
       cvData,
       warnings,
     });
-    
+
     return response.data;
   },
 };

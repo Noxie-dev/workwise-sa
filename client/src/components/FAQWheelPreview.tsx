@@ -26,259 +26,273 @@ interface FAQModalProps {
   onClose: () => void;
 }
 
-
-
 /**
  * Lazy loaded modal component for displaying FAQ details
  * Uses React.lazy for code splitting and performance optimization
  * Enhanced with animations, better styling, and improved accessibility
  */
-const FAQModal = lazy(() => new Promise<{ default: React.FC<FAQModalProps> }>(resolve => {
-  // Small delay to ensure smooth loading transition
-  setTimeout(() => {
-    resolve({
-      default: ({ question, answer, onClose }: FAQModalProps) => {
-        // Handle keyboard events for accessibility
-        const handleKeyDown = (e: React.KeyboardEvent): void => {
-          if (e.key === 'Escape') {
-            onClose();
-          }
-        };
+const FAQModal = lazy(
+  () =>
+    new Promise<{ default: React.FC<FAQModalProps> }>(resolve => {
+      // Small delay to ensure smooth loading transition
+      setTimeout(() => {
+        resolve({
+          default: function FAQModalContent({ question, answer, onClose }: FAQModalProps) {
+            // Handle keyboard events for accessibility
+            const handleKeyDown = (e: React.KeyboardEvent): void => {
+              if (e.key === 'Escape') {
+                onClose();
+              }
+            };
 
-        // Focus trap - focus the modal when it opens
-        const modalRef = useRef<HTMLDivElement>(null);
+            // Focus trap - focus the modal when it opens
+            const modalRef = useRef<HTMLDivElement>(null);
 
-        useEffect(() => {
-          // Focus the modal when it opens
-          if (modalRef.current) {
-            modalRef.current.focus();
-          }
+            useEffect(() => {
+              // Focus the modal when it opens
+              if (modalRef.current) {
+                modalRef.current.focus();
+              }
 
-          // Prevent body scrolling when modal is open
-          document.body.style.overflow = 'hidden';
+              // Prevent body scrolling when modal is open
+              document.body.style.overflow = 'hidden';
 
-          // Cleanup
-          return () => {
-            document.body.style.overflow = '';
-          };
-        }, []);
+              // Cleanup
+              return () => {
+                document.body.style.overflow = '';
+              };
+            }, []);
 
-        return (
-          <div
-            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4 animate-fadeIn"
-            onClick={(e: React.MouseEvent<HTMLDivElement>): void => {
-              // Close when clicking outside the modal
-              if (e.target === e.currentTarget) onClose();
-            }}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="faq-modal-title"
-            onKeyDown={handleKeyDown}
-          >
-            <div
-              ref={modalRef}
-              className="bg-white rounded-xl shadow-xl p-6 max-w-lg w-full animate-scaleIn"
-              tabIndex={0} // Make modal focusable
-              onClick={(e: React.MouseEvent<HTMLDivElement>): void => e.stopPropagation()}
-              style={{
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                animation: 'scaleIn 0.3s ease-out forwards'
-              }}
-            >
-              <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
-                <h2
-                  id="faq-modal-title"
-                  className="text-xl font-bold text-indigo-800"
+            return (
+              <div
+                className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4 animate-fadeIn"
+                onClick={(e: React.MouseEvent<HTMLDivElement>): void => {
+                  // Close when clicking outside the modal
+                  if (e.target === e.currentTarget) onClose();
+                }}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="faq-modal-title"
+                onKeyDown={handleKeyDown}
+              >
+                <div
+                  ref={modalRef}
+                  className="bg-white rounded-xl shadow-xl p-6 max-w-lg w-full animate-scaleIn"
+                  tabIndex={0} // Make modal focusable
+                  onClick={(e: React.MouseEvent<HTMLDivElement>): void => e.stopPropagation()}
+                  style={{
+                    boxShadow:
+                      '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    animation: 'scaleIn 0.3s ease-out forwards',
+                  }}
                 >
-                  {question}
-                </h2>
-                <button
-                  onClick={onClose}
-                  className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full p-1 transition-colors"
-                  aria-label="Close modal"
-                >
-                  <X size={24} />
-                </button>
+                  <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                    <h2 id="faq-modal-title" className="text-xl font-bold text-indigo-800">
+                      {question}
+                    </h2>
+                    <button
+                      onClick={onClose}
+                      className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full p-1 transition-colors"
+                      aria-label="Close modal"
+                    >
+                      <X size={24} />
+                    </button>
+                  </div>
+
+                  <div className="text-gray-700 prose max-w-none">
+                    <p className="leading-relaxed">{answer}</p>
+                  </div>
+
+                  <div className="mt-6 flex justify-end space-x-2">
+                    <button
+                      onClick={onClose}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-colors shadow-sm hover:shadow"
+                      aria-label="Close FAQ modal"
+                    >
+                      Close
+                    </button>
+                  </div>
+
+                  {/* Add custom CSS animations */}
+                  <style jsx>{`
+                    @keyframes scaleIn {
+                      from {
+                        transform: scale(0.95);
+                        opacity: 0;
+                      }
+                      to {
+                        transform: scale(1);
+                        opacity: 1;
+                      }
+                    }
+
+                    @keyframes fadeIn {
+                      from {
+                        opacity: 0;
+                      }
+                      to {
+                        opacity: 1;
+                      }
+                    }
+
+                    .animate-scaleIn {
+                      animation: scaleIn 0.3s ease-out forwards;
+                    }
+
+                    .animate-fadeIn {
+                      animation: fadeIn 0.2s ease-out forwards;
+                    }
+                  `}</style>
+                </div>
               </div>
-
-              <div className="text-gray-700 prose max-w-none">
-                <p className="leading-relaxed">{answer}</p>
-              </div>
-
-              <div className="mt-6 flex justify-end space-x-2">
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-colors shadow-sm hover:shadow"
-                  aria-label="Close FAQ modal"
-                >
-                  Close
-                </button>
-              </div>
-
-              {/* Add custom CSS animations */}
-              <style jsx>{`
-                @keyframes scaleIn {
-                  from { transform: scale(0.95); opacity: 0; }
-                  to { transform: scale(1); opacity: 1; }
-                }
-
-                @keyframes fadeIn {
-                  from { opacity: 0; }
-                  to { opacity: 1; }
-                }
-
-                .animate-scaleIn {
-                  animation: scaleIn 0.3s ease-out forwards;
-                }
-
-                .animate-fadeIn {
-                  animation: fadeIn 0.2s ease-out forwards;
-                }
-              `}</style>
-            </div>
-          </div>
-        );
-      }
-    });
-  }, 100);
-}));
+            );
+          },
+        });
+      }, 100);
+    })
+);
 
 /**
  * Memoized FAQ Item component
  * Renders a single FAQ card in the wheel
  */
-const FAQItemCard = memo<FAQItemCardProps>(({ item, position, rotation, onClick, isFocused, index, isMobile }) => {
-  const { x, y, rotation: itemRotation } = position;
-  const [isHovered, setIsHovered] = React.useState<boolean>(false);
+const FAQItemCard = memo<FAQItemCardProps>(
+  ({ item, position, rotation, onClick, isFocused, index, isMobile }) => {
+    const { x, y, rotation: itemRotation } = position;
+    const [isHovered, setIsHovered] = React.useState<boolean>(false);
 
-  // Handle keyboard interaction
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>): void => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      onClick();
-    }
-  };
+    // Handle keyboard interaction
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>): void => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onClick();
+      }
+    };
 
-  // Calculate dynamic styles based on state - optimized for performance
-  const dynamicStyles = {
-    left: x,
-    top: y,
-    // Larger cards to ensure text is fully visible
-    width: isFocused ? '12rem' : isHovered ? '11rem' : '10.5rem',
-    height: isFocused ? '9rem' : isHovered ? '8rem' : '7.5rem',
-    transform: `translate(-50%, -50%) rotate(${itemRotation}deg)`,
-    zIndex: isFocused ? 30 : isHovered ? 25 : 20,
-    // Use optimized transitions for smoother animations
-    // Simplify transitions on mobile for better performance
-    transition: isMobile
-      ? 'transform 0.35s cubic-bezier(0.33, 1, 0.68, 1), width 0.3s, height 0.3s'
-      : 'transform 0.4s cubic-bezier(0.33, 1, 0.68, 1), width 0.35s cubic-bezier(0.33, 1, 0.68, 1), height 0.35s cubic-bezier(0.33, 1, 0.68, 1)',
-    boxShadow: isFocused
-      ? '0 10px 25px -5px rgba(79, 70, 229, 0.4)'
-      : isHovered
-        ? '0 8px 20px -4px rgba(79, 70, 229, 0.3)'
-        : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-    willChange: 'transform, left, top', // Optimize for animations
-    backfaceVisibility: 'hidden', // Prevent flickering
-    perspective: '1000px', // Improve 3D rendering
-    transformStyle: 'preserve-3d', // Better 3D performance
-    overflow: 'hidden' // Ensure content doesn't overflow
-  };
+    // Calculate dynamic styles based on state - optimized for performance
+    const dynamicStyles = {
+      left: x,
+      top: y,
+      // Larger cards to ensure text is fully visible
+      width: isFocused ? '12rem' : isHovered ? '11rem' : '10.5rem',
+      height: isFocused ? '9rem' : isHovered ? '8rem' : '7.5rem',
+      transform: `translate(-50%, -50%) rotate(${itemRotation}deg)`,
+      zIndex: isFocused ? 30 : isHovered ? 25 : 20,
+      // Use optimized transitions for smoother animations
+      // Simplify transitions on mobile for better performance
+      transition: isMobile
+        ? 'transform 0.35s cubic-bezier(0.33, 1, 0.68, 1), width 0.3s, height 0.3s'
+        : 'transform 0.4s cubic-bezier(0.33, 1, 0.68, 1), width 0.35s cubic-bezier(0.33, 1, 0.68, 1), height 0.35s cubic-bezier(0.33, 1, 0.68, 1)',
+      boxShadow: isFocused
+        ? '0 10px 25px -5px rgba(79, 70, 229, 0.4)'
+        : isHovered
+          ? '0 8px 20px -4px rgba(79, 70, 229, 0.3)'
+          : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+      willChange: 'transform, left, top', // Optimize for animations
+      backfaceVisibility: 'hidden', // Prevent flickering
+      perspective: '1000px', // Improve 3D rendering
+      transformStyle: 'preserve-3d', // Better 3D performance
+      overflow: 'hidden', // Ensure content doesn't overflow
+    };
 
-  // Category-based styling (if category is available)
-  const getCategoryColor = () => {
-    if (!item.category) return 'border-indigo-600 hover:border-indigo-800';
+    // Category-based styling (if category is available)
+    const getCategoryColor = () => {
+      if (!item.category) return 'border-indigo-600 hover:border-indigo-800';
 
-    switch (item.category) {
-      case 'job-seekers':
-        return 'border-blue-600 hover:border-blue-800';
-      case 'employers':
-        return 'border-purple-600 hover:border-purple-800';
-      case 'general':
-        return 'border-indigo-600 hover:border-indigo-800';
-      default:
-        return 'border-indigo-600 hover:border-indigo-800';
-    }
-  };
+      switch (item.category) {
+        case 'job-seekers':
+          return 'border-blue-600 hover:border-blue-800';
+        case 'employers':
+          return 'border-purple-600 hover:border-purple-800';
+        case 'general':
+          return 'border-indigo-600 hover:border-indigo-800';
+        default:
+          return 'border-indigo-600 hover:border-indigo-800';
+      }
+    };
 
-  return (
-    <div
-      className={`absolute bg-white rounded-2xl shadow-lg cursor-pointer transform -translate-x-1/2 -translate-y-1/2 hover:scale-110 transition-all duration-300 flex items-center justify-center p-4 border-2 faq-item ${
-        isFocused
-          ? 'border-yellow-500 shadow-xl scale-110 z-30'
-          : `${getCategoryColor()} hover:shadow-xl`
-      }`}
-      style={dynamicStyles}
-      onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onFocus={() => setIsHovered(true)}
-      onBlur={() => setIsHovered(false)}
-      role="button"
-      aria-label={`FAQ question: ${item.question}${item.category ? `, Category: ${item.category}` : ''}`}
-      tabIndex={0}
-      data-index={index}
-      data-category={item.category || 'none'}
-      onKeyDown={handleKeyDown}
-    >
+    return (
       <div
-        style={{
-          transform: `rotate(${-itemRotation}deg)`,
-          width: '100%',
-          transition: 'transform 0.4s cubic-bezier(0.33, 1, 0.68, 1)',
-          willChange: 'transform',
-          backfaceVisibility: 'hidden',
-          perspective: '1000px'
-        }}
+        className={`absolute bg-white rounded-2xl shadow-lg cursor-pointer transform -translate-x-1/2 -translate-y-1/2 hover:scale-110 transition-all duration-300 flex items-center justify-center p-4 border-2 faq-item ${
+          isFocused
+            ? 'border-yellow-500 shadow-xl scale-110 z-30'
+            : `${getCategoryColor()} hover:shadow-xl`
+        }`}
+        style={dynamicStyles}
+        onClick={onClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setIsHovered(true)}
+        onBlur={() => setIsHovered(false)}
+        role="button"
+        aria-label={`FAQ question: ${item.question}${item.category ? `, Category: ${item.category}` : ''}`}
+        tabIndex={0}
+        data-index={index}
+        data-category={item.category || 'none'}
+        onKeyDown={handleKeyDown}
       >
-        <p
-          className={`font-medium text-center overflow-hidden px-2 ${
-            isFocused
-              ? 'text-base text-indigo-900 leading-tight'
-              : isHovered
-                ? 'text-sm text-indigo-800 leading-tight'
-                : 'text-sm text-indigo-700 leading-tight'
-          }`}
+        <div
           style={{
-            display: '-webkit-box',
-            WebkitLineClamp: 4,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            maxHeight: '5em' // Approximately 4 lines of text
+            transform: `rotate(${-itemRotation}deg)`,
+            width: '100%',
+            transition: 'transform 0.4s cubic-bezier(0.33, 1, 0.68, 1)',
+            willChange: 'transform',
+            backfaceVisibility: 'hidden',
+            perspective: '1000px',
           }}
         >
-          {item.question}
-        </p>
+          <p
+            className={`font-medium text-center overflow-hidden px-2 ${
+              isFocused
+                ? 'text-base text-indigo-900 leading-tight'
+                : isHovered
+                  ? 'text-sm text-indigo-800 leading-tight'
+                  : 'text-sm text-indigo-700 leading-tight'
+            }`}
+            style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 4,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxHeight: '5em', // Approximately 4 lines of text
+            }}
+          >
+            {item.question}
+          </p>
 
-        {/* Optional category indicator */}
-        {item.category && (
-          <div className="mt-2 flex justify-center">
-            <span className={`text-xs px-2 py-0.5 rounded-full ${
-              item.category === 'job-seekers'
-                ? 'bg-blue-100 text-blue-800'
-                : item.category === 'employers'
-                  ? 'bg-purple-100 text-purple-800'
-                  : 'bg-indigo-100 text-indigo-800'
-            }`}>
-              {item.category}
-            </span>
-          </div>
-        )}
+          {/* Optional category indicator */}
+          {item.category && (
+            <div className="mt-2 flex justify-center">
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full ${
+                  item.category === 'job-seekers'
+                    ? 'bg-blue-100 text-blue-800'
+                    : item.category === 'employers'
+                      ? 'bg-purple-100 text-purple-800'
+                      : 'bg-indigo-100 text-indigo-800'
+                }`}
+              >
+                {item.category}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  );
-}, (prevProps, nextProps) => {
-  // Custom comparison function to prevent unnecessary re-renders
-  return (
-    prevProps.item.question === nextProps.item.question &&
-    prevProps.item.category === nextProps.item.category &&
-    prevProps.position.x === nextProps.position.x &&
-    prevProps.position.y === nextProps.position.y &&
-    prevProps.position.rotation === nextProps.position.rotation &&
-    prevProps.isFocused === nextProps.isFocused
-  );
-});
+    );
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison function to prevent unnecessary re-renders
+    return (
+      prevProps.item.question === nextProps.item.question &&
+      prevProps.item.category === nextProps.item.category &&
+      prevProps.position.x === nextProps.position.x &&
+      prevProps.position.y === nextProps.position.y &&
+      prevProps.position.rotation === nextProps.position.rotation &&
+      prevProps.isFocused === nextProps.isFocused
+    );
+  }
+);
 
 /**
  * FAQ Wheel Preview Component
@@ -305,14 +319,12 @@ const FAQWheelPreview: React.FC = () => {
     handleTouchStart,
     handleTouchMove, // Add the new touch move handler
     handleTouchEnd,
-    isMobile
+    isMobile,
   } = useFAQWheel();
 
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
   const wheelRef = useRef<HTMLDivElement>(null);
-
-
 
   /**
    * Render the FAQ Wheel component
@@ -326,7 +338,9 @@ const FAQWheelPreview: React.FC = () => {
     >
       {/* Header section with title */}
       <div className={`pt-8 ${isMobile ? 'pb-2 mb-2' : 'pb-4 mb-4'}`}>
-        <h1 className={`font-bold text-center text-indigo-800 ${isMobile ? 'text-3xl' : 'text-4xl'}`}>
+        <h1
+          className={`font-bold text-center text-indigo-800 ${isMobile ? 'text-3xl' : 'text-4xl'}`}
+        >
           Workwise SA FAQ
         </h1>
 
@@ -334,7 +348,10 @@ const FAQWheelPreview: React.FC = () => {
         <div className="mt-4 text-center">
           {/* Desktop instructions */}
           <div className="hidden md:block bg-indigo-50 rounded-lg py-2 px-4 mx-auto max-w-lg">
-            <KeyRound className="inline-block w-4 h-4 mr-1 mb-1 text-indigo-600" aria-hidden="true" />
+            <KeyRound
+              className="inline-block w-4 h-4 mr-1 mb-1 text-indigo-600"
+              aria-hidden="true"
+            />
             <span className="text-indigo-700 font-medium">
               Use arrow keys to rotate (Shift+arrows for faster), Tab to navigate questions
             </span>
@@ -350,16 +367,15 @@ const FAQWheelPreview: React.FC = () => {
 
         {/* General instructions */}
         <p className="mt-3 text-center text-gray-600 px-4 font-medium">
-          {isMobile ? (
-            "Tap any question to learn more"
-          ) : (
-            "Hover over any question and click to learn more"
-          )}
+          {isMobile
+            ? 'Tap any question to learn more'
+            : 'Hover over any question and click to learn more'}
         </p>
 
         {/* Accessibility instructions - only visible to screen readers */}
         <div className="sr-only">
-          Use left and right arrow keys to rotate the wheel. Hold Shift with arrow keys for faster rotation. Press Tab to navigate between questions, and Enter to select.
+          Use left and right arrow keys to rotate the wheel. Hold Shift with arrow keys for faster
+          rotation. Press Tab to navigate between questions, and Enter to select.
         </div>
       </div>
 
@@ -448,11 +464,11 @@ const FAQWheelPreview: React.FC = () => {
                   isAutoRotating ? 'bg-indigo-400' : 'bg-indigo-700'
                 } hover:bg-indigo-800 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 focus:ring-2 focus:ring-white focus:outline-none`}
                 onClick={toggleAutoRotation}
-                aria-label={isAutoRotating ? "Stop Auto-Rotation" : "Start Auto-Rotation"}
+                aria-label={isAutoRotating ? 'Stop Auto-Rotation' : 'Start Auto-Rotation'}
               >
                 <RotateCw
                   size={isMobile ? 14 : 18}
-                  className={isAutoRotating ? "animate-spin" : ""}
+                  className={isAutoRotating ? 'animate-spin' : ''}
                 />
               </button>
 
@@ -492,14 +508,16 @@ const FAQWheelPreview: React.FC = () => {
 
       {/* Modal with lazy loading */}
       {isModalOpen && selectedQuestion && (
-        <Suspense fallback={
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white rounded-xl p-8 flex items-center justify-center">
-              <Loader className="w-8 h-8 text-indigo-600 animate-spin" aria-hidden="true" />
-              <span className="ml-3 text-indigo-800">Loading...</span>
+        <Suspense
+          fallback={
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="bg-white rounded-xl p-8 flex items-center justify-center">
+                <Loader className="w-8 h-8 text-indigo-600 animate-spin" aria-hidden="true" />
+                <span className="ml-3 text-indigo-800">Loading...</span>
+              </div>
             </div>
-          </div>
-        }>
+          }
+        >
           <FAQModal
             question={selectedQuestion.question}
             answer={selectedQuestion.answer}

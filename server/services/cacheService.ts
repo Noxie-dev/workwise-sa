@@ -82,7 +82,7 @@ export class MultiTierCacheService {
     redisHits: 0,
     dbFallbacks: 0,
     totalRequests: 0,
-    hitRate: 0
+    hitRate: 0,
   };
   private isInitialized = false;
 
@@ -90,7 +90,7 @@ export class MultiTierCacheService {
     this.config = {
       memory: {
         maxSize: 1000, // Maximum number of entries in memory cache
-        defaultTTL: 300 // 5 minutes
+        defaultTTL: 300, // 5 minutes
       },
       redis: {
         host: 'localhost',
@@ -98,12 +98,12 @@ export class MultiTierCacheService {
         db: 0,
         defaultTTL: 3600, // 1 hour
         retryDelayOnFailover: 100,
-        maxRetriesPerRequest: 3
+        maxRetriesPerRequest: 3,
       },
       invalidation: {
         enableAutoInvalidation: true,
-        invalidationPatterns: ['user:*', 'session:*', 'token:*']
-      }
+        invalidationPatterns: ['user:*', 'session:*', 'token:*'],
+      },
     };
   }
 
@@ -117,11 +117,11 @@ export class MultiTierCacheService {
     try {
       // Initialize Redis connection
       await this.initializeRedis();
-      
+
       // Start cleanup processes
       this.startMemoryCleanup();
       this.startStatsReset();
-      
+
       this.isInitialized = true;
       logger.info('✅ Multi-tier cache service initialized');
     } catch (error) {
@@ -134,22 +134,22 @@ export class MultiTierCacheService {
   private async initializeRedis(): Promise<void> {
     try {
       const redisUrl = await secretManager.getSecret('REDIS_URL');
-      
+
       if (redisUrl) {
         this.redisClient = createClient({
           url: redisUrl as string,
           socket: {
-            reconnectStrategy: (retries) => {
+            reconnectStrategy: retries => {
               if (retries > 10) {
                 logger.warn('Redis connection failed after 10 retries, giving up');
                 return new Error('Redis connection failed');
               }
               return Math.min(retries * 50, 1000);
-            }
-          }
+            },
+          },
         });
 
-        this.redisClient.on('error', (err) => {
+        this.redisClient.on('error', err => {
           logger.error('Redis client error', { error: serializeError(err) });
         });
 
@@ -200,12 +200,12 @@ export class MultiTierCacheService {
           this.stats.hits++;
           this.stats.redisHits++;
           this.updateHitRate();
-          
+
           // Store in memory cache for faster future access
           if (!options.skipMemory) {
             this.setInMemory(key, redisResult, options.ttl ?? this.config.memory.defaultTTL);
           }
-          
+
           return redisResult;
         }
       }
@@ -214,7 +214,6 @@ export class MultiTierCacheService {
       this.stats.misses++;
       this.updateHitRate();
       return null;
-
     } catch (error) {
       logger.error(`Cache get error for key ${key}`, { error: serializeError(error) });
       this.stats.misses++;
@@ -244,7 +243,6 @@ export class MultiTierCacheService {
       if (options.tags && options.tags.length > 0) {
         await this.addToTaggedCache(key, options.tags);
       }
-
     } catch (error) {
       logger.error(`Cache set error for key ${key}`, { error: serializeError(error) });
     }
@@ -262,7 +260,6 @@ export class MultiTierCacheService {
       if (this.redisClient) {
         await this.redisClient.del(key);
       }
-
     } catch (error) {
       logger.error(`Cache delete error for key ${key}`, { error: serializeError(error) });
     }
@@ -287,9 +284,10 @@ export class MultiTierCacheService {
       }
 
       logger.info(`Invalidated cache entries matching pattern: ${pattern}`);
-
     } catch (error) {
-      logger.error(`Cache invalidation error for pattern ${pattern}`, { error: serializeError(error) });
+      logger.error(`Cache invalidation error for pattern ${pattern}`, {
+        error: serializeError(error),
+      });
     }
   }
 
@@ -297,8 +295,8 @@ export class MultiTierCacheService {
    * Get or set pattern - fetch from cache or execute function and cache result
    */
   async getOrSet<T>(
-    key: string, 
-    fetchFunction: () => Promise<T>, 
+    key: string,
+    fetchFunction: () => Promise<T>,
     options: CacheOptions = {}
   ): Promise<T> {
     // Try to get from cache first
@@ -310,10 +308,10 @@ export class MultiTierCacheService {
     // Cache miss - fetch from source
     this.stats.dbFallbacks++;
     const data = await fetchFunction();
-    
+
     // Cache the result
     await this.set(key, data, options);
-    
+
     return data;
   }
 
@@ -349,7 +347,7 @@ export class MultiTierCacheService {
       timestamp: Date.now(),
       ttl: ttl * 1000, // Convert to milliseconds
       accessCount: 1,
-      lastAccessed: Date.now()
+      lastAccessed: Date.now(),
     };
 
     this.memoryCache.set(key, entry);
@@ -420,9 +418,8 @@ export class MultiTierCacheService {
   }
 
   private updateHitRate(): void {
-    this.stats.hitRate = this.stats.totalRequests > 0 
-      ? (this.stats.hits / this.stats.totalRequests) * 100 
-      : 0;
+    this.stats.hitRate =
+      this.stats.totalRequests > 0 ? (this.stats.hits / this.stats.totalRequests) * 100 : 0;
   }
 
   // ============================================================================
@@ -431,29 +428,35 @@ export class MultiTierCacheService {
 
   private startMemoryCleanup(): void {
     // Clean up expired entries every 5 minutes
-    setInterval(() => {
-      const now = Date.now();
-      for (const [key, entry] of this.memoryCache.entries()) {
-        if (this.isExpired(entry)) {
-          this.memoryCache.delete(key);
+    setInterval(
+      () => {
+        const now = Date.now();
+        for (const [key, entry] of this.memoryCache.entries()) {
+          if (this.isExpired(entry)) {
+            this.memoryCache.delete(key);
+          }
         }
-      }
-    }, 5 * 60 * 1000);
+      },
+      5 * 60 * 1000
+    );
   }
 
   private startStatsReset(): void {
     // Reset stats every hour
-    setInterval(() => {
-      this.stats = {
-        hits: 0,
-        misses: 0,
-        memoryHits: 0,
-        redisHits: 0,
-        dbFallbacks: 0,
-        totalRequests: 0,
-        hitRate: 0
-      };
-    }, 60 * 60 * 1000);
+    setInterval(
+      () => {
+        this.stats = {
+          hits: 0,
+          misses: 0,
+          memoryHits: 0,
+          redisHits: 0,
+          dbFallbacks: 0,
+          totalRequests: 0,
+          hitRate: 0,
+        };
+      },
+      60 * 60 * 1000
+    );
   }
 
   /**
@@ -486,13 +489,13 @@ export class MultiTierCacheService {
     return {
       memory: {
         size: this.memoryCache.size,
-        maxSize: this.config.memory.maxSize
+        maxSize: this.config.memory.maxSize,
       },
       redis: {
         connected: redisConnected,
-        error: redisError
+        error: redisError,
       },
-      stats: this.getStats()
+      stats: this.getStats(),
     };
   }
 
@@ -547,7 +550,7 @@ export async function cacheUserData<T>(userId: string, data: T, ttl: number = 36
   const key = `user:${userId}`;
   await cacheService.set(key, data, {
     ttl,
-    tags: ['user', `user:${userId}`]
+    tags: ['user', `user:${userId}`],
   });
 }
 
@@ -569,11 +572,15 @@ export async function invalidateUserCache(userId: string): Promise<void> {
 /**
  * Cache session data
  */
-export async function cacheSessionData<T>(sessionId: string, data: T, ttl: number = 1800): Promise<void> {
+export async function cacheSessionData<T>(
+  sessionId: string,
+  data: T,
+  ttl: number = 1800
+): Promise<void> {
   const key = `session:${sessionId}`;
   await cacheService.set(key, data, {
     ttl,
-    tags: ['session', `session:${sessionId}`]
+    tags: ['session', `session:${sessionId}`],
   });
 }
 

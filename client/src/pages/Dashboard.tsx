@@ -22,33 +22,25 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 // Lazy load chart components
 const ChartComponents = lazy(() => import('../components/dashboard/ChartComponents'));
 
 // Icons - import only what we need
-import {
-  AlertCircle,
-  TrendingUp,
-  MapPin,
-  Briefcase,
-  Star,
-  Calendar,
-  Download
-} from 'lucide-react';
+import { AlertCircle, TrendingUp, MapPin, Briefcase, Star, Calendar, Download } from 'lucide-react';
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
 
@@ -65,7 +57,7 @@ const SKILLS_DATA = [
 export default function DashboardPage() {
   const { currentUser } = useAuth();
   const [, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState('overview');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [dateRange, setDateRange] = useState('30d');
   const [recommendationsLimit, setRecommendationsLimit] = useState(3);
@@ -136,10 +128,10 @@ export default function DashboardPage() {
   const {
     data: userProfile,
     isLoading: isProfileLoading,
-    error: profileError
+    error: profileError,
   } = useQuery({
     queryKey: ['userProfile', currentUser?.uid],
-    queryFn: () => currentUser ? profileService.getProfile(currentUser.uid) : null,
+    queryFn: () => (currentUser ? profileService.getProfile(currentUser.uid) : null),
     enabled: !!currentUser,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -160,12 +152,24 @@ export default function DashboardPage() {
 
   // Fetch dashboard data using custom hooks with pagination
   const {
-    jobDistribution: { data: jobDistributionData, isLoading: isJobDataLoading, error: jobDataError },
-    jobRecommendations: { data: jobRecommendationsData, isLoading: isRecommendationsLoading, error: recommendationsError },
-    skillsAnalysis: { data: skillsAnalysisData, isLoading: isSkillsDataLoading, error: skillsDataError },
+    jobDistribution: {
+      data: jobDistributionData,
+      isLoading: isJobDataLoading,
+      error: jobDataError,
+    },
+    jobRecommendations: {
+      data: jobRecommendationsData,
+      isLoading: isRecommendationsLoading,
+      error: recommendationsError,
+    },
+    skillsAnalysis: {
+      data: skillsAnalysisData,
+      isLoading: isSkillsDataLoading,
+      error: skillsDataError,
+    },
     isLoading,
     error,
-    exportData
+    exportData,
   } = useDashboardData(
     categoryFilter,
     dateRange,
@@ -188,15 +192,15 @@ export default function DashboardPage() {
   // Calculate monthly growth
   const calculateGrowth = () => {
     if (jobData?.trends && jobData.trends.length >= 2) {
-      const latest = jobData.trends[jobData.trends.length-1].applications;
-      const previous = jobData.trends[jobData.trends.length-2].applications;
-      const growth = ((latest / previous) - 1) * 100;
+      const latest = jobData.trends[jobData.trends.length - 1].applications;
+      const previous = jobData.trends[jobData.trends.length - 2].applications;
+      const growth = (latest / previous - 1) * 100;
       return {
         value: growth.toFixed(1),
-        isPositive: growth >= 0
+        isPositive: growth >= 0,
       };
     }
-    return { value: "N/A", isPositive: true };
+    return { value: 'N/A', isPositive: true };
   };
 
   const growth = calculateGrowth();
@@ -208,9 +212,7 @@ export default function DashboardPage() {
         <Alert variant="destructive" className="w-96">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Authentication Required</AlertTitle>
-          <AlertDescription>
-            Please log in to view the job distribution dashboard.
-          </AlertDescription>
+          <AlertDescription>Please log in to view the job distribution dashboard.</AlertDescription>
         </Alert>
       </div>
     );
@@ -220,7 +222,10 @@ export default function DashboardPage() {
     <div className="container mx-auto p-6">
       <Helmet>
         <title>Job Market Dashboard | WorkWise SA</title>
-        <meta name="description" content="Insights and analytics for the South African job market" />
+        <meta
+          name="description"
+          content="Insights and analytics for the South African job market"
+        />
       </Helmet>
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -260,12 +265,11 @@ export default function DashboardPage() {
             className="flex items-center gap-2"
             onClick={() => {
               if (currentUser) {
-                analyticsService.trackExportData(
-                  currentUser.uid,
-                  'dashboard',
-                  'json',
-                  { categoryFilter, dateRange, tab: activeTab }
-                );
+                analyticsService.trackExportData(currentUser.uid, 'dashboard', 'json', {
+                  categoryFilter,
+                  dateRange,
+                  tab: activeTab,
+                });
               }
               // Use our new export functionality
               exportData.all();
@@ -285,7 +289,12 @@ export default function DashboardPage() {
         </Alert>
       )}
 
-      <Tabs defaultValue="overview" value={activeTab} onValueChange={handleTabChange} className="mb-6">
+      <Tabs
+        defaultValue="overview"
+        value={activeTab}
+        onValueChange={handleTabChange}
+        className="mb-6"
+      >
         <TabsList className="grid w-full md:w-fit grid-cols-2 md:grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
@@ -294,16 +303,18 @@ export default function DashboardPage() {
         </TabsList>
       </Tabs>
 
-      <TabsContent value="overview" className={activeTab === "overview" ? "block" : "hidden"}>
+      <TabsContent value="overview" className={activeTab === 'overview' ? 'block' : 'hidden'}>
         {/* Summary Stats Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {isLoading ? (
-            Array(4).fill(0).map((_, i) => (
-              <div key={i} className="p-4 border rounded-lg">
-                <Skeleton className="h-4 w-1/2 mb-2" />
-                <Skeleton className="h-8 w-1/3" />
-              </div>
-            ))
+            Array(4)
+              .fill(0)
+              .map((_, i) => (
+                <div key={i} className="p-4 border rounded-lg">
+                  <Skeleton className="h-4 w-1/2 mb-2" />
+                  <Skeleton className="h-8 w-1/3" />
+                </div>
+              ))
           ) : (
             <>
               <Card className="bg-blue-50">
@@ -328,7 +339,8 @@ export default function DashboardPage() {
                     <div>
                       <p className="text-sm text-gray-500">Top Category</p>
                       <p className="text-2xl font-bold mt-1">
-                        {jobData?.categories?.sort((a, b) => b.count - a.count)[0]?.category || 'N/A'}
+                        {jobData?.categories?.sort((a, b) => b.count - a.count)[0]?.category ||
+                          'N/A'}
                       </p>
                     </div>
                     <div className="p-2 bg-green-100 rounded-lg">
@@ -354,20 +366,24 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className={growth.isPositive ? "bg-purple-50" : "bg-red-50"}>
+              <Card className={growth.isPositive ? 'bg-purple-50' : 'bg-red-50'}>
                 <CardContent className="pt-6">
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-sm text-gray-500">Monthly Growth</p>
                       <div className="flex items-center gap-1 mt-1">
-                        <p className="text-2xl font-bold">
-                          {growth.value}%
-                        </p>
-                        <TrendingUp className={`h-4 w-4 ${growth.isPositive ? 'text-green-600' : 'text-red-600'}`} />
+                        <p className="text-2xl font-bold">{growth.value}%</p>
+                        <TrendingUp
+                          className={`h-4 w-4 ${growth.isPositive ? 'text-green-600' : 'text-red-600'}`}
+                        />
                       </div>
                     </div>
-                    <div className={`p-2 rounded-lg ${growth.isPositive ? 'bg-purple-100' : 'bg-red-100'}`}>
-                      <Calendar className={`h-5 w-5 ${growth.isPositive ? 'text-purple-600' : 'text-red-600'}`} />
+                    <div
+                      className={`p-2 rounded-lg ${growth.isPositive ? 'bg-purple-100' : 'bg-red-100'}`}
+                    >
+                      <Calendar
+                        className={`h-5 w-5 ${growth.isPositive ? 'text-purple-600' : 'text-red-600'}`}
+                      />
                     </div>
                   </div>
                 </CardContent>
@@ -391,10 +407,7 @@ export default function DashboardPage() {
                 </div>
               ) : jobData?.categories?.length > 0 ? (
                 <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-                  <ChartComponents.JobCategoryBarChart
-                    data={jobData.categories}
-                    colors={COLORS}
-                  />
+                  <ChartComponents.JobCategoryBarChart data={jobData.categories} colors={COLORS} />
                 </Suspense>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
@@ -418,10 +431,7 @@ export default function DashboardPage() {
                 </div>
               ) : jobData?.locations?.length > 0 ? (
                 <Suspense fallback={<Skeleton className="h-64 w-full rounded-full mx-auto" />}>
-                  <ChartComponents.JobLocationPieChart
-                    data={jobData.locations}
-                    colors={COLORS}
-                  />
+                  <ChartComponents.JobLocationPieChart data={jobData.locations} colors={COLORS} />
                 </Suspense>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
@@ -445,9 +455,7 @@ export default function DashboardPage() {
                 </div>
               ) : jobData?.trends?.length > 0 ? (
                 <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-                  <ChartComponents.ApplicationTrendsLineChart
-                    data={jobData.trends}
-                  />
+                  <ChartComponents.ApplicationTrendsLineChart data={jobData.trends} />
                 </Suspense>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
@@ -459,7 +467,10 @@ export default function DashboardPage() {
         </div>
       </TabsContent>
 
-      <TabsContent value="recommendations" className={activeTab === "recommendations" ? "block" : "hidden"}>
+      <TabsContent
+        value="recommendations"
+        className={activeTab === 'recommendations' ? 'block' : 'hidden'}
+      >
         <Card>
           <CardHeader>
             <CardTitle>Personalized Job Recommendations</CardTitle>
@@ -468,33 +479,41 @@ export default function DashboardPage() {
           <CardContent>
             {isLoading ? (
               <div className="space-y-4">
-                {Array(3).fill(0).map((_, i) => (
-                  <div key={i} className="border rounded-lg p-4">
-                    <Skeleton className="h-6 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-1/2 mb-4" />
-                    <div className="flex gap-2 mb-2">
-                      <Skeleton className="h-4 w-16" />
-                      <Skeleton className="h-4 w-16" />
+                {Array(3)
+                  .fill(0)
+                  .map((_, i) => (
+                    <div key={i} className="border rounded-lg p-4">
+                      <Skeleton className="h-6 w-3/4 mb-2" />
+                      <Skeleton className="h-4 w-1/2 mb-4" />
+                      <div className="flex gap-2 mb-2">
+                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                      <Skeleton className="h-4 w-full" />
                     </div>
-                    <Skeleton className="h-4 w-full" />
-                  </div>
-                ))}
+                  ))}
               </div>
             ) : recommendedJobs.length > 0 ? (
               <div className="space-y-4">
-                {recommendedJobs.map((job) => (
-                  <Card key={job.id} className="cursor-pointer hover:bg-gray-50" onClick={() => handleJobClick(job)}>
+                {recommendedJobs.map(job => (
+                  <Card
+                    key={job.id}
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleJobClick(job)}
+                  >
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <h3 className="text-lg font-semibold">{job.title}</h3>
                           <p className="text-gray-600">{job.company}</p>
                         </div>
-                        <div className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          job.match >= 80
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-blue-100 text-blue-800'
-                        }`}>
+                        <div
+                          className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                            job.match >= 80
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-blue-100 text-blue-800'
+                          }`}
+                        >
                           {job.match}% Match
                         </div>
                       </div>
@@ -507,7 +526,8 @@ export default function DashboardPage() {
                           <Briefcase className="h-3 w-3 mr-1" /> {job.type}
                         </div>
                         <div className="flex items-center text-sm text-gray-500">
-                          <Timer className="h-3 w-3 mr-1" /> Posted {new Date(job.postedDate).toLocaleDateString()}
+                          <Timer className="h-3 w-3 mr-1" /> Posted{' '}
+                          {new Date(job.postedDate).toLocaleDateString()}
                         </div>
                       </div>
 
@@ -532,7 +552,9 @@ export default function DashboardPage() {
             ) : (
               <div className="text-center py-10">
                 <p className="text-gray-500">No job recommendations available.</p>
-                <p className="text-gray-500 mt-2">Complete your profile to get personalized recommendations.</p>
+                <p className="text-gray-500 mt-2">
+                  Complete your profile to get personalized recommendations.
+                </p>
                 <Button className="mt-4" onClick={() => navigate('/profile-setup')}>
                   Update Profile
                 </Button>
@@ -544,7 +566,7 @@ export default function DashboardPage() {
               <span className="text-sm text-gray-500">Show:</span>
               <Select
                 value={recommendationsLimit.toString()}
-                onValueChange={(value) => setRecommendationsLimit(parseInt(value))}
+                onValueChange={value => setRecommendationsLimit(parseInt(value))}
               >
                 <SelectTrigger className="w-20">
                   <SelectValue placeholder="3" />
@@ -563,7 +585,7 @@ export default function DashboardPage() {
         </Card>
       </TabsContent>
 
-      <TabsContent value="skills" className={activeTab === "skills" ? "block" : "hidden"}>
+      <TabsContent value="skills" className={activeTab === 'skills' ? 'block' : 'hidden'}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Skills Heatmap - New Component */}
           <SkillsHeatmap
@@ -571,12 +593,9 @@ export default function DashboardPage() {
             isLoading={isLoading || isSkillsDataLoading}
             onExport={() => {
               if (currentUser) {
-                analyticsService.trackExportData(
-                  currentUser.uid,
-                  'skills-heatmap',
-                  'csv',
-                  { view: 'demand' }
-                );
+                analyticsService.trackExportData(currentUser.uid, 'skills-heatmap', 'csv', {
+                  view: 'demand',
+                });
               }
               exportData.skillsAnalysis();
             }}
@@ -588,12 +607,9 @@ export default function DashboardPage() {
             isLoading={isLoading || isSkillsDataLoading}
             onExport={() => {
               if (currentUser) {
-                analyticsService.trackExportData(
-                  currentUser.uid,
-                  'skills-radar',
-                  'csv',
-                  { view: 'comparison' }
-                );
+                analyticsService.trackExportData(currentUser.uid, 'skills-radar', 'csv', {
+                  view: 'comparison',
+                });
               }
               exportData.skillsAnalysis();
             }}
@@ -618,11 +634,13 @@ export default function DashboardPage() {
                 </div>
               ) : skillsData?.marketDemand ? (
                 <div className="space-y-6">
-                  {skillsData.marketDemand.slice(0, 5).map((item) => (
+                  {skillsData.marketDemand.slice(0, 5).map(item => (
                     <div key={item.skill} className="space-y-2">
                       <div className="flex justify-between">
                         <span className="font-medium">{item.skill}</span>
-                        <span className="text-sm text-gray-500">Demand Score: {item.demand}/100</span>
+                        <span className="text-sm text-gray-500">
+                          Demand Score: {item.demand}/100
+                        </span>
                       </div>
                       <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
                         <div
@@ -631,12 +649,15 @@ export default function DashboardPage() {
                         ></div>
                       </div>
                       <div className="flex justify-end">
-                        <div className={`text-xs px-2 py-1 rounded-full ${
-                          item.growth > 10
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          {item.growth > 0 ? '+' : ''}{item.growth}% YoY Growth
+                        <div
+                          className={`text-xs px-2 py-1 rounded-full ${
+                            item.growth > 10
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-blue-100 text-blue-800'
+                          }`}
+                        >
+                          {item.growth > 0 ? '+' : ''}
+                          {item.growth}% YoY Growth
                         </div>
                       </div>
                     </div>
@@ -656,10 +677,11 @@ export default function DashboardPage() {
                         </Button>
 
                         {Array.from({ length: skillsPagination.totalPages }, (_, i) => i + 1)
-                          .filter(page =>
-                            page === 1 ||
-                            page === skillsPagination.totalPages ||
-                            Math.abs(page - skillsPagination.page) <= 1
+                          .filter(
+                            page =>
+                              page === 1 ||
+                              page === skillsPagination.totalPages ||
+                              Math.abs(page - skillsPagination.page) <= 1
                           )
                           .map((page, i, arr) => {
                             // Add ellipsis
@@ -691,8 +713,7 @@ export default function DashboardPage() {
                                 {page}
                               </Button>
                             );
-                          })
-                        }
+                          })}
 
                         <Button
                           variant="outline"
@@ -718,12 +739,7 @@ export default function DashboardPage() {
                 className="w-full"
                 onClick={() => {
                   if (currentUser) {
-                    analyticsService.trackExportData(
-                      currentUser.uid,
-                      'skills-demand',
-                      'csv',
-                      { }
-                    );
+                    analyticsService.trackExportData(currentUser.uid, 'skills-demand', 'csv', {});
                   }
                   exportData.skillsAnalysis();
                 }}
@@ -736,7 +752,9 @@ export default function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>Your Skills Gap Analysis</CardTitle>
-              <CardDescription>Skills you may want to develop based on job market trends</CardDescription>
+              <CardDescription>
+                Skills you may want to develop based on job market trends
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading || isProfileLoading ? (
@@ -747,7 +765,9 @@ export default function DashboardPage() {
                 </div>
               ) : !userProfile?.skills?.skills?.length ? (
                 <div className="text-center py-10">
-                  <p className="text-gray-500">We need more information about your skills and experience.</p>
+                  <p className="text-gray-500">
+                    We need more information about your skills and experience.
+                  </p>
                   <Button className="mt-4" onClick={() => navigate('/profile-setup')}>
                     Complete Your Profile
                   </Button>
@@ -782,7 +802,8 @@ export default function DashboardPage() {
                             <div className="flex justify-between mb-1">
                               <span>{recommendation.skill}</span>
                               <span className="text-sm text-gray-500">
-                                {skillsData.marketDemand.find(s => s.skill === recommendation.skill)?.demand >= 70
+                                {skillsData.marketDemand.find(s => s.skill === recommendation.skill)
+                                  ?.demand >= 70
                                   ? 'High Demand'
                                   : 'Medium Demand'}
                               </span>
@@ -791,7 +812,7 @@ export default function DashboardPage() {
                               <div
                                 className="h-full bg-yellow-500 rounded-full"
                                 style={{
-                                  width: `${skillsData.marketDemand.find(s => s.skill === recommendation.skill)?.demand || 50}%`
+                                  width: `${skillsData.marketDemand.find(s => s.skill === recommendation.skill)?.demand || 50}%`,
                                 }}
                               ></div>
                             </div>
@@ -808,9 +829,7 @@ export default function DashboardPage() {
               <Button variant="outline" onClick={() => navigate('/learning')}>
                 Find Courses
               </Button>
-              <Button onClick={() => navigate('/cv-builder')}>
-                Update Your CV
-              </Button>
+              <Button onClick={() => navigate('/cv-builder')}>Update Your CV</Button>
             </CardFooter>
           </Card>
         </div>
@@ -821,7 +840,7 @@ export default function DashboardPage() {
         </div>
       </TabsContent>
 
-      <TabsContent value="insights" className={activeTab === "insights" ? "block" : "hidden"}>
+      <TabsContent value="insights" className={activeTab === 'insights' ? 'block' : 'hidden'}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
@@ -837,14 +856,14 @@ export default function DashboardPage() {
                     { name: 'Healthcare', growth: 12.8 },
                     { name: 'Education', growth: 5.3 },
                     { name: 'Retail', growth: -2.1 },
-                    { name: 'Manufacturing', growth: 4.2 }
+                    { name: 'Manufacturing', growth: 4.2 },
                   ]}
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip formatter={(value) => [`${value}%`, 'Growth']} />
+                  <Tooltip formatter={value => [`${value}%`, 'Growth']} />
                   <Legend />
                   <Bar dataKey="growth" name="YoY Growth (%)">
                     {[
@@ -853,7 +872,7 @@ export default function DashboardPage() {
                       { name: 'Healthcare', growth: 12.8 },
                       { name: 'Education', growth: 5.3 },
                       { name: 'Retail', growth: -2.1 },
-                      { name: 'Manufacturing', growth: 4.2 }
+                      { name: 'Manufacturing', growth: 4.2 },
                     ].map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
@@ -881,14 +900,18 @@ export default function DashboardPage() {
                     { role: 'Marketing Manager', salary: 480000 },
                     { role: 'Data Analyst', salary: 580000 },
                     { role: 'Teacher', salary: 310000 },
-                    { role: 'Nurse', salary: 380000 }
+                    { role: 'Nurse', salary: 380000 },
                   ]}
                   margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" domain={[0, 800000]} tickFormatter={(value) => `R${value/1000}k`} />
+                  <XAxis
+                    type="number"
+                    domain={[0, 800000]}
+                    tickFormatter={value => `R${value / 1000}k`}
+                  />
                   <YAxis type="category" dataKey="role" />
-                  <Tooltip formatter={(value) => [`R${value.toLocaleString()}`, 'Avg. Salary']} />
+                  <Tooltip formatter={value => [`R${value.toLocaleString()}`, 'Avg. Salary']} />
                   <Legend />
                   <Bar dataKey="salary" name="Average Salary" fill="#8884d8" />
                 </BarChart>
@@ -899,7 +922,9 @@ export default function DashboardPage() {
           <Card className="md:col-span-2">
             <CardHeader>
               <CardTitle>Market Insights and Recommendations</CardTitle>
-              <CardDescription>Personalized insights based on your profile and market trends</CardDescription>
+              <CardDescription>
+                Personalized insights based on your profile and market trends
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -907,21 +932,32 @@ export default function DashboardPage() {
                   <h3 className="font-medium flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" /> Industry Growth
                   </h3>
-                  <p className="mt-2">The IT sector is showing strong growth at 18.5% year-on-year, with particular demand in data analysis, cloud computing, and cybersecurity roles.</p>
+                  <p className="mt-2">
+                    The IT sector is showing strong growth at 18.5% year-on-year, with particular
+                    demand in data analysis, cloud computing, and cybersecurity roles.
+                  </p>
                 </div>
 
                 <div className="p-4 bg-green-50 rounded-lg">
                   <h3 className="font-medium flex items-center gap-2">
                     <MapPin className="h-5 w-5" /> Geographic Opportunities
                   </h3>
-                  <p className="mt-2">Johannesburg and Cape Town remain the primary job markets, but remote work opportunities have increased by 215% since 2023, opening more possibilities across South Africa.</p>
+                  <p className="mt-2">
+                    Johannesburg and Cape Town remain the primary job markets, but remote work
+                    opportunities have increased by 215% since 2023, opening more possibilities
+                    across South Africa.
+                  </p>
                 </div>
 
                 <div className="p-4 bg-yellow-50 rounded-lg">
                   <h3 className="font-medium flex items-center gap-2">
                     <Star className="h-5 w-5" /> Career Advancement
                   </h3>
-                  <p className="mt-2">Based on your profile, consider developing data analysis skills further or exploring project management certifications to increase your marketability in the current job landscape.</p>
+                  <p className="mt-2">
+                    Based on your profile, consider developing data analysis skills further or
+                    exploring project management certifications to increase your marketability in
+                    the current job landscape.
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -940,7 +976,12 @@ export default function DashboardPage() {
           <CardHeader className="pb-3">
             <CardTitle>Job Market Pulse</CardTitle>
             <CardDescription>
-              Updated {new Date().toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}
+              Updated{' '}
+              {new Date().toLocaleDateString('en-ZA', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -985,11 +1026,15 @@ export default function DashboardPage() {
                 <h3 className="font-medium mb-2">Latest News</h3>
                 <ul className="space-y-2 text-sm">
                   <li>
-                    <a href="#" className="text-blue-600 hover:underline">New Government Initiative to Boost Youth Employment</a>
+                    <a href="#" className="text-blue-600 hover:underline">
+                      New Government Initiative to Boost Youth Employment
+                    </a>
                     <p className="text-gray-500 text-xs mt-1">May 1, 2025</p>
                   </li>
                   <li>
-                    <a href="#" className="text-blue-600 hover:underline">Tech Companies Expanding Presence in Cape Town</a>
+                    <a href="#" className="text-blue-600 hover:underline">
+                      Tech Companies Expanding Presence in Cape Town
+                    </a>
                     <p className="text-gray-500 text-xs mt-1">April 28, 2025</p>
                   </li>
                 </ul>
@@ -1009,7 +1054,9 @@ export default function DashboardPage() {
 
       {/* Add a disclaimer/info section at the bottom */}
       <div className="mt-6 text-center text-sm text-gray-500">
-        <p>Data sources: Statistics South Africa, Department of Labour, WorkWiseSA Market Analysis</p>
+        <p>
+          Data sources: Statistics South Africa, Department of Labour, WorkWiseSA Market Analysis
+        </p>
         <p className="mt-1">Last updated: {new Date().toLocaleDateString('en-ZA')}</p>
       </div>
     </div>

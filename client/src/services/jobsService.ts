@@ -82,7 +82,9 @@ export const jobsService = {
   /**
    * Get a category by ID with its jobs
    */
-  async getCategoryWithJobs(categoryId: number): Promise<{ category: Category; jobs: JobWithCompany[] }> {
+  async getCategoryWithJobs(
+    categoryId: number
+  ): Promise<{ category: Category; jobs: JobWithCompany[] }> {
     const response = await apiClient.get<{ category: Category; jobs: JobWithCompany[] }>(
       `/categories/${categoryId}/jobs`
     );
@@ -134,17 +136,20 @@ export const jobsService = {
   /**
    * Apply for a job
    */
-  async applyForJob(jobId: number, applicationData: {
-    resumeUrl?: string;
-    coverLetter?: string;
-    notes?: string;
-  }): Promise<{ applicationId: number }> {
+  async applyForJob(
+    jobId: number,
+    applicationData: {
+      resumeUrl?: string;
+      coverLetter?: string;
+      notes?: string;
+    }
+  ): Promise<{ applicationId: number }> {
     const response = await apiClient.post<{ applicationId: number }>(
       `/jobs/${jobId}/apply`,
       applicationData
     );
     return response.data;
-  }
+  },
 };
 
 export default jobsService;

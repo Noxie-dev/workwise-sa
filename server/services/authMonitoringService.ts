@@ -19,22 +19,22 @@ interface AuthMetrics {
   successfulLogins: number;
   failedLogins: number;
   loginSuccessRate: number;
-  
+
   // Token metrics
   totalTokenRefreshes: number;
   successfulTokenRefreshes: number;
   failedTokenRefreshes: number;
   tokenRefreshSuccessRate: number;
-  
+
   // Security metrics
   suspiciousActivities: number;
   rateLimitedRequests: number;
   revokedTokens: number;
-  
+
   // Performance metrics
   averageResponseTime: number;
   cacheHitRate: number;
-  
+
   // Time-based metrics
   loginsLast24h: number;
   loginsLast7d: number;
@@ -43,7 +43,12 @@ interface AuthMetrics {
 
 interface SecurityEvent {
   id: string;
-  type: 'FAILED_LOGIN' | 'SUSPICIOUS_ACTIVITY' | 'RATE_LIMITED' | 'TOKEN_REVOKED' | 'UNAUTHORIZED_ACCESS';
+  type:
+    | 'FAILED_LOGIN'
+    | 'SUSPICIOUS_ACTIVITY'
+    | 'RATE_LIMITED'
+    | 'TOKEN_REVOKED'
+    | 'UNAUTHORIZED_ACCESS';
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   userId?: string;
   ipAddress: string;
@@ -95,7 +100,7 @@ export class AuthMonitoringService {
       cacheHitRate: 0,
       loginsLast24h: 0,
       loginsLast7d: 0,
-      loginsLast30d: 0
+      loginsLast30d: 0,
     };
   }
 
@@ -109,14 +114,16 @@ export class AuthMonitoringService {
     try {
       // Load existing metrics from cache
       await this.loadMetricsFromCache();
-      
+
       // Start periodic tasks
       this.startPeriodicTasks();
-      
+
       this.isInitialized = true;
       logger.info('✅ Authentication monitoring service initialized');
     } catch (error) {
-      logger.error('❌ Failed to initialize auth monitoring service', { error: serializeError(error) });
+      logger.error('❌ Failed to initialize auth monitoring service', {
+        error: serializeError(error),
+      });
     }
   }
 
@@ -127,16 +134,21 @@ export class AuthMonitoringService {
   /**
    * Track login attempt
    */
-  async trackLogin(success: boolean, userId?: string, ipAddress?: string, userAgent?: string): Promise<void> {
+  async trackLogin(
+    success: boolean,
+    userId?: string,
+    ipAddress?: string,
+    userAgent?: string
+  ): Promise<void> {
     try {
       this.metrics.totalLogins++;
-      
+
       if (success) {
         this.metrics.successfulLogins++;
         this.metrics.loginsLast24h++;
       } else {
         this.metrics.failedLogins++;
-        
+
         // Record failed login event
         if (userId && ipAddress && userAgent) {
           await this.recordSecurityEvent({
@@ -146,15 +158,14 @@ export class AuthMonitoringService {
             ipAddress,
             userAgent,
             details: {
-              message: 'Failed login attempt'
-            }
+              message: 'Failed login attempt',
+            },
           });
         }
       }
 
       this.updateLoginSuccessRate();
       await this.saveMetricsToCache();
-
     } catch (error) {
       logger.error('Error tracking login', { error: serializeError(error) });
     }
@@ -166,12 +177,12 @@ export class AuthMonitoringService {
   async trackTokenRefresh(success: boolean, userId?: string, ipAddress?: string): Promise<void> {
     try {
       this.metrics.totalTokenRefreshes++;
-      
+
       if (success) {
         this.metrics.successfulTokenRefreshes++;
       } else {
         this.metrics.failedTokenRefreshes++;
-        
+
         // Record failed refresh event
         if (userId && ipAddress) {
           await this.recordSecurityEvent({
@@ -181,15 +192,14 @@ export class AuthMonitoringService {
             ipAddress,
             userAgent: 'unknown',
             details: {
-              message: 'Failed token refresh attempt'
-            }
+              message: 'Failed token refresh attempt',
+            },
           });
         }
       }
 
       this.updateTokenRefreshSuccessRate();
       await this.saveMetricsToCache();
-
     } catch (error) {
       logger.error('Error tracking token refresh', { error: serializeError(error) });
     }
@@ -198,22 +208,25 @@ export class AuthMonitoringService {
   /**
    * Track rate limited request
    */
-  async trackRateLimitedRequest(endpoint: string, ipAddress: string, userAgent: string): Promise<void> {
+  async trackRateLimitedRequest(
+    endpoint: string,
+    ipAddress: string,
+    userAgent: string
+  ): Promise<void> {
     try {
       this.metrics.rateLimitedRequests++;
-      
+
       await this.recordSecurityEvent({
         type: 'RATE_LIMITED',
         severity: 'MEDIUM',
         ipAddress,
         userAgent,
         details: {
-          message: `Rate limited request to ${endpoint}`
-        }
+          message: `Rate limited request to ${endpoint}`,
+        },
       });
 
       await this.saveMetricsToCache();
-
     } catch (error) {
       logger.error('Error tracking rate limited request', { error: serializeError(error) });
     }
@@ -225,7 +238,7 @@ export class AuthMonitoringService {
   async trackTokenRevocation(userId: string, reason: string): Promise<void> {
     try {
       this.metrics.revokedTokens++;
-      
+
       await this.recordSecurityEvent({
         type: 'TOKEN_REVOKED',
         severity: 'LOW',
@@ -233,12 +246,11 @@ export class AuthMonitoringService {
         ipAddress: 'unknown',
         userAgent: 'system',
         details: {
-          message: `Token revoked: ${reason}`
-        }
+          message: `Token revoked: ${reason}`,
+        },
       });
 
       await this.saveMetricsToCache();
-
     } catch (error) {
       logger.error('Error tracking token revocation', { error: serializeError(error) });
     }
@@ -248,15 +260,15 @@ export class AuthMonitoringService {
    * Track suspicious activity
    */
   async trackSuspiciousActivity(
-    type: string, 
-    userId: string, 
-    ipAddress: string, 
-    userAgent: string, 
+    type: string,
+    userId: string,
+    ipAddress: string,
+    userAgent: string,
     details: any
   ): Promise<void> {
     try {
       this.metrics.suspiciousActivities++;
-      
+
       await this.recordSecurityEvent({
         type: 'SUSPICIOUS_ACTIVITY',
         severity: 'HIGH',
@@ -265,12 +277,11 @@ export class AuthMonitoringService {
         userAgent,
         details: {
           message: `Suspicious activity: ${type}`,
-          additionalData: details
-        }
+          additionalData: details,
+        },
       });
 
       await this.saveMetricsToCache();
-
     } catch (error) {
       logger.error('Error tracking suspicious activity', { error: serializeError(error) });
     }
@@ -280,9 +291,9 @@ export class AuthMonitoringService {
    * Track performance metrics for an endpoint
    */
   async trackPerformance(
-    endpoint: string, 
-    method: string, 
-    responseTime: number, 
+    endpoint: string,
+    method: string,
+    responseTime: number,
     success: boolean,
     cacheHit: boolean
   ): Promise<void> {
@@ -295,23 +306,27 @@ export class AuthMonitoringService {
         totalRequests: 0,
         errorRate: 0,
         cacheHitRate: 0,
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
       };
 
       // Update metrics
       existing.totalRequests++;
       existing.averageResponseTime = (existing.averageResponseTime + responseTime) / 2;
-      
+
       if (!success) {
-        existing.errorRate = (existing.errorRate * (existing.totalRequests - 1) + 1) / existing.totalRequests;
+        existing.errorRate =
+          (existing.errorRate * (existing.totalRequests - 1) + 1) / existing.totalRequests;
       } else {
-        existing.errorRate = (existing.errorRate * (existing.totalRequests - 1)) / existing.totalRequests;
+        existing.errorRate =
+          (existing.errorRate * (existing.totalRequests - 1)) / existing.totalRequests;
       }
 
       if (cacheHit) {
-        existing.cacheHitRate = (existing.cacheHitRate * (existing.totalRequests - 1) + 1) / existing.totalRequests;
+        existing.cacheHitRate =
+          (existing.cacheHitRate * (existing.totalRequests - 1) + 1) / existing.totalRequests;
       } else {
-        existing.cacheHitRate = (existing.cacheHitRate * (existing.totalRequests - 1)) / existing.totalRequests;
+        existing.cacheHitRate =
+          (existing.cacheHitRate * (existing.totalRequests - 1)) / existing.totalRequests;
       }
 
       existing.lastUpdated = Date.now();
@@ -319,7 +334,6 @@ export class AuthMonitoringService {
 
       // Update global average response time
       this.updateAverageResponseTime();
-
     } catch (error) {
       logger.error('Error tracking performance', { error: serializeError(error) });
     }
@@ -329,19 +343,21 @@ export class AuthMonitoringService {
   // SECURITY EVENT MANAGEMENT
   // ============================================================================
 
-  private async recordSecurityEvent(event: Omit<SecurityEvent, 'id' | 'timestamp' | 'resolved'>): Promise<void> {
+  private async recordSecurityEvent(
+    event: Omit<SecurityEvent, 'id' | 'timestamp' | 'resolved'>
+  ): Promise<void> {
     try {
       const securityEvent: SecurityEvent = {
         ...event,
         id: `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         timestamp: Date.now(),
-        resolved: false
+        resolved: false,
       };
 
       this.securityEvents.push(securityEvent);
 
       // Keep only recent events (last 30 days)
-      const cutoff = Date.now() - (30 * 24 * 60 * 60 * 1000);
+      const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
       this.securityEvents = this.securityEvents.filter(e => e.timestamp > cutoff);
 
       // Log high severity events
@@ -352,15 +368,14 @@ export class AuthMonitoringService {
           severity: event.severity,
           userId: event.userId,
           ipAddress: event.ipAddress,
-          message: event.details.message
+          message: event.details.message,
         });
       }
 
       // Store in cache for persistence
       await cacheService.set(`security_events:${securityEvent.id}`, securityEvent, {
-        ttl: 30 * 24 * 60 * 60 // 30 days
+        ttl: 30 * 24 * 60 * 60, // 30 days
       });
-
     } catch (error) {
       logger.error('Error recording security event', { error: serializeError(error) });
     }
@@ -379,7 +394,7 @@ export class AuthMonitoringService {
 
         // Update in cache
         await cacheService.set(`security_events:${eventId}`, event, {
-          ttl: 30 * 24 * 60 * 60
+          ttl: 30 * 24 * 60 * 60,
         });
 
         logger.info(`Security event ${eventId} resolved by ${resolvedBy}`);
@@ -394,21 +409,24 @@ export class AuthMonitoringService {
   // ============================================================================
 
   private updateLoginSuccessRate(): void {
-    this.metrics.loginSuccessRate = this.metrics.totalLogins > 0 
-      ? (this.metrics.successfulLogins / this.metrics.totalLogins) * 100 
-      : 0;
+    this.metrics.loginSuccessRate =
+      this.metrics.totalLogins > 0
+        ? (this.metrics.successfulLogins / this.metrics.totalLogins) * 100
+        : 0;
   }
 
   private updateTokenRefreshSuccessRate(): void {
-    this.metrics.tokenRefreshSuccessRate = this.metrics.totalTokenRefreshes > 0 
-      ? (this.metrics.successfulTokenRefreshes / this.metrics.totalTokenRefreshes) * 100 
-      : 0;
+    this.metrics.tokenRefreshSuccessRate =
+      this.metrics.totalTokenRefreshes > 0
+        ? (this.metrics.successfulTokenRefreshes / this.metrics.totalTokenRefreshes) * 100
+        : 0;
   }
 
   private updateAverageResponseTime(): void {
     const metrics = Array.from(this.performanceMetrics.values());
     if (metrics.length > 0) {
-      this.metrics.averageResponseTime = metrics.reduce((sum, m) => sum + m.averageResponseTime, 0) / metrics.length;
+      this.metrics.averageResponseTime =
+        metrics.reduce((sum, m) => sum + m.averageResponseTime, 0) / metrics.length;
     }
   }
 
@@ -436,7 +454,6 @@ export class AuthMonitoringService {
           this.securityEvents.push(event);
         }
       }
-
     } catch (error) {
       logger.error('Error loading metrics from cache', { error: serializeError(error) });
     }
@@ -462,24 +479,36 @@ export class AuthMonitoringService {
 
   private startPeriodicTasks(): void {
     // Update cache hit rate every 5 minutes
-    setInterval(() => {
-      this.updateCacheHitRate();
-    }, 5 * 60 * 1000);
+    setInterval(
+      () => {
+        this.updateCacheHitRate();
+      },
+      5 * 60 * 1000
+    );
 
     // Save metrics every 10 minutes
-    setInterval(async () => {
-      await this.saveMetricsToCache();
-    }, 10 * 60 * 1000);
+    setInterval(
+      async () => {
+        await this.saveMetricsToCache();
+      },
+      10 * 60 * 1000
+    );
 
     // Reset daily counters at midnight
-    setInterval(() => {
-      this.resetDailyCounters();
-    }, 24 * 60 * 60 * 1000);
+    setInterval(
+      () => {
+        this.resetDailyCounters();
+      },
+      24 * 60 * 60 * 1000
+    );
 
     // Clean up old data every hour
-    setInterval(() => {
-      this.cleanupOldData();
-    }, 60 * 60 * 1000);
+    setInterval(
+      () => {
+        this.cleanupOldData();
+      },
+      60 * 60 * 1000
+    );
   }
 
   private resetDailyCounters(): void {
@@ -491,11 +520,11 @@ export class AuthMonitoringService {
 
   private cleanupOldData(): void {
     // Remove old security events
-    const cutoff = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
     this.securityEvents = this.securityEvents.filter(e => e.timestamp > cutoff);
 
     // Remove old performance metrics
-    const performanceCutoff = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    const performanceCutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
     for (const [key, metric] of this.performanceMetrics.entries()) {
       if (metric.lastUpdated < performanceCutoff) {
         this.performanceMetrics.delete(key);
@@ -548,8 +577,8 @@ export class AuthMonitoringService {
     alerts: SecurityEvent[];
   } {
     const recentEvents = this.getSecurityEvents().slice(0, 10);
-    const alerts = this.getSecurityEvents(undefined, false).filter(e => 
-      e.severity === 'HIGH' || e.severity === 'CRITICAL'
+    const alerts = this.getSecurityEvents(undefined, false).filter(
+      e => e.severity === 'HIGH' || e.severity === 'CRITICAL'
     );
     const topEndpoints = this.getPerformanceMetrics()
       .sort((a, b) => b.totalRequests - a.totalRequests)
@@ -559,7 +588,7 @@ export class AuthMonitoringService {
       metrics: this.getMetrics(),
       recentEvents,
       topEndpoints,
-      alerts
+      alerts,
     };
   }
 
@@ -581,33 +610,33 @@ export class AuthMonitoringService {
     };
     recommendations: string[];
   } {
-    const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000);
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
     const recentEvents = this.securityEvents.filter(e => e.timestamp > cutoff);
 
     const summary = {
       totalEvents: recentEvents.length,
       criticalEvents: recentEvents.filter(e => e.severity === 'CRITICAL').length,
       highEvents: recentEvents.filter(e => e.severity === 'HIGH').length,
-      resolvedEvents: recentEvents.filter(e => e.resolved).length
+      resolvedEvents: recentEvents.filter(e => e.resolved).length,
     };
 
     const trends = {
       logins: this.metrics.loginsLast24h,
       failedLogins: this.metrics.failedLogins,
       tokenRefreshes: this.metrics.totalTokenRefreshes,
-      rateLimitedRequests: this.metrics.rateLimitedRequests
+      rateLimitedRequests: this.metrics.rateLimitedRequests,
     };
 
     const recommendations: string[] = [];
-    
+
     if (summary.criticalEvents > 0) {
       recommendations.push('Immediate attention required: Critical security events detected');
     }
-    
+
     if (this.metrics.loginSuccessRate < 80) {
       recommendations.push('Consider reviewing authentication flow: Low login success rate');
     }
-    
+
     if (this.metrics.rateLimitedRequests > 100) {
       recommendations.push('High rate limiting activity: Consider adjusting rate limits');
     }

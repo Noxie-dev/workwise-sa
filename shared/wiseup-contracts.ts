@@ -1,8 +1,8 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const wiseupCreatorSchema = z.object({
   name: z.string(),
-  role: z.string().default("Creator"),
+  role: z.string().default('Creator'),
   avatar: z.string(),
 });
 
@@ -13,7 +13,7 @@ export const wiseupResourceSchema = z.object({
 
 export const wiseupContentItemSchema = z.object({
   id: z.union([z.number(), z.string()]),
-  type: z.literal("content"),
+  type: z.literal('content'),
   title: z.string(),
   creator: wiseupCreatorSchema,
   video: z.string(),
@@ -35,7 +35,7 @@ export const wiseupAdCtaSchema = z.object({
 
 export const wiseupAdItemSchema = z.object({
   id: z.union([z.number(), z.string()]),
-  type: z.literal("ad"),
+  type: z.literal('ad'),
   advertiser: z.string(),
   title: z.string(),
   video: z.string(),

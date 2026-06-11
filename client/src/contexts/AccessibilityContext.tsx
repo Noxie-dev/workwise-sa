@@ -34,7 +34,7 @@ function accessibilityReducer(
   }
 }
 
-export function AccessibilityProvider({ children }: { children: React.ReactNode }) {
+export const AccessibilityProvider = ({ children }: { children: React.ReactNode }) => {
   const [settings, dispatch] = useReducer(accessibilityReducer, DEFAULT_ACCESSIBILITY_SETTINGS);
 
   // Load settings from localStorage on mount
@@ -43,7 +43,10 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
-        dispatch({ type: 'LOAD_SETTINGS', settings: { ...DEFAULT_ACCESSIBILITY_SETTINGS, ...parsed } });
+        dispatch({
+          type: 'LOAD_SETTINGS',
+          settings: { ...DEFAULT_ACCESSIBILITY_SETTINGS, ...parsed },
+        });
       } catch (error) {
         console.error('Failed to load accessibility settings:', error);
       }
@@ -69,26 +72,26 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
 
   const applySettings = () => {
     const root = document.documentElement;
-    
+
     // Apply font size
     const fontSizeMap = {
-      'small': '14px',
-      'medium': '16px',
-      'large': '18px',
+      small: '14px',
+      medium: '16px',
+      large: '18px',
       'extra-large': '20px',
     };
     root.style.setProperty('--base-font-size', fontSizeMap[settings.fontSize]);
-    
+
     // Apply line spacing
     const lineSpacingMap = {
-      'normal': '1.5',
-      'looser': '1.8',
+      normal: '1.5',
+      looser: '1.8',
     };
     root.style.setProperty('--line-height', lineSpacingMap[settings.lineSpacing]);
-    
+
     // Apply color theme
     root.setAttribute('data-theme', settings.colorTheme);
-    
+
     // Apply motion preferences
     if (settings.reduceMotion) {
       root.style.setProperty('--animation-duration', '0.01ms');
@@ -97,28 +100,28 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
       root.style.removeProperty('--animation-duration');
       root.style.removeProperty('--transition-duration');
     }
-    
+
     // Apply tap target size
     if (settings.expandedTapTargets) {
       root.classList.add('expanded-tap-targets');
     } else {
       root.classList.remove('expanded-tap-targets');
     }
-    
+
     // Apply enhanced focus outlines
     if (settings.enhancedFocusOutlines) {
       root.classList.add('enhanced-focus');
     } else {
       root.classList.remove('enhanced-focus');
     }
-    
+
     // Apply simplified UI
     if (settings.simplifiedUI) {
       root.classList.add('simplified-ui');
     } else {
       root.classList.remove('simplified-ui');
     }
-    
+
     // Apply one-handed mode
     if (settings.oneHandedMode) {
       root.classList.add('one-handed-mode');
@@ -139,7 +142,7 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
       {children}
     </AccessibilityContext.Provider>
   );
-}
+};
 
 export function useAccessibility() {
   const context = useContext(AccessibilityContext);

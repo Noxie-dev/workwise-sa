@@ -24,7 +24,9 @@ const ContentDetails: React.FC<ContentDetailsProps> = ({ item }) => {
         <div className="flex items-center mb-6">
           <Avatar className="h-20 w-20 mr-5 ring-4 ring-blue-400 ring-offset-2">
             <AvatarImage src={item.creator.avatar} alt={item.creator.name} />
-            <AvatarFallback className="bg-blue-600 text-white text-2xl">{creatorInitial}</AvatarFallback>
+            <AvatarFallback className="bg-blue-600 text-white text-2xl">
+              {creatorInitial}
+            </AvatarFallback>
           </Avatar>
           <div>
             <h2 className="font-bold text-2xl text-blue-800">{item.creator.name}</h2>
@@ -59,7 +61,10 @@ const ContentDetails: React.FC<ContentDetailsProps> = ({ item }) => {
           <h3 className="font-bold text-xl mb-4 text-blue-700">Resources</h3>
           <ul className="space-y-4">
             {item.resources.map((resource, index) => (
-              <li key={index} className="flex items-center bg-blue-50 p-4 rounded-lg hover:bg-blue-100 transition-colors shadow-sm">
+              <li
+                key={index}
+                className="flex items-center bg-blue-50 p-4 rounded-lg hover:bg-blue-100 transition-colors shadow-sm"
+              >
                 <ExternalLink className="h-6 w-6 mr-4 text-blue-600" />
                 <a
                   href={resource.url}

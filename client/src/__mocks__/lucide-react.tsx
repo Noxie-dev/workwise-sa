@@ -1,7 +1,10 @@
 import React from 'react';
 
 const createLucideIcon = (iconName: string) => {
-  const Icon = ({ className, ...props }: React.SVGProps<SVGSVGElement> & { className?: string }) => (
+  const Icon = ({
+    className,
+    ...props
+  }: React.SVGProps<SVGSVGElement> & { className?: string }) => (
     <svg data-testid={`${iconName.toLowerCase()}-icon`} className={className || ''} {...props} />
   );
   Icon.displayName = iconName;

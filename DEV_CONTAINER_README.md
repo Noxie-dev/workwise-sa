@@ -5,13 +5,14 @@ This project now includes a Docker-based development container setup that provid
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Docker Desktop installed and running
 - VS Code with the "Dev Containers" extension (recommended)
 
 ### Option 1: Using VS Code Dev Containers (Recommended)
 
 1. **Open the project in VS Code**
-2. **Reopen in Container**: 
+2. **Reopen in Container**:
    - Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
    - Type "Dev Containers: Reopen in Container"
    - Select the option and wait for the container to build
@@ -19,11 +20,13 @@ This project now includes a Docker-based development container setup that provid
 ### Option 2: Using Docker Compose directly
 
 1. **Start the container:**
+
    ```bash
    ./scripts/dev-container.sh start
    ```
 
 2. **Access the container shell:**
+
    ```bash
    ./scripts/dev-container.sh shell
    ```
@@ -51,12 +54,14 @@ The project includes a convenient script for managing the development container:
 ## 🔧 Container Configuration
 
 ### Port Mappings
+
 - **3000**: Client development server
-- **5173**: Vite development server  
+- **5173**: Vite development server
 - **8080**: Backend server
 - **5001**: Firebase Functions (mapped from container port 5000)
 
 ### Features
+
 - **Node.js 18** with TypeScript support
 - **Pre-installed tools**: Git, Vim, Nano, Htop
 - **Global npm packages**: TypeScript, ts-node, nodemon, Firebase CLI
@@ -64,6 +69,7 @@ The project includes a convenient script for managing the development container:
 - **Docker-in-Docker** support for additional containerization
 
 ### File Structure
+
 ```
 .devcontainer/
 ├── devcontainer.json    # VS Code Dev Container configuration
@@ -74,19 +80,22 @@ The project includes a convenient script for managing the development container:
 ## 🛠️ Development Workflow
 
 ### Inside the Container
+
 1. **Install dependencies** (already done during build):
+
    ```bash
    npm install
    ```
 
 2. **Start development servers**:
+
    ```bash
    # Client development
    cd client && npm run dev
-   
-   # Backend development  
+
+   # Backend development
    cd server && npm run dev
-   
+
    # Firebase functions
    cd functions && npm run dev
    ```
@@ -97,7 +106,9 @@ The project includes a convenient script for managing the development container:
    ```
 
 ### Hot Reload
+
 The container is configured with volume mounts that enable hot reloading:
+
 - Source code changes are immediately reflected in the container
 - Node modules are cached for faster builds
 - File watching is optimized for Docker environments
@@ -107,6 +118,7 @@ The container is configured with volume mounts that enable hot reloading:
 ### Common Issues
 
 1. **Port conflicts**: If you get port binding errors, check what's using the ports:
+
    ```bash
    lsof -i :3000  # Check port 3000
    lsof -i :5173  # Check port 5173
@@ -123,6 +135,7 @@ The container is configured with volume mounts that enable hot reloading:
    ```
 
 ### Container Logs
+
 ```bash
 # View real-time logs
 ./scripts/dev-container.sh logs
@@ -158,4 +171,3 @@ When contributing to this project:
 ---
 
 **Happy coding in your containerized development environment! 🎉**
-

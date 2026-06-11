@@ -5,12 +5,7 @@
  */
 
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
-import { 
-  AuthResult, 
-  RegisterData, 
-  UserUpdate,
-  AuthStatus 
-} from '@shared/auth-types';
+import { AuthResult, RegisterData, UserUpdate, AuthStatus } from '@shared/auth-types';
 import { firebaseAuthAdapter } from '@shared/firebase-auth-adapter';
 
 // ============================================================================
@@ -21,7 +16,7 @@ interface AuthActionsContextType {
   // Auth state
   status: AuthStatus;
   isLoading: boolean;
-  
+
   // Auth actions
   login: (email: string, password: string, rememberMe?: boolean) => Promise<AuthResult>;
   loginWithGoogle: () => Promise<AuthResult>;
@@ -31,7 +26,7 @@ interface AuthActionsContextType {
   resetPassword: (email: string) => Promise<AuthResult>;
   updateProfile: (updates: UserUpdate) => Promise<AuthResult>;
   refreshUser: () => Promise<void>;
-  
+
   // Auth state management
   setStatus: (status: AuthStatus) => void;
   setIsLoading: (loading: boolean) => void;
@@ -53,10 +48,10 @@ interface AuthActionsProviderProps {
   onPermissionsChange?: (permissions: any[], role: any) => void;
 }
 
-export const AuthActionsProvider: React.FC<AuthActionsProviderProps> = ({ 
-  children, 
+export const AuthActionsProvider: React.FC<AuthActionsProviderProps> = ({
+  children,
   onUserChange,
-  onPermissionsChange 
+  onPermissionsChange,
 }) => {
   // ============================================================================
   // STATE MANAGEMENT
@@ -81,35 +76,38 @@ export const AuthActionsProvider: React.FC<AuthActionsProviderProps> = ({
   // AUTHENTICATION METHODS
   // ============================================================================
 
-  const login = useCallback(async (email: string, password: string, rememberMe?: boolean): Promise<AuthResult> => {
-    setIsLoading(true);
-    setStatus('loading');
+  const login = useCallback(
+    async (email: string, password: string, rememberMe?: boolean): Promise<AuthResult> => {
+      setIsLoading(true);
+      setStatus('loading');
 
-    try {
-      const result = await firebaseAuthAdapter.loginWithEmailPassword(email, password);
-      
-      if (result.success && result.user) {
-        setStatus('authenticated');
-        onUserChange?.(result.user);
-        onPermissionsChange?.(result.user.permissions, result.user.role);
-      } else {
-        setStatus('error');
-      }
-      
-      return result;
-    } catch (error) {
-      setStatus('error');
-      return {
-        success: false,
-        error: {
-          code: 'auth/internal-error',
-          message: 'An unexpected error occurred during login'
+      try {
+        const result = await firebaseAuthAdapter.loginWithEmailPassword(email, password);
+
+        if (result.success && result.user) {
+          setStatus('authenticated');
+          onUserChange?.(result.user);
+          onPermissionsChange?.(result.user.permissions, result.user.role);
+        } else {
+          setStatus('error');
         }
-      };
-    } finally {
-      setIsLoading(false);
-    }
-  }, [onUserChange, onPermissionsChange]);
+
+        return result;
+      } catch (error) {
+        setStatus('error');
+        return {
+          success: false,
+          error: {
+            code: 'auth/internal-error',
+            message: 'An unexpected error occurred during login',
+          },
+        };
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [onUserChange, onPermissionsChange]
+  );
 
   const loginWithGoogle = useCallback(async (): Promise<AuthResult> => {
     setIsLoading(true);
@@ -117,7 +115,7 @@ export const AuthActionsProvider: React.FC<AuthActionsProviderProps> = ({
 
     try {
       const result = await firebaseAuthAdapter.loginWithGoogle();
-      
+
       if (result.success && result.user) {
         setStatus('authenticated');
         onUserChange?.(result.user);
@@ -125,7 +123,7 @@ export const AuthActionsProvider: React.FC<AuthActionsProviderProps> = ({
       } else {
         setStatus('error');
       }
-      
+
       return result;
     } catch (error) {
       setStatus('error');
@@ -133,8 +131,8 @@ export const AuthActionsProvider: React.FC<AuthActionsProviderProps> = ({
         success: false,
         error: {
           code: 'auth/internal-error',
-          message: 'An unexpected error occurred during Google login'
-        }
+          message: 'An unexpected error occurred during Google login',
+        },
       };
     } finally {
       setIsLoading(false);
@@ -147,13 +145,13 @@ export const AuthActionsProvider: React.FC<AuthActionsProviderProps> = ({
 
     try {
       const result = await firebaseAuthAdapter.loginWithEmailLink(email);
-      
+
       if (result.success) {
         setStatus('authenticated');
       } else {
         setStatus('error');
       }
-      
+
       return result;
     } catch (error) {
       setStatus('error');
@@ -161,43 +159,46 @@ export const AuthActionsProvider: React.FC<AuthActionsProviderProps> = ({
         success: false,
         error: {
           code: 'auth/internal-error',
-          message: 'An unexpected error occurred during email link login'
-        }
+          message: 'An unexpected error occurred during email link login',
+        },
       };
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const register = useCallback(async (userData: RegisterData): Promise<AuthResult> => {
-    setIsLoading(true);
-    setStatus('loading');
+  const register = useCallback(
+    async (userData: RegisterData): Promise<AuthResult> => {
+      setIsLoading(true);
+      setStatus('loading');
 
-    try {
-      const result = await firebaseAuthAdapter.registerWithEmailPassword(userData);
-      
-      if (result.success && result.user) {
-        setStatus('authenticated');
-        onUserChange?.(result.user);
-        onPermissionsChange?.(result.user.permissions, result.user.role);
-      } else {
-        setStatus('error');
-      }
-      
-      return result;
-    } catch (error) {
-      setStatus('error');
-      return {
-        success: false,
-        error: {
-          code: 'auth/internal-error',
-          message: 'An unexpected error occurred during registration'
+      try {
+        const result = await firebaseAuthAdapter.registerWithEmailPassword(userData);
+
+        if (result.success && result.user) {
+          setStatus('authenticated');
+          onUserChange?.(result.user);
+          onPermissionsChange?.(result.user.permissions, result.user.role);
+        } else {
+          setStatus('error');
         }
-      };
-    } finally {
-      setIsLoading(false);
-    }
-  }, [onUserChange, onPermissionsChange]);
+
+        return result;
+      } catch (error) {
+        setStatus('error');
+        return {
+          success: false,
+          error: {
+            code: 'auth/internal-error',
+            message: 'An unexpected error occurred during registration',
+          },
+        };
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [onUserChange, onPermissionsChange]
+  );
 
   const logout = useCallback(async (): Promise<void> => {
     setIsLoading(true);
@@ -229,37 +230,40 @@ export const AuthActionsProvider: React.FC<AuthActionsProviderProps> = ({
         success: false,
         error: {
           code: 'auth/internal-error',
-          message: 'An unexpected error occurred during password reset'
-        }
+          message: 'An unexpected error occurred during password reset',
+        },
       };
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const updateProfile = useCallback(async (updates: UserUpdate): Promise<AuthResult> => {
-    setIsLoading(true);
+  const updateProfile = useCallback(
+    async (updates: UserUpdate): Promise<AuthResult> => {
+      setIsLoading(true);
 
-    try {
-      const result = await firebaseAuthAdapter.updateUserProfile(updates);
-      
-      if (result.success && result.user) {
-        onUserChange?.(result.user);
-      }
-      
-      return result;
-    } catch (error) {
-      return {
-        success: false,
-        error: {
-          code: 'auth/internal-error',
-          message: 'An unexpected error occurred during profile update'
+      try {
+        const result = await firebaseAuthAdapter.updateUserProfile(updates);
+
+        if (result.success && result.user) {
+          onUserChange?.(result.user);
         }
-      };
-    } finally {
-      setIsLoading(false);
-    }
-  }, [onUserChange]);
+
+        return result;
+      } catch (error) {
+        return {
+          success: false,
+          error: {
+            code: 'auth/internal-error',
+            message: 'An unexpected error occurred during profile update',
+          },
+        };
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [onUserChange]
+  );
 
   const refreshUser = useCallback(async (): Promise<void> => {
     try {
@@ -283,48 +287,47 @@ export const AuthActionsProvider: React.FC<AuthActionsProviderProps> = ({
   // CONTEXT VALUE
   // ============================================================================
 
-  const contextValue: AuthActionsContextType = useMemo(() => ({
-    // Auth state
-    status,
-    isLoading,
-    
-    // Auth actions
-    login,
-    loginWithGoogle,
-    loginWithEmailLink,
-    register,
-    logout,
-    resetPassword,
-    updateProfile,
-    refreshUser,
-    
-    // Auth state management
-    setStatus,
-    setIsLoading
-  }), [
-    status,
-    isLoading,
-    login,
-    loginWithGoogle,
-    loginWithEmailLink,
-    register,
-    logout,
-    resetPassword,
-    updateProfile,
-    refreshUser,
-    setStatus,
-    setIsLoading
-  ]);
+  const contextValue: AuthActionsContextType = useMemo(
+    () => ({
+      // Auth state
+      status,
+      isLoading,
+
+      // Auth actions
+      login,
+      loginWithGoogle,
+      loginWithEmailLink,
+      register,
+      logout,
+      resetPassword,
+      updateProfile,
+      refreshUser,
+
+      // Auth state management
+      setStatus,
+      setIsLoading,
+    }),
+    [
+      status,
+      isLoading,
+      login,
+      loginWithGoogle,
+      loginWithEmailLink,
+      register,
+      logout,
+      resetPassword,
+      updateProfile,
+      refreshUser,
+      setStatus,
+      setIsLoading,
+    ]
+  );
 
   // ============================================================================
   // RENDER
   // ============================================================================
 
-  return (
-    <AuthActionsContext.Provider value={contextValue}>
-      {children}
-    </AuthActionsContext.Provider>
-  );
+  return <AuthActionsContext.Provider value={contextValue}>{children}</AuthActionsContext.Provider>;
 };
 
 // ============================================================================
@@ -333,11 +336,11 @@ export const AuthActionsProvider: React.FC<AuthActionsProviderProps> = ({
 
 export const useAuthActions = (): AuthActionsContextType => {
   const context = useContext(AuthActionsContext);
-  
+
   if (!context) {
     throw new Error('useAuthActions must be used within an AuthActionsProvider');
   }
-  
+
   return context;
 };
 
@@ -351,14 +354,17 @@ export const useAuthActions = (): AuthActionsContextType => {
  */
 export const useAuthStatus = () => {
   const { status, isLoading } = useAuthActions();
-  
-  return useMemo(() => ({
-    status,
-    isLoading,
-    isAuthenticated: status === 'authenticated',
-    isUnauthenticated: status === 'unauthenticated',
-    isError: status === 'error'
-  }), [status, isLoading]);
+
+  return useMemo(
+    () => ({
+      status,
+      isLoading,
+      isAuthenticated: status === 'authenticated',
+      isUnauthenticated: status === 'unauthenticated',
+      isError: status === 'error',
+    }),
+    [status, isLoading]
+  );
 };
 
 /**
@@ -367,6 +373,6 @@ export const useAuthStatus = () => {
  */
 export const useAuthLoading = () => {
   const { isLoading } = useAuthActions();
-  
+
   return isLoading;
 };

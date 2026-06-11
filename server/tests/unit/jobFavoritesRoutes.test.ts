@@ -66,7 +66,7 @@ function createMockResponse() {
 
 function getRouteHandlers(path: string, method: string) {
   const layer = router.stack.find(
-    (entry: any) => entry.route?.path === path && entry.route.methods?.[method],
+    (entry: any) => entry.route?.path === path && entry.route.methods?.[method]
   );
 
   if (!layer) {
@@ -137,7 +137,10 @@ describe('job favorites routes', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body.jobs).toHaveLength(1);
-    expect(mockedStorage.getUserFavoriteJobs).toHaveBeenCalledWith(7, expect.objectContaining({ page: 1 }));
+    expect(mockedStorage.getUserFavoriteJobs).toHaveBeenCalledWith(
+      7,
+      expect.objectContaining({ page: 1 })
+    );
   });
 
   it('adds a job to favorites', async () => {

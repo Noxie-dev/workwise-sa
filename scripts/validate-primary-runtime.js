@@ -5,17 +5,9 @@ import fs from 'fs';
 const errors = [];
 const warnings = [];
 
-const requiredEnv = [
-  'DATABASE_URL',
-  'FIREBASE_PROJECT_ID',
-  'FIREBASE_STORAGE_BUCKET',
-];
+const requiredEnv = ['DATABASE_URL', 'FIREBASE_PROJECT_ID', 'FIREBASE_STORAGE_BUCKET'];
 
-const optionalButImportantEnv = [
-  'FILE_SERVE_URL',
-  'GOOGLE_GENAI_API_KEY',
-  'SCRAPING_INGEST_TOKEN',
-];
+const optionalButImportantEnv = ['FILE_SERVE_URL', 'GOOGLE_GENAI_API_KEY', 'SCRAPING_INGEST_TOKEN'];
 
 function checkFile(path) {
   if (!fs.existsSync(path)) {

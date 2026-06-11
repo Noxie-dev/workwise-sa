@@ -53,14 +53,14 @@
     "test:a11y": "playwright test tests/accessibility/*.spec.ts",
     "test:smoke:staging": "playwright test tests/smoke/ --config=playwright.staging.config.ts",
     "test:smoke:production": "playwright test tests/smoke/ --config=playwright.production.config.ts",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "lint": "eslint client/src server shared scripts tests",
+    "lint:fix": "eslint client/src server shared scripts tests --fix",
+    "format": "prettier --write \"client/src/**/*.{js,jsx,ts,tsx}\" \"server/**/*.{js,ts}\" \"shared/**/*.ts\" \"scripts/**/*.{js,ts}\" \"tests/**/*.{js,ts}\" \"*.{js,ts,json,md}\"",
+    "format:check": "prettier --check \"client/src/**/*.{js,jsx,ts,tsx}\" \"server/**/*.{js,ts}\" \"shared/**/*.ts\" \"scripts/**/*.{js,ts}\" \"tests/**/*.{js,ts}\" \"*.{js,ts,json,md}\"",
     "type-check": "tsc --noEmit",
     "lighthouse": "lhci autorun",
-    "security:audit": "npm audit",
-    "security:fix": "npm audit fix",
+    "security:audit": "pnpm audit",
+    "security:fix": "pnpm audit",
     "netlify:dev": "netlify dev",
     "netlify:build": "pnpm run copy-assets && pnpm run build:client:optimized && pnpm run netlify:post-build",
     "build:client:optimized": "vite build --mode production --minify terser",
@@ -89,7 +89,7 @@
     "firebase:emulators": "firebase emulators:start",
     "dataconnect:sdk:generate": "firebase dataconnect:sdk:generate",
     "dataconnect:sdk:patch-peers": "node scripts/patch-dataconnect-sdk-peers.js",
-    "dataconnect:sdk:regenerate": "npm run dataconnect:sdk:generate && npm run dataconnect:sdk:patch-peers",
+    "dataconnect:sdk:regenerate": "pnpm run dataconnect:sdk:generate && pnpm run dataconnect:sdk:patch-peers",
     "env:sanitize": "node scripts/sanitize-env.js",
     "env:check": "node -e \"import('fs').then(fs => { if(fs.existsSync('.env') && fs.existsSync('client/.env')) { console.log('✅ Environment files exist'); process.exit(0); } else { console.error('❌ Missing .env files. Run: cp .env.example .env && cp .env.example client/.env'); process.exit(1); } })\"",
     "env:setup-prod": "node scripts/setup-production-env.js set",
@@ -104,14 +104,6 @@
     "qa:all": "pnpm run lint && pnpm run type-check && pnpm run test:coverage && pnpm run test:e2e",
     "qa:quick": "pnpm run lint && pnpm run type-check && pnpm run test",
     "precommit": "pnpm run qa:quick"
-  },
-  "pnpm": {
-    "overrides": {
-      "minimist": "^1.2.8",
-      "effect": "^3.20.0",
-      "esbuild": "^0.25.0",
-      "@tootallnate/once@<3.0.1": ">=3.0.1"
-    }
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.51.0",

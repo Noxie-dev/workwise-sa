@@ -12,14 +12,14 @@ export function bundleAnalyzer() {
     writeBundle(options, bundle) {
       const outputDir = options.dir || 'dist';
       const analysis = {};
-      
+
       // Analyze each chunk
       Object.entries(bundle).forEach(([fileName, chunk]) => {
         if (chunk.type === 'chunk') {
           const filePath = resolve(outputDir, fileName);
           const fileSize = chunk.code.length;
           const gzipSize = gzipSync(chunk.code).length;
-          
+
           analysis[fileName] = {
             size: fileSize,
             gzipSize,
@@ -30,7 +30,7 @@ export function bundleAnalyzer() {
           };
         }
       });
-      
+
       // Sort by size
       const sortedAnalysis = Object.entries(analysis)
         .sort(([, a], [, b]) => b.size - a.size)
@@ -38,32 +38,32 @@ export function bundleAnalyzer() {
           acc[key] = value;
           return acc;
         }, {});
-      
+
       // Write analysis to file
       writeFileSync(
         resolve(outputDir, 'bundle-analysis.json'),
         JSON.stringify(sortedAnalysis, null, 2)
       );
-      
+
       // Log summary
       console.log('\n📦 Bundle Analysis:');
-      Object.entries(sortedAnalysis).slice(0, 10).forEach(([fileName, info]) => {
-        console.log(
-          `${fileName}: ${info.sizeFormatted} (gzip: ${info.gzipSizeFormatted})`
-        );
-      });
-    }
+      Object.entries(sortedAnalysis)
+        .slice(0, 10)
+        .forEach(([fileName, info]) => {
+          console.log(`${fileName}: ${info.sizeFormatted} (gzip: ${info.gzipSizeFormatted})`);
+        });
+    },
   };
 }
 
 function formatBytes(bytes, decimals = 2) {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  
+
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }

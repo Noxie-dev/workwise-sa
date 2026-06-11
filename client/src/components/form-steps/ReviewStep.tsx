@@ -14,10 +14,11 @@ interface ReviewStepProps {
 
 const ReviewStep: React.FC<ReviewStepProps> = ({ formState, onEditStep }) => {
   const { values } = formState;
-  
+
   const formatSalary = (min?: string | number, max?: string | number, isNegotiable?: boolean) => {
     if (!min && !max) return isNegotiable ? 'Negotiable' : 'Not specified';
-    if (min && max) return `R${Number(min).toLocaleString()} - R${Number(max).toLocaleString()}${isNegotiable ? ' (Negotiable)' : ''}`;
+    if (min && max)
+      return `R${Number(min).toLocaleString()} - R${Number(max).toLocaleString()}${isNegotiable ? ' (Negotiable)' : ''}`;
     if (min) return `From R${Number(min).toLocaleString()}${isNegotiable ? ' (Negotiable)' : ''}`;
     if (max) return `Up to R${Number(max).toLocaleString()}${isNegotiable ? ' (Negotiable)' : ''}`;
     return isNegotiable ? 'Negotiable' : 'Not specified';
@@ -60,12 +61,16 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formState, onEditStep }) => {
             </div>
             <div>
               <h4 className="font-medium">Salary</h4>
-              <p className="text-gray-600">{formatSalary(values.salaryMin, values.salaryMax, values.isSalaryNegotiable)}</p>
+              <p className="text-gray-600">
+                {formatSalary(values.salaryMin, values.salaryMax, values.isSalaryNegotiable)}
+              </p>
             </div>
             {values.applicationDeadline && (
               <div>
                 <h4 className="font-medium">Application Deadline</h4>
-                <p className="text-gray-600">{new Date(values.applicationDeadline).toLocaleDateString()}</p>
+                <p className="text-gray-600">
+                  {new Date(values.applicationDeadline).toLocaleDateString()}
+                </p>
               </div>
             )}
           </CardContent>
@@ -89,26 +94,26 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formState, onEditStep }) => {
           <CardContent className="p-6 space-y-6">
             <div>
               <h4 className="font-medium mb-2">Description</h4>
-              <div 
+              <div
                 className="prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ __html: marked(values.description || '') }}
               />
             </div>
-            
+
             {values.responsibilities && (
               <div>
                 <h4 className="font-medium mb-2">Key Responsibilities</h4>
-                <div 
+                <div
                   className="prose prose-sm max-w-none"
                   dangerouslySetInnerHTML={{ __html: marked(values.responsibilities) }}
                 />
               </div>
             )}
-            
+
             {values.requirements && (
               <div>
                 <h4 className="font-medium mb-2">Requirements & Qualifications</h4>
-                <div 
+                <div
                   className="prose prose-sm max-w-none"
                   dangerouslySetInnerHTML={{ __html: marked(values.requirements) }}
                 />
@@ -136,7 +141,11 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formState, onEditStep }) => {
             <div className="flex items-center gap-4">
               {values.companyLogo && (
                 <img
-                  src={values.companyLogo instanceof File ? URL.createObjectURL(values.companyLogo) : values.companyLogo}
+                  src={
+                    values.companyLogo instanceof File
+                      ? URL.createObjectURL(values.companyLogo)
+                      : values.companyLogo
+                  }
                   alt={`${values.companyName} logo`}
                   className="w-16 h-16 object-contain rounded"
                 />
@@ -144,23 +153,28 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formState, onEditStep }) => {
               <div>
                 <h4 className="font-medium">{values.companyName}</h4>
                 {values.website && (
-                  <a href={values.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
+                  <a
+                    href={values.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 hover:underline"
+                  >
                     {values.website}
                   </a>
                 )}
               </div>
             </div>
-            
+
             {values.companyBio && (
               <div>
                 <h4 className="font-medium mb-2">About the Company</h4>
-                <div 
+                <div
                   className="prose prose-sm max-w-none"
                   dangerouslySetInnerHTML={{ __html: marked(values.companyBio) }}
                 />
               </div>
             )}
-            
+
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <h4 className="font-medium">Contact Person</h4>

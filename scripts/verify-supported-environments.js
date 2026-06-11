@@ -14,16 +14,18 @@ const errors = [];
 const warnings = [];
 const passes = [];
 
-const addPass = (message) => passes.push(message);
-const addWarning = (message) => warnings.push(message);
-const addError = (message) => errors.push(message);
+const addPass = message => passes.push(message);
+const addWarning = message => warnings.push(message);
+const addError = message => errors.push(message);
 
-const has = (key) => typeof process.env[key] === 'string' && process.env[key].trim().length > 0;
-const value = (key) => process.env[key]?.trim() || '';
-const looksPlaceholder = (input) => {
+const has = key => typeof process.env[key] === 'string' && process.env[key].trim().length > 0;
+const value = key => process.env[key]?.trim() || '';
+const looksPlaceholder = input => {
   if (!input) return false;
   const normalized = input.toLowerCase();
-  return ['your_', 'placeholder', 'changeme', 'example', 'dummy'].some((token) => normalized.includes(token));
+  return ['your_', 'placeholder', 'changeme', 'example', 'dummy'].some(token =>
+    normalized.includes(token)
+  );
 };
 
 const checkFileExists = (label, targetPath) => {
@@ -99,7 +101,9 @@ const verifyFirebase = () => {
   for (const key of clientKeys) {
     if (!has(key) || looksPlaceholder(value(key))) {
       if (mode === 'local' && value('VITE_USE_FIREBASE_EMULATORS') === 'true') {
-        addWarning(`Firebase client key ${key} is missing or placeholder, but emulator mode is enabled`);
+        addWarning(
+          `Firebase client key ${key} is missing or placeholder, but emulator mode is enabled`
+        );
       } else {
         addError(`Missing or placeholder Firebase client config: ${key}`);
       }
@@ -116,7 +120,9 @@ const verifyFirebase = () => {
     }
 
     if (!has('GOOGLE_APPLICATION_CREDENTIALS') && !has('FIREBASE_SERVICE_ACCOUNT')) {
-      addWarning('No Firebase Admin credential hint found; ensure workload identity or mounted credentials exist in the deployment environment');
+      addWarning(
+        'No Firebase Admin credential hint found; ensure workload identity or mounted credentials exist in the deployment environment'
+      );
     } else if (has('GOOGLE_APPLICATION_CREDENTIALS')) {
       checkFileExists('GOOGLE_APPLICATION_CREDENTIALS', value('GOOGLE_APPLICATION_CREDENTIALS'));
     } else {
@@ -125,7 +131,9 @@ const verifyFirebase = () => {
   } else if (value('VITE_USE_FIREBASE_EMULATORS') === 'true') {
     addPass('Firebase emulator mode enabled for local development');
   } else {
-    addWarning('Firebase emulator mode is disabled in local mode; real Firebase credentials will be used');
+    addWarning(
+      'Firebase emulator mode is disabled in local mode; real Firebase credentials will be used'
+    );
   }
 };
 
@@ -145,7 +153,9 @@ const verifyFeatureProviders = () => {
   if (has('SCRAPING_INGEST_TOKEN')) {
     addPass('SCRAPING_INGEST_TOKEN configured');
   } else {
-    addWarning('SCRAPING_INGEST_TOKEN is missing; protected ingest should remain disabled or internal-only');
+    addWarning(
+      'SCRAPING_INGEST_TOKEN is missing; protected ingest should remain disabled or internal-only'
+    );
   }
 
   const smsProvider = value('SMS_PROVIDER');
@@ -153,7 +163,9 @@ const verifyFeatureProviders = () => {
   if (!smsProvider && !smsApiKey) {
     addWarning('SMS provider is not configured; SMS delivery remains stubbed');
   } else if (!smsProvider || !smsApiKey) {
-    addError('SMS configuration is partial; both SMS_PROVIDER and SMS_API_KEY are required together');
+    addError(
+      'SMS configuration is partial; both SMS_PROVIDER and SMS_API_KEY are required together'
+    );
   } else {
     addPass(`SMS provider configured: ${smsProvider}`);
   }

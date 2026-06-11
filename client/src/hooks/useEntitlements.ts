@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from '@tanstack/react-query';
 
 export type UserEntitlements = {
   canGenerateCv: boolean;
@@ -14,13 +14,13 @@ export type UserEntitlements = {
 };
 
 async function fetchEntitlements(): Promise<UserEntitlements> {
-  const token = localStorage.getItem("auth_token") || localStorage.getItem("authToken");
-  const response = await fetch("/api/entitlements/me", {
+  const token = localStorage.getItem('auth_token') || localStorage.getItem('authToken');
+  const response = await fetch('/api/entitlements/me', {
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
 
   if (!response.ok) {
-    throw new Error("Failed to load entitlements");
+    throw new Error('Failed to load entitlements');
   }
 
   return response.json();
@@ -28,7 +28,7 @@ async function fetchEntitlements(): Promise<UserEntitlements> {
 
 export function useEntitlements() {
   return useQuery({
-    queryKey: ["entitlements"],
+    queryKey: ['entitlements'],
     queryFn: fetchEntitlements,
     staleTime: 60_000,
   });

@@ -21,11 +21,11 @@ interface JobPreviewCardProps {
  * JobPreviewCard component displays a job preview with authentication prompts
  * for anonymous users and direct access for authenticated users
  */
-const JobPreviewCard: React.FC<JobPreviewCardProps> = ({ 
-  job, 
+const JobPreviewCard: React.FC<JobPreviewCardProps> = ({
+  job,
   onClick,
   showAuthPrompt = false,
-  className = ''
+  className = '',
 }) => {
   const { user } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
@@ -33,12 +33,15 @@ const JobPreviewCard: React.FC<JobPreviewCardProps> = ({
   /**
    * Handle card click - either show auth prompt or navigate to details
    */
-  const handleCardClick = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    if (onClick) {
-      onClick();
-    }
-  }, [onClick]);
+  const handleCardClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (onClick) {
+        onClick();
+      }
+    },
+    [onClick]
+  );
 
   /**
    * Format the posted date
@@ -47,7 +50,7 @@ const JobPreviewCard: React.FC<JobPreviewCardProps> = ({
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 1) return '1 day ago';
     if (diffDays < 7) return `${diffDays} days ago`;
     if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
@@ -55,7 +58,7 @@ const JobPreviewCard: React.FC<JobPreviewCardProps> = ({
   }, []);
 
   return (
-    <Card 
+    <Card
       className={`bg-white rounded-lg shadow-card overflow-hidden job-preview-card transition-all duration-200 hover:shadow-lg cursor-pointer ${className}`}
       data-testid={`job-preview-card-${job.id}`}
       onMouseEnter={() => setIsHovered(true)}
@@ -65,8 +68,10 @@ const JobPreviewCard: React.FC<JobPreviewCardProps> = ({
       <CardHeader className="p-4 border-b border-border">
         <div className="flex justify-between items-start">
           <div className="flex items-center flex-1">
-            <div className="w-12 h-12 rounded-md overflow-hidden bg-light flex-shrink-0 mr-3 flex items-center justify-center" 
-                 aria-hidden="true">
+            <div
+              className="w-12 h-12 rounded-md overflow-hidden bg-light flex-shrink-0 mr-3 flex items-center justify-center"
+              aria-hidden="true"
+            >
               <Building2 className="w-6 h-6 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
@@ -82,7 +87,7 @@ const JobPreviewCard: React.FC<JobPreviewCardProps> = ({
               </div>
             </div>
           </div>
-          
+
           {job.featured && (
             <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 ml-2">
               Featured
@@ -90,13 +95,11 @@ const JobPreviewCard: React.FC<JobPreviewCardProps> = ({
           )}
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-4">
         <div className="mb-3">
-          <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-            {job.shortDescription}
-          </p>
-          
+          <p className="text-sm text-gray-600 line-clamp-2 mb-3">{job.shortDescription}</p>
+
           <div className="flex flex-wrap gap-2 mb-3">
             <Badge variant="secondary" className="bg-blue-100 text-primary">
               {job.jobType}
@@ -108,7 +111,7 @@ const JobPreviewCard: React.FC<JobPreviewCardProps> = ({
               {job.experienceLevel}
             </Badge>
           </div>
-          
+
           <div className="flex items-center text-xs text-muted mb-3">
             <Calendar className="w-3 h-3 mr-1" />
             <span>Posted {formatPostedDate(job.postedDate)}</span>
@@ -124,10 +127,10 @@ const JobPreviewCard: React.FC<JobPreviewCardProps> = ({
                   <Lock className="w-4 h-4 mr-2 text-primary" />
                   <span>Sign up to view full details and apply</span>
                 </div>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   className="w-full bg-primary hover:bg-primary/90"
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     // This will be handled by the parent component
                     if (onClick) onClick();
@@ -140,13 +143,11 @@ const JobPreviewCard: React.FC<JobPreviewCardProps> = ({
             </div>
           ) : (
             <div className="flex justify-between items-center w-full">
-              <div className="text-sm text-muted">
-                {job.category.name}
-              </div>
-              <Link 
-                href={`/jobs/${job.id}`} 
+              <div className="text-sm text-muted">{job.category.name}</div>
+              <Link
+                href={`/jobs/${job.id}`}
                 className="text-primary hover:underline text-sm font-medium flex items-center"
-                onClick={(e) => e.stopPropagation()}
+                onClick={e => e.stopPropagation()}
               >
                 <Eye className="w-4 h-4 mr-1" />
                 View Details

@@ -8,4 +8,4 @@ import '@testing-library/jest-dom';
 global.fetch = jest.fn();
 
 // Mock the window.URL.createObjectURL
-window.URL.createObjectURL = jest.fn(); 
+window.URL.createObjectURL = jest.fn();

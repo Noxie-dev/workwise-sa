@@ -146,24 +146,14 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, currentUser 
   const commentsQueryKey = ['comments', contentId];
 
   // Fetch comments with React Query
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage
-  } = useQuery({
-    queryKey: commentsQueryKey,
-    queryFn: ({ pageParam }) => commentsService.getComments(
-      contentId,
-      10,
-      pageParam as QueryDocumentSnapshot | null
-    ),
-    getNextPageParam: (lastPage) => lastPage.lastDoc || undefined,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+  const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useQuery({
+      queryKey: commentsQueryKey,
+      queryFn: ({ pageParam }) =>
+        commentsService.getComments(contentId, 10, pageParam as QueryDocumentSnapshot | null),
+      getNextPageParam: lastPage => lastPage.lastDoc || undefined,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    });
 
   // Add comment mutation
   const addCommentMutation = useMutation({
@@ -178,8 +168,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, currentUser 
       const optimisticComment: Comment = {
         id: tempId,
         userId: currentUser.uid,
-        userName: currentUser.displayName || "You",
-        userAvatar: currentUser.photoURL || "/placeholder-avatar.png",
+        userName: currentUser.displayName || 'You',
+        userAvatar: currentUser.photoURL || '/placeholder-avatar.png',
         text: text.trim(),
         createdAt: new Date(),
       };
@@ -187,13 +177,13 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, currentUser 
       // Add optimistic comment to local state
       dispatch({
         type: CommentActionType.ADD_OPTIMISTIC_COMMENT,
-        payload: { comment: optimisticComment }
+        payload: { comment: optimisticComment },
       });
 
       // Clear input immediately
       dispatch({
         type: CommentActionType.SET_NEW_COMMENT_TEXT,
-        payload: { text: '' }
+        payload: { text: '' },
       });
 
       return { tempId };
@@ -201,23 +191,23 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, currentUser 
     onError: (error, { text }, context) => {
       // Show error toast
       toast({
-        title: "Error",
-        description: "Failed to post comment.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to post comment.',
+        variant: 'destructive',
       });
 
       // Remove optimistic comment
       if (context?.tempId) {
         dispatch({
           type: CommentActionType.REMOVE_OPTIMISTIC_COMMENT,
-          payload: { tempId: context.tempId }
+          payload: { tempId: context.tempId },
         });
       }
 
       // Restore text input
       dispatch({
         type: CommentActionType.SET_NEW_COMMENT_TEXT,
-        payload: { text }
+        payload: { text },
       });
     },
     onSuccess: () => {
@@ -228,16 +218,15 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, currentUser 
 
   // Delete comment mutation
   const deleteCommentMutation = useMutation({
-    mutationFn: (commentId: string) =>
-      commentsService.deleteComment(contentId, commentId),
-    onMutate: async (commentId) => {
+    mutationFn: (commentId: string) => commentsService.deleteComment(contentId, commentId),
+    onMutate: async commentId => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: commentsQueryKey });
 
       // Get current comments
       const allComments = [
         ...(data?.pages?.flatMap(page => page.comments) || []),
-        ...state.optimisticComments
+        ...state.optimisticComments,
       ];
 
       // Store original comments for potential rollback
@@ -246,7 +235,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, currentUser 
       // Optimistic deletion
       dispatch({
         type: CommentActionType.DELETE_COMMENT_OPTIMISTIC,
-        payload: { commentId, originalComments }
+        payload: { commentId, originalComments },
       });
 
       return { originalComments };
@@ -254,24 +243,24 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, currentUser 
     onError: (error, variables, context) => {
       // Show error toast
       toast({
-        title: "Error",
-        description: "Failed to delete comment.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to delete comment.',
+        variant: 'destructive',
       });
 
       // Revert to original comments on error
       if (context?.originalComments) {
         dispatch({
           type: CommentActionType.DELETE_COMMENT_ERROR,
-          payload: { originalComments: context.originalComments }
+          payload: { originalComments: context.originalComments },
         });
       }
     },
     onSuccess: () => {
       // Show success toast
       toast({
-        title: "Success",
-        description: "Comment deleted."
+        title: 'Success',
+        description: 'Comment deleted.',
       });
 
       // Invalidate comments query to refetch
@@ -290,7 +279,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, currentUser 
 
   // Handle delete comment
   const handleDeleteComment = (commentId: string) => {
-    if (!window.confirm("Are you sure you want to delete this comment?")) return;
+    if (!window.confirm('Are you sure you want to delete this comment?')) return;
 
     // Call the mutation
     deleteCommentMutation.mutate(commentId);
@@ -299,7 +288,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, currentUser 
   // Get comments from React Query and optimistic updates
   const allComments = [
     ...(data?.pages?.flatMap(page => page.comments) || []),
-    ...state.optimisticComments
+    ...state.optimisticComments,
   ];
 
   return (
@@ -311,10 +300,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, currentUser 
         <Textarea
           placeholder="Add your comment..."
           value={state.newCommentText}
-          onChange={(e) => dispatch({
-            type: CommentActionType.SET_NEW_COMMENT_TEXT,
-            payload: { text: e.target.value }
-          })}
+          onChange={e =>
+            dispatch({
+              type: CommentActionType.SET_NEW_COMMENT_TEXT,
+              payload: { text: e.target.value },
+            })
+          }
           rows={3}
           maxLength={500}
           disabled={addCommentMutation.isPending}
@@ -329,10 +320,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, currentUser 
       </form>
 
       {/* Comment List */}
-      <div
-        ref={listRef}
-        className="space-y-4 max-h-96 overflow-y-auto pr-2"
-      >
+      <div ref={listRef} className="space-y-4 max-h-96 overflow-y-auto pr-2">
         {isLoading && allComments.length === 0 && (
           <div className="space-y-4">
             <Skeleton className="h-16 w-full" />
@@ -350,7 +338,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, currentUser 
           <p className="text-sm text-gray-500 text-center py-4">No comments yet. Be the first!</p>
         )}
 
-        {allComments.map((comment) => (
+        {allComments.map(comment => (
           <div key={comment.id} className="flex space-x-3">
             <Avatar className="h-8 w-8 mt-1">
               <AvatarImage src={comment.userAvatar} alt={comment.userName} />
@@ -363,7 +351,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, currentUser 
                   {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
                 </span>
               </div>
-              <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">{comment.text}</p>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+                {comment.text}
+              </p>
 
               {/* Delete Button - Only show if user owns the comment */}
               {currentUser.uid === comment.userId && (
@@ -383,11 +373,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ contentId, currentUser 
         {/* Load More Button */}
         {hasNextPage && !isFetchingNextPage && allComments.length > 0 && (
           <div className="text-center pt-2">
-            <Button
-              variant="link"
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
-            >
+            <Button variant="link" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
               Load More Comments
             </Button>
           </div>

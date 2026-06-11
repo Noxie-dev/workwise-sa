@@ -38,7 +38,10 @@ class JobApplicationService {
   /**
    * Apply for a job
    */
-  async applyForJob(jobId: string, applicationData: JobApplicationData): Promise<ApplicationResponse> {
+  async applyForJob(
+    jobId: string,
+    applicationData: JobApplicationData
+  ): Promise<ApplicationResponse> {
     try {
       const response = await api.post(endpoints.applications.create(jobId), applicationData);
       return response.data;
@@ -93,7 +96,7 @@ class JobApplicationService {
    * Update job application (usually status update by employer)
    */
   async updateApplication(
-    applicationId: string, 
+    applicationId: string,
     updates: { status?: string; notes?: string }
   ): Promise<ApplicationResponse> {
     try {
@@ -121,13 +124,16 @@ class JobApplicationService {
   /**
    * Get applications for a specific job (for employers)
    */
-  async getJobApplications(jobId: string, options?: {
-    page?: number;
-    limit?: number;
-    status?: string;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-  }): Promise<JobApplicationsResponse> {
+  async getJobApplications(
+    jobId: string,
+    options?: {
+      page?: number;
+      limit?: number;
+      status?: string;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+    }
+  ): Promise<JobApplicationsResponse> {
     try {
       const params = new URLSearchParams();
       if (options?.page) params.append('page', options.page.toString());

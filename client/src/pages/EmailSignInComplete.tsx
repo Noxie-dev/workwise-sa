@@ -5,7 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { checkIfSignInWithEmailLink, completeSignInWithEmailLink, getEmailFromStorage } from '@/lib/firebase';
+import {
+  checkIfSignInWithEmailLink,
+  completeSignInWithEmailLink,
+  getEmailFromStorage,
+} from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
 
 const EmailSignInComplete = () => {
@@ -21,7 +25,7 @@ const EmailSignInComplete = () => {
     const verifyEmailLink = async () => {
       // Check if the URL contains an email sign-in link
       const isEmailLink = checkIfSignInWithEmailLink(window.location.href);
-      
+
       if (!isEmailLink) {
         setIsLoading(false);
         setIsError(true);
@@ -31,20 +35,22 @@ const EmailSignInComplete = () => {
 
       // Try to get the email from localStorage
       const emailFromStorage = getEmailFromStorage();
-      
+
       if (emailFromStorage) {
         setEmail(emailFromStorage);
         try {
           await completeSignInWithEmailLink(emailFromStorage, window.location.href);
           toast({
-            title: "Login Successful",
-            description: "You have been successfully signed in!",
+            title: 'Login Successful',
+            description: 'You have been successfully signed in!',
           });
           navigate('/profile-setup');
         } catch (error: any) {
           setIsLoading(false);
           setIsError(true);
-          setErrorMessage(error.message || 'Failed to complete sign-in. The link may have expired.');
+          setErrorMessage(
+            error.message || 'Failed to complete sign-in. The link may have expired.'
+          );
         }
       } else {
         // If no email in storage, we need to ask the user for their email
@@ -58,29 +64,29 @@ const EmailSignInComplete = () => {
   const handleCompleteSignIn = async () => {
     if (!email) {
       toast({
-        variant: "destructive",
-        title: "Email Required",
-        description: "Please enter your email address to complete sign-in.",
+        variant: 'destructive',
+        title: 'Email Required',
+        description: 'Please enter your email address to complete sign-in.',
       });
       return;
     }
 
     setIsCompleting(true);
-    
+
     try {
       await completeSignInWithEmailLink(email, window.location.href);
       toast({
-        title: "Login Successful",
-        description: "You have been successfully signed in!",
+        title: 'Login Successful',
+        description: 'You have been successfully signed in!',
       });
       navigate('/profile-setup');
     } catch (error: any) {
       setIsError(true);
       setErrorMessage(error.message || 'Failed to complete sign-in. Please try again.');
       toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: error.message || "Failed to complete sign-in. Please try again.",
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: error.message || 'Failed to complete sign-in. Please try again.',
       });
     } finally {
       setIsCompleting(false);
@@ -102,17 +108,19 @@ const EmailSignInComplete = () => {
         <Card className="w-full max-w-md mx-4">
           <CardHeader className="space-y-1">
             <div className="flex justify-center mb-4">
-              <img 
-                src="/images/logo.png" 
-                alt="WorkWise SA Logo" 
+              <img
+                src="/images/logo.png"
+                alt="WorkWise SA Logo"
                 className="h-36 md:h-40 object-contain transition-all duration-200 hover:scale-105"
               />
             </div>
             <CardTitle className="text-2xl font-bold text-center">Complete Sign-In</CardTitle>
             <CardDescription className="text-center">
-              {isLoading ? "Verifying your sign-in link..." : 
-               isError ? "There was a problem with your sign-in link" : 
-               "Please confirm your email to complete sign-in"}
+              {isLoading
+                ? 'Verifying your sign-in link...'
+                : isError
+                  ? 'There was a problem with your sign-in link'
+                  : 'Please confirm your email to complete sign-in'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -124,10 +132,7 @@ const EmailSignInComplete = () => {
             ) : isError ? (
               <div className="text-center py-4">
                 <p className="text-destructive mb-4">{errorMessage}</p>
-                <Button 
-                  onClick={() => navigate('/email-link-login')}
-                  className="bg-primary"
-                >
+                <Button onClick={() => navigate('/email-link-login')} className="bg-primary">
                   Try Again
                 </Button>
               </div>
@@ -145,8 +150,8 @@ const EmailSignInComplete = () => {
                     disabled={isCompleting}
                   />
                 </div>
-                <Button 
-                  className="w-full bg-primary" 
+                <Button
+                  className="w-full bg-primary"
                   onClick={handleCompleteSignIn}
                   disabled={isCompleting}
                 >
@@ -155,7 +160,9 @@ const EmailSignInComplete = () => {
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Completing sign-in...
                     </>
-                  ) : "Complete Sign-In"}
+                  ) : (
+                    'Complete Sign-In'
+                  )}
                 </Button>
               </div>
             )}
@@ -166,4 +173,4 @@ const EmailSignInComplete = () => {
   );
 };
 
-export default EmailSignInComplete; 
+export default EmailSignInComplete;

@@ -24,10 +24,12 @@ const SuccessStories = () => {
             </CardHeader>
             <CardContent className="space-y-4 text-sm text-muted-foreground">
               <p>
-                We do not have published employer case studies in this runtime yet. When verified stories are available, they will be listed here with measurable hiring outcomes.
+                We do not have published employer case studies in this runtime yet. When verified
+                stories are available, they will be listed here with measurable hiring outcomes.
               </p>
               <p>
-                In the meantime, employers can use the live dashboard, job posting tools, and application tracking surfaces already available on the platform.
+                In the meantime, employers can use the live dashboard, job posting tools, and
+                application tracking surfaces already available on the platform.
               </p>
               <div className="flex flex-wrap gap-3 pt-2">
                 <Link href="/employers/dashboard">

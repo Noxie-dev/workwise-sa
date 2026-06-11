@@ -19,14 +19,20 @@ import {
   Heart,
   Eye,
   ArrowRight,
-  Sparkles
+  Sparkles,
 } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
@@ -68,7 +74,8 @@ export const mockExtendedCompanies: ExtendedCompany[] = [
     id: 1,
     name: 'Shoprite Holdings',
     logo: DEFAULT_COMPANY_LOGO,
-    description: 'Africa\'s largest food retailer offering entry-level opportunities in retail, warehousing, and customer service across South Africa.',
+    description:
+      "Africa's largest food retailer offering entry-level opportunities in retail, warehousing, and customer service across South Africa.",
     location: 'Cape Town, Western Cape',
     industry: 'Retail',
     size: '10,000+ employees',
@@ -86,13 +93,14 @@ export const mockExtendedCompanies: ExtendedCompany[] = [
     growthRate: 12,
     employeeCount: '10,000+',
     glassdoorRating: 4.0,
-    tags: ['Retail', 'Entry-Level Friendly', 'Large Employer', 'Training Provided']
+    tags: ['Retail', 'Entry-Level Friendly', 'Large Employer', 'Training Provided'],
   },
   {
     id: 2,
     name: 'Pick n Pay',
     logo: DEFAULT_COMPANY_LOGO,
-    description: 'Leading South African retailer providing thousands of entry-level jobs in stores, distribution centers, and customer service.',
+    description:
+      'Leading South African retailer providing thousands of entry-level jobs in stores, distribution centers, and customer service.',
     location: 'Johannesburg, Gauteng',
     industry: 'Retail',
     size: '5,000+ employees',
@@ -110,13 +118,14 @@ export const mockExtendedCompanies: ExtendedCompany[] = [
     growthRate: 8,
     employeeCount: '5,000+',
     glassdoorRating: 4.1,
-    tags: ['Retail', 'Community Focused', 'Skills Development', 'Stable Employment']
+    tags: ['Retail', 'Community Focused', 'Skills Development', 'Stable Employment'],
   },
   {
     id: 3,
     name: 'Transnet SOC Ltd',
     logo: DEFAULT_COMPANY_LOGO,
-    description: 'State-owned freight transport and logistics company offering general worker, security, and maintenance positions.',
+    description:
+      'State-owned freight transport and logistics company offering general worker, security, and maintenance positions.',
     location: 'Durban, KwaZulu-Natal',
     industry: 'Transport & Logistics',
     size: '50,000+ employees',
@@ -134,13 +143,14 @@ export const mockExtendedCompanies: ExtendedCompany[] = [
     growthRate: 5,
     employeeCount: '50,000+',
     glassdoorRating: 3.7,
-    tags: ['Government', 'General Worker', 'Benefits', 'Job Security']
+    tags: ['Government', 'General Worker', 'Benefits', 'Job Security'],
   },
   {
     id: 4,
     name: 'Woolworths Holdings',
     logo: DEFAULT_COMPANY_LOGO,
-    description: 'Premium retailer offering entry-level positions in retail, warehousing, and customer service with excellent training programs.',
+    description:
+      'Premium retailer offering entry-level positions in retail, warehousing, and customer service with excellent training programs.',
     location: 'Cape Town, Western Cape',
     industry: 'Retail',
     size: '3,000+ employees',
@@ -158,13 +168,14 @@ export const mockExtendedCompanies: ExtendedCompany[] = [
     growthRate: 15,
     employeeCount: '3,000+',
     glassdoorRating: 4.2,
-    tags: ['Premium Retail', 'Training Excellence', 'Career Growth', 'Quality Focus']
+    tags: ['Premium Retail', 'Training Excellence', 'Career Growth', 'Quality Focus'],
   },
   {
     id: 5,
     name: 'Bidvest Group',
     logo: DEFAULT_COMPANY_LOGO,
-    description: 'Diversified services group offering entry-level opportunities in cleaning, security, catering, and general services.',
+    description:
+      'Diversified services group offering entry-level opportunities in cleaning, security, catering, and general services.',
     location: 'Johannesburg, Gauteng',
     industry: 'Services',
     size: '8,000+ employees',
@@ -182,13 +193,14 @@ export const mockExtendedCompanies: ExtendedCompany[] = [
     growthRate: 18,
     employeeCount: '8,000+',
     glassdoorRating: 3.9,
-    tags: ['Services', 'Diverse Opportunities', 'Entry-Level', 'Growing']
+    tags: ['Services', 'Diverse Opportunities', 'Entry-Level', 'Growing'],
   },
   {
     id: 6,
     name: 'Massmart Holdings',
     logo: DEFAULT_COMPANY_LOGO,
-    description: 'Wholesale and retail group (Game, Makro, Builders) offering numerous entry-level positions across South Africa.',
+    description:
+      'Wholesale and retail group (Game, Makro, Builders) offering numerous entry-level positions across South Africa.',
     location: 'Johannesburg, Gauteng',
     industry: 'Retail & Wholesale',
     size: '15,000+ employees',
@@ -206,13 +218,14 @@ export const mockExtendedCompanies: ExtendedCompany[] = [
     growthRate: 10,
     employeeCount: '15,000+',
     glassdoorRating: 3.8,
-    tags: ['Retail', 'Wholesale', 'Multiple Brands', 'Career Progression']
+    tags: ['Retail', 'Wholesale', 'Multiple Brands', 'Career Progression'],
   },
   {
     id: 7,
     name: 'Clicks Group',
     logo: DEFAULT_COMPANY_LOGO,
-    description: 'Leading health and beauty retailer offering entry-level positions in retail, pharmacy support, and customer service.',
+    description:
+      'Leading health and beauty retailer offering entry-level positions in retail, pharmacy support, and customer service.',
     location: 'Cape Town, Western Cape',
     industry: 'Health & Beauty Retail',
     size: '2,500+ employees',
@@ -230,13 +243,14 @@ export const mockExtendedCompanies: ExtendedCompany[] = [
     growthRate: 22,
     employeeCount: '2,500+',
     glassdoorRating: 4.3,
-    tags: ['Health & Beauty', 'Professional Environment', 'Study Support', 'Growing']
+    tags: ['Health & Beauty', 'Professional Environment', 'Study Support', 'Growing'],
   },
   {
     id: 8,
     name: 'ADT Security',
     logo: DEFAULT_COMPANY_LOGO,
-    description: 'Leading security services provider offering entry-level security guard, monitoring, and response team positions.',
+    description:
+      'Leading security services provider offering entry-level security guard, monitoring, and response team positions.',
     location: 'Pretoria, Gauteng',
     industry: 'Security Services',
     size: '12,000+ employees',
@@ -254,8 +268,8 @@ export const mockExtendedCompanies: ExtendedCompany[] = [
     growthRate: 14,
     employeeCount: '12,000+',
     glassdoorRating: 3.6,
-    tags: ['Security', 'Essential Service', 'Training Provided', 'Shift Work']
-  }
+    tags: ['Security', 'Essential Service', 'Training Provided', 'Shift Work'],
+  },
 ];
 
 const Companies: React.FC = () => {
@@ -275,27 +289,36 @@ const Companies: React.FC = () => {
     queryFn: async () => {
       // Use mock data for now
       return createMockResponse(mockExtendedCompanies);
-    }
+    },
   });
 
   const companies = companiesResponse?.data || [];
 
   // Filter and sort companies
   const filteredCompanies = useMemo(() => {
-    let filtered = companies.filter((company) => {
-      const matchesSearch = company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           company.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           company.industry?.toLowerCase().includes(searchQuery.toLowerCase());
-      
+    const filtered = companies.filter(company => {
+      const matchesSearch =
+        company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        company.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        company.industry?.toLowerCase().includes(searchQuery.toLowerCase());
+
       const matchesIndustry = selectedIndustry === 'all' || company.industry === selectedIndustry;
-      const matchesLocation = selectedLocation === 'all' || company.location.includes(selectedLocation);
+      const matchesLocation =
+        selectedLocation === 'all' || company.location.includes(selectedLocation);
       const matchesSize = selectedSize === 'all' || company.size === selectedSize;
       const matchesHiring = !hiringNowOnly || company.isHiringNow;
       const matchesRemote = !remoteOnly || company.isRemoteFriendly;
       const matchesVerified = !verifiedOnly || company.isVerified;
 
-      return matchesSearch && matchesIndustry && matchesLocation && 
-             matchesSize && matchesHiring && matchesRemote && matchesVerified;
+      return (
+        matchesSearch &&
+        matchesIndustry &&
+        matchesLocation &&
+        matchesSize &&
+        matchesHiring &&
+        matchesRemote &&
+        matchesVerified
+      );
     });
 
     // Sort companies
@@ -315,18 +338,32 @@ const Companies: React.FC = () => {
     });
 
     return filtered;
-  }, [companies, searchQuery, selectedIndustry, selectedLocation, selectedSize, 
-      hiringNowOnly, remoteOnly, verifiedOnly, sortBy]);
+  }, [
+    companies,
+    searchQuery,
+    selectedIndustry,
+    selectedLocation,
+    selectedSize,
+    hiringNowOnly,
+    remoteOnly,
+    verifiedOnly,
+    sortBy,
+  ]);
 
   const industries = [...new Set(companies.map(c => c.industry).filter(Boolean))];
-  const locations = [...new Set(companies.map(c => c.location.split(',')[1]?.trim()).filter(Boolean))];
+  const locations = [
+    ...new Set(companies.map(c => c.location.split(',')[1]?.trim()).filter(Boolean)),
+  ];
   const sizes = [...new Set(companies.map(c => c.size).filter(Boolean))];
 
   return (
     <>
       <Helmet>
         <title>Companies | WorkWise SA</title>
-        <meta name="description" content="Browse and search companies in South Africa. Find top hiring companies and job opportunities." />
+        <meta
+          name="description"
+          content="Browse and search companies in South Africa. Find top hiring companies and job opportunities."
+        />
         <meta name="keywords" content="companies, employers, South Africa, hiring, jobs" />
       </Helmet>
 
@@ -340,7 +377,7 @@ const Companies: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               className="text-center max-w-3xl mx-auto"
-            >              
+            >
               {/* Smart Search Bar */}
               <div className="relative mx-auto">
                 <div className="relative">
@@ -349,21 +386,33 @@ const Companies: React.FC = () => {
                     type="text"
                     placeholder="Search for companies..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={e => setSearchQuery(e.target.value)}
                     className="pl-12 pr-4 py-4 text-lg bg-white/95 backdrop-blur-sm border-0 rounded-2xl shadow-lg focus:ring-2 focus:ring-yellow-400/50"
                   />
                 </div>
-                
+
                 {/* Quick Filters */}
                 <div className="flex flex-wrap gap-2 mt-4 justify-center">
                   {[
-                    { label: 'Hiring Now', active: hiringNowOnly, onClick: () => setHiringNowOnly(!hiringNowOnly) },
-                    { label: 'Remote Only', active: remoteOnly, onClick: () => setRemoteOnly(!remoteOnly) },
-                    { label: 'Verified', active: verifiedOnly, onClick: () => setVerifiedOnly(!verifiedOnly) }
-                  ].map((filter) => (
+                    {
+                      label: 'Hiring Now',
+                      active: hiringNowOnly,
+                      onClick: () => setHiringNowOnly(!hiringNowOnly),
+                    },
+                    {
+                      label: 'Remote Only',
+                      active: remoteOnly,
+                      onClick: () => setRemoteOnly(!remoteOnly),
+                    },
+                    {
+                      label: 'Verified',
+                      active: verifiedOnly,
+                      onClick: () => setVerifiedOnly(!verifiedOnly),
+                    },
+                  ].map(filter => (
                     <Button
                       key={filter.label}
-                      variant={filter.active ? "secondary" : "outline"}
+                      variant={filter.active ? 'secondary' : 'outline'}
                       size="sm"
                       onClick={filter.onClick}
                       className={`rounded-full ${filter.active ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-500' : 'bg-white/20 text-white border-white/30 hover:bg-white/30'}`}
@@ -388,119 +437,131 @@ const Companies: React.FC = () => {
                   <Award className="h-5 w-5 text-yellow-400" />
                   Top Hiring Companies This Month
                 </h2>
-                <TopHiringCompaniesSlideshow 
-                  companies={companies} 
-                  autoPlay={true} 
+                <TopHiringCompaniesSlideshow
+                  companies={companies}
+                  autoPlay={true}
                   interval={6000}
                   limit={3}
                 />
               </div>
-              
+
               {/* Filters and Controls */}
               <Card className="border-0 shadow-lg bg-card">
-            <CardContent className="p-6">
-              <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-                <div className="flex flex-wrap gap-4 items-center">
-                  <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Industry" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Industries</SelectItem>
-                      {industries.map((industry) => (
-                        <SelectItem key={industry} value={industry}>{industry}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <CardContent className="p-6">
+                  <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+                    <div className="flex flex-wrap gap-4 items-center">
+                      <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
+                        <SelectTrigger className="w-40">
+                          <SelectValue placeholder="Industry" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Industries</SelectItem>
+                          {industries.map(industry => (
+                            <SelectItem key={industry} value={industry}>
+                              {industry}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                  <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Location" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Locations</SelectItem>
-                      {locations.map((location) => (
-                        <SelectItem key={location} value={location}>{location}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                      <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                        <SelectTrigger className="w-40">
+                          <SelectValue placeholder="Location" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Locations</SelectItem>
+                          {locations.map(location => (
+                            <SelectItem key={location} value={location}>
+                              {location}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                  <Select value={selectedSize} onValueChange={setSelectedSize}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Company Size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Sizes</SelectItem>
-                      {sizes.map((size) => (
-                        <SelectItem key={size} value={size}>{size}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                      <Select value={selectedSize} onValueChange={setSelectedSize}>
+                        <SelectTrigger className="w-40">
+                          <SelectValue placeholder="Company Size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Sizes</SelectItem>
+                          {sizes.map(size => (
+                            <SelectItem key={size} value={size}>
+                              {size}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="flex items-center gap-4">
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="rating">Top Rated</SelectItem>
-                      <SelectItem value="positions">Most Positions</SelectItem>
-                      <SelectItem value="growth">Fastest Growing</SelectItem>
-                      <SelectItem value="name">Alphabetical</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <div className="flex items-center gap-4">
+                      <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger className="w-40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="rating">Top Rated</SelectItem>
+                          <SelectItem value="positions">Most Positions</SelectItem>
+                          <SelectItem value="growth">Fastest Growing</SelectItem>
+                          <SelectItem value="name">Alphabetical</SelectItem>
+                        </SelectContent>
+                      </Select>
 
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant={viewMode === 'grid' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setViewMode('grid')}
-                      className={viewMode === 'grid' ? 'bg-primary hover:bg-primary/90' : ''}
-                    >
-                      Grid
-                    </Button>
-                    <Button
-                      variant={viewMode === 'list' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setViewMode('list')}
-                      className={viewMode === 'list' ? 'bg-primary hover:bg-primary/90' : ''}
-                    >
-                      List
-                    </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant={viewMode === 'grid' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setViewMode('grid')}
+                          className={viewMode === 'grid' ? 'bg-primary hover:bg-primary/90' : ''}
+                        >
+                          Grid
+                        </Button>
+                        <Button
+                          variant={viewMode === 'list' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setViewMode('list')}
+                          className={viewMode === 'list' ? 'bg-primary hover:bg-primary/90' : ''}
+                        >
+                          List
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              <div className="mt-4 text-sm text-gray-600">
-                Showing {filteredCompanies.length} companies
-                {searchQuery && ` matching "${searchQuery}"`}
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="mt-4 text-sm text-gray-600">
+                    Showing {filteredCompanies.length} companies
+                    {searchQuery && ` matching "${searchQuery}"`}
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Companies Grid/List */}
               {isLoading ? (
-                <div className={`grid ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-6`}>
-                  {Array(6).fill(0).map((_, i) => (
-                    <Card key={i} className="border-0 shadow-lg bg-card">
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                          <Skeleton className="w-16 h-16 rounded-lg" />
-                          <div className="flex-1">
-                            <Skeleton className="h-6 w-32 mb-2" />
-                            <Skeleton className="h-4 w-24 mb-4" />
-                            <Skeleton className="h-4 w-full mb-2" />
-                            <Skeleton className="h-4 w-3/4" />
+                <div
+                  className={`grid ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-6`}
+                >
+                  {Array(6)
+                    .fill(0)
+                    .map((_, i) => (
+                      <Card key={i} className="border-0 shadow-lg bg-card">
+                        <CardContent className="p-6">
+                          <div className="flex items-start gap-4">
+                            <Skeleton className="w-16 h-16 rounded-lg" />
+                            <div className="flex-1">
+                              <Skeleton className="h-6 w-32 mb-2" />
+                              <Skeleton className="h-4 w-24 mb-4" />
+                              <Skeleton className="h-4 w-full mb-2" />
+                              <Skeleton className="h-4 w-3/4" />
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ))}
                 </div>
               ) : (
                 <AnimatePresence>
-                  <div className={`grid ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-6`}>
+                  <div
+                    className={`grid ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-6`}
+                  >
                     {filteredCompanies.map((company, index) => (
                       <motion.div
                         key={company.id}
@@ -539,7 +600,10 @@ const Companies: React.FC = () => {
 };
 
 // Enhanced Company Card Component
-const CompanyCard: React.FC<{ company: ExtendedCompany; viewMode: 'grid' | 'list' }> = ({ company, viewMode }) => {
+const CompanyCard: React.FC<{ company: ExtendedCompany; viewMode: 'grid' | 'list' }> = ({
+  company,
+  viewMode,
+}) => {
   const [isSaved, setIsSaved] = useState(false);
 
   return (
@@ -590,13 +654,11 @@ const CompanyCard: React.FC<{ company: ExtendedCompany; viewMode: 'grid' | 'list
                 )}
               </div>
 
-              <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                {company.description}
-              </p>
+              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{company.description}</p>
 
               {/* Tags */}
               <div className="flex flex-wrap gap-1 mb-4">
-                {company.tags?.slice(0, 3).map((tag) => (
+                {company.tags?.slice(0, 3).map(tag => (
                   <Badge key={tag} variant="outline" className="text-xs">
                     {tag}
                   </Badge>

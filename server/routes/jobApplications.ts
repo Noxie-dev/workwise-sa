@@ -22,9 +22,12 @@ const createJobApplicationSchema = z.object({
 
 const updateJobApplicationSchema = z.object({
   params: z.object({
-    applicationId: z.string().transform(val => parseInt(val)).refine(val => !isNaN(val), {
-        error: 'Application ID must be a valid number'
-    }),
+    applicationId: z
+      .string()
+      .transform(val => parseInt(val))
+      .refine(val => !isNaN(val), {
+        error: 'Application ID must be a valid number',
+      }),
   }),
   body: z.object({
     status: z.enum(['applied', 'reviewed', 'interview', 'rejected', 'hired']).optional(),
@@ -45,17 +48,23 @@ const getJobApplicationsSchema = z.object({
 
 const getJobApplicationSchema = z.object({
   params: z.object({
-    applicationId: z.string().transform(val => parseInt(val)).refine(val => !isNaN(val), {
-        error: 'Application ID must be a valid number'
-    }),
+    applicationId: z
+      .string()
+      .transform(val => parseInt(val))
+      .refine(val => !isNaN(val), {
+        error: 'Application ID must be a valid number',
+      }),
   }),
 });
 
 const getJobApplicationsByJobSchema = z.object({
   params: z.object({
-    jobId: z.string().transform(val => parseInt(val)).refine(val => !isNaN(val), {
-        error: 'Job ID must be a valid number'
-    }),
+    jobId: z
+      .string()
+      .transform(val => parseInt(val))
+      .refine(val => !isNaN(val), {
+        error: 'Job ID must be a valid number',
+      }),
   }),
   query: z.object({
     page: z.coerce.number().min(1).prefault(1),
@@ -67,7 +76,8 @@ const getJobApplicationsByJobSchema = z.object({
 });
 
 // Apply for a job
-router.post('/',
+router.post(
+  '/',
   verifyFirebaseToken,
   validate(createJobApplicationSchema),
   async (req, res, next) => {
@@ -125,47 +135,44 @@ router.post('/',
 );
 
 // Get user's job applications
-router.get('/',
-  verifyFirebaseToken,
-  validate(getJobApplicationsSchema),
-  async (req, res, next) => {
-    try {
-      const user = (req as any).user;
-      const { page, limit, status, jobId, sortBy, sortOrder } = req.query;
+router.get('/', verifyFirebaseToken, validate(getJobApplicationsSchema), async (req, res, next) => {
+  try {
+    const user = (req as any).user;
+    const { page, limit, status, jobId, sortBy, sortOrder } = req.query;
 
-      if (!user || !user.uid) {
-        throw Errors.authentication('User authentication required');
-      }
+    if (!user || !user.uid) {
+      throw Errors.authentication('User authentication required');
+    }
 
-      const dbUser = await resolveAuthenticatedDatabaseUser(user);
-      const userId = dbUser.id;
+    const dbUser = await resolveAuthenticatedDatabaseUser(user);
+    const userId = dbUser.id;
 
-      const applications = await storage.getJobApplicationsByUser(userId, {
+    const applications = await storage.getJobApplicationsByUser(userId, {
+      page,
+      limit,
+      status,
+      jobId,
+      sortBy,
+      sortOrder,
+    });
+
+    res.json({
+      applications: applications.applications,
+      pagination: {
         page,
         limit,
-        status,
-        jobId,
-        sortBy,
-        sortOrder,
-      });
-
-      res.json({
-        applications: applications.applications,
-        pagination: {
-          page,
-          limit,
-          total: applications.total,
-          totalPages: Math.ceil(applications.total / limit),
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
+        total: applications.total,
+        totalPages: Math.ceil(applications.total / limit),
+      },
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 // Get specific job application
-router.get('/:applicationId',
+router.get(
+  '/:applicationId',
   verifyFirebaseToken,
   validate(getJobApplicationSchema),
   async (req, res, next) => {
@@ -197,7 +204,8 @@ router.get('/:applicationId',
 );
 
 // Update job application (usually for employers to update status)
-router.put('/:applicationId',
+router.put(
+  '/:applicationId',
   verifyFirebaseToken,
   validate(updateJobApplicationSchema),
   async (req, res, next) => {
@@ -235,7 +243,7 @@ router.put('/:applicationId',
           interactionType: 'status_update',
           jobId: application.jobId,
           interactionTime: new Date(),
-          metadata: { 
+          metadata: {
             applicationId: application.id,
             oldStatus: application.status,
             newStatus: status,
@@ -264,7 +272,8 @@ router.put('/:applicationId',
 );
 
 // Delete job application (withdraw application)
-router.delete('/:applicationId',
+router.delete(
+  '/:applicationId',
   verifyFirebaseToken,
   validate(getJobApplicationSchema),
   async (req, res, next) => {
@@ -315,7 +324,8 @@ router.delete('/:applicationId',
 );
 
 // Get applications for a specific job (for employers)
-router.get('/job/:jobId',
+router.get(
+  '/job/:jobId',
   verifyFirebaseToken,
   validate(getJobApplicationsByJobSchema),
   async (req, res, next) => {

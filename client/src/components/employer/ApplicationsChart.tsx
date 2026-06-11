@@ -1,4 +1,13 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface ApplicationData {
   date: string;
@@ -34,10 +43,10 @@ export default function ApplicationsChart({ data }: ApplicationsChartProps) {
         <YAxis />
         <Tooltip />
         <Legend />
-        <Line 
-          type="monotone" 
-          dataKey="applications" 
-          stroke="#8884d8" 
+        <Line
+          type="monotone"
+          dataKey="applications"
+          stroke="#8884d8"
           strokeWidth={2}
           name="Applications"
         />

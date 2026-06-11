@@ -50,27 +50,25 @@ const createApiClient = (config: ApiClientConfig): AxiosInstance => {
 
   // Request interceptor - add auth token
   client.interceptors.request.use(
-    (config) => {
+    config => {
       const token = localStorage.getItem('auth_token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
     },
-    (error) => Promise.reject(error)
+    error => Promise.reject(error)
   );
 
   // Response interceptor - handle errors
   client.interceptors.response.use(
-    (response) => response,
+    response => response,
     (error: AxiosError) => {
       const { response } = error;
-      
+
       // Handle network errors
       if (!response) {
-        return Promise.reject(
-          new ApiError('Network error. Please check your connection.', 0)
-        );
+        return Promise.reject(new ApiError('Network error. Please check your connection.', 0));
       }
 
       // Parse error response

@@ -43,13 +43,13 @@ export class WebSocketServer {
       const client: Client = {
         id: clientId,
         ws,
-        isAlive: true
+        isAlive: true,
       };
 
       this.clients.set(clientId, client);
       logger.info(`WebSocket client connected`, {
         clientId,
-        totalClients: this.clients.size
+        totalClients: this.clients.size,
       });
 
       // Handle messages from clients
@@ -63,7 +63,7 @@ export class WebSocketServer {
             logger.info({
               message: `WebSocket client authenticated`,
               clientId,
-              userId: data.userId
+              userId: data.userId,
             });
 
             // Send welcome message
@@ -71,7 +71,7 @@ export class WebSocketServer {
               type: 'system',
               message: 'Connected to real-time updates',
               timestamp: new Date(),
-              docsUrl: '/api-docs#tag/WebSocket'
+              docsUrl: '/api-docs#tag/WebSocket',
             });
           }
 
@@ -83,7 +83,7 @@ export class WebSocketServer {
           logger.error({
             message: 'Error parsing WebSocket message',
             clientId,
-            error: error instanceof Error ? error.message : String(error)
+            error: error instanceof Error ? error.message : String(error),
           });
         }
       });
@@ -94,25 +94,27 @@ export class WebSocketServer {
         logger.info({
           message: `WebSocket client disconnected`,
           clientId,
-          remainingClients: this.clients.size
+          remainingClients: this.clients.size,
         });
       });
 
       // Handle errors
-      ws.on('error', (error) => {
+      ws.on('error', error => {
         logger.error({
           message: `WebSocket client error`,
           clientId,
-          error: error instanceof Error ? error.message : String(error)
+          error: error instanceof Error ? error.message : String(error),
         });
         this.clients.delete(clientId);
       });
 
       // Send initial ping to verify connection
-      ws.send(JSON.stringify({
-        type: 'ping',
-        docsUrl: '/api-docs#tag/WebSocket'
-      }));
+      ws.send(
+        JSON.stringify({
+          type: 'ping',
+          docsUrl: '/api-docs#tag/WebSocket',
+        })
+      );
     });
 
     // Add error handler for the server
@@ -120,7 +122,7 @@ export class WebSocketServer {
       logger.error({
         message: 'WebSocket server error',
         error: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
     });
 
@@ -157,7 +159,7 @@ export class WebSocketServer {
    */
   public sendToUser(userId: string, message: any) {
     let sent = false;
-    this.clients.forEach((client) => {
+    this.clients.forEach(client => {
       if (client.userId === userId && client.ws.readyState === WebSocket.OPEN) {
         client.ws.send(JSON.stringify(message));
         sent = true;
@@ -170,7 +172,7 @@ export class WebSocketServer {
    * Broadcast a message to all connected clients
    */
   public broadcast(message: any) {
-    this.clients.forEach((client) => {
+    this.clients.forEach(client => {
       if (client.ws.readyState === WebSocket.OPEN) {
         client.ws.send(JSON.stringify(message));
       }
@@ -184,7 +186,7 @@ export class WebSocketServer {
     const update: UpdateMessage = {
       type: 'job',
       message,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
     return this.sendToUser(userId, update);
   }
@@ -196,7 +198,7 @@ export class WebSocketServer {
     const update: UpdateMessage = {
       type: 'skill',
       message,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
     return this.sendToUser(userId, update);
   }
@@ -208,7 +210,7 @@ export class WebSocketServer {
     const update: UpdateMessage = {
       type: 'market',
       message,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
     return this.sendToUser(userId, update);
   }
@@ -224,7 +226,7 @@ export class WebSocketServer {
     this.wss.close();
 
     // Close all client connections
-    this.clients.forEach((client) => {
+    this.clients.forEach(client => {
       client.ws.terminate();
     });
 

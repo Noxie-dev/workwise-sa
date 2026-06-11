@@ -8,7 +8,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   LayoutDashboard,
@@ -16,7 +16,7 @@ import {
   BarChart3,
   Users,
   Settings,
-  ShieldAlert
+  ShieldAlert,
 } from 'lucide-react';
 import { useAdminAuth } from '../hooks/useAdminAuth';
 
@@ -28,7 +28,7 @@ interface AdminButtonProps {
    * Optional variant for the button
    * @default "outline"
    */
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
 
   /**
    * Optional CSS class to apply to the button
@@ -64,11 +64,11 @@ interface AdminButtonProps {
  * Renders a dropdown button with admin features, only visible to admin users
  */
 const AdminButton: React.FC<AdminButtonProps> = ({
-  variant = "outline",
-  className = "",
+  variant = 'outline',
+  className = '',
   showIcon = true,
-  buttonText = "Admin",
-  customMenuItems
+  buttonText = 'Admin',
+  customMenuItems,
 }) => {
   const { isAdmin, hasPermission } = useAdminAuth();
 
@@ -80,41 +80,41 @@ const AdminButton: React.FC<AdminButtonProps> = ({
   // Default menu items with permission checks
   const defaultMenuItems = [
     {
-      href: "/admin",
+      href: '/admin',
       icon: <LayoutDashboard className="mr-2 h-4 w-4" />,
-      label: "Dashboard",
-      permission: "dashboard:view"
+      label: 'Dashboard',
+      permission: 'dashboard:view',
     },
     {
-      href: "/marketing-rules",
+      href: '/marketing-rules',
       icon: <MessageSquare className="mr-2 h-4 w-4" />,
-      label: "Marketing Rules",
-      permission: "marketing:view"
+      label: 'Marketing Rules',
+      permission: 'marketing:view',
     },
     {
-      href: "/admin/analytics",
+      href: '/admin/analytics',
       icon: <BarChart3 className="mr-2 h-4 w-4" />,
-      label: "Analytics",
-      permission: "analytics:view"
+      label: 'Analytics',
+      permission: 'analytics:view',
     },
     {
-      href: "/admin/users",
+      href: '/admin/users',
       icon: <Users className="mr-2 h-4 w-4" />,
-      label: "User Management",
-      permission: "users:view"
+      label: 'User Management',
+      permission: 'users:view',
     },
     {
-      href: "/admin/settings",
+      href: '/admin/settings',
       icon: <Settings className="mr-2 h-4 w-4" />,
-      label: "Admin Settings",
-      permission: "settings:view"
+      label: 'Admin Settings',
+      permission: 'settings:view',
     },
   ];
 
   // Filter menu items based on permissions
-  const menuItems = customMenuItems || defaultMenuItems.filter(item =>
-    !item.permission || hasPermission(item.permission as any)
-  );
+  const menuItems =
+    customMenuItems ||
+    defaultMenuItems.filter(item => !item.permission || hasPermission(item.permission as any));
 
   return (
     <DropdownMenu>
@@ -137,7 +137,7 @@ const AdminButton: React.FC<AdminButtonProps> = ({
               <Link
                 href={item.href}
                 className="cursor-pointer flex items-center"
-                onClick={(e) => e.stopPropagation()}
+                onClick={e => e.stopPropagation()}
               >
                 {item.icon}
                 <span>{item.label}</span>

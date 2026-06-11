@@ -2,15 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
-import { 
-  RotateCw, 
-  ZoomIn, 
-  ZoomOut, 
-  Move, 
-  Check, 
-  X,
-  Crop
-} from 'lucide-react';
+import { RotateCw, ZoomIn, ZoomOut, Move, Check, X, Crop } from 'lucide-react';
 
 interface ImageCropperProps {
   imageUrl: string;
@@ -25,7 +17,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
   onCropComplete,
   onCancel,
   aspectRatio = 1,
-  cropShape = 'round'
+  cropShape = 'round',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -81,13 +73,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
       drawHeight = canvasSize / imageAspect;
     }
 
-    ctx.drawImage(
-      image,
-      -drawWidth / 2,
-      -drawHeight / 2,
-      drawWidth,
-      drawHeight
-    );
+    ctx.drawImage(image, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
 
     // Restore context
     ctx.restore();
@@ -118,7 +104,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
     setIsDragging(true);
     setDragStart({
       x: e.clientX - position.x,
-      y: e.clientY - position.y
+      y: e.clientY - position.y,
     });
   };
 
@@ -127,7 +113,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
 
     setPosition({
       x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
+      y: e.clientY - dragStart.y,
     });
   };
 
@@ -153,11 +139,15 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    canvas.toBlob((blob) => {
-      if (blob) {
-        onCropComplete(blob);
-      }
-    }, 'image/jpeg', 0.9);
+    canvas.toBlob(
+      blob => {
+        if (blob) {
+          onCropComplete(blob);
+        }
+      },
+      'image/jpeg',
+      0.9
+    );
   };
 
   return (
@@ -234,11 +224,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
               <RotateCw className="h-3 w-3" />
               Rotate
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleReset}
-            >
+            <Button variant="outline" size="sm" onClick={handleReset}>
               Reset
             </Button>
           </div>
@@ -255,18 +241,11 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
 
         {/* Action buttons */}
         <div className="flex gap-2 pt-4">
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            className="flex-1"
-          >
+          <Button variant="outline" onClick={onCancel} className="flex-1">
             <X className="h-4 w-4 mr-2" />
             Cancel
           </Button>
-          <Button
-            onClick={handleCrop}
-            className="flex-1"
-          >
+          <Button onClick={handleCrop} className="flex-1">
             <Check className="h-4 w-4 mr-2" />
             Crop Image
           </Button>
