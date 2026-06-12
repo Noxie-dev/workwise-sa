@@ -19,6 +19,10 @@ const navigationItems = [
   { href: '/contact', label: 'Contact', id: 'contact' },
 ] as const;
 
+function isRouteActive(currentPath: string, href: string) {
+  return currentPath === href || currentPath.startsWith(`${href}/`);
+}
+
 /**
  * Navigation Link Component
  * Renders a navigation link with active state styling
@@ -34,15 +38,17 @@ interface NavLinkProps {
 
 const NavLink = ({ href, label, isActive, className, onClick, tone = 'default' }: NavLinkProps) => {
   const lightTone = isActive
-    ? 'text-[#102a47] underline decoration-[#f2c94c] underline-offset-4'
-    : 'text-[#102a47]/85 hover:text-[#102a47]';
-  const defaultTone = isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary';
+    ? 'text-[#102a47] after:w-10 after:opacity-100'
+    : 'text-[#102a47]/90 hover:bg-[#f2c94c]/15 hover:text-[#102a47] hover:after:w-7 hover:after:opacity-100';
+  const defaultTone = isActive
+    ? 'text-[#102a47] after:w-10 after:opacity-100'
+    : 'text-[#102a47]/85 hover:bg-[#f2c94c]/15 hover:text-[#102a47] hover:after:w-7 hover:after:opacity-100';
 
   return (
     <Link
       href={href}
       className={cn(
-        'font-medium text-sm transition-colors duration-200',
+        'relative inline-flex items-center rounded-md px-2.5 py-2 text-sm font-bold transition-all duration-200 after:absolute after:-bottom-1 after:left-1/2 after:h-[4px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-[#f2c94c] after:opacity-0 after:transition-all after:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f2c94c] focus-visible:ring-offset-2',
         tone === 'light' ? lightTone : defaultTone,
         className
       )}
@@ -117,8 +123,8 @@ const MobileNav = ({ navigationItems, currentPath }: MobileNavProps) => {
                 key={item.id}
                 href={item.href}
                 label={item.label}
-                isActive={currentPath === item.href}
-                className="text-base py-2"
+                isActive={isRouteActive(currentPath, item.href)}
+                className="justify-start text-base"
                 onClick={handleLinkClick}
               />
             ))}
@@ -144,21 +150,21 @@ interface DesktopNavProps {
 }
 
 const DesktopNav = ({ navigationItems, currentPath }: DesktopNavProps) => (
-  <nav className="hidden md:flex items-center space-x-8">
-    <ul className="flex items-center space-x-6">
+  <nav className="hidden md:flex items-center space-x-5">
+    <ul className="flex items-center gap-1">
       {navigationItems.map(item => (
         <li key={item.id}>
           <NavLink
             href={item.href}
             label={item.label}
-            isActive={currentPath === item.href}
+            isActive={isRouteActive(currentPath, item.href)}
             tone="light"
           />
         </li>
       ))}
     </ul>
 
-    <div className="flex items-center space-x-3 ml-6 border-l border-[#102a47]/25 pl-6">
+    <div className="flex items-center space-x-3 ml-3 border-l border-[#102a47]/25 pl-5">
       <AdminButton
         variant="outline"
         className="border-[#102a47]/30 text-[#102a47] hover:bg-[#f2c94c]/15"
