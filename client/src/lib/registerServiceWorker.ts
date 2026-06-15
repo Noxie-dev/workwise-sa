@@ -1,5 +1,9 @@
-export async function registerServiceWorker() {
-  if (!('serviceWorker' in navigator) || !import.meta.env.PROD) {
+export function registerServiceWorker() {
+  const isViteDevServer =
+    ['localhost', '127.0.0.1'].includes(window.location.hostname) &&
+    ['5173', '5174'].includes(window.location.port);
+
+  if (!('serviceWorker' in navigator) || isViteDevServer) {
     return;
   }
 
