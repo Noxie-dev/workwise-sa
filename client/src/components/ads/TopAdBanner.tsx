@@ -168,8 +168,8 @@ export default function TopAdBanner() {
 
       frameId = window.requestAnimationFrame(() => {
         frameId = 0;
-        const compactAt = Math.max(560, window.innerHeight * 0.78);
-        const expandAt = Math.max(360, compactAt - 180);
+        const compactAt = Math.max(680, window.innerHeight * 0.9);
+        const expandAt = 140;
 
         setCompact(current => {
           if (current) {
@@ -206,7 +206,7 @@ export default function TopAdBanner() {
   const hasVideo = creativeType === 'video' && Boolean(creative?.videoUrl);
   const hasEmbed = creativeType === 'embed' && Boolean(creative?.embedUrl);
   const hasImage = Boolean(creative?.imageUrl);
-  const showHeavyMedia = mediaReady && !compact;
+  const showHeavyMedia = mediaReady;
   const notice = isNoticeCreative(creativeType);
 
   return (
