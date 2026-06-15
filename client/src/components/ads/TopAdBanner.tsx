@@ -8,9 +8,9 @@ const fallbackSlot: AdSlotConfig = {
   maxAds: 1,
   frequency: 1,
   sizes: {
-    mobile: { width: 360, height: 240 },
-    tablet: { width: 540, height: 360 },
-    desktop: { width: 600, height: 400 },
+    mobile: { width: 240, height: 160 },
+    tablet: { width: 420, height: 280 },
+    desktop: { width: 480, height: 320 },
   },
   targeting: {
     mobileOnly: false,
@@ -106,6 +106,8 @@ export default function TopAdBanner() {
   const [slot, setSlot] = useState<AdSlotConfig>(fallbackSlot);
   const [muted, setMuted] = useState(true);
   const [skipped, setSkipped] = useState(false);
+  const [mediaReady, setMediaReady] = useState(false);
+  const [compact, setCompact] = useState(false);
   const tier = useViewportTier();
   const sessionId = useMemo(createSessionId, []);
   const hasTrackedRef = useRef(false);
@@ -139,6 +141,7 @@ export default function TopAdBanner() {
         if (active) {
           setSlot({ ...payload, canSkip: Boolean(payload.canSkip) });
           setSkipped(false);
+          setMediaReady(false);
         }
       })
       .catch(() => {
@@ -149,6 +152,25 @@ export default function TopAdBanner() {
 
     return () => {
       active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setMediaReady(true), 2800);
+    return () => window.clearTimeout(timer);
+  }, [creativeId]);
+
+  useEffect(() => {
+    const updateCompactMode = () => {
+      setCompact(window.scrollY > Math.max(520, window.innerHeight * 0.72));
+    };
+
+    updateCompactMode();
+    window.addEventListener('scroll', updateCompactMode, { passive: true });
+    window.addEventListener('resize', updateCompactMode);
+    return () => {
+      window.removeEventListener('scroll', updateCompactMode);
+      window.removeEventListener('resize', updateCompactMode);
     };
   }, []);
 
@@ -165,11 +187,14 @@ export default function TopAdBanner() {
   const hasVideo = creativeType === 'video' && Boolean(creative?.videoUrl);
   const hasEmbed = creativeType === 'embed' && Boolean(creative?.embedUrl);
   const hasImage = Boolean(creative?.imageUrl);
+  const showHeavyMedia = mediaReady && !compact;
   const notice = isNoticeCreative(creativeType);
 
   return (
     <aside
-      className="sticky top-0 z-40 w-full overflow-hidden border-b border-slate-200 px-3 py-3 shadow-[0_12px_32px_rgba(2,6,23,0.14)]"
+      className={`sticky top-0 z-40 w-full overflow-hidden border-b border-slate-200 px-3 shadow-[0_12px_32px_rgba(2,6,23,0.14)] transition-[padding] duration-300 ${
+        compact ? 'py-1.5' : 'py-3'
+      }`}
       aria-label="WorkWise LED display"
       style={{
         backgroundColor: '#f8fafc',
@@ -183,20 +208,22 @@ export default function TopAdBanner() {
       <div
         className="relative mx-auto w-full"
         style={{
-          maxWidth: `${Math.min(size.width, 600)}px`,
+          maxWidth: `${compact ? Math.min(size.width, 360) : Math.min(size.width, 480)}px`,
         }}
+        onPointerEnter={() => setMediaReady(true)}
+        onFocus={() => setMediaReady(true)}
       >
         <div className="rounded-[14px] border border-black bg-black p-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14),0_10px_26px_rgba(0,0,0,0.34)]">
           <div
             className="relative overflow-hidden rounded-[9px] border border-slate-700 bg-slate-950 text-white"
             style={{
-              aspectRatio: `${size.width} / ${size.height}`,
+              aspectRatio: compact ? '9 / 1.4' : `${size.width} / ${size.height}`,
             }}
           >
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.055)_1px,transparent_1px)] bg-[length:100%_4px] opacity-40" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.2),transparent_36%),radial-gradient(circle_at_82%_34%,rgba(250,204,21,0.16),transparent_32%)]" />
 
-            {hasVideo ? (
+            {hasVideo && showHeavyMedia ? (
               <video
                 className="absolute inset-0 h-full w-full object-cover"
                 src={creative?.videoUrl || undefined}
@@ -205,8 +232,9 @@ export default function TopAdBanner() {
                 autoPlay
                 loop
                 playsInline
+                preload="metadata"
               />
-            ) : hasEmbed ? (
+            ) : hasEmbed && showHeavyMedia ? (
               <iframe
                 className="absolute inset-0 h-full w-full"
                 src={normalizeEmbedUrl(creative?.embedUrl, muted)}
@@ -221,7 +249,9 @@ export default function TopAdBanner() {
                 className="absolute inset-0 h-full w-full object-cover"
                 loading="lazy"
               />
-            ) : null}
+            ) : (
+              <div className="absolute inset-0 bg-slate-950" />
+            )}
 
             <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-2 bg-gradient-to-b from-black/80 to-transparent px-3 py-2">
               <div className="flex min-w-0 items-center gap-2">
@@ -246,10 +276,14 @@ export default function TopAdBanner() {
               aria-label={`Open ${displayTitle}`}
             />
 
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/78 to-transparent px-3 pb-3 pt-16">
+            <div
+              className={`pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/78 to-transparent px-3 transition-all duration-300 ${
+                compact ? 'pb-2 pt-10' : 'pb-3 pt-16'
+              }`}
+            >
               <div className="flex items-end gap-3">
                 <div className="min-w-0 flex-1">
-                  <div className="mb-1 flex items-center gap-2">
+                  <div className={`mb-1 items-center gap-2 ${compact ? 'hidden sm:flex' : 'flex'}`}>
                     <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-cyan-300 text-slate-950 shadow-[0_0_16px_rgba(103,232,249,0.55)]">
                       {notice ? (
                         <Bell className="h-4 w-4" aria-hidden="true" />
@@ -269,10 +303,18 @@ export default function TopAdBanner() {
                             : 'Ad'}
                     </span>
                   </div>
-                  <p className="line-clamp-2 text-sm font-black leading-tight tracking-normal sm:text-base">
+                  <p
+                    className={`font-black leading-tight tracking-normal ${
+                      compact ? 'line-clamp-1 text-xs sm:text-sm' : 'line-clamp-2 text-sm sm:text-base'
+                    }`}
+                  >
                     {displayTitle}
                   </p>
-                  <p className="mt-1 line-clamp-2 text-xs font-medium leading-snug text-white/78">
+                  <p
+                    className={`mt-1 text-xs font-medium leading-snug text-white/78 ${
+                      compact ? 'hidden sm:line-clamp-1' : 'line-clamp-2'
+                    }`}
+                  >
                     {displayDescription}
                   </p>
                 </div>
