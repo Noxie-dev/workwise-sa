@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import {
   getEmailFromStorage,
 } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
+import AuthShell from '@/components/AuthShell';
 
 const EmailSignInComplete = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -20,6 +21,11 @@ const EmailSignInComplete = () => {
   const [email, setEmail] = useState('');
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const nextPath = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get('next');
+    return next?.startsWith('/') && !next.startsWith('//') ? next : '/profile-setup';
+  }, []);
 
   useEffect(() => {
     const verifyEmailLink = async () => {
@@ -37,14 +43,15 @@ const EmailSignInComplete = () => {
       const emailFromStorage = getEmailFromStorage();
 
       if (emailFromStorage) {
-        setEmail(emailFromStorage);
+        const normalizedEmail = emailFromStorage.trim();
+        setEmail(normalizedEmail);
         try {
-          await completeSignInWithEmailLink(emailFromStorage, window.location.href);
+          await completeSignInWithEmailLink(normalizedEmail, window.location.href);
           toast({
             title: 'Login Successful',
             description: 'You have been successfully signed in!',
           });
-          navigate('/profile-setup');
+          navigate(nextPath);
         } catch (error: any) {
           setIsLoading(false);
           setIsError(true);
@@ -59,10 +66,11 @@ const EmailSignInComplete = () => {
     };
 
     verifyEmailLink();
-  }, [toast, navigate]);
+  }, [toast, navigate, nextPath]);
 
   const handleCompleteSignIn = async () => {
-    if (!email) {
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail) {
       toast({
         variant: 'destructive',
         title: 'Email Required',
@@ -72,14 +80,16 @@ const EmailSignInComplete = () => {
     }
 
     setIsCompleting(true);
+    setIsError(false);
+    setErrorMessage('');
 
     try {
-      await completeSignInWithEmailLink(email, window.location.href);
+      await completeSignInWithEmailLink(normalizedEmail, window.location.href);
       toast({
         title: 'Login Successful',
         description: 'You have been successfully signed in!',
       });
-      navigate('/profile-setup');
+      navigate(nextPath);
     } catch (error: any) {
       setIsError(true);
       setErrorMessage(error.message || 'Failed to complete sign-in. Please try again.');
@@ -104,16 +114,9 @@ const EmailSignInComplete = () => {
         <meta name="description" content="Complete your sign-in to WorkWise SA" />
       </Helmet>
 
-      <main className="flex-grow bg-light flex items-center justify-center py-10">
-        <Card className="w-full max-w-md mx-4">
+      <AuthShell>
+        <Card className="w-full shadow-xl shadow-slate-900/10">
           <CardHeader className="space-y-1">
-            <div className="flex justify-center mb-4">
-              <img
-                src="/images/logo.png"
-                alt="WorkWise SA Logo"
-                className="h-36 md:h-40 object-contain transition-all duration-200 hover:scale-105"
-              />
-            </div>
             <CardTitle className="text-2xl font-bold text-center">Complete Sign-In</CardTitle>
             <CardDescription className="text-center">
               {isLoading
@@ -168,7 +171,7 @@ const EmailSignInComplete = () => {
             )}
           </CardContent>
         </Card>
-      </main>
+      </AuthShell>
     </>
   );
 };

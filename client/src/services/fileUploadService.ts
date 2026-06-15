@@ -1,5 +1,22 @@
 import { API_URL } from '@/lib/env';
 
+function authHeaders(): HeadersInit {
+  const token = localStorage.getItem('auth_token') || localStorage.getItem('authToken');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function parseUploadError(response: Response, fallback: string) {
+  const text = await response.text();
+  if (!text) return fallback;
+
+  try {
+    const errorData = JSON.parse(text);
+    return errorData.error?.message || errorData.error || errorData.message || fallback;
+  } catch {
+    return text;
+  }
+}
+
 /**
  * Service for handling file uploads to PostgreSQL storage
  */
@@ -17,38 +34,20 @@ export const fileUploadService = {
       formData.append('userId', userId);
 
       const uploadUrl = `${API_URL}/api/files/upload-professional-image`;
-      console.log('Uploading professional image to:', uploadUrl);
-      console.log('API_URL:', API_URL);
-      console.log('File:', file.name, file.size, file.type);
-      console.log('User ID:', userId);
 
       const response = await fetch(uploadUrl, {
         method: 'POST',
+        headers: authHeaders(),
         body: formData,
       });
 
-      console.log('Upload response status:', response.status);
-      console.log('Upload response headers:', Object.fromEntries(response.headers.entries()));
-
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Upload error response:', errorText);
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          errorData = { error: errorText };
-        }
-        throw new Error(
-          errorData.error || `HTTP ${response.status}: Failed to upload professional image`
-        );
+        throw new Error(await parseUploadError(response, 'Failed to upload professional image'));
       }
 
       const data = await response.json();
-      console.log('Upload success:', data);
       return data.data.fileUrl;
     } catch (error) {
-      console.error('Error uploading professional image:', error);
       throw error;
     }
   },
@@ -66,38 +65,20 @@ export const fileUploadService = {
       formData.append('userId', userId);
 
       const uploadUrl = `${API_URL}/api/files/upload-profile-image`;
-      console.log('Uploading profile image to:', uploadUrl);
-      console.log('API_URL:', API_URL);
-      console.log('File:', file.name, file.size, file.type);
-      console.log('User ID:', userId);
 
       const response = await fetch(uploadUrl, {
         method: 'POST',
+        headers: authHeaders(),
         body: formData,
       });
 
-      console.log('Upload response status:', response.status);
-      console.log('Upload response headers:', Object.fromEntries(response.headers.entries()));
-
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Upload error response:', errorText);
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          errorData = { error: errorText };
-        }
-        throw new Error(
-          errorData.error || `HTTP ${response.status}: Failed to upload profile image`
-        );
+        throw new Error(await parseUploadError(response, 'Failed to upload profile image'));
       }
 
       const data = await response.json();
-      console.log('Upload success:', data);
       return data.data.fileUrl;
     } catch (error) {
-      console.error('Error uploading profile image:', error);
       throw error;
     }
   },
@@ -116,18 +97,17 @@ export const fileUploadService = {
 
       const response = await fetch(`${API_URL}/api/files/upload-cv`, {
         method: 'POST',
+        headers: authHeaders(),
         body: formData,
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to upload CV');
+        throw new Error(await parseUploadError(response, 'Failed to upload CV'));
       }
 
       const data = await response.json();
       return data.data.fileUrl;
     } catch (error) {
-      console.error('Error uploading CV:', error);
       throw error;
     }
   },
@@ -148,18 +128,17 @@ export const fileUploadService = {
 
       const response = await fetch(`${API_URL}/api/files/upload`, {
         method: 'POST',
+        headers: authHeaders(),
         body: formData,
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to upload file');
+        throw new Error(await parseUploadError(response, 'Failed to upload file'));
       }
 
       const data = await response.json();
       return data.data;
     } catch (error) {
-      console.error('Error uploading file:', error);
       throw error;
     }
   },
@@ -171,17 +150,17 @@ export const fileUploadService = {
    */
   async getUserFiles(userId: string): Promise<any[]> {
     try {
-      const response = await fetch(`${API_URL}/api/files/user/${userId}`);
+      const response = await fetch(`${API_URL}/api/files/user/${userId}`, {
+        headers: authHeaders(),
+      });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to get user files');
+        throw new Error(await parseUploadError(response, 'Failed to get user files'));
       }
 
       const data = await response.json();
       return data.data;
     } catch (error) {
-      console.error('Error getting user files:', error);
       throw error;
     }
   },
@@ -195,17 +174,16 @@ export const fileUploadService = {
     try {
       const response = await fetch(`${API_URL}/api/files/${fileId}`, {
         method: 'DELETE',
+        headers: authHeaders(),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete file');
+        throw new Error(await parseUploadError(response, 'Failed to delete file'));
       }
 
       const data = await response.json();
       return data.data.deleted;
     } catch (error) {
-      console.error('Error deleting file:', error);
       throw error;
     }
   },

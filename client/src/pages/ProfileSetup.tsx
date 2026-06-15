@@ -59,6 +59,7 @@ import { API_URL } from '@/lib/env';
 import { profileService } from '@/services/profileService';
 import { fileUploadService } from '@/services/fileUploadService';
 import { getCurrentUser } from '@/lib/firebase';
+import { updateProfile as updateFirebaseProfile } from 'firebase/auth';
 
 // Form schemas
 const personalInfoSchema = z.object({
@@ -634,14 +635,28 @@ const ProfileSetup = () => {
   const handleProfileUpdate = async () => {
     setIsSubmitting(true);
     try {
+      const skillValues = skillsForm.getValues();
+      const normalizedCustomSkills = customSkills.map(skill => skill.trim()).filter(Boolean);
+      const typedCustomSkills =
+        typeof skillValues.customSkills === 'string'
+          ? skillValues.customSkills
+              .split(',')
+              .map(skill => skill.trim())
+              .filter(Boolean)
+          : [];
+      const combinedSkills = Array.from(
+        new Set([...(skillValues.skills || []), ...normalizedCustomSkills, ...typedCustomSkills])
+      );
+
       // Collect all form data
       const profileData = {
         personal: personalForm.getValues(),
         education: educationForm.getValues(),
         experience: experienceForm.getValues(),
         skills: {
-          ...skillsForm.getValues(),
-          customSkills: customSkills.join(', '),
+          ...skillValues,
+          skills: combinedSkills,
+          customSkills: normalizedCustomSkills.join(', '),
         },
       };
 
@@ -690,24 +705,22 @@ const ProfileSetup = () => {
         ...profileData,
         personal: {
           ...profileData.personal,
-          profileImageUrl,
+          ...(profileImageUrl ? { profilePicture: profileImageUrl } : {}),
         },
         skills: {
           ...profileData.skills,
-          cvFileUrl,
+          ...(cvFileUrl ? { cvUpload: cvFileUrl } : {}),
         },
       };
 
       try {
-        // For now, we'll simulate a successful API call
-        // In a real implementation, you would send the profile data to your backend
-        console.log('Profile data to save:', completeProfileData);
+        await profileService.updateProfile(user.uid, completeProfileData);
 
         // Update user profile in Firebase Auth if profile image was uploaded
-        if (profileImageUrl && user) {
-          await user.updateProfile({
+        if (user) {
+          await updateFirebaseProfile(user, {
             displayName: profileData.personal.fullName,
-            photoURL: profileImageUrl,
+            ...(profileImageUrl ? { photoURL: profileImageUrl } : {}),
           });
         }
 
@@ -717,21 +730,10 @@ const ProfileSetup = () => {
         });
 
         // Navigate to profile page
-        console.log('Redirecting to profile page');
         navigate('/profile');
       } catch (apiError) {
         console.error('API call failed:', apiError);
-
-        // For development/testing - simulate success if API is not available
-        console.log('Simulating successful profile update for development');
-        toast({
-          title: 'Profile Setup Complete',
-          description: 'Your profile has been successfully set up.',
-        });
-
-        // Navigate to profile page even if API fails (for testing)
-        console.log('Redirecting to profile page');
-        navigate('/profile');
+        throw apiError;
       }
     } catch (error: any) {
       console.error('Profile update error:', error);
@@ -740,10 +742,6 @@ const ProfileSetup = () => {
         title: 'Update Failed',
         description: error.message || 'Failed to update your profile. Please try again.',
       });
-
-      // For development/testing - navigate anyway
-      console.log('Redirecting to profile page despite error');
-      navigate('/profile');
     } finally {
       setIsSubmitting(false);
     }
@@ -799,7 +797,7 @@ const ProfileSetup = () => {
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
                 <img
-                  src="/images/logo.png"
+                  src="/images/header-logo.png"
                   alt="WorkWise SA Logo"
                   className="h-36 md:h-40 object-contain transition-all duration-200 hover:scale-105"
                 />

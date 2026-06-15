@@ -18,32 +18,12 @@ import {
   allIndustryAverages,
 } from '@/data/salaryData';
 
+type LowLevelIndustry = keyof typeof lowLevelJobAverages;
+type ExperienceLevel = 'entry' | 'mid' | 'senior';
+
 // --- Constants ---
 const SA_CURRENCY = 'ZAR';
 const SA_LOCALE = 'en-ZA';
-
-// South African Income Tax Brackets for 2024/2025
-const taxBrackets2024 = [
-  { min: 0, max: 237100, rate: 0.18, baseAmount: 0 },
-  { min: 237101, max: 370500, rate: 0.26, baseAmount: 42678 },
-  { min: 370501, max: 512800, rate: 0.31, baseAmount: 77362 },
-  { min: 512801, max: 673000, rate: 0.36, baseAmount: 121475 },
-  { min: 673001, max: 857900, rate: 0.39, baseAmount: 179147 },
-  { min: 857901, max: 1817000, rate: 0.41, baseAmount: 251258 },
-  { min: 1817001, max: Infinity, rate: 0.45, baseAmount: 644489 },
-];
-
-// UIF
-const UIF_RATE = 0.01; // 1%
-const UIF_SALARY_CEILING_MONTHLY = 17712; // Employee contribution is 1% of remuneration up to this monthly amount
-const UIF_MAX_MONTHLY_CONTRIBUTION = UIF_SALARY_CEILING_MONTHLY * UIF_RATE;
-
-// Medical Tax Credits (MTC) for 2024/2025 (monthly)
-const MTC_RATES = {
-  mainMember: 364,
-  firstDependant: 364,
-  additionalDependant: 246,
-};
 
 // Common deductions
 const commonDeductions = [
@@ -73,6 +53,12 @@ const formatCurrency = (value: number, currency = SA_CURRENCY, locale = SA_LOCAL
   }).format(value);
 };
 
+const isLowLevelIndustry = (value: string): value is LowLevelIndustry =>
+  value in lowLevelJobAverages;
+
+const isExperienceLevel = (value: string): value is ExperienceLevel =>
+  value === 'entry' || value === 'mid' || value === 'senior';
+
 // Lazy load Industry Comparison Tab
 const IndustryComparisonTabContent = lazy(() => import('./IndustryComparisonTabContent'));
 
@@ -88,8 +74,10 @@ const SalaryCalculator = () => {
 
   // Job level and industry selection
   const [jobLevel, setJobLevel] = useState('professional'); // 'professional' or 'entry-level'
-  const [industry, setIndustry] = useState(Object.keys(lowLevelJobAverages)[0]); // Default to first entry-level job
-  const [experience, setExperience] = useState('mid'); // Default to mid-level
+  const [industry, setIndustry] = useState<LowLevelIndustry>(
+    Object.keys(lowLevelJobAverages)[0] as LowLevelIndustry
+  ); // Default to first entry-level job
+  const [experience, setExperience] = useState<ExperienceLevel>('mid'); // Default to mid-level
 
   // Always use entry-level job data for industry dropdown
   const industryData = useMemo(() => lowLevelJobAverages, []);
@@ -140,7 +128,7 @@ const SalaryCalculator = () => {
   const industryComparisonData = useMemo(() => {
     if (!industry || !industryData[industry]) return [];
 
-    const data = ['entry', 'mid', 'senior'].map(level => {
+    const data = (['entry', 'mid', 'senior'] as ExperienceLevel[]).map(level => {
       const gross = industryData[industry][level];
       return {
         name: `${level.charAt(0).toUpperCase() + level.slice(1)} Level`,
@@ -176,7 +164,7 @@ const SalaryCalculator = () => {
   useEffect(() => {
     // If the current industry doesn't exist in lowLevelJobAverages, reset to the first one
     if (!lowLevelJobAverages[industry]) {
-      setIndustry(Object.keys(lowLevelJobAverages)[0]);
+      setIndustry(Object.keys(lowLevelJobAverages)[0] as LowLevelIndustry);
     }
   }, [industry]);
 
@@ -188,7 +176,7 @@ const SalaryCalculator = () => {
         </h1>
         <p className="text-muted-foreground">
           Estimate your net pay, tax, and compare with industry benchmarks for all job levels
-          (2024/2025 Tax Year).
+          (2026/2027 Tax Year).
         </p>
         <p className="text-sm text-muted-foreground mt-1">
           Now includes data for entry-level jobs, general workers, and service positions with
@@ -238,9 +226,17 @@ const SalaryCalculator = () => {
               calculationType={calculationType}
               setCalculationType={setCalculationType}
               industry={industry}
-              setIndustry={setIndustry}
+              setIndustry={value => {
+                if (isLowLevelIndustry(value)) {
+                  setIndustry(value);
+                }
+              }}
               experience={experience}
-              setExperience={setExperience}
+              setExperience={value => {
+                if (isExperienceLevel(value)) {
+                  setExperience(value);
+                }
+              }}
               applyIndustryAverage={applyIndustryAverage}
               jobLevel={jobLevel}
               setJobLevel={setJobLevel}
@@ -282,7 +278,7 @@ const SalaryCalculator = () => {
           © {new Date().getFullYear()} Salary Calculator. For estimation purposes only. Consult a
           financial advisor for professional advice.
         </p>
-        <p>Tax brackets and MTC rates for 2024/2025 tax year.</p>
+        <p>Tax brackets and MTC rates for the 2026/2027 tax year.</p>
       </div>
     </div>
   );

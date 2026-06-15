@@ -9,6 +9,8 @@ interface JobDescriptionStepProps {
   handleAIAssist: (type: string) => void;
 }
 
+const renderMarkdown = (value: string) => marked.parse(value, { async: false }) as string;
+
 export const JobDescriptionStep: React.FC<JobDescriptionStepProps> = ({
   formState,
   handleAIAssist,
@@ -84,7 +86,7 @@ export const JobDescriptionStep: React.FC<JobDescriptionStepProps> = ({
           <h4 className="text-sm font-medium mb-2">Preview:</h4>
           <div
             className="prose prose-sm max-w-none border p-4 rounded-md"
-            dangerouslySetInnerHTML={{ __html: marked(values.description) }}
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(values.description) }}
           />
         </div>
       )}

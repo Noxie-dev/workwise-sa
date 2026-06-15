@@ -16,6 +16,7 @@ vi.mock('../../storage', () => ({
     createFile: vi.fn(),
     getFilesByUser: vi.fn(),
     getFile: vi.fn(),
+    getUserByFirebaseUid: vi.fn(),
     deleteFile: vi.fn(),
   },
 }));
@@ -137,6 +138,47 @@ describe('file routes', () => {
         fileType: 'profile_image',
         mimeType: 'image/png',
         fileUrl: expect.stringContaining('/uploads/profile-images/user-42/'),
+      })
+    );
+  });
+
+  it('uploads a profile image for a firebase uid and persists it against the numeric user id', async () => {
+    const tempFile = path.join(uploadsRoot, 'temp', 'firebase-avatar-upload.png');
+    fs.writeFileSync(tempFile, 'fake-image-content');
+
+    mockedStorage.getUserByFirebaseUid.mockResolvedValue({
+      id: 77,
+      firebaseUid: 'firebase-uid-77',
+    } as any);
+    mockedStorage.createFile.mockImplementation(async (fileData: any) => ({
+      id: 654,
+      ...fileData,
+    }));
+
+    const response = await invokeFinalHandler({
+      path: '/upload-profile-image',
+      method: 'post',
+      req: {
+        body: { userId: 'firebase-uid-77' },
+        file: {
+          originalname: 'avatar.png',
+          mimetype: 'image/png',
+          size: 18,
+          path: tempFile,
+          encoding: '7bit',
+        },
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(mockedStorage.getUserByFirebaseUid).toHaveBeenCalledWith('firebase-uid-77');
+    expect(mockedStorage.createFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 77,
+        originalName: 'avatar.png',
+        fileType: 'profile_image',
+        fileUrl: expect.stringContaining('/uploads/profile-images/user-firebase-uid-77/'),
       })
     );
   });

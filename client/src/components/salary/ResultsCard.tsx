@@ -421,22 +421,26 @@ const easingFunctions = {
           : (2 - Math.pow(2, -20 * t + 10)) / 2;
   },
 
-  // Smooth spring-like effect with slight bounce
-  elasticOut: (t: number): number => {
-    const c4 = (2 * Math.PI) / 3;
-    return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
-  },
+  easeOutCubic: (t: number): number => 1 - Math.pow(1 - t, 3),
 };
 
 // Helper function for animating number increment with smoother animation
 const useAnimatedCounter = (targetValue: number, duration: number = 1000, delay: number = 0) => {
   const [count, setCount] = useState(0);
-  const previousValue = useRef(0);
+  const countRef = useRef(0);
   const animationRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number | null>(null);
   const delayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    const startValue = countRef.current;
+    const change = targetValue - startValue;
+
+    if (Math.abs(change) < 0.01) {
+      setCount(targetValue);
+      countRef.current = targetValue;
+      return;
+    }
+
     // Clear any existing animation
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
@@ -447,44 +451,26 @@ const useAnimatedCounter = (targetValue: number, duration: number = 1000, delay:
       clearTimeout(delayTimeoutRef.current);
     }
 
-    // Set initial value to previous target or 0
-    setCount(previousValue.current);
-
     // Start animation after delay
     delayTimeoutRef.current = setTimeout(() => {
-      startTimeRef.current = null;
+      let startTime: number | null = null;
 
       const animate = (timestamp: number) => {
-        if (!startTimeRef.current) startTimeRef.current = timestamp;
-        const elapsed = timestamp - startTimeRef.current;
+        if (startTime === null) startTime = timestamp;
 
-        if (elapsed < duration) {
-          // Calculate the current count based on elapsed time with easing
-          const linearProgress = elapsed / duration;
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = easingFunctions.easeOutCubic(progress);
+        const nextCount = startValue + change * easedProgress;
 
-          // Custom combined easing for ultra-smooth animation
-          // First 80% uses cubic easing for smooth acceleration/deceleration
-          // Last 20% uses elastic for a subtle spring effect at the end
-          let easedProgress;
-          if (linearProgress < 0.8) {
-            // Normalize progress to 0-1 range for the first 80%
-            const normalizedProgress = linearProgress / 0.8;
-            easedProgress = easingFunctions.easeInOutCubic(normalizedProgress) * 0.8;
-          } else {
-            // Normalize progress to 0-1 range for the last 20%
-            const normalizedProgress = (linearProgress - 0.8) / 0.2;
-            // Start from 80% and add the remaining 20% with elastic easing
-            easedProgress = 0.8 + easingFunctions.elasticOut(normalizedProgress) * 0.2;
-          }
+        setCount(nextCount);
+        countRef.current = nextCount;
 
-          const currentCount =
-            previousValue.current + (targetValue - previousValue.current) * easedProgress;
-          setCount(currentCount);
+        if (progress < 1) {
           animationRef.current = requestAnimationFrame(animate);
         } else {
-          // Animation complete
           setCount(targetValue);
-          previousValue.current = targetValue;
+          countRef.current = targetValue;
         }
       };
 
@@ -610,12 +596,8 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [exportType, setExportType] = useState<'csv' | 'pdf' | 'print' | null>(null);
 
-  // Animated monthly salary with 3.5 second delay and 2.5 second animation
-  const animatedMonthlySalary = useAnimatedCounter(
-    taxDetails.netIncome || 0,
-    2500, // 2.5 second animation duration for smoother counting
-    3500 // 3.5 second delay
-  );
+  // Animated monthly salary with a short delay and steady easing to avoid digit jitter.
+  const animatedMonthlySalary = useAnimatedCounter(taxDetails.netIncome || 0, 2600, 400);
 
   // Handle export action
   const handleExport = (type: 'csv' | 'pdf' | 'print') => {
@@ -682,7 +664,7 @@ const ResultsCard: React.FC<ResultsCardProps> = ({
         <div className="mt-4 md:mt-0">
           <div className="font-bold text-2xl flex flex-col items-end">
             <span className="text-base text-gray-500 mb-1">Monthly Take-Home</span>
-            <span className="text-4xl text-green-600 dark:text-green-400">
+            <span className="min-w-[13ch] text-right text-4xl tabular-nums text-green-600 dark:text-green-400">
               {formatCurrency(animatedMonthlySalary)}
             </span>
           </div>

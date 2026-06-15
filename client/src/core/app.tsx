@@ -8,6 +8,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Suspense, lazy } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import OfflineStatus from '@/components/OfflineStatus';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { firebaseStatus } from '@/lib/firebase';
 
@@ -19,11 +20,13 @@ const Resources = lazy(() => import('@/pages/Resources'));
 const WiseUpPage = lazy(() => import('@/pages/WiseUp/WiseUpPage'));
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
+const Logout = lazy(() => import('@/pages/Logout'));
 const CVBuilder = lazy(() => import('@/pages/CVBuilder'));
 const UserProfile = lazy(() => import('@/pages/UserProfile'));
 const ProfileSetup = lazy(() => import('@/pages/ProfileSetup'));
 const EmailLinkLogin = lazy(() => import('@/pages/EmailLinkLogin'));
 const EmailSignInComplete = lazy(() => import('@/pages/EmailSignInComplete'));
+const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
 const MarketingRulesPage = lazy(() => import('@/pages/MarketingRulesPage'));
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
 const AdminAnalytics = lazy(() => import('@/pages/admin/Analytics'));
@@ -118,6 +121,8 @@ const Router = () => {
             <Route path="/billing" component={Billing} />
             <Route path="/login" component={Login} />
             <Route path="/register" component={Register} />
+            <Route path="/logout" component={Logout} />
+            <Route path="/forgot-password" component={ForgotPassword} />
             <Route path="/profile" component={UserProfile} />
             <Route path="/profile/:username" component={UserProfile} />
             <Route path="/profile-setup">{() => <ProfileSetup />}</Route>
@@ -149,6 +154,7 @@ const App = () => {
         <AuthProvider>
           <Router />
           <Toaster />
+          <OfflineStatus />
         </AuthProvider>
       </QueryClientProvider>
     </HelmetProvider>

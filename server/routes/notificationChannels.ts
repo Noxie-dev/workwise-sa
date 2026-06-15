@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { smsService } from '../services/smsService';
+import { type AuthenticatedRequest, verifyFirebaseToken } from '../middleware/auth';
+import { assertRole, resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
 
 const router = Router();
 
@@ -8,6 +10,18 @@ const smsPreviewSchema = z.object({
   to: z.string().min(8).max(20),
   body: z.string().min(1).max(320),
   category: z.enum(['job_alert', 'application', 'system']).optional(),
+});
+
+router.use(verifyFirebaseToken);
+
+router.use(async (req, _res, next) => {
+  try {
+    const user = await resolveAuthenticatedDatabaseUser((req as AuthenticatedRequest).user!);
+    assertRole(user, ['admin']);
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.get('/sms/status', (_req, res) => {

@@ -49,6 +49,93 @@ const getUserLevel = (score: number) => {
   return { level: 1, title: 'Novice' };
 };
 
+const DEFAULT_AVATAR = '/images/header-logo.png';
+
+const firstValue = (...values: Array<string | null | undefined>) =>
+  values.find(value => typeof value === 'string' && value.trim().length > 0) || '';
+
+const normalizeArray = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.filter(
+      (item): item is string => typeof item === 'string' && item.trim().length > 0
+    );
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
+const normalizeProfile = (profile: any, currentUser: any) => {
+  const personal = profile?.personal || {};
+  const skills = profile?.skills || {};
+  const preferences = profile?.preferences || {};
+  const profilePicture = firstValue(
+    currentUser?.photoURL,
+    personal.profilePicture,
+    personal.profileImageUrl,
+    profile?.profilePicture,
+    profile?.profileImageUrl
+  );
+  const professionalImage = firstValue(personal.professionalImage, profile?.professionalImage);
+
+  return {
+    ...profile,
+    personal: {
+      ...personal,
+      fullName: firstValue(personal.fullName, currentUser?.displayName, currentUser?.email, 'User'),
+      phoneNumber: personal.phoneNumber || '',
+      location: firstValue(personal.location, 'Not specified'),
+      bio: firstValue(
+        personal.bio,
+        'Welcome to WorkWise SA! Complete your profile to get better job matches.'
+      ),
+      profilePicture,
+      professionalImage,
+    },
+    education: {
+      highestEducation: '',
+      schoolName: '',
+      ...(profile?.education || {}),
+    },
+    experience: {
+      hasExperience: false,
+      ...(profile?.experience || {}),
+    },
+    skills: {
+      ...skills,
+      skills: normalizeArray(skills.skills),
+      languages: normalizeArray(skills.languages).length
+        ? normalizeArray(skills.languages)
+        : ['English'],
+      cvUpload: firstValue(skills.cvUpload, skills.cvFileUrl),
+    },
+    preferences: {
+      jobTypes: normalizeArray(preferences.jobTypes),
+      locations: normalizeArray(preferences.locations),
+      minSalary: Number(preferences.minSalary || 0),
+      willingToRelocate: Boolean(preferences.willingToRelocate),
+    },
+    memberSince: profile?.memberSince || new Date().toISOString().split('T')[0],
+    engagementScore: Number(profile?.engagementScore || 0),
+    applications: profile?.applications || {
+      current: 0,
+      total: 0,
+      successRate: 0,
+    },
+    ratings: profile?.ratings || {
+      overall: 0,
+    },
+    notifications: profile?.notifications || 0,
+    recentActivity: Array.isArray(profile?.recentActivity) ? profile.recentActivity : [],
+  };
+};
+
 const UserProfile = () => {
   const { username } = useParams();
   const { currentUser } = useAuth();
@@ -71,60 +158,61 @@ const UserProfile = () => {
       setLoading(true);
       try {
         const data = await profileService.getProfile(currentUser.uid);
-        setProfile(data);
-        // Profile picture priority: Firebase photoURL, then profile.profilePicture, then fallback
-        const images = [
-          currentUser.photoURL || data?.personal?.profilePicture || '/images/default-avatar.png',
-        ];
+        const normalizedProfile = normalizeProfile(data, currentUser);
+        setProfile(normalizedProfile);
+        const images = [normalizedProfile.personal.profilePicture || DEFAULT_AVATAR];
         setProfileImages(images);
-        // Set professional image if available
-        setProfessionalImage(data?.personal?.professionalImage || null);
+        setProfessionalImage(normalizedProfile.personal.professionalImage || null);
       } catch (e) {
         console.error('Failed to fetch profile:', e);
         // Create a default profile structure if fetch fails
-        setProfile({
-          personal: {
-            fullName: currentUser.displayName || 'User',
-            phoneNumber: '',
-            location: 'Not specified',
-            bio: 'Welcome to WorkWise SA! Complete your profile to get better job matches.',
-            profilePicture: currentUser.photoURL,
+        const fallbackProfile = normalizeProfile(
+          {
+            personal: {
+              fullName: currentUser.displayName || 'User',
+              phoneNumber: '',
+              location: 'Not specified',
+              bio: 'Welcome to WorkWise SA! Complete your profile to get better job matches.',
+              profilePicture: currentUser.photoURL,
+            },
+            education: {
+              highestEducation: 'Not specified',
+              schoolName: 'Not specified',
+            },
+            experience: {
+              hasExperience: false,
+              jobTitle: 'Not specified',
+              employer: 'Not specified',
+            },
+            skills: {
+              skills: [],
+              languages: ['English'],
+              hasDriversLicense: false,
+              hasTransport: false,
+            },
+            preferences: {
+              jobTypes: [],
+              locations: [],
+              minSalary: 0,
+              willingToRelocate: false,
+            },
+            memberSince: new Date().toISOString().split('T')[0],
+            engagementScore: 10,
+            applications: {
+              current: 0,
+              total: 0,
+              successRate: 0,
+            },
+            ratings: {
+              overall: 0,
+            },
+            notifications: 0,
+            recentActivity: [],
           },
-          education: {
-            highestEducation: 'Not specified',
-            schoolName: 'Not specified',
-          },
-          experience: {
-            hasExperience: false,
-            jobTitle: 'Not specified',
-            employer: 'Not specified',
-          },
-          skills: {
-            skills: [],
-            languages: ['English'],
-            hasDriversLicense: false,
-            hasTransport: false,
-          },
-          preferences: {
-            jobTypes: [],
-            locations: [],
-            minSalary: 0,
-            willingToRelocate: false,
-          },
-          memberSince: new Date().toISOString().split('T')[0],
-          engagementScore: 10,
-          applications: {
-            current: 0,
-            total: 0,
-            successRate: 0,
-          },
-          ratings: {
-            overall: 0,
-          },
-          notifications: 0,
-          recentActivity: [],
-        });
-        const images = [currentUser.photoURL || '/images/default-avatar.png'];
+          currentUser
+        );
+        setProfile(fallbackProfile);
+        const images = [fallbackProfile.personal.profilePicture || DEFAULT_AVATAR];
         setProfileImages(images);
       } finally {
         setLoading(false);
@@ -169,7 +257,7 @@ const UserProfile = () => {
             {/* Logo in top left */}
             <div className="absolute top-4 left-4 md:left-8">
               <img
-                src="/images/logo.png"
+                src="/images/header-logo.png"
                 alt="WorkWise SA Logo"
                 className="h-24 rounded-md shadow-md transition-all duration-200 hover:scale-105"
               />

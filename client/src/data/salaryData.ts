@@ -3,11 +3,12 @@
  * Contains industry averages and job category information for South Africa
  */
 
-// South African minimum wage (2024)
+// South African national minimum wage, effective 1 March 2026
 export const MINIMUM_WAGE = {
-  hourly: 27.58,
-  monthly: 4769.93, // Based on 173 hours per month
-  annual: 57239.16,
+  hourly: 30.23,
+  weekly: 1360.35, // 45 ordinary hours
+  monthly: 5894.4, // Weekly rate x 4.333
+  annual: 70732.8,
 };
 
 // Industry average salary data for professional jobs in South Africa (monthly)

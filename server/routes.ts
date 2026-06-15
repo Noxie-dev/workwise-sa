@@ -13,6 +13,7 @@ import monetizationRoutes from './routes/monetization';
 import notificationChannelRoutes from './routes/notificationChannels';
 import billingRoutes from './routes/billing';
 import entitlementRoutes from './routes/entitlements';
+import resourceRoutes from './routes/resources';
 import { registerCvApiRoutes } from './routes/cvApi';
 import { registerPublicApiRoutes } from './routes/publicApi';
 
@@ -30,6 +31,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/monetization', monetizationRoutes);
   app.use('/api/entitlements', entitlementRoutes);
   app.use('/api/billing', billingRoutes);
+  app.use('/api/resources', resourceRoutes);
 
   // Register dashboard and employer/admin analytics routes
   app.use('/api/dashboard', dashboardRoutes);

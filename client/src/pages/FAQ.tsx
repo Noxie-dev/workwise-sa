@@ -9,10 +9,8 @@ const FAQ = () => {
         description="Frequently asked questions about WorkWise SA."
       />
 
-      <main className="flex-grow">
-        <div className="container mx-auto px-4 py-8">
-          <FAQWheelPreview />
-        </div>
+      <main className="flex-grow bg-[#f6faff]">
+        <FAQWheelPreview />
       </main>
     </>
   );

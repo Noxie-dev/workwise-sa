@@ -1,6 +1,10 @@
 {
   "name": "WorkWise SA",
   "short_name": "WorkWise",
+  "description": "Find accessible jobs, build your CV, and manage applications on WorkWise SA.",
+  "id": "/?source=pwa",
+  "lang": "en-ZA",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -16,9 +20,35 @@
     }
   ],
   "theme_color": "#2A4365",
-  "background_color": "#ffffff",
+  "background_color": "#f8fafc",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait",
-  "start_url": "/",
-  "scope": "/"
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "categories": ["business", "productivity", "education"],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Find Jobs",
+      "short_name": "Jobs",
+      "description": "Browse available jobs",
+      "url": "/jobs?source=pwa",
+      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "CV Builder",
+      "short_name": "CV",
+      "description": "Build or update your CV",
+      "url": "/cv-builder?source=pwa",
+      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Resources",
+      "short_name": "Resources",
+      "description": "Open career resources",
+      "url": "/resources?source=pwa",
+      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
+    }
+  ]
 }

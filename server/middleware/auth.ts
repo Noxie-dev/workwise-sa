@@ -10,25 +10,49 @@ export type AuthenticatedRequest = Request & {
   };
 };
 
-export const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
+function extractBearerToken(req: Request) {
   const authHeader = req.headers.authorization;
+  if (!authHeader) return null;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized: No token provided' });
+  const [scheme, token, ...extra] = authHeader.trim().split(/\s+/);
+  if (scheme?.toLowerCase() !== 'bearer' || !token || extra.length > 0) {
+    return null;
   }
 
-  const token = authHeader.split('Bearer ')[1];
+  return token;
+}
+
+export const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
+  const token = extractBearerToken(req);
+
+  if (!token) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
 
   try {
-    const decodedToken = await auth.verifyIdToken(token);
-    (req as any).user = decodedToken;
+    const decodedToken = await auth.verifyIdToken(token, true);
+    (req as AuthenticatedRequest).user = {
+      ...decodedToken,
+      uid: decodedToken.uid,
+      email: typeof decodedToken.email === 'string' ? decodedToken.email : undefined,
+      role: typeof decodedToken.role === 'string' ? decodedToken.role : undefined,
+    };
     next();
-  } catch (error) {
-    console.error('Error verifying token:', error);
+  } catch (error: any) {
     if (error instanceof Error && /unavailable/i.test(error.message)) {
       return res.status(503).json({ error: 'Authentication service unavailable' });
     }
-    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+
+    const code = typeof error?.code === 'string' ? error.code : '';
+    if (code.includes('id-token-expired')) {
+      return res.status(401).json({ error: 'Session expired. Please sign in again.' });
+    }
+
+    if (code.includes('id-token-revoked')) {
+      return res.status(401).json({ error: 'Session revoked. Please sign in again.' });
+    }
+
+    return res.status(401).json({ error: 'Invalid authentication token' });
   }
 };
 
@@ -66,7 +90,7 @@ export const authorizeOwnership = (userIdParam: string = 'userId') => {
 };
 
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if ((req as any).user.role !== 'admin') {
+  if ((req as AuthenticatedRequest).user?.role !== 'admin') {
     return res
       .status(403)
       .json({ error: 'Forbidden: You do not have permission to perform this action' });

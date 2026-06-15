@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
 
-// South African Income Tax Brackets for 2024/2025
-const taxBrackets2024 = [
-  { min: 0, max: 237100, rate: 0.18, baseAmount: 0 },
-  { min: 237101, max: 370500, rate: 0.26, baseAmount: 42678 },
-  { min: 370501, max: 512800, rate: 0.31, baseAmount: 77362 },
-  { min: 512801, max: 673000, rate: 0.36, baseAmount: 121475 },
-  { min: 673001, max: 857900, rate: 0.39, baseAmount: 179147 },
-  { min: 857901, max: 1817000, rate: 0.41, baseAmount: 251258 },
-  { min: 1817001, max: Infinity, rate: 0.45, baseAmount: 644489 },
+// South African Income Tax Brackets for 2026/2027
+const taxBrackets2026 = [
+  { min: 0, max: 245100, rate: 0.18, baseAmount: 0 },
+  { min: 245101, max: 383100, rate: 0.26, baseAmount: 44118 },
+  { min: 383101, max: 530200, rate: 0.31, baseAmount: 79998 },
+  { min: 530201, max: 695800, rate: 0.36, baseAmount: 125599 },
+  { min: 695801, max: 887300, rate: 0.39, baseAmount: 185215 },
+  { min: 887301, max: 1903900, rate: 0.41, baseAmount: 259900 },
+  { min: 1903901, max: Infinity, rate: 0.45, baseAmount: 676006 },
 ];
 
 // UIF
@@ -16,11 +16,11 @@ const UIF_RATE = 0.01; // 1%
 const UIF_SALARY_CEILING_MONTHLY = 17712; // Employee contribution is 1% of remuneration up to this monthly amount
 const UIF_MAX_MONTHLY_CONTRIBUTION = UIF_SALARY_CEILING_MONTHLY * UIF_RATE;
 
-// Medical Tax Credits (MTC) for 2024/2025 (monthly)
+// Medical Tax Credits (MTC) for 2026/2027 (monthly)
 const MTC_RATES = {
-  mainMember: 364,
-  firstDependant: 364,
-  additionalDependant: 246,
+  mainMember: 410,
+  firstDependant: 410,
+  additionalDependant: 276,
 };
 
 // Pension/RA Deductibility Limits
@@ -119,7 +119,7 @@ export const useTaxCalculator = (
     // Calculate Income Tax (PAYE)
     let annualTax = 0;
     let taxBracketInfo = {};
-    for (const bracket of taxBrackets2024) {
+    for (const bracket of taxBrackets2026) {
       if (taxableIncome > bracket.min) {
         taxBracketInfo = bracket;
         if (taxableIncome <= bracket.max) {

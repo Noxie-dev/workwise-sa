@@ -1,4 +1,19 @@
-import { QueryClient, QueryFunction } from '@tanstack/react-query';
+import { onlineManager, QueryClient, QueryFunction } from '@tanstack/react-query';
+
+if (typeof window !== 'undefined') {
+  onlineManager.setEventListener(setOnline => {
+    const updateOnlineStatus = () => setOnline(navigator.onLine);
+
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+
+    return () => {
+      window.removeEventListener('online', updateOnlineStatus);
+      window.removeEventListener('offline', updateOnlineStatus);
+    };
+  });
+}
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -31,7 +46,11 @@ type UnauthorizedBehavior = 'returnNull' | 'throw';
 export const getQueryFn: <T>(options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    const token = localStorage.getItem('auth_token') || localStorage.getItem('authToken');
     const res = await fetch(queryKey[0] as string, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       credentials: 'include',
     });
 
@@ -49,10 +68,12 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: 'throw' }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
+      networkMode: 'online',
       staleTime: Infinity,
       retry: false,
     },
     mutations: {
+      networkMode: 'online',
       retry: false,
     },
   },
