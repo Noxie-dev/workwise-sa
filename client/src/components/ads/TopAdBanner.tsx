@@ -169,11 +169,19 @@ export default function TopAdBanner() {
 
   return (
     <aside
-      className="sticky top-[66px] z-40 w-full border-b border-slate-950 bg-[#0b0f14] px-3 py-3 shadow-[0_12px_32px_rgba(2,6,23,0.28)] md:top-[73px]"
+      className="sticky top-[66px] z-40 w-full overflow-hidden border-b border-slate-200 px-3 py-3 shadow-[0_12px_32px_rgba(2,6,23,0.14)] md:top-[73px]"
       aria-label="WorkWise LED display"
+      style={{
+        backgroundColor: '#f8fafc',
+        backgroundImage:
+          'linear-gradient(45deg, rgba(15, 23, 42, 0.055) 25%, transparent 25%), linear-gradient(-45deg, rgba(15, 23, 42, 0.055) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgba(15, 23, 42, 0.055) 75%), linear-gradient(-45deg, transparent 75%, rgba(15, 23, 42, 0.055) 75%)',
+        backgroundPosition: '0 0, 0 12px, 12px -12px, -12px 0',
+        backgroundSize: '24px 24px',
+      }}
     >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.14),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.12),transparent_30%)]" />
       <div
-        className="mx-auto w-full"
+        className="relative mx-auto w-full"
         style={{
           maxWidth: `${Math.min(size.width, 600)}px`,
         }}
