@@ -17,6 +17,7 @@ import {
   Checkbox,
   Dialog,
   DialogContent,
+  DialogTrigger,
   DialogTitle,
   DialogDescription,
   DialogFooter,

@@ -56,6 +56,7 @@ export default function EmployerDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [dateRange, setDateRange] = useState('30d');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
   // Track page view
   useEffect(() => {
@@ -75,7 +76,7 @@ export default function EmployerDashboard() {
     queryKey: ['employerDashboard', currentUser?.uid, dateRange, statusFilter],
     queryFn: () =>
       currentUser
-        ? employerDashboardService.fetchEmployerDashboard(currentUser.uid, dateRange, statusFilter)
+        ? employerDashboardService.fetchEmployerDashboard(dateRange, statusFilter)
         : null,
     enabled: !!currentUser,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -88,10 +89,7 @@ export default function EmployerDashboard() {
     error: jobsError,
   } = useQuery({
     queryKey: ['employerJobs', currentUser?.uid, statusFilter],
-    queryFn: () =>
-      currentUser
-        ? employerDashboardService.fetchEmployerJobs(currentUser.uid, statusFilter)
-        : null,
+    queryFn: () => (currentUser ? employerDashboardService.fetchEmployerJobs(statusFilter) : null),
     enabled: !!currentUser,
     staleTime: 5 * 60 * 1000,
   });
@@ -101,8 +99,13 @@ export default function EmployerDashboard() {
     isLoading: isApplicationsLoading,
     error: applicationsError,
   } = useQuery({
-    queryKey: ['employerApplications', currentUser?.uid],
-    queryFn: () => employerDashboardService.fetchEmployerApplications(),
+    queryKey: ['employerApplications', currentUser?.uid, selectedJobId, statusFilter, dateRange],
+    queryFn: () =>
+      employerDashboardService.fetchEmployerApplications({
+        jobId: selectedJobId,
+        status: statusFilter,
+        dateRange,
+      }),
     enabled: !!currentUser,
     staleTime: 5 * 60 * 1000,
   });
@@ -113,6 +116,7 @@ export default function EmployerDashboard() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['employerDashboard'] });
       void queryClient.invalidateQueries({ queryKey: ['employerJobs'] });
+      void queryClient.invalidateQueries({ queryKey: ['employerApplications'] });
     },
   });
 
@@ -132,6 +136,7 @@ export default function EmployerDashboard() {
 
   const handleStatusFilterChange = (value: string) => {
     setStatusFilter(value);
+    setSelectedJobId(null);
     if (currentUser) {
       analyticsService.trackFilterChange(currentUser.uid, 'statusFilter', value);
     }
@@ -150,9 +155,11 @@ export default function EmployerDashboard() {
         navigate(`/employers/jobs/${jobId}/edit`);
         break;
       case 'applications':
+        setSelectedJobId(jobId);
         setActiveTab('applications');
         break;
       case 'analytics':
+        setSelectedJobId(jobId);
         setActiveTab('analytics');
         break;
       default:
@@ -176,6 +183,11 @@ export default function EmployerDashboard() {
       employerDashboardService.exportDashboardData(dashboardData, 'employer-dashboard.csv');
     }
   };
+  const selectedJob = jobsData?.find(job => job.id === selectedJobId);
+  const selectedJobPerformance = selectedJob
+    ? dashboardData?.charts?.jobPerformance?.filter(item => item.jobTitle === selectedJob.title) ||
+      []
+    : dashboardData?.charts?.jobPerformance || [];
 
   // Handle unauthenticated users
   if (!currentUser) {
@@ -261,6 +273,17 @@ export default function EmployerDashboard() {
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>
             {error instanceof Error ? error.message : 'An error occurred'}
+          </AlertDescription>
+        </Alert>
+      )}
+      {statusMutation.error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Job status update failed</AlertTitle>
+          <AlertDescription>
+            {statusMutation.error instanceof Error
+              ? statusMutation.error.message
+              : 'Unable to update the job status'}
           </AlertDescription>
         </Alert>
       )}
@@ -608,9 +631,26 @@ export default function EmployerDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Application Management</CardTitle>
-              <CardDescription>Review and manage job applications</CardDescription>
+              <CardDescription>
+                {selectedJob
+                  ? `Review applications for ${selectedJob.title}`
+                  : 'Review and manage job applications'}
+              </CardDescription>
             </CardHeader>
             <CardContent>
+              {selectedJob && (
+                <div className="mb-4 flex items-center justify-between rounded-lg border bg-gray-50 p-3">
+                  <div>
+                    <p className="text-sm font-medium">{selectedJob.title}</p>
+                    <p className="text-xs text-gray-500">
+                      {selectedJob.location} • {selectedJob.type}
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setSelectedJobId(null)}>
+                    View All
+                  </Button>
+                </div>
+              )}
               {isApplicationsLoading ? (
                 <div className="space-y-4">
                   {Array(4)
@@ -666,21 +706,31 @@ export default function EmployerDashboard() {
         <TabsContent value="analytics" className={activeTab === 'analytics' ? 'block' : 'hidden'}>
           <Card>
             <CardHeader>
-              <CardTitle>Advanced Analytics</CardTitle>
+              <CardTitle>
+                {selectedJob ? `${selectedJob.title} Analytics` : 'Advanced Analytics'}
+              </CardTitle>
               <CardDescription>
                 Current reporting surface for your job posting performance
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-10">
-                <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 mb-4">
-                  Use overview metrics and application activity to monitor current performance.
-                </p>
-                <p className="text-sm text-gray-400">
-                  Deeper cohort and attribution reporting is not enabled in this runtime yet.
-                </p>
-              </div>
+              {selectedJobPerformance.length > 0 ? (
+                <div className="h-80">
+                  <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                    <JobManagementChart data={selectedJobPerformance} />
+                  </Suspense>
+                </div>
+              ) : (
+                <div className="text-center py-10">
+                  <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 mb-4">
+                    Use overview metrics and application activity to monitor current performance.
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    Deeper cohort and attribution reporting is not enabled in this runtime yet.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

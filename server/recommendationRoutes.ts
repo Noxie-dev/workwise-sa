@@ -1,12 +1,10 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import {
-  getJobRecommendations,
   isEligibleForEarlyNotifications,
   sendJobNotificationToUser,
   trackUserInteraction,
   startUserSession,
   endUserSession,
-  personalizedJobSearch,
   calculateUserEngagementScore,
   getUserEngagementTier,
 } from './jobRecommendation';
@@ -16,6 +14,7 @@ import { eq } from 'drizzle-orm';
 import { Errors } from './middleware/errorHandler';
 import { type AuthenticatedRequest, verifyFirebaseToken } from './middleware/auth';
 import { resolveAuthenticatedDatabaseUser } from './services/authenticatedUser';
+import { getPersonalizedJobPreviews } from './services/jobMatchingService';
 
 // Create a new router instance
 const router = Router();
@@ -35,17 +34,15 @@ router.get('/jobs', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = await authenticatedUserId(req);
 
-    // Parse optional parameters
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
-    const includeApplied = req.query.includeApplied === 'true';
-    const includeRelocation = req.query.includeRelocation !== 'false';
-    const maxDistance = req.query.maxDistance ? parseInt(req.query.maxDistance as string) : 50;
-
-    const recommendations = await getJobRecommendations(userId, {
+    const recommendations = await getPersonalizedJobPreviews(userId, {
       limit,
-      includeApplied,
-      includeRelocation,
-      maxDistance,
+      page: req.query.page ? parseInt(req.query.page as string) : 1,
+      query: (req.query.q || req.query.query) as string | undefined,
+      location: req.query.location as string | undefined,
+      jobType: req.query.jobType as string | undefined,
+      workMode: req.query.workMode as string | undefined,
+      sort: 'relevance',
     });
 
     res.json(recommendations);
@@ -69,7 +66,13 @@ router.get('/search', async (req: Request, res: Response, next: NextFunction) =>
 
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
 
-    const results = await personalizedJobSearch(userId, query, { limit });
+    const results = await getPersonalizedJobPreviews(userId, {
+      query,
+      limit,
+      page: req.query.page ? parseInt(req.query.page as string) : 1,
+      location: req.query.location as string | undefined,
+      sort: 'relevance',
+    });
 
     res.json(results);
   } catch (error) {

@@ -109,6 +109,8 @@ export const jobs = pgTable(
     categoryId: integer('category_id')
       .notNull()
       .references(() => categories.id),
+    ownerUserId: integer('owner_user_id').references(() => users.id),
+    employerPostingMetadata: jsonb('employer_posting_metadata'),
     status: text('status').notNull().default('active'),
     isFeatured: boolean('is_featured').default(false),
     createdAt: timestamp('created_at').defaultNow(),
@@ -154,6 +156,8 @@ export const insertJobSchema = createInsertSchema(jobs).pick({
   workMode: true,
   companyId: true,
   categoryId: true,
+  ownerUserId: true,
+  employerPostingMetadata: true,
   status: true,
   isFeatured: true,
 });

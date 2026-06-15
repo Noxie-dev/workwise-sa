@@ -78,7 +78,9 @@ export const CompanyInfoStep: React.FC<CompanyInfoStepProps> = ({ formState, han
             ) : (
               <div className="relative w-full">
                 <img
-                  src={logoPreview || ''}
+                  src={
+                    logoPreview || (typeof values.companyLogo === 'string' ? values.companyLogo : '')
+                  }
                   alt="Company logo preview"
                   className="w-full max-w-[200px] h-auto rounded-lg mx-auto"
                 />

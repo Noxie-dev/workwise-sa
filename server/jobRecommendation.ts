@@ -654,6 +654,8 @@ export async function personalizedJobSearch(
         workMode: job.workMode,
         companyId: job.companyId,
         categoryId: job.categoryId,
+        ownerUserId: null,
+        employerPostingMetadata: null,
         status: job.status ?? 'active',
         isFeatured: job.isFeatured,
         createdAt: job.createdAt,

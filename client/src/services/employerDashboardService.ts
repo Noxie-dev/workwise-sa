@@ -16,12 +16,11 @@ export const employerDashboardService = {
    * Get employer dashboard data
    */
   async fetchEmployerDashboard(
-    userId?: string,
     dateRange?: string,
     status?: string
   ): Promise<EmployerDashboard> {
     const response = await apiClient.get<EmployerDashboard>('/employer/dashboard', {
-      params: { userId, dateRange, status },
+      params: { dateRange, status },
     });
     return response.data;
   },
@@ -29,15 +28,25 @@ export const employerDashboardService = {
   /**
    * Get list of jobs for an employer
    */
-  async fetchEmployerJobs(userId: string, status: string): Promise<EmployerJobSummary[]> {
+  async fetchEmployerJobs(status: string): Promise<EmployerJobSummary[]> {
     const response = await apiClient.get<EmployerJobSummary[]>('/employer/jobs', {
-      params: { userId, status },
+      params: { status },
     });
     return response.data;
   },
 
-  async fetchEmployerApplications(): Promise<EmployerApplicationSummary[]> {
-    const response = await apiClient.get<EmployerApplicationSummary[]>('/employer/applications');
+  async fetchEmployerApplications(params?: {
+    jobId?: string | null;
+    status?: string;
+    dateRange?: string;
+  }): Promise<EmployerApplicationSummary[]> {
+    const response = await apiClient.get<EmployerApplicationSummary[]>('/employer/applications', {
+      params: {
+        jobId: params?.jobId || undefined,
+        status: params?.status,
+        dateRange: params?.dateRange,
+      },
+    });
     return response.data;
   },
 

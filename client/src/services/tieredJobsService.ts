@@ -56,6 +56,18 @@ const toMockJobPreviews = (): JobPreview[] => {
       isRemote: /remote/i.test(job.location),
       experienceLevel: inferExperienceLevel(job.title),
       featured: Boolean(job.isFeatured),
+      salaryPreview: job.salary
+        ? {
+            currency: 'ZAR',
+            negotiable: /negotiable/i.test(job.salary),
+            displayText: job.salary.startsWith('R') ? job.salary : `R ${job.salary}`,
+          }
+        : undefined,
+      match: {
+        score: 58,
+        label: 'Good match',
+        reasons: ['Relevant to your search', 'Available in South Africa'],
+      },
     };
   });
 };
@@ -132,15 +144,28 @@ export const tieredJobsService = {
    * Get job previews (public access - no authentication required)
    */
   async getJobPreviews(params: JobSearchParams = {}): Promise<JobSearchResponse> {
-    if (import.meta.env.DEV && useMockPublicData) {
+    const user = auth.currentUser;
+    if (import.meta.env.DEV && useMockPublicData && !user) {
       return buildMockJobPreviewsResponse(params);
     }
 
     try {
-      const query = new URLSearchParams(
-        Object.fromEntries(Object.entries(params).map(([key, value]) => [key, String(value)]))
-      );
-      const response = await fetch(`${publicJobsBaseUrl}/job-previews?${query}`);
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          query.set(key, String(value));
+        }
+      });
+
+      if (user) {
+        query.set('personalized', 'true');
+        query.set('sort', params.sort || 'relevance');
+      }
+
+      const token = user ? await user.getIdToken() : undefined;
+      const response = await fetch(`${publicJobsBaseUrl}/job-previews?${query}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
 
       if (!response.ok) {
         return getFallbackJobPreviews(params, `HTTP ${response.status}`);
@@ -155,6 +180,26 @@ export const tieredJobsService = {
     } catch (error) {
       return getFallbackJobPreviews(params, error);
     }
+  },
+
+  async trackInteraction(
+    interactionType: 'view' | 'save' | 'share' | 'apply',
+    data: { jobId?: number; categoryId?: number; metadata?: Record<string, unknown> }
+  ): Promise<void> {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const token = await user.getIdToken();
+    await fetch('/api/recommendations/track', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ interactionType, ...data }),
+    }).catch(error => {
+      console.warn('Unable to track job interaction:', error);
+    });
   },
 
   /**

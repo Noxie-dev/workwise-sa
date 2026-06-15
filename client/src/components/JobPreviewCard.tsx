@@ -3,7 +3,7 @@ import { Link } from 'wouter';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Lock, Eye, Calendar, MapPin, Building2 } from 'lucide-react';
+import { Banknote, Lock, Eye, Calendar, MapPin, Building2, Sparkles } from 'lucide-react';
 import { JobPreview } from '../../../shared/job-types';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -97,6 +97,11 @@ const JobPreviewCard: React.FC<JobPreviewCardProps> = ({
               Featured
             </Badge>
           )}
+          {job.match && (
+            <Badge variant="secondary" className="shrink-0 bg-emerald-100 text-emerald-800">
+              {job.match.score}% match
+            </Badge>
+          )}
         </div>
       </CardHeader>
 
@@ -116,10 +121,38 @@ const JobPreviewCard: React.FC<JobPreviewCardProps> = ({
             </Badge>
           </div>
 
-          <div className="flex items-center text-xs text-muted mb-3">
-            <Calendar className="w-3 h-3 mr-1" />
-            <span>Posted {formatPostedDate(job.postedDate)}</span>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted mb-3">
+            <span className="inline-flex items-center">
+              <Calendar className="w-3 h-3 mr-1" />
+              Posted {formatPostedDate(job.postedDate)}
+            </span>
+            {job.salaryPreview?.displayText && (
+              <span className="inline-flex items-center text-gray-700">
+                <Banknote className="w-3 h-3 mr-1" />
+                {job.salaryPreview.displayText}
+              </span>
+            )}
           </div>
+
+          {job.match && (
+            <div className="mb-3 rounded-md border border-emerald-100 bg-emerald-50 p-3">
+              <div className="mb-1 flex items-center text-sm font-medium text-emerald-900">
+                <Sparkles className="mr-2 h-4 w-4" />
+                {job.match.label}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {job.match.reasons.slice(0, 3).map(reason => (
+                  <Badge
+                    key={reason}
+                    variant="outline"
+                    className="border-emerald-200 bg-white text-emerald-800"
+                  >
+                    {reason}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Authentication-based action buttons */}

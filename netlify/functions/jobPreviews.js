@@ -1,5 +1,68 @@
 import { db } from './utils/postgres.js';
 
+const parseZarSalary = salary => {
+  if (!salary || typeof salary !== 'string') return undefined;
+  const normalized = salary.replace(/\s+/g, ' ').trim();
+  const values = normalized.match(/(?:r\s*)?\d[\d\s,.]*(?:k)?/gi) || [];
+  const parsed = values
+    .map(value => {
+      const multiplier = /k\b/i.test(value) ? 1000 : 1;
+      const numeric = Number(value.replace(/[^\d.]/g, ''));
+      return Number.isFinite(numeric) ? Math.round(numeric * multiplier) : undefined;
+    })
+    .filter(Boolean)
+    .sort((left, right) => left - right);
+
+  return {
+    min: parsed[0],
+    max: parsed.length > 1 ? parsed[parsed.length - 1] : parsed[0],
+    currency: 'ZAR',
+    negotiable: /negotiable|market|competitive/i.test(normalized),
+    displayText: /^r/i.test(normalized) ? normalized : `R ${normalized}`,
+  };
+};
+
+const tokenize = value =>
+  String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .filter(token => token.length > 2);
+
+const scorePublicMatch = (row, params) => {
+  const reasons = [];
+  let score = row.featured ? 8 : 0;
+  const haystack = new Set(
+    tokenize(`${row.title} ${row.shortDescription} ${row.location} ${row.company?.name} ${row.category?.name}`)
+  );
+
+  if (params.query) {
+    const matched = tokenize(params.query).filter(token => haystack.has(token)).length;
+    if (matched) {
+      score += Math.min(24, matched * 8);
+      reasons.push(`Relevant to "${params.query}"`);
+    }
+  }
+
+  if (params.location && row.location?.toLowerCase().includes(params.location.toLowerCase())) {
+    score += 22;
+    reasons.push(`Location match: ${row.location}`);
+  }
+
+  if (/remote/i.test(`${row.workMode} ${row.location}`)) {
+    score += 10;
+    reasons.push('Remote-friendly role');
+  }
+
+  return score > 0
+    ? {
+        score: Math.min(100, Math.round(score)),
+        label: score >= 52 ? 'Good match' : 'Possible match',
+        reasons: reasons.length ? reasons : ['Ranked by current job relevance'],
+      }
+    : undefined;
+};
+
 /**
  * Public API endpoint for job previews (no authentication required)
  * Returns basic job information for browsing
@@ -42,7 +105,8 @@ export const handler = async (event, context) => {
       experienceLevel = '',
       page = '1',
       limit = '20',
-      featured = 'false'
+      featured = 'false',
+      minSalary = ''
     } = params;
 
     const pageNum = Math.max(1, parseInt(page));
@@ -50,13 +114,13 @@ export const handler = async (event, context) => {
     const offset = (pageNum - 1) * limitNum;
 
     // Build the query
-    let whereConditions = ['j.id IS NOT NULL']; // Base condition
+    let whereConditions = [`j.id IS NOT NULL`, `COALESCE(j.status, 'active') = 'active'`];
     let queryParams = [];
     let paramIndex = 1;
 
     // Add search conditions
     if (query.trim()) {
-      whereConditions.push(`(j.title ILIKE $${paramIndex} OR j.description ILIKE $${paramIndex} OR comp.name ILIKE $${paramIndex} OR cat.name ILIKE $${paramIndex})`);
+      whereConditions.push(`(j.title ILIKE $${paramIndex} OR j.description ILIKE $${paramIndex} OR comp.name ILIKE $${paramIndex} OR cat.name ILIKE $${paramIndex} OR j.location ILIKE $${paramIndex})`);
       queryParams.push(`%${query.trim()}%`);
       paramIndex++;
     }
@@ -83,6 +147,14 @@ export const handler = async (event, context) => {
       whereConditions.push(`j.work_mode = $${paramIndex}`);
       queryParams.push(workMode.trim());
       paramIndex++;
+    }
+
+    if (experienceLevel.trim()) {
+      if (experienceLevel === 'senior') {
+        whereConditions.push(`(j.title ILIKE '%senior%' OR j.title ILIKE '%lead%' OR j.title ILIKE '%manager%')`);
+      } else if (experienceLevel === 'entry') {
+        whereConditions.push(`(j.title ILIKE '%junior%' OR j.title ILIKE '%entry%' OR j.title ILIKE '%graduate%' OR j.title ILIKE '%assistant%')`);
+      }
     }
 
     if (featured === 'true') {
@@ -112,6 +184,7 @@ export const handler = async (event, context) => {
         j.location,
         j.job_type as "jobType",
         j.work_mode as "workMode",
+        j.salary,
         j.is_featured as featured,
         j.created_at as "postedDate",
         -- Limited description (first 150 characters)
@@ -152,12 +225,21 @@ export const handler = async (event, context) => {
     queryParams.push(limitNum, offset);
     const jobsResult = await db.query(jobsQuery, queryParams);
 
-    const jobs = jobsResult.rows.map(row => ({
-      ...row,
-      postedDate: new Date(row.postedDate),
-      // Ensure tags is always an array
-      tags: Array.isArray(row.tags) ? row.tags.filter(Boolean) : []
-    }));
+    const jobs = jobsResult.rows
+      .map(row => ({
+        ...row,
+        postedDate: new Date(row.postedDate),
+        tags: Array.isArray(row.tags) ? row.tags.filter(Boolean) : [],
+        salaryPreview: parseZarSalary(row.salary),
+        match: scorePublicMatch(row, { query, location })
+      }))
+      .filter(row => {
+        const minimum = Number(minSalary);
+        if (!Number.isFinite(minimum) || minimum <= 0) return true;
+        const available = row.salaryPreview?.max || row.salaryPreview?.min || 0;
+        return !available || available >= minimum;
+      })
+      .map(({ salary, ...row }) => row);
 
     return {
       statusCode: 200,
