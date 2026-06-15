@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useLocation } from 'wouter';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,6 +27,7 @@ import { sendSignInLink, signInWithGoogle } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import AuthShell from '@/components/AuthShell';
 
 const formSchema = z.object({
   email: z.email('Please enter a valid email address'),
@@ -41,6 +42,11 @@ const EmailLinkLogin = () => {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
+  const nextPath = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get('next');
+    return next?.startsWith('/') && !next.startsWith('//') ? next : '/profile-setup';
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -49,17 +55,19 @@ const EmailLinkLogin = () => {
     },
   });
 
-  // Redirect if already logged in
-  if (isAuthenticated) {
-    navigate('/profile');
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(nextPath);
+    }
+  }, [isAuthenticated, navigate, nextPath]);
+
+  if (isAuthenticated) return null;
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
       await signInWithGoogle();
-      navigate('/profile-setup');
+      navigate(nextPath);
     } catch (error: any) {
       let errorMessage = 'Failed to sign in with Google. Please try again.';
 
@@ -79,8 +87,6 @@ const EmailLinkLogin = () => {
           'Firebase login is in demo mode. Add Firebase keys to client/.env or start the emulators.';
       }
 
-      console.error('Google sign-in error:', error.code, error.message);
-
       toast({
         variant: 'destructive',
         title: 'Login Failed',
@@ -95,9 +101,9 @@ const EmailLinkLogin = () => {
     setIsLoading(true);
 
     try {
-      await sendSignInLink(data.email);
+      await sendSignInLink(data.email, nextPath);
       setEmailSent(true);
-      setSentToEmail(data.email);
+      setSentToEmail(data.email.trim());
       toast({
         title: 'Email Sent',
         description: 'A sign-in link has been sent to your email address.',
@@ -121,8 +127,6 @@ const EmailLinkLogin = () => {
           'Email-link sign-in is in demo mode. Add Firebase keys to client/.env or start the emulators.';
       }
 
-      console.error('Email link error:', error.code, error.message);
-
       toast({
         variant: 'destructive',
         title: 'Email Link Failed',
@@ -143,16 +147,9 @@ const EmailLinkLogin = () => {
         />
       </Helmet>
 
-      <main className="flex-grow bg-light flex items-center justify-center py-10">
-        <Card className="w-full max-w-md mx-4">
+      <AuthShell>
+        <Card className="w-full shadow-xl shadow-slate-900/10">
           <CardHeader className="space-y-1">
-            <div className="flex justify-center mb-4">
-              <img
-                src="/images/logo.png"
-                alt="WorkWise SA Logo"
-                className="h-36 md:h-40 object-contain transition-all duration-200 hover:scale-105"
-              />
-            </div>
             <CardTitle className="text-2xl font-bold text-center">Passwordless Login</CardTitle>
             <CardDescription className="text-center">
               Get a secure sign-in link sent to your email
@@ -197,7 +194,7 @@ const EmailLinkLogin = () => {
                 <div className="w-full border-t border-border"></div>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-light px-2 text-muted">Or continue with</span>
+                <span className="bg-card px-2 text-muted">Or continue with</span>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-4">
@@ -224,7 +221,7 @@ const EmailLinkLogin = () => {
             </p>
           </CardFooter>
         </Card>
-      </main>
+      </AuthShell>
     </>
   );
 };

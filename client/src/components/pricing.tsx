@@ -1,6 +1,13 @@
 import React from 'react';
 
-const PricingCard = ({ title, price, features, isPopular }) => {
+type PricingPlan = {
+  title: string;
+  price: number;
+  features: string[];
+  isPopular: boolean;
+};
+
+const PricingCard = ({ title, price, features, isPopular }: PricingPlan) => {
   return (
     <div
       className={`p-6 rounded-lg shadow-lg ${isPopular ? 'bg-blue-50 border-2 border-blue-500' : 'bg-white'}`}

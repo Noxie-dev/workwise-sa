@@ -4,14 +4,18 @@ import fs from 'fs/promises';
 import path from 'path';
 import { z } from 'zod';
 import { storage } from '../storage';
+import { type AuthenticatedRequest, verifyFirebaseToken } from '../middleware/auth';
+import { assertRole, resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
 
 const router = Router();
 
+const spiderNameSchema = z.string().trim().regex(/^[a-z0-9_-]{1,60}$/i, 'Invalid spider name');
+
 const triggerScrapingSchema = z.object({
-  spiders: z.array(z.string()).optional(),
-  source: z.string().optional(),
-  maxItems: z.number().min(1).max(10000).optional(),
-  concurrent: z.number().min(1).max(5).optional(),
+  spiders: z.array(spiderNameSchema).min(1).max(10).optional(),
+  source: spiderNameSchema.optional(),
+  maxItems: z.coerce.number().int().min(1).max(10000).optional(),
+  concurrent: z.coerce.number().int().min(1).max(5).optional(),
   dryRun: z.boolean().optional(),
   ingest: z.boolean().optional(),
 });
@@ -48,6 +52,17 @@ const scrapingSessions = new Map<string, ScrapingSession>();
 const scrapyDir = path.join(process.cwd(), 'scrapy_jobs');
 const scrapingLogPath = path.join(scrapyDir, 'job_scraping.log');
 const pythonScript = path.join(scrapyDir, 'run_scrapers.py');
+
+router.use(verifyFirebaseToken);
+router.use(async (req, _res, next) => {
+  try {
+    const user = await resolveAuthenticatedDatabaseUser((req as AuthenticatedRequest).user!);
+    assertRole(user, ['admin']);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.get('/status', async (_req, res) => {
   try {

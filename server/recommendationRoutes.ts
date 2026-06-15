@@ -13,10 +13,19 @@ import {
 import { db } from './db';
 import { users, userJobPreferences } from '@shared/schema';
 import { eq } from 'drizzle-orm';
-import { ApiError, Errors } from './middleware/errorHandler';
+import { Errors } from './middleware/errorHandler';
+import { type AuthenticatedRequest, verifyFirebaseToken } from './middleware/auth';
+import { resolveAuthenticatedDatabaseUser } from './services/authenticatedUser';
 
 // Create a new router instance
 const router = Router();
+
+router.use(verifyFirebaseToken);
+
+async function authenticatedUserId(req: Request) {
+  const user = await resolveAuthenticatedDatabaseUser((req as AuthenticatedRequest).user!);
+  return user.id;
+}
 
 /**
  * Get personalized job recommendations for authenticated user
@@ -24,13 +33,7 @@ const router = Router();
  */
 router.get('/jobs', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // In a real application, we would get the authenticated user ID
-    // For example sake, we're expecting it as a query parameter
-    const userId = parseInt(req.query.userId as string);
-
-    if (isNaN(userId)) {
-      throw Errors.validation('Valid userId is required');
-    }
+    const userId = await authenticatedUserId(req);
 
     // Parse optional parameters
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
@@ -57,12 +60,12 @@ router.get('/jobs', async (req: Request, res: Response, next: NextFunction) => {
  */
 router.get('/search', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = parseInt(req.query.userId as string);
     const query = req.query.q as string;
 
-    if (isNaN(userId) || !query) {
-      throw Errors.validation('Valid userId and query are required');
+    if (!query) {
+      throw Errors.validation('Query is required');
     }
+    const userId = await authenticatedUserId(req);
 
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
 
@@ -80,11 +83,12 @@ router.get('/search', async (req: Request, res: Response, next: NextFunction) =>
  */
 router.post('/track', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId, interactionType, jobId, videoId, categoryId, duration, metadata } = req.body;
+    const { interactionType, jobId, videoId, categoryId, duration, metadata } = req.body;
 
-    if (!userId || !interactionType) {
-      throw Errors.validation('userId and interactionType are required');
+    if (!interactionType) {
+      throw Errors.validation('interactionType is required');
     }
+    const userId = await authenticatedUserId(req);
 
     await trackUserInteraction(userId, interactionType, {
       jobId,
@@ -106,11 +110,8 @@ router.post('/track', async (req: Request, res: Response, next: NextFunction) =>
  */
 router.post('/session/start', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId, device, ipAddress } = req.body;
-
-    if (!userId) {
-      throw Errors.validation('userId is required');
-    }
+    const { device, ipAddress } = req.body;
+    const userId = await authenticatedUserId(req);
 
     const sessionId = await startUserSession(userId, { device, ipAddress });
 
@@ -146,11 +147,7 @@ router.post('/session/end', async (req: Request, res: Response, next: NextFuncti
  */
 router.get('/engagement', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = parseInt(req.query.userId as string);
-
-    if (isNaN(userId)) {
-      throw Errors.validation('Valid userId is required');
-    }
+    const userId = await authenticatedUserId(req);
 
     // First check if user exists
     const [user] = await db.select().from(users).where(eq(users.id, userId));
@@ -192,7 +189,6 @@ router.get('/engagement', async (req: Request, res: Response, next: NextFunction
 router.put('/preferences', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const {
-      userId,
       preferredCategories,
       preferredLocations,
       preferredJobTypes,
@@ -200,9 +196,7 @@ router.put('/preferences', async (req: Request, res: Response, next: NextFunctio
       minSalary,
     } = req.body;
 
-    if (!userId) {
-      throw Errors.validation('userId is required');
-    }
+    const userId = await authenticatedUserId(req);
 
     // Check if preference exists
     const [existingPreference] = await db

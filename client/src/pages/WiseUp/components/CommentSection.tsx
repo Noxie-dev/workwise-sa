@@ -1,390 +1,128 @@
-// @ts-nocheck
-import React, { useReducer, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import React, { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { formatDistanceToNow } from 'date-fns';
+import { MessageCircle, Send } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { User } from 'firebase/auth';
-import { formatDistanceToNow } from 'date-fns';
-import { X } from 'lucide-react';
-import { QueryDocumentSnapshot } from 'firebase/firestore';
-import { commentsService, Comment } from '@/services/commentsService';
+import { wiseupApiService } from '@/services/wiseupApiService';
+import { WiseUpItem } from '../types';
 
-/**
- * Props for the CommentSection component
- */
 interface CommentSectionProps {
-  contentId: string;
-  currentUser: User;
+  item: WiseUpItem;
 }
 
-/**
- * Action types for the comment section reducer
- */
-enum CommentActionType {
-  SET_NEW_COMMENT_TEXT = 'SET_NEW_COMMENT_TEXT',
-  ADD_OPTIMISTIC_COMMENT = 'ADD_OPTIMISTIC_COMMENT',
-  REMOVE_OPTIMISTIC_COMMENT = 'REMOVE_OPTIMISTIC_COMMENT',
-  DELETE_COMMENT_OPTIMISTIC = 'DELETE_COMMENT_OPTIMISTIC',
-  DELETE_COMMENT_ERROR = 'DELETE_COMMENT_ERROR',
-}
-
-/**
- * Action interfaces for the comment section reducer
- */
-interface SetNewCommentTextAction {
-  type: CommentActionType.SET_NEW_COMMENT_TEXT;
-  payload: { text: string };
-}
-
-interface AddOptimisticCommentAction {
-  type: CommentActionType.ADD_OPTIMISTIC_COMMENT;
-  payload: { comment: Comment };
-}
-
-interface RemoveOptimisticCommentAction {
-  type: CommentActionType.REMOVE_OPTIMISTIC_COMMENT;
-  payload: { tempId: string };
-}
-
-interface DeleteCommentOptimisticAction {
-  type: CommentActionType.DELETE_COMMENT_OPTIMISTIC;
-  payload: { commentId: string; originalComments: Comment[] };
-}
-
-interface DeleteCommentErrorAction {
-  type: CommentActionType.DELETE_COMMENT_ERROR;
-  payload: { originalComments: Comment[] };
-}
-
-/**
- * Union type for all comment actions
- */
-type CommentAction =
-  | SetNewCommentTextAction
-  | AddOptimisticCommentAction
-  | RemoveOptimisticCommentAction
-  | DeleteCommentOptimisticAction
-  | DeleteCommentErrorAction;
-
-/**
- * State interface for the comment section
- */
-interface CommentState {
-  newCommentText: string;
-  optimisticComments: Comment[];
-  originalComments: Comment[] | null; // For rollback on delete error
-}
-
-/**
- * Initial state for the comment section
- */
-const initialState: CommentState = {
-  newCommentText: '',
-  optimisticComments: [],
-  originalComments: null,
-};
-
-/**
- * Reducer function for the comment section
- */
-const commentReducer = (state: CommentState, action: CommentAction): CommentState => {
-  switch (action.type) {
-    case CommentActionType.SET_NEW_COMMENT_TEXT:
-      return {
-        ...state,
-        newCommentText: action.payload.text,
-      };
-
-    case CommentActionType.ADD_OPTIMISTIC_COMMENT:
-      return {
-        ...state,
-        optimisticComments: [action.payload.comment, ...state.optimisticComments],
-      };
-
-    case CommentActionType.REMOVE_OPTIMISTIC_COMMENT:
-      return {
-        ...state,
-        optimisticComments: state.optimisticComments.filter(
-          comment => comment.id !== action.payload.tempId
-        ),
-      };
-
-    case CommentActionType.DELETE_COMMENT_OPTIMISTIC:
-      return {
-        ...state,
-        optimisticComments: state.optimisticComments.filter(
-          comment => comment.id !== action.payload.commentId
-        ),
-        originalComments: action.payload.originalComments,
-      };
-
-    case CommentActionType.DELETE_COMMENT_ERROR:
-      return {
-        ...state,
-        optimisticComments: action.payload.originalComments,
-        originalComments: null,
-      };
-
-    default:
-      return state;
-  }
-};
-
-/**
- * CommentSection component displays and manages comments for content
- */
-const CommentSection: React.FC<CommentSectionProps> = ({ contentId, currentUser }) => {
+const CommentSection: React.FC<CommentSectionProps> = ({ item }) => {
+  const [commentText, setCommentText] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [state, dispatch] = useReducer(commentReducer, initialState);
-  const listRef = useRef<HTMLDivElement>(null);
+  const queryKey = ['wiseup-comments', item.type, item.id];
 
-  // Query key for comments
-  const commentsQueryKey = ['comments', contentId];
+  const commentsQuery = useQuery({
+    queryKey,
+    queryFn: () => wiseupApiService.getComments(item, 20),
+    staleTime: 1000 * 30,
+  });
 
-  // Fetch comments with React Query
-  const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useQuery({
-      queryKey: commentsQueryKey,
-      queryFn: ({ pageParam }) =>
-        commentsService.getComments(contentId, 10, pageParam as QueryDocumentSnapshot | null),
-      getNextPageParam: lastPage => lastPage.lastDoc || undefined,
-      staleTime: 1000 * 60 * 5, // 5 minutes
-    });
-
-  // Add comment mutation
-  const addCommentMutation = useMutation({
-    mutationFn: ({ text }: { text: string }) =>
-      commentsService.addComment(contentId, currentUser, text),
-    onMutate: async ({ text }) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: commentsQueryKey });
-
-      // Create optimistic comment
-      const tempId = `temp-${Date.now()}`;
-      const optimisticComment: Comment = {
-        id: tempId,
-        userId: currentUser.uid,
-        userName: currentUser.displayName || 'You',
-        userAvatar: currentUser.photoURL || '/placeholder-avatar.png',
-        text: text.trim(),
-        createdAt: new Date(),
-      };
-
-      // Add optimistic comment to local state
-      dispatch({
-        type: CommentActionType.ADD_OPTIMISTIC_COMMENT,
-        payload: { comment: optimisticComment },
-      });
-
-      // Clear input immediately
-      dispatch({
-        type: CommentActionType.SET_NEW_COMMENT_TEXT,
-        payload: { text: '' },
-      });
-
-      return { tempId };
+  const addComment = useMutation({
+    mutationFn: (text: string) => wiseupApiService.addComment(item, text),
+    onSuccess: () => {
+      setCommentText('');
+      queryClient.invalidateQueries({ queryKey });
     },
-    onError: (error, { text }, context) => {
-      // Show error toast
+    onError: () => {
       toast({
-        title: 'Error',
-        description: 'Failed to post comment.',
+        title: 'Sign in required',
+        description: 'Please sign in before posting a WiseUp comment.',
         variant: 'destructive',
       });
-
-      // Remove optimistic comment
-      if (context?.tempId) {
-        dispatch({
-          type: CommentActionType.REMOVE_OPTIMISTIC_COMMENT,
-          payload: { tempId: context.tempId },
-        });
-      }
-
-      // Restore text input
-      dispatch({
-        type: CommentActionType.SET_NEW_COMMENT_TEXT,
-        payload: { text },
-      });
-    },
-    onSuccess: () => {
-      // Invalidate comments query to refetch
-      queryClient.invalidateQueries({ queryKey: commentsQueryKey });
     },
   });
 
-  // Delete comment mutation
-  const deleteCommentMutation = useMutation({
-    mutationFn: (commentId: string) => commentsService.deleteComment(contentId, commentId),
-    onMutate: async commentId => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: commentsQueryKey });
-
-      // Get current comments
-      const allComments = [
-        ...(data?.pages?.flatMap(page => page.comments) || []),
-        ...state.optimisticComments,
-      ];
-
-      // Store original comments for potential rollback
-      const originalComments = [...allComments];
-
-      // Optimistic deletion
-      dispatch({
-        type: CommentActionType.DELETE_COMMENT_OPTIMISTIC,
-        payload: { commentId, originalComments },
-      });
-
-      return { originalComments };
-    },
-    onError: (error, variables, context) => {
-      // Show error toast
-      toast({
-        title: 'Error',
-        description: 'Failed to delete comment.',
-        variant: 'destructive',
-      });
-
-      // Revert to original comments on error
-      if (context?.originalComments) {
-        dispatch({
-          type: CommentActionType.DELETE_COMMENT_ERROR,
-          payload: { originalComments: context.originalComments },
-        });
-      }
-    },
-    onSuccess: () => {
-      // Show success toast
-      toast({
-        title: 'Success',
-        description: 'Comment deleted.',
-      });
-
-      // Invalidate comments query to refetch
-      queryClient.invalidateQueries({ queryKey: commentsQueryKey });
-    },
-  });
-
-  // Handle post comment form submission
-  const handlePostComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!state.newCommentText.trim() || addCommentMutation.isPending) return;
-
-    // Call the mutation
-    addCommentMutation.mutate({ text: state.newCommentText.trim() });
-  };
-
-  // Handle delete comment
-  const handleDeleteComment = (commentId: string) => {
-    if (!window.confirm('Are you sure you want to delete this comment?')) return;
-
-    // Call the mutation
-    deleteCommentMutation.mutate(commentId);
-  };
-
-  // Get comments from React Query and optimistic updates
-  const allComments = [
-    ...(data?.pages?.flatMap(page => page.comments) || []),
-    ...state.optimisticComments,
-  ];
+  const comments = commentsQuery.data?.comments ?? [];
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-800">Comments</h3>
+      <div className="flex items-center gap-2 text-sm font-bold text-slate-950">
+        <MessageCircle className="h-4 w-4 text-[#24456f]" />
+        Discussion
+      </div>
 
-      {/* Comment Input Form */}
-      <form onSubmit={handlePostComment} className="flex flex-col space-y-2">
+      <form
+        className="space-y-3"
+        onSubmit={event => {
+          event.preventDefault();
+          if (!commentText.trim()) return;
+          addComment.mutate(commentText.trim());
+        }}
+      >
         <Textarea
-          placeholder="Add your comment..."
-          value={state.newCommentText}
-          onChange={e =>
-            dispatch({
-              type: CommentActionType.SET_NEW_COMMENT_TEXT,
-              payload: { text: e.target.value },
-            })
-          }
-          rows={3}
-          maxLength={500}
-          disabled={addCommentMutation.isPending}
+          value={commentText}
+          onChange={event => setCommentText(event.target.value)}
+          placeholder="Add a question, insight, or note..."
+          className="min-h-24 resize-none"
+          maxLength={1000}
         />
-        <Button
-          type="submit"
-          disabled={!state.newCommentText.trim() || addCommentMutation.isPending}
-          className="self-end bg-yellow-400 hover:bg-yellow-500 text-gray-800"
-        >
-          {addCommentMutation.isPending ? 'Posting...' : 'Post Comment'}
-        </Button>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-xs text-slate-500">{commentText.length}/1000</span>
+          <button
+            type="submit"
+            disabled={!commentText.trim() || addComment.isPending}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#ffc82d] px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-[#f5b800] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Send className="h-4 w-4" />
+            {addComment.isPending ? 'Posting' : 'Post'}
+          </button>
+        </div>
       </form>
 
-      {/* Comment List */}
-      <div ref={listRef} className="space-y-4 max-h-96 overflow-y-auto pr-2">
-        {isLoading && allComments.length === 0 && (
-          <div className="space-y-4">
+      <div className="space-y-3">
+        {commentsQuery.isLoading && (
+          <>
             <Skeleton className="h-16 w-full" />
             <Skeleton className="h-16 w-full" />
-          </div>
+          </>
         )}
 
-        {isError && (
-          <p className="text-red-500">
-            {error instanceof Error ? error.message : 'Could not load comments.'}
+        {commentsQuery.isError && (
+          <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+            Comments could not be loaded.
           </p>
         )}
 
-        {!isLoading && allComments.length === 0 && !isError && (
-          <p className="text-sm text-gray-500 text-center py-4">No comments yet. Be the first!</p>
+        {!commentsQuery.isLoading && !comments.length && !commentsQuery.isError && (
+          <p className="rounded-lg border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500">
+            No comments yet.
+          </p>
         )}
 
-        {allComments.map(comment => (
-          <div key={comment.id} className="flex space-x-3">
-            <Avatar className="h-8 w-8 mt-1">
-              <AvatarImage src={comment.userAvatar} alt={comment.userName} />
-              <AvatarFallback>{comment.userName.charAt(0).toUpperCase()}</AvatarFallback>
+        {comments.map(comment => (
+          <div
+            key={comment.id}
+            className="flex gap-3 rounded-lg border border-slate-100 bg-white p-3"
+          >
+            <Avatar className="h-9 w-9">
+              <AvatarImage src={comment.userAvatar || undefined} alt={comment.userName} />
+              <AvatarFallback className="bg-slate-100 text-xs text-slate-700">
+                {comment.userName.charAt(0).toUpperCase()}
+              </AvatarFallback>
             </Avatar>
-            <div className="flex-1 bg-gray-50 p-3 rounded-md shadow-sm">
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-semibold text-sm text-gray-800">{comment.userName}</span>
-                <span className="text-xs text-gray-500">
-                  {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
-                </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <p className="text-sm font-semibold text-slate-900">{comment.userName}</p>
+                {comment.createdAt && (
+                  <span className="text-xs text-slate-500">
+                    {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                  </span>
+                )}
               </div>
-              <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+              <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-slate-600">
                 {comment.text}
               </p>
-
-              {/* Delete Button - Only show if user owns the comment */}
-              {currentUser.uid === comment.userId && (
-                <button
-                  onClick={() => handleDeleteComment(comment.id)}
-                  className="text-xs text-red-500 hover:text-red-700 mt-1 float-right p-1"
-                  aria-label="Delete comment"
-                  disabled={deleteCommentMutation.isPending}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              )}
             </div>
           </div>
         ))}
-
-        {/* Load More Button */}
-        {hasNextPage && !isFetchingNextPage && allComments.length > 0 && (
-          <div className="text-center pt-2">
-            <Button variant="link" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
-              Load More Comments
-            </Button>
-          </div>
-        )}
-
-        {/* Loading indicator for pagination */}
-        {isFetchingNextPage && (
-          <div className="text-center py-2">
-            <p className="text-sm text-gray-500">Loading more comments...</p>
-          </div>
-        )}
       </div>
     </div>
   );

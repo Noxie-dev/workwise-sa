@@ -17,6 +17,25 @@ interface ProfileEditModalProps {
   userId: string;
 }
 
+type ProfileEditFormData = {
+  personal: {
+    fullName: string;
+    phoneNumber: string;
+    location: string;
+    bio: string;
+  };
+  skills: {
+    skills: string[];
+    languages: string[];
+  };
+  preferences: {
+    jobTypes: string[];
+    locations: string[];
+    minSalary: number;
+    willingToRelocate: boolean;
+  };
+};
+
 const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   profile,
   isOpen,
@@ -26,7 +45,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 }) => {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProfileEditFormData>({
     personal: {
       fullName: profile?.personal?.fullName || '',
       phoneNumber: profile?.personal?.phoneNumber || '',
@@ -34,12 +53,12 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       bio: profile?.personal?.bio || '',
     },
     skills: {
-      skills: profile?.skills?.skills || [],
-      languages: profile?.skills?.languages || [],
+      skills: profile?.skills?.skills || ([] as string[]),
+      languages: profile?.skills?.languages || ([] as string[]),
     },
     preferences: {
-      jobTypes: profile?.preferences?.jobTypes || [],
-      locations: profile?.preferences?.locations || [],
+      jobTypes: profile?.preferences?.jobTypes || ([] as string[]),
+      locations: profile?.preferences?.locations || ([] as string[]),
       minSalary: profile?.preferences?.minSalary || 0,
       willingToRelocate: profile?.preferences?.willingToRelocate || false,
     },

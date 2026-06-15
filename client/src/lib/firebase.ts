@@ -4,7 +4,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  onAuthStateChanged,
+  onIdTokenChanged,
   updateProfile,
   User,
   GoogleAuthProvider,
@@ -12,6 +12,7 @@ import {
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
   signInWithEmailLink,
+  sendPasswordResetEmail,
   ActionCodeSettings,
   type Auth,
 } from 'firebase/auth';
@@ -64,8 +65,6 @@ const resolvedAppId =
     ? rawFirebaseEnv.appId!
     : DEV_PLACEHOLDER_APP_ID;
 
-console.log('Starting Firebase initialization...');
-
 const firebaseConfig = {
   apiKey: resolvedApiKey,
   authDomain: rawFirebaseEnv.authDomain || 'workwise-sa-project.firebaseapp.com',
@@ -93,7 +92,7 @@ const usingDevFallbackConfig = Object.entries(rawFirebaseEnv)
   )
   .map(([key]) => key);
 
-const configWarnings = [...new Set([...missingConfig, ...placeholderConfig])];
+const configWarnings = Array.from(new Set([...missingConfig, ...placeholderConfig]));
 const allowPlaceholderFirebaseForDev = useEmulators;
 const firebaseClientOpsEnabled = configWarnings.length === 0 || allowPlaceholderFirebaseForDev;
 
@@ -130,8 +129,6 @@ if (!firebaseClientOpsEnabled) {
   );
 }
 
-console.log('Firebase config:', { ...firebaseConfig, apiKey: '[REDACTED]' });
-
 let app: ReturnType<typeof initializeApp>;
 let auth: Auth;
 let db: Firestore;
@@ -145,7 +142,6 @@ try {
   storage = getStorage(app);
   googleProvider = new GoogleAuthProvider();
   firebaseStatus.initialized = true;
-  console.log('Firebase initialized successfully');
 } catch (error) {
   firebaseStatus.initError = error;
   console.error('Firebase initialization failed:', error);
@@ -153,14 +149,9 @@ try {
 }
 
 if (import.meta.env.DEV) {
-  console.log('Development mode detected, useEmulators:', useEmulators);
-
   if (useEmulators) {
-    console.log('Connecting to Firebase emulators...');
-
     import('firebase/auth')
       .then(({ connectAuthEmulator }) => {
-        console.log('Connecting to Auth emulator on http://127.0.0.1:9099');
         connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
       })
       .catch(error => {
@@ -169,7 +160,6 @@ if (import.meta.env.DEV) {
 
     import('firebase/firestore')
       .then(({ connectFirestoreEmulator }) => {
-        console.log('Connecting to Firestore emulator on 127.0.0.1:8080');
         connectFirestoreEmulator(db, '127.0.0.1', 8080);
       })
       .catch(error => {
@@ -178,14 +168,11 @@ if (import.meta.env.DEV) {
 
     import('firebase/storage')
       .then(({ connectStorageEmulator }) => {
-        console.log('Connecting to Storage emulator on 127.0.0.1:9199');
         connectStorageEmulator(storage, '127.0.0.1', 9199);
       })
       .catch(error => {
         console.warn('Failed to connect to Storage emulator:', error);
       });
-  } else {
-    console.log('Using production Firebase services (emulators disabled)');
   }
 }
 
@@ -220,12 +207,6 @@ const actionCodeSettings: ActionCodeSettings = {
     : {}),
 };
 
-console.log(
-  'Email link authentication URL:',
-  import.meta.env.VITE_AUTH_EMAIL_LINK_SIGN_IN_URL || `${fallbackOrigin}/auth/email-signin-complete`
-);
-console.log('Current origin:', fallbackOrigin);
-
 const buildFirebaseUnavailableError = (operation: string) => {
   const error = new Error(
     useEmulators
@@ -259,56 +240,14 @@ const ensureGoogleProvider = () => {
 export const signUpWithEmail = async (email: string, password: string, displayName: string) => {
   try {
     ensureFirebaseClientOpsEnabled('sign up');
-
-    console.log(`Attempting to sign up user with email: ${email}`);
-    console.log('Firebase auth initialized:', !!auth);
-    console.log('Using Firebase emulators:', useEmulators ? 'Yes' : 'No');
-
-    if (useEmulators) {
-      console.log('Using Firebase Auth emulator at http://127.0.0.1:9099');
-
-      try {
-        const response = await fetch('http://127.0.0.1:9099', { method: 'GET' });
-        if (!response.ok) {
-          console.warn('Firebase Auth emulator might not be running. Registration might fail.');
-        }
-      } catch {
-        console.error('Cannot connect to Firebase Auth emulator. Registration will likely fail.');
-        console.error('Please start Firebase emulators or set VITE_USE_FIREBASE_EMULATORS=false');
-      }
-    }
-
-    console.log('Creating user with Firebase Authentication...');
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    console.log('User created successfully:', userCredential.user.uid);
 
     if (userCredential.user) {
-      console.log('Updating user profile with display name:', displayName);
       await updateProfile(userCredential.user, { displayName });
-      console.log('User profile updated successfully');
     }
 
     return userCredential.user;
   } catch (error: any) {
-    console.error('Error signing up:', error.code, error.message);
-    console.error('Full error details:', error);
-
-    if (error.code === 'auth/network-request-failed') {
-      console.error('Network request failed. This could indicate that:');
-      console.error("1. You're not connected to the internet");
-      console.error('2. Firebase emulators are not running (if using emulators)');
-      console.error('3. Firebase project is not properly configured');
-
-      if (useEmulators) {
-        console.error(
-          "IMPORTANT: You're configured to use Firebase emulators, but they might not be running."
-        );
-        console.error(
-          "Either start the emulators with 'firebase emulators:start' or set VITE_USE_FIREBASE_EMULATORS=false"
-        );
-      }
-    }
-
     throw error;
   }
 };
@@ -317,12 +256,9 @@ export const signUpWithEmail = async (email: string, password: string, displayNa
 export const signInWithEmail = async (email: string, password: string) => {
   try {
     ensureFirebaseClientOpsEnabled('sign in');
-    console.log(`Attempting to sign in user with email: ${email}`);
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    console.log('User signed in successfully:', userCredential.user.uid);
     return userCredential.user;
   } catch (error: any) {
-    console.error('Error signing in:', error.code, error.message);
     throw error;
   }
 };
@@ -334,7 +270,6 @@ export const signInWithGoogle = async () => {
     const result = await signInWithPopup(auth, ensureGoogleProvider());
     return result.user;
   } catch (error) {
-    console.error('Error signing in with Google:', error);
     throw error;
   }
 };
@@ -360,24 +295,37 @@ export const getCurrentUser = (): User | null => {
   return auth.currentUser;
 };
 
-// Listen to auth state changes
+// Listen to auth token changes so API requests keep using fresh ID tokens.
 export const onAuthChange = (callback: (user: User | null) => void) => {
   if (!firebaseStatus.clientOpsEnabled) {
     Promise.resolve().then(() => callback(null));
     return () => {};
   }
-  return onAuthStateChanged(auth, callback);
+  return onIdTokenChanged(auth, callback);
 };
 
+function buildActionCodeSettings(continuePath?: string): ActionCodeSettings {
+  if (!continuePath) {
+    return actionCodeSettings;
+  }
+
+  const url = new URL(actionCodeSettings.url);
+  url.searchParams.set('next', continuePath);
+  return {
+    ...actionCodeSettings,
+    url: url.toString(),
+  };
+}
+
 // Send email link for passwordless sign-in
-export const sendSignInLink = async (email: string) => {
+export const sendSignInLink = async (email: string, continuePath?: string) => {
   try {
     ensureFirebaseClientOpsEnabled('email link sign in');
-    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-    window.localStorage.setItem('emailForSignIn', email);
+    const normalizedEmail = email.trim();
+    await sendSignInLinkToEmail(auth, normalizedEmail, buildActionCodeSettings(continuePath));
+    window.localStorage.setItem('emailForSignIn', normalizedEmail);
     return true;
   } catch (error) {
-    console.error('Error sending sign-in link:', error);
     throw error;
   }
 };
@@ -386,13 +334,18 @@ export const sendSignInLink = async (email: string) => {
 export const completeSignInWithEmailLink = async (email: string, link: string) => {
   try {
     ensureFirebaseClientOpsEnabled('email link completion');
-    const result = await signInWithEmailLink(auth, email, link);
+    const result = await signInWithEmailLink(auth, email.trim(), link);
     window.localStorage.removeItem('emailForSignIn');
     return result.user;
   } catch (error) {
-    console.error('Error completing sign-in with email link:', error);
     throw error;
   }
+};
+
+export const sendPasswordReset = async (email: string) => {
+  ensureFirebaseClientOpsEnabled('password reset');
+  await sendPasswordResetEmail(auth, email);
+  return true;
 };
 
 // Check if the URL is a sign-in with email link
@@ -417,7 +370,6 @@ export const uploadFile = async (file: File, path: string): Promise<string> => {
     const downloadURL = await getDownloadURL(snapshot.ref);
     return downloadURL;
   } catch (error) {
-    console.error('Error uploading file:', error);
     throw error;
   }
 };

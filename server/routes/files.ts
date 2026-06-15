@@ -3,10 +3,50 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { storage } from '../storage';
-import { ApiError, Errors } from '../middleware/errorHandler';
-import { secretManager } from '../services/secretManager';
+import { Errors } from '../middleware/errorHandler';
+import { type AuthenticatedRequest, verifyFirebaseToken } from '../middleware/auth';
+import { resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
 
 const router = Router();
+
+async function resolveUserId(userIdParam: string): Promise<number | null> {
+  const numericId = parseInt(userIdParam, 10);
+  if (!Number.isNaN(numericId)) {
+    return numericId;
+  }
+
+  const user = await storage.getUserByFirebaseUid(userIdParam);
+  return user?.id ?? null;
+}
+
+async function resolveTargetUserId(req: AuthenticatedRequest, userIdParam?: string): Promise<number> {
+  const authUser = await resolveAuthenticatedDatabaseUser(req.user!);
+  const targetUserId = userIdParam ? await resolveUserId(userIdParam) : authUser.id;
+
+  if (!targetUserId) {
+    throw Errors.notFound('User not found');
+  }
+
+  if (authUser.id !== targetUserId && authUser.role !== 'admin') {
+    throw Errors.forbidden('You can only manage your own files');
+  }
+
+  return targetUserId;
+}
+
+function safeFileType(value: unknown) {
+  const fileType = typeof value === 'string' && value.trim() ? value.trim() : 'general';
+  if (!/^[a-z0-9_-]{1,40}$/i.test(fileType)) {
+    throw Errors.badRequest('Invalid file type');
+  }
+  return fileType;
+}
+
+function cleanupTempFile(file?: Express.Multer.File) {
+  if (file?.path && fs.existsSync(file.path)) {
+    fs.unlinkSync(file.path);
+  }
+}
 
 // Configure multer for file uploads
 const upload = multer({
@@ -33,6 +73,8 @@ const upload = multer({
   },
 });
 
+router.use(verifyFirebaseToken);
+
 /**
  * Upload professional image
  */
@@ -45,9 +87,7 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
       throw Errors.badRequest('No file uploaded');
     }
 
-    if (!userId) {
-      throw Errors.badRequest('User ID is required');
-    }
+    const resolvedUserId = await resolveTargetUserId(req as AuthenticatedRequest, userId);
 
     // Validate file is an image
     if (!file.mimetype.startsWith('image/')) {
@@ -56,7 +96,7 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
 
     // Create user-specific upload directory
     const uploadDir = path.join(process.cwd(), 'uploads', 'professional-images');
-    const userDir = path.join(uploadDir, `user-${userId}`);
+    const userDir = path.join(uploadDir, `user-${resolvedUserId}`);
 
     if (!fs.existsSync(userDir)) {
       fs.mkdirSync(userDir, { recursive: true });
@@ -79,7 +119,7 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
 
     // Save file metadata to database
     const fileData = {
-      userId: parseInt(userId),
+      userId: resolvedUserId,
       originalName: file.originalname,
       storagePath: finalPath,
       fileUrl,
@@ -106,6 +146,7 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
       message: 'Professional image uploaded successfully',
     });
   } catch (error) {
+    cleanupTempFile(req.file);
     next(error);
   }
 });
@@ -122,9 +163,7 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
       throw Errors.badRequest('No file uploaded');
     }
 
-    if (!userId) {
-      throw Errors.badRequest('User ID is required');
-    }
+    const resolvedUserId = await resolveTargetUserId(req as AuthenticatedRequest, userId);
 
     // Validate file is an image
     if (!file.mimetype.startsWith('image/')) {
@@ -133,7 +172,7 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
 
     // Create user-specific upload directory
     const uploadDir = path.join(process.cwd(), 'uploads', 'profile-images');
-    const userDir = path.join(uploadDir, `user-${userId}`);
+    const userDir = path.join(uploadDir, `user-${resolvedUserId}`);
 
     if (!fs.existsSync(userDir)) {
       fs.mkdirSync(userDir, { recursive: true });
@@ -156,7 +195,7 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
 
     // Save file metadata to database
     const fileData = {
-      userId: parseInt(userId),
+      userId: resolvedUserId,
       originalName: file.originalname,
       storagePath: finalPath,
       fileUrl,
@@ -183,6 +222,7 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
       message: 'Profile image uploaded successfully',
     });
   } catch (error) {
+    cleanupTempFile(req.file);
     next(error);
   }
 });
@@ -199,9 +239,7 @@ router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
       throw Errors.badRequest('No file uploaded');
     }
 
-    if (!userId) {
-      throw Errors.badRequest('User ID is required');
-    }
+    const resolvedUserId = await resolveTargetUserId(req as AuthenticatedRequest, userId);
 
     // Validate file is a PDF
     if (file.mimetype !== 'application/pdf') {
@@ -210,7 +248,7 @@ router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
 
     // Create user-specific upload directory
     const uploadDir = path.join(process.cwd(), 'uploads', 'cvs');
-    const userDir = path.join(uploadDir, `user-${userId}`);
+    const userDir = path.join(uploadDir, `user-${resolvedUserId}`);
 
     if (!fs.existsSync(userDir)) {
       fs.mkdirSync(userDir, { recursive: true });
@@ -233,7 +271,7 @@ router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
 
     // Save file metadata to database
     const fileData = {
-      userId: parseInt(userId),
+      userId: resolvedUserId,
       originalName: file.originalname,
       storagePath: finalPath,
       fileUrl,
@@ -258,6 +296,7 @@ router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
       message: 'CV uploaded successfully',
     });
   } catch (error) {
+    cleanupTempFile(req.file);
     next(error);
   }
 });
@@ -269,19 +308,17 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
   try {
     const file = req.file;
     const userId = req.body.userId;
-    const fileType = req.body.fileType || 'general';
+    const fileType = safeFileType(req.body.fileType);
 
     if (!file) {
       throw Errors.badRequest('No file uploaded');
     }
 
-    if (!userId) {
-      throw Errors.badRequest('User ID is required');
-    }
+    const resolvedUserId = await resolveTargetUserId(req as AuthenticatedRequest, userId);
 
     // Create user-specific upload directory
     const uploadDir = path.join(process.cwd(), 'uploads', fileType);
-    const userDir = path.join(uploadDir, `user-${userId}`);
+    const userDir = path.join(uploadDir, `user-${resolvedUserId}`);
 
     if (!fs.existsSync(userDir)) {
       fs.mkdirSync(userDir, { recursive: true });
@@ -304,7 +341,7 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
 
     // Save file metadata to database
     const fileData = {
-      userId: parseInt(userId),
+      userId: resolvedUserId,
       originalName: file.originalname,
       storagePath: finalPath,
       fileUrl,
@@ -330,6 +367,7 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
       message: 'File uploaded successfully',
     });
   } catch (error) {
+    cleanupTempFile(req.file);
     next(error);
   }
 });
@@ -339,11 +377,7 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
  */
 router.get('/user/:userId', async (req, res, next) => {
   try {
-    const userId = parseInt(req.params.userId);
-
-    if (isNaN(userId)) {
-      throw Errors.badRequest('Invalid user ID');
-    }
+    const userId = await resolveTargetUserId(req as AuthenticatedRequest, req.params.userId);
 
     const files = await storage.getFilesByUser(userId);
 
@@ -372,6 +406,7 @@ router.delete('/:fileId', async (req, res, next) => {
     if (!file) {
       throw Errors.notFound('File not found');
     }
+    await resolveTargetUserId(req as AuthenticatedRequest, String(file.userId));
 
     // Delete file from filesystem
     if (fs.existsSync(file.storagePath)) {

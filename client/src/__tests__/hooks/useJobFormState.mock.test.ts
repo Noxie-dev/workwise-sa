@@ -1,6 +1,22 @@
 import { describe, it, expect, vi } from 'vitest';
 
 describe('useJobFormState mock', () => {
+  type MockFormValues = {
+    title: string;
+    description: string;
+    category: string;
+    jobType: string;
+    location: string;
+    salaryMin: string;
+    salaryMax: string;
+    companyName: string;
+    contactName: string;
+    contactEmail: string;
+    companyWebsite: string;
+    contactPhone: string;
+  };
+  type MockFormField = keyof MockFormValues;
+
   const initialState = {
     title: '',
     description: '',
@@ -18,10 +34,10 @@ describe('useJobFormState mock', () => {
 
   it('should update values when handleChange is called', () => {
     // Mock state
-    let values = { ...initialState };
+    let values: MockFormValues = { ...initialState };
 
     // Mock handleChange function
-    const handleChange = (field, value) => {
+    const handleChange = (field: MockFormField, value: string) => {
       values = { ...values, [field]: value };
     };
 
@@ -34,10 +50,10 @@ describe('useJobFormState mock', () => {
 
   it('should mark field as touched when handleBlur is called', () => {
     // Mock state
-    let touched = {};
+    let touched: Partial<Record<MockFormField, boolean>> = {};
 
     // Mock handleBlur function
-    const handleBlur = field => {
+    const handleBlur = (field: MockFormField) => {
       touched = { ...touched, [field]: true };
     };
 
@@ -50,10 +66,10 @@ describe('useJobFormState mock', () => {
 
   it('should validate required fields', () => {
     // Mock state
-    let errors = {};
+    let errors: Partial<Record<MockFormField, string>> = {};
 
     // Mock validate function
-    const validate = (field, value) => {
+    const validate = (field: MockFormField, value: string) => {
       if (field === 'title' && !value) {
         errors = { ...errors, title: 'Job title is required' };
         return false;
@@ -71,10 +87,10 @@ describe('useJobFormState mock', () => {
 
   it('should validate email format', () => {
     // Mock state
-    let errors = {};
+    let errors: Partial<Record<MockFormField, string>> = {};
 
     // Mock validate function
-    const validate = (field, value) => {
+    const validate = (field: MockFormField, value: string) => {
       if (field === 'contactEmail' && value) {
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           errors = { ...errors, contactEmail: 'Invalid email address' };
@@ -104,9 +120,9 @@ describe('useJobFormState mock', () => {
 
   it('should reset form state', () => {
     // Mock state
-    let values = { ...initialState, title: 'Software Developer' };
-    let errors = { title: 'Some error' };
-    let touched = { title: true };
+    let values: MockFormValues = { ...initialState, title: 'Software Developer' };
+    let errors: Partial<Record<MockFormField, string>> = { title: 'Some error' };
+    let touched: Partial<Record<MockFormField, boolean>> = { title: true };
     let isSubmitting = true;
 
     // Mock reset function

@@ -1,14 +1,16 @@
 import { useEffect } from 'react';
 
-export const useFormAutosave = (formData: any, formId: string) => {
+export const useFormAutosave = (formData: any, formId: string, enabled = true) => {
   // Save to localStorage whenever formData changes
   useEffect(() => {
+    if (!enabled) return;
+
     const saveTimeout = setTimeout(() => {
       localStorage.setItem(`job-form-draft-${formId}`, JSON.stringify(formData));
     }, 1000);
 
     return () => clearTimeout(saveTimeout);
-  }, [formData, formId]);
+  }, [enabled, formData, formId]);
 
   // Load from localStorage on initial render
   const loadSavedData = () => {
@@ -25,11 +27,11 @@ export const useFormAutosave = (formData: any, formId: string) => {
   };
 
   // Clear saved data
-  const clearSaved = () => {
+  const clearSavedData = () => {
     localStorage.removeItem(`job-form-draft-${formId}`);
   };
 
-  return { loadSavedData, clearSaved };
+  return { loadSavedData, clearSavedData, clearSaved: clearSavedData };
 };
 
 export default useFormAutosave;

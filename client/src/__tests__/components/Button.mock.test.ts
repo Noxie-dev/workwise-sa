@@ -1,21 +1,34 @@
 import { describe, it, expect, vi } from 'vitest';
 
 describe('Button Component Mock', () => {
+  type ButtonVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link';
+  type ButtonSize = 'default' | 'sm' | 'lg' | 'icon';
+  type MockButtonProps = {
+    children: string;
+    variant?: ButtonVariant;
+    size?: ButtonSize;
+    className?: string;
+    onClick?: () => void;
+    disabled?: boolean;
+    type?: 'button' | 'submit' | 'reset';
+    asChild?: boolean;
+  };
+
   // Mock the button component functionality
-  const createButton = props => {
+  const createButton = (props: MockButtonProps) => {
     const {
       children,
       variant = 'default',
       size = 'default',
       className = '',
-      onClick,
+      onClick = () => {},
       disabled = false,
       type = 'button',
       asChild = false,
     } = props;
 
     // Mock class names based on variant
-    const getVariantClass = variant => {
+    const getVariantClass = (variant: ButtonVariant) => {
       switch (variant) {
         case 'default':
           return 'bg-primary text-primary-foreground';
@@ -35,7 +48,7 @@ describe('Button Component Mock', () => {
     };
 
     // Mock class names based on size
-    const getSizeClass = size => {
+    const getSizeClass = (size: ButtonSize) => {
       switch (size) {
         case 'default':
           return 'h-10 px-4 py-2';

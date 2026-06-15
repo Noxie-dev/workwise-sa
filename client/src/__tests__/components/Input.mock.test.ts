@@ -1,18 +1,34 @@
 import { describe, it, expect, vi } from 'vitest';
 
 describe('Input Component Mock', () => {
+  type MockInputProps = {
+    className?: string;
+    type?: string;
+    placeholder?: string;
+    value?: string;
+    onChange?: (event: { target: { value: string } }) => void;
+    onFocus?: () => void;
+    onBlur?: () => void;
+    onKeyDown?: (event: { key: string; code: string }) => void;
+    onKeyUp?: (event: { key: string; code: string }) => void;
+    disabled?: boolean;
+    required?: boolean;
+    readOnly?: boolean;
+    maxLength?: number;
+  };
+
   // Mock the input component functionality
-  const createInput = props => {
+  const createInput = (props: MockInputProps) => {
     const {
       className = '',
       type = 'text',
       placeholder,
       value,
-      onChange,
-      onFocus,
-      onBlur,
-      onKeyDown,
-      onKeyUp,
+      onChange = () => {},
+      onFocus = () => {},
+      onBlur = () => {},
+      onKeyDown = () => {},
+      onKeyUp = () => {},
       disabled = false,
       required = false,
       readOnly = false,

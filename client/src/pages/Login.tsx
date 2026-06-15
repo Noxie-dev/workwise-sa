@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useLocation } from 'wouter';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,6 +26,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { signInWithEmail, signInWithGoogle } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
+import AuthShell from '@/components/AuthShell';
 
 const formSchema = z.object({
   email: z.email('Please enter a valid email address'),
@@ -40,6 +41,11 @@ const Login = () => {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
+  const nextPath = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get('next');
+    return next?.startsWith('/') && !next.startsWith('//') ? next : '/profile-setup';
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -50,20 +56,19 @@ const Login = () => {
     },
   });
 
-  // Redirect if already logged in
-  if (isAuthenticated) {
-    navigate('/profile');
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(nextPath);
+    }
+  }, [isAuthenticated, navigate, nextPath]);
+
+  if (isAuthenticated) return null;
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
       await signInWithGoogle();
-
-      // For simplicity, we're redirecting to profile-setup
-      // In a real app, you'd check if user has completed profile setup
-      navigate('/profile-setup');
+      navigate(nextPath);
     } catch (error: any) {
       let errorMessage = 'Failed to sign in with Google. Please try again.';
 
@@ -83,8 +88,6 @@ const Login = () => {
           'Firebase login is in demo mode. Add Firebase keys to client/.env or start the emulators.';
       }
 
-      console.error('Google sign-in error:', error.code, error.message);
-
       toast({
         variant: 'destructive',
         title: 'Login Failed',
@@ -99,11 +102,8 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      await signInWithEmail(data.email, data.password);
-
-      // For simplicity, we're redirecting to profile-setup
-      // In a real app, you'd check if user has completed profile setup
-      navigate('/profile-setup');
+      await signInWithEmail(data.email.trim(), data.password);
+      navigate(nextPath);
     } catch (error: any) {
       let errorMessage = 'Invalid email or password. Please try again.';
 
@@ -139,16 +139,9 @@ const Login = () => {
         />
       </Helmet>
 
-      <main className="flex-grow bg-light flex items-center justify-center py-10">
-        <Card className="w-full max-w-md mx-4">
+      <AuthShell>
+        <Card className="w-full shadow-xl shadow-slate-900/10">
           <CardHeader className="space-y-1">
-            <div className="flex justify-center mb-4">
-              <img
-                src="/images/logo.png"
-                alt="WorkWise SA Logo"
-                className="h-36 md:h-40 object-contain transition-all duration-200 hover:scale-105"
-              />
-            </div>
             <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
             <CardDescription className="text-center">
               Enter your credentials to access your account
@@ -219,7 +212,7 @@ const Login = () => {
                 <div className="w-full border-t border-border"></div>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-light px-2 text-muted">Or continue with</span>
+                <span className="bg-card px-2 text-muted">Or continue with</span>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-4">
@@ -240,7 +233,7 @@ const Login = () => {
             </p>
           </CardFooter>
         </Card>
-      </main>
+      </AuthShell>
     </>
   );
 };

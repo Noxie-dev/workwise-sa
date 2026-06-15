@@ -63,8 +63,8 @@ function assertFirebaseReady<T>(service: T | null, serviceName: string): T {
 }
 
 export const auth = {
-  verifyIdToken: async (token: string) =>
-    assertFirebaseReady(authInstance, 'Firebase Auth').verifyIdToken(token),
+  verifyIdToken: async (token: string, checkRevoked?: boolean) =>
+    assertFirebaseReady(authInstance, 'Firebase Auth').verifyIdToken(token, checkRevoked),
   getUser: async (uid: string) => assertFirebaseReady(authInstance, 'Firebase Auth').getUser(uid),
   getUserByEmail: async (email: string) =>
     assertFirebaseReady(authInstance, 'Firebase Auth').getUserByEmail(email),

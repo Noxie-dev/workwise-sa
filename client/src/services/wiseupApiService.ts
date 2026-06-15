@@ -1,83 +1,128 @@
 import {
-  WiseUpContentItem as ContentItem,
   WiseUpAdItem as AdItem,
+  WiseUpComment,
+  WiseUpContentItem as ContentItem,
+  WiseUpEvent,
   WiseUpFeedItem as WiseUpItem,
+  WiseUpFeedResponse,
 } from '@shared/wiseup-contracts';
 import api from '@/lib/api';
 
-/**
- * WiseUp API Service
- *
- * Handles all API calls related to the WiseUp learning platform
- */
+type FeedParams = {
+  limit?: number;
+  cursor?: string | null;
+  category?: string;
+  q?: string;
+};
+
+type CommentsResponse = {
+  comments: WiseUpComment[];
+  nextCursor: string | null;
+};
+
 export class WiseUpApiService {
-  /**
-   * Fetch content items from the API
-   * @param maxItems Maximum number of items to fetch
-   * @returns Promise with array of ContentItems
-   */
+  public async getFeed(params: FeedParams = {}): Promise<WiseUpFeedResponse> {
+    const response = await api.get<WiseUpFeedResponse>('/api/v1/wiseup/feed', {
+      params: {
+        limit: params.limit ?? 18,
+        cursor: params.cursor || undefined,
+        category: params.category || undefined,
+        q: params.q || undefined,
+      },
+    });
+
+    return response.data;
+  }
+
+  public async getItem(item: Pick<WiseUpItem, 'id' | 'type'>): Promise<WiseUpItem> {
+    const response = await api.get<WiseUpItem>(`/api/v1/wiseup/items/${this.getItemKey(item)}`, {
+      params: { itemType: item.type },
+    });
+    return response.data;
+  }
+
   public async getContent(maxItems: number = 10): Promise<ContentItem[]> {
-    try {
-      const response = await api.get<ContentItem[]>('/api/v1/wiseup/content', {
-        params: { limit: maxItems },
-      });
-
-      return response.data.map(item => ({
-        ...item,
-        type: 'content',
-      }));
-    } catch (error) {
-      console.error('Error fetching content:', error);
-      throw error;
-    }
+    const response = await api.get<ContentItem[]>('/api/v1/wiseup/content', {
+      params: { limit: maxItems },
+    });
+    return response.data;
   }
 
-  /**
-   * Fetch ad items from the API
-   * @param maxItems Maximum number of ads to fetch
-   * @param userInterests User interests for targeting (optional)
-   * @returns Promise with array of AdItems
-   */
   public async getAds(maxItems: number = 5, userInterests: string[] = []): Promise<AdItem[]> {
-    try {
-      const response = await api.get<AdItem[]>('/api/v1/wiseup/ads', {
-        params: {
-          limit: maxItems,
-          interests: userInterests.join(','),
-        },
-      });
+    const response = await api.get<AdItem[]>('/api/v1/wiseup/ads', {
+      params: {
+        limit: maxItems,
+        interests: userInterests.join(','),
+      },
+    });
+    return response.data;
+  }
 
-      return response.data.map(item => ({
-        ...item,
-        type: 'ad',
-      }));
+  public async trackEvent(event: WiseUpEvent): Promise<void> {
+    await this.trackEvents([event]);
+  }
+
+  public async trackEvents(events: WiseUpEvent[]): Promise<void> {
+    if (!events.length) return;
+
+    try {
+      await api.post('/api/v1/wiseup/events', { events });
     } catch (error) {
-      console.error('Error fetching ads:', error);
-      throw error;
+      console.warn('WiseUp analytics event failed:', error);
     }
   }
 
-  /**
-   * Track ad impression when an ad is viewed
-   * @param adId ID of the ad being viewed
-   * @returns Promise indicating success/failure
-   */
+  public async updateProgress(
+    contentId: number,
+    progress: number,
+    completed: boolean = false
+  ): Promise<void> {
+    try {
+      await api.post('/api/v1/wiseup/progress', {
+        contentId,
+        progress,
+        completed,
+      });
+    } catch (error) {
+      console.warn('WiseUp progress update failed:', error);
+    }
+  }
+
+  public async getComments(
+    item: Pick<WiseUpItem, 'id' | 'type'>,
+    limit: number = 20
+  ): Promise<CommentsResponse> {
+    const response = await api.get<CommentsResponse>(
+      `/api/v1/wiseup/items/${this.getItemKey(item)}/comments`,
+      {
+        params: { itemType: item.type, limit },
+      }
+    );
+    return response.data;
+  }
+
+  public async addComment(
+    item: Pick<WiseUpItem, 'id' | 'type'>,
+    text: string
+  ): Promise<WiseUpComment> {
+    const response = await api.post<WiseUpComment>(
+      `/api/v1/wiseup/items/${this.getItemKey(item)}/comments`,
+      {
+        text,
+        itemType: item.type,
+      }
+    );
+    return response.data;
+  }
+
   public async trackAdImpression(adId: string | number): Promise<void> {
     try {
       await api.post('/api/v1/wiseup/ads/impression', { adId });
     } catch (error) {
-      console.error('Error tracking ad impression:', error);
-      // Silently fail - don't disrupt user experience for analytics
+      console.warn('WiseUp ad impression failed:', error);
     }
   }
 
-  /**
-   * Interleave content and ads
-   * @param content Array of content items
-   * @param ads Array of ad items
-   * @param frequency How often to insert ads (e.g., 3 means after every 3 content items)
-   * @returns Combined and interleaved array of WiseUpItems
-   */
   public interleaveContentAndAds(
     content: ContentItem[],
     ads: AdItem[],
@@ -92,94 +137,41 @@ export class WiseUpApiService {
     content.forEach((item, index) => {
       result.push(item);
 
-      // Insert an ad after every 'frequency' content items
       if ((index + 1) % frequency === 0 && adIndex < ads.length) {
         result.push(ads[adIndex]);
-        adIndex++;
+        adIndex += 1;
       }
     });
 
-    // Add any remaining ads at the end if there are more ads than can be interleaved
     while (adIndex < ads.length) {
       result.push(ads[adIndex]);
-      adIndex++;
+      adIndex += 1;
     }
 
     return result;
   }
 
-  /**
-   * Get user bookmarks
-   * @returns Promise with array of bookmarked items
-   */
   public async getBookmarks(): Promise<WiseUpItem[]> {
-    try {
-      const response = await api.get<WiseUpItem[]>('/api/v1/wiseup/bookmarks');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching bookmarks:', error);
-      throw error;
-    }
+    const response = await api.get<WiseUpItem[]>('/api/v1/wiseup/bookmarks');
+    return response.data;
   }
 
-  /**
-   * Add a bookmark
-   * @param itemId ID of the item to bookmark
-   * @param itemType Type of the item ('content' or 'ad')
-   * @returns Promise with the created bookmark
-   */
-  public async addBookmark(itemId: string, itemType: 'content' | 'ad'): Promise<any> {
-    try {
-      const response = await api.post('/api/v1/wiseup/bookmarks', {
-        wiseUpItemId: itemId,
-        itemType,
-      });
+  public async addBookmark(itemId: string, itemType: 'content' | 'ad'): Promise<unknown> {
+    const response = await api.post('/api/v1/wiseup/bookmarks', {
+      wiseUpItemId: itemId,
+      itemType,
+    });
 
-      return response.data;
-    } catch (error) {
-      console.error('Error adding bookmark:', error);
-      throw error;
-    }
+    return response.data;
   }
 
-  /**
-   * Remove a bookmark
-   * @param bookmarkId ID of the bookmark to remove
-   * @returns Promise indicating success/failure
-   */
   public async removeBookmark(bookmarkId: string): Promise<void> {
-    try {
-      await api.delete(`/api/v1/wiseup/bookmarks/${bookmarkId}`);
-    } catch (error) {
-      console.error('Error removing bookmark:', error);
-      throw error;
-    }
+    await api.delete(`/api/v1/wiseup/bookmarks/${bookmarkId}`);
   }
 
-  /**
-   * Update user progress for a content item
-   * @param contentId ID of the content item
-   * @param progress Progress percentage (0-100)
-   * @param completed Whether the content has been completed
-   * @returns Promise indicating success/failure
-   */
-  public async updateProgress(
-    contentId: number,
-    progress: number,
-    completed: boolean = false
-  ): Promise<void> {
-    try {
-      await api.post('/api/v1/wiseup/progress', {
-        contentId,
-        progress,
-        completed,
-      });
-    } catch (error) {
-      console.error('Error updating progress:', error);
-      // Silently fail - don't disrupt user experience
-    }
+  public getItemKey(item: Pick<WiseUpItem, 'id' | 'type'>): string {
+    return `${item.type}:${item.id}`;
   }
 }
 
-// Create and export a singleton instance
 export const wiseupApiService = new WiseUpApiService();

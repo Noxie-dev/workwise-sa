@@ -14,6 +14,11 @@ interface ApiClientConfig {
  */
 export interface ApiErrorResponse {
   message: string;
+  error?: {
+    message?: string;
+    type?: string;
+    details?: unknown;
+  };
   code?: string;
   details?: unknown;
 }
@@ -51,7 +56,7 @@ const createApiClient = (config: ApiClientConfig): AxiosInstance => {
   // Request interceptor - add auth token
   client.interceptors.request.use(
     config => {
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('authToken');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -74,14 +79,16 @@ const createApiClient = (config: ApiClientConfig): AxiosInstance => {
       // Parse error response
       const errorData = response.data as ApiErrorResponse;
       const status = response.status;
-      const message = errorData?.message || 'An unexpected error occurred';
-      const code = errorData?.code;
-      const details = errorData?.details;
+      const message =
+        errorData?.message || errorData?.error?.message || 'An unexpected error occurred';
+      const code = errorData?.code || errorData?.error?.type;
+      const details = errorData?.details || errorData?.error?.details;
 
       // Handle authentication errors
       if (status === 401) {
         // Clear token and redirect to login if needed
         localStorage.removeItem('auth_token');
+        localStorage.removeItem('authToken');
         // You might want to redirect to login page here
       }
 

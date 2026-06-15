@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,41 +31,49 @@ import { AlertCircle, HelpCircle, Lightbulb, Sparkles, Info } from 'lucide-react
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AiGenerationTips, SamplePrompts } from '@/components/AiHelpTips';
 
+const compactOptionalRows = (value: unknown) =>
+  Array.isArray(value)
+    ? value.filter(row => {
+        if (!row || typeof row !== 'object') return false;
+        return Object.values(row).some(field => String(field ?? '').trim().length > 0);
+      })
+    : value;
+
 // Define CV form schema
 const cvFormSchema = z.object({
   personalInfo: z.object({
-    fullName: z.string().min(2, {
+    fullName: z.string().trim().min(2, {
       error: 'Name must be at least 2 characters',
     }),
     email: z.email({
       error: 'Please enter a valid email address',
     }),
-    phone: z.string().min(10, {
+    phone: z.string().trim().min(10, {
       error: 'Please enter a valid phone number',
     }),
-    address: z.string().min(5, {
+    address: z.string().trim().min(5, {
       error: 'Please enter your address',
     }),
   }),
-  professionalSummary: z.string().min(50, {
+  professionalSummary: z.string().trim().min(50, {
     error: 'Please provide a summary of at least 50 characters',
   }),
   experience: z
     .array(
       z.object({
-        jobTitle: z.string().min(2, {
+        jobTitle: z.string().trim().min(2, {
           error: 'Job title is required',
         }),
-        employer: z.string().min(2, {
+        employer: z.string().trim().min(2, {
           error: 'Employer name is required',
         }),
-        location: z.string().optional(),
-        startDate: z.string().min(1, {
+        location: z.string().trim().optional(),
+        startDate: z.string().trim().min(1, {
           error: 'Start date is required',
         }),
-        endDate: z.string().optional(),
+        endDate: z.string().trim().optional(),
         isCurrentJob: z.boolean().prefault(false),
-        description: z.string().min(20, {
+        description: z.string().trim().min(20, {
           error: 'Please provide job description of at least 20 characters',
         }),
       })
@@ -76,14 +84,14 @@ const cvFormSchema = z.object({
   education: z
     .array(
       z.object({
-        degree: z.string().min(2, {
+        degree: z.string().trim().min(2, {
           error: 'Degree/Certificate name is required',
         }),
-        school: z.string().min(2, {
+        school: z.string().trim().min(2, {
           error: 'School name is required',
         }),
-        location: z.string().optional(),
-        graduationDate: z.string().min(1, {
+        location: z.string().trim().optional(),
+        graduationDate: z.string().trim().min(1, {
           error: 'Graduation date is required',
         }),
       })
@@ -93,44 +101,50 @@ const cvFormSchema = z.object({
     }),
   skills: z
     .array(
-      z.string().min(1, {
+      z.string().trim().min(1, {
         error: 'Skill cannot be empty',
       })
     )
     .min(1, {
       error: 'Add at least one skill',
     }),
-  languages: z
-    .array(
-      z.object({
-        language: z.string().min(1, {
-          error: 'Language name is required',
-        }),
-        proficiency: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Fluent', 'Native']),
-      })
-    )
-    .optional(),
-  references: z
-    .array(
-      z.object({
-        name: z.string().min(2, {
-          error: 'Reference name is required',
-        }),
-        position: z.string().min(2, {
-          error: 'Reference position is required',
-        }),
-        company: z.string().min(2, {
-          error: 'Company name is required',
-        }),
-        email: z.email({
-          error: 'Please enter a valid email',
-        }),
-        phone: z.string().min(10, {
-          error: 'Please enter a valid phone number',
-        }),
-      })
-    )
-    .optional(),
+  languages: z.preprocess(
+    compactOptionalRows,
+    z
+      .array(
+        z.object({
+          language: z.string().trim().min(1, {
+            error: 'Language name is required',
+          }),
+          proficiency: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Fluent', 'Native']),
+        })
+      )
+      .optional()
+  ),
+  references: z.preprocess(
+    compactOptionalRows,
+    z
+      .array(
+        z.object({
+          name: z.string().trim().min(2, {
+            error: 'Reference name is required',
+          }),
+          position: z.string().trim().min(2, {
+            error: 'Reference position is required',
+          }),
+          company: z.string().trim().min(2, {
+            error: 'Company name is required',
+          }),
+          email: z.email({
+            error: 'Please enter a valid email',
+          }),
+          phone: z.string().trim().min(10, {
+            error: 'Please enter a valid phone number',
+          }),
+        })
+      )
+      .optional()
+  ),
 });
 
 type CVFormValues = z.infer<typeof cvFormSchema>;
@@ -138,11 +152,11 @@ type CVFormValues = z.infer<typeof cvFormSchema>;
 export default function CVBuilder() {
   const { toast } = useToast();
   const [activeSection, setActiveSection] = useState('personalInfo');
-  const [generatedCV, setGeneratedCV] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('English');
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [isGeneratingJobDescription, setIsGeneratingJobDescription] = useState(false);
   const [isGeneratingAiCv, setIsGeneratingAiCv] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const { data: entitlements, refetch: refetchEntitlements } = useEntitlements();
 
@@ -557,6 +571,9 @@ export default function CVBuilder() {
 
   // Form submission handler
   const onSubmit = async (data: CVFormValues) => {
+    setIsGeneratingPdf(true);
+    let url: string | null = null;
+
     try {
       // Call the CV template generation endpoint
       const response = await fetch('/api/cv/generate-template', {
@@ -568,23 +585,38 @@ export default function CVBuilder() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate CV');
+        const errorPayload = await response.json().catch(() => null);
+        throw new Error(errorPayload?.message || 'Failed to generate CV');
+      }
+
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/pdf')) {
+        throw new Error('The CV service returned an unexpected response');
       }
 
       // Get the PDF blob
       const pdfBlob = await response.blob();
+      if (pdfBlob.size === 0) {
+        throw new Error('The generated CV PDF was empty');
+      }
 
       // Create a URL for the blob
-      const url = URL.createObjectURL(pdfBlob);
+      url = URL.createObjectURL(pdfBlob);
+      const safeName =
+        data.personalInfo.fullName
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 80) || 'workwise';
 
       // Create a link to download the PDF
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${data.personalInfo.fullName.replace(/\s+/g, '_')}_CV.pdf`;
+      a.download = `${safeName}-cv.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
 
       toast({
         title: 'CV Generated Successfully',
@@ -594,266 +626,14 @@ export default function CVBuilder() {
       console.error('Error generating CV:', error);
       toast({
         title: 'Error',
-        description: 'Failed to generate CV. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to generate CV. Please try again.',
         variant: 'destructive',
       });
-    }
-  };
-
-  // Function to generate HTML for CV
-  const generateCVHTML = (data: CVFormValues): string => {
-    return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>CV - ${data.personalInfo.fullName}</title>
-      <style>
-        * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
-          font-family: Arial, sans-serif;
-        }
-        body {
-          background-color: #f9f9f9;
-          color: #333;
-          line-height: 1.6;
-        }
-        .cv-container {
-          max-width: 210mm;
-          margin: 0 auto;
-          padding: 20px;
-          background-color: white;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-        }
-        .header {
-          text-align: center;
-          margin-bottom: 20px;
-          border-bottom: 2px solid #63B3ED;
-          padding-bottom: 10px;
-        }
-        .header h1 {
-          color: #333;
-          font-size: 28px;
-          margin-bottom: 5px;
-        }
-        .contact-info {
-          color: #555;
-          font-size: 14px;
-        }
-        .section {
-          margin-bottom: 20px;
-        }
-        .section-title {
-          color: #63B3ED;
-          font-size: 18px;
-          font-weight: bold;
-          border-bottom: 1px solid #ddd;
-          padding-bottom: 5px;
-          margin-bottom: 10px;
-        }
-        .item {
-          margin-bottom: 15px;
-        }
-        .item-header {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 5px;
-        }
-        .item-title {
-          font-weight: bold;
-          font-size: 16px;
-        }
-        .item-subtitle {
-          font-style: italic;
-          color: #555;
-        }
-        .item-date {
-          color: #777;
-        }
-        .item-description {
-          font-size: 14px;
-          color: #444;
-        }
-        .skills-list, .languages-list {
-          display: flex;
-          flex-wrap: wrap;
-          list-style-type: none;
-        }
-        .skills-list li {
-          background-color: #f1f8ff;
-          border: 1px solid #d1e5f9;
-          padding: 5px 10px;
-          margin: 0 5px 5px 0;
-          border-radius: 3px;
-          font-size: 14px;
-        }
-        .languages-list li {
-          padding: 0 10px 0 0;
-          margin-right: 10px;
-          font-size: 14px;
-          position: relative;
-        }
-        .languages-list li:not(:last-child):after {
-          content: "•";
-          position: absolute;
-          right: 0;
-        }
-        .reference {
-          margin-bottom: 10px;
-        }
-        @media print {
-          body {
-            background-color: white;
-          }
-          .cv-container {
-            box-shadow: none;
-            padding: 0;
-          }
-          .no-print {
-            display: none;
-          }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="cv-container">
-        <div class="header">
-          <h1>${data.personalInfo.fullName}</h1>
-          <div class="contact-info">
-            ${data.personalInfo.email} | ${data.personalInfo.phone} | ${data.personalInfo.address}
-          </div>
-        </div>
-
-        <div class="section">
-          <h2 class="section-title">Professional Summary</h2>
-          <p>${data.professionalSummary}</p>
-        </div>
-
-        <div class="section">
-          <h2 class="section-title">Work Experience</h2>
-          ${data.experience
-            .map(
-              exp => `
-            <div class="item">
-              <div class="item-header">
-                <div>
-                  <div class="item-title">${exp.jobTitle}</div>
-                  <div class="item-subtitle">${exp.employer}${exp.location ? `, ${exp.location}` : ''}</div>
-                </div>
-                <div class="item-date">${exp.startDate} - ${exp.isCurrentJob ? 'Present' : exp.endDate}</div>
-              </div>
-              <div class="item-description">${exp.description}</div>
-            </div>
-          `
-            )
-            .join('')}
-        </div>
-
-        <div class="section">
-          <h2 class="section-title">Education</h2>
-          ${data.education
-            .map(
-              edu => `
-            <div class="item">
-              <div class="item-header">
-                <div>
-                  <div class="item-title">${edu.degree}</div>
-                  <div class="item-subtitle">${edu.school}${edu.location ? `, ${edu.location}` : ''}</div>
-                </div>
-                <div class="item-date">${edu.graduationDate}</div>
-              </div>
-            </div>
-          `
-            )
-            .join('')}
-        </div>
-
-        <div class="section">
-          <h2 class="section-title">Skills</h2>
-          <ul class="skills-list">
-            ${data.skills
-              .map(
-                skill => `
-              <li>${skill}</li>
-            `
-              )
-              .join('')}
-          </ul>
-        </div>
-
-        ${
-          data.languages && data.languages.length > 0
-            ? `
-          <div class="section">
-            <h2 class="section-title">Languages</h2>
-            <ul class="languages-list">
-              ${data.languages
-                .map(
-                  lang => `
-                <li>${lang.language} - ${lang.proficiency}</li>
-              `
-                )
-                .join('')}
-            </ul>
-          </div>
-        `
-            : ''
-        }
-
-        ${
-          data.references && data.references.length > 0
-            ? `
-          <div class="section">
-            <h2 class="section-title">References</h2>
-            ${data.references
-              .map(
-                ref => `
-              <div class="reference">
-                <div class="item-title">${ref.name}</div>
-                <div class="item-subtitle">${ref.position}, ${ref.company}</div>
-                <div class="contact-info">${ref.email} | ${ref.phone}</div>
-              </div>
-            `
-              )
-              .join('')}
-          </div>
-        `
-            : ''
-        }
-      </div>
-    </body>
-    </html>
-    `;
-  };
-
-  const printCV = () => {
-    if (generatedCV) {
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(generatedCV);
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => {
-          printWindow.print();
-        }, 500);
+    } finally {
+      if (url) {
+        URL.revokeObjectURL(url);
       }
-    }
-  };
-
-  const downloadCV = () => {
-    if (generatedCV) {
-      const blob = new Blob([generatedCV], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${form.getValues('personalInfo.fullName').replace(/\s+/g, '_')}_CV.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setIsGeneratingPdf(false);
     }
   };
 
@@ -1465,30 +1245,12 @@ export default function CVBuilder() {
           <p className="text-gray-600">Create a professional CV to help you land your dream job</p>
         </div>
 
-        {generatedCV ? (
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4">Your CV has been generated!</h2>
-            <p className="text-gray-600 mb-6">You can now print or download your CV.</p>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button onClick={printCV} className="flex-1">
-                Print CV
-              </Button>
-              <Button onClick={downloadCV} variant="outline" className="flex-1">
-                Download CV
-              </Button>
-              <Button onClick={() => setGeneratedCV(null)} variant="secondary" className="flex-1">
-                Edit CV
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="grid md:grid-cols-4 gap-6">
-                {/* Sidebar navigation */}
-                <div className="md:col-span-1">
-                  <div className="bg-white shadow-md rounded-lg p-4">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <div className="grid md:grid-cols-4 gap-6">
+              {/* Sidebar navigation */}
+              <div className="md:col-span-1">
+                <div className="bg-white shadow-md rounded-lg p-4">
                     <div className="flex items-center mb-3">
                       <Sparkles className="text-blue-500 h-5 w-5 mr-2" />
                       <h3 className="font-medium">AI-Powered CV Builder</h3>
@@ -1568,8 +1330,8 @@ export default function CVBuilder() {
                         References
                       </Button>
                       <Separator className="my-2" />
-                      <Button type="submit" className="w-full">
-                        Generate CV
+                      <Button type="submit" className="w-full" disabled={isGeneratingPdf}>
+                        {isGeneratingPdf ? 'Generating PDF...' : 'Generate CV'}
                       </Button>
                       <Separator className="my-2" />
                       <Button
@@ -1582,23 +1344,22 @@ export default function CVBuilder() {
                         CV Builder Help
                       </Button>
                     </nav>
-                  </div>
-                </div>
-
-                {/* Main content */}
-                <div className="md:col-span-3">
-                  <div className="bg-white shadow-md rounded-lg p-6">{renderForm()}</div>
-
-                  {/* AI Tips moved below the CV builder */}
-                  <div className="mt-6">
-                    <AiGenerationTips />
-                    <SamplePrompts />
-                  </div>
                 </div>
               </div>
-            </form>
-          </Form>
-        )}
+
+              {/* Main content */}
+              <div className="md:col-span-3">
+                <div className="bg-white shadow-md rounded-lg p-6">{renderForm()}</div>
+
+                {/* AI Tips moved below the CV builder */}
+                <div className="mt-6">
+                  <AiGenerationTips />
+                  <SamplePrompts />
+                </div>
+              </div>
+            </div>
+          </form>
+        </Form>
       </div>
     </div>
   );

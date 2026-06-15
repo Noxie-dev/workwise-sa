@@ -1,17 +1,24 @@
 import { describe, it, expect } from 'vitest';
 
 describe('useTaxCalculator mock', () => {
+  type DeductionFlags = Record<
+    'uif' | 'pension' | 'medical' | 'groupLife' | 'retirement',
+    boolean
+  >;
+  type DeductionRates = Record<
+    'uif' | 'pension' | 'medical' | 'groupLife' | 'retirement',
+    number
+  >;
+
   // Mock tax calculation function
-  const calculateTax = (annualGross, activeDeductions, deductionRates, medicalAidMembers = 0) => {
+  const calculateTax = (
+    annualGross: number,
+    activeDeductions: DeductionFlags,
+    deductionRates: DeductionRates,
+    medicalAidMembers = 0
+  ) => {
     // Default deduction rates
-    const rates = {
-      uif: 0.01,
-      pension: 0.075,
-      medical: 0.0175,
-      groupLife: 0.0075,
-      retirement: 0.05,
-      ...deductionRates,
-    };
+    const rates = deductionRates;
 
     // Calculate deductions
     const uif = activeDeductions.uif ? Math.min((annualGross / 12) * rates.uif, 177.12) * 12 : 0;

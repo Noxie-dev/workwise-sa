@@ -130,8 +130,13 @@ export const profileService = {
   /**
    * Update user profile data
    */
-  async updateProfile(userId: string, data: Partial<ProfileData>): Promise<void> {
-    await apiClient.put(`/profile/${userId}`, data);
+  async updateProfile(userId: string, data: Partial<ProfileData>): Promise<ProfileData> {
+    const response = await apiClient.put<{
+      success: boolean;
+      data: ProfileData;
+      message?: string;
+    }>(`/profile/${userId}`, data);
+    return response.data.data;
   },
 
   /**
@@ -142,7 +147,7 @@ export const profileService = {
     formData.append('file', file);
     formData.append('enhancedScan', 'true');
 
-    const response = await apiClient.post<CVScanResponse>('/scan-cv', formData, {
+    const response = await apiClient.post<CVScanResponse>('/profile/scan-cv', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -158,7 +163,7 @@ export const profileService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await apiClient.post<ImageEnhancementResponse>('/enhance-image', formData, {
+    const response = await apiClient.post<ImageEnhancementResponse>('/profile/enhance-image', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -180,7 +185,7 @@ export const profileService = {
       suggestedFix?: string;
     }>
   ): Promise<AIPromptResponse> {
-    const response = await apiClient.post<AIPromptResponse>('/process-ai-prompt', {
+    const response = await apiClient.post<AIPromptResponse>('/profile/process-ai-prompt', {
       prompt,
       cvData,
       warnings,

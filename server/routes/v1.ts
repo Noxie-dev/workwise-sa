@@ -8,11 +8,19 @@ import {
   wiseup_ad_impressions,
   wiseup_ads,
   wiseup_bookmarks,
+  wiseup_comments,
   wiseup_content,
+  wiseup_events,
+  wiseup_user_progress,
 } from '@shared/wiseup-schema';
+import {
+  wiseupEventSchema,
+  wiseupFeedItemSchema,
+  wiseupProgressSchema,
+} from '@shared/wiseup-contracts';
 import { jobIngestBatchSchema } from '@shared/job-ingest-schema';
 import { storage } from '../storage';
-import { db } from '../db';
+import { db, isSqliteDatabase } from '../db';
 import recommendationRoutes from '../recommendationRoutes';
 import { generateProfessionalSummary, generateJobDescription, translateText } from '../ai';
 import {
@@ -21,7 +29,7 @@ import {
   generateProfessionalSummaryWithClaude,
   translateTextWithClaude,
 } from '../anthropic';
-import { generateCVPDF } from '../services/cvTemplateService';
+import { createCvFileName, generateCVPDF } from '../services/cvTemplateService';
 import { ingestJobs } from '../services/jobIngestionService';
 import { secretManager } from '../services/secretManager';
 import {
@@ -143,26 +151,38 @@ function isValidHiringMetrics(metrics: Record<string, unknown>): boolean {
 }
 
 async function buildCVTemplate(req: Request, res: any) {
-  const cvData = req.body;
-  const { personalInfo, professionalSummary, experience, education, skills } = cvData;
+  try {
+    const cvData = req.body;
+    const { personalInfo, professionalSummary, experience, education, skills } = cvData;
 
-  if (
-    !personalInfo?.fullName ||
-    !professionalSummary ||
-    !experience?.length ||
-    !education?.length ||
-    !skills?.length
-  ) {
-    return res.status(400).json({ message: 'Missing required CV information' });
+    if (
+      !personalInfo?.fullName?.trim() ||
+      !personalInfo?.email?.trim() ||
+      !personalInfo?.phone?.trim() ||
+      !personalInfo?.address?.trim() ||
+      !professionalSummary?.trim() ||
+      !experience?.length ||
+      !education?.length ||
+      !skills?.filter((skill: string) => skill?.trim()).length
+    ) {
+      return res.status(400).json({ message: 'Missing required CV information' });
+    }
+
+    const pdfBuffer = await generateCVPDF(cvData);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${createCvFileName(personalInfo.fullName)}"`
+    );
+    res.setHeader('Content-Length', String(pdfBuffer.length));
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Error generating CV template:', error);
+    res.status(500).json({
+      message: 'Failed to generate CV PDF',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
   }
-
-  const pdfBuffer = await generateCVPDF(cvData);
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader(
-    'Content-Disposition',
-    `attachment; filename="cv-${personalInfo.fullName.replace(/\s+/g, '_')}.pdf"`
-  );
-  res.send(pdfBuffer);
 }
 
 v1Router.use(rateLimiters.general);
@@ -740,15 +760,427 @@ v1Router.use('/recommendations', authenticate, rateLimiters.strict, recommendati
 
 const wiseupRouter = Router();
 
+const wiseupItemKeySchema = z.string().min(1);
+const wiseupCommentBodySchema = z.object({
+  text: z.string().trim().min(1).max(1000),
+  itemType: z.enum(['content', 'ad']).optional(),
+});
+const wiseupEventBatchSchema = z.union([
+  wiseupEventSchema,
+  z.object({
+    events: z.array(wiseupEventSchema).min(1).max(50),
+  }),
+]);
+
+const demoWiseUpItems = [
+  {
+    id: 1,
+    type: 'content',
+    slug: 'job-search-foundation',
+    title: 'Build a focused job search plan',
+    video: '/wise-up-demo/intro.webm',
+    media: {
+      src: '/wise-up-demo/intro.webm',
+      sourceType: 'webm',
+      poster: '/images/hero-logo.png',
+      thumbnail: '/images/hero-logo.png',
+      durationSec: 5,
+      aspectRatio: '16 / 9',
+      captions: [],
+      chapters: [
+        { title: 'Set your target', startSec: 0 },
+        { title: 'Build your weekly rhythm', startSec: 2 },
+        { title: 'Track momentum', startSec: 4 },
+      ],
+      transcript: [
+        {
+          startSec: 0,
+          endSec: 2,
+          text: 'Start by narrowing your search to roles you can explain clearly.',
+        },
+        {
+          startSec: 2,
+          endSec: 5,
+          text: 'Block time for applications, networking, and follow-up separately.',
+        },
+      ],
+    },
+    creator: {
+      name: 'WorkWise Coach',
+      role: 'Career Guidance',
+      avatar: '/images/header-logo.png',
+    },
+    description:
+      'A short playbook for turning scattered applications into a weekly job-search operating system.',
+    resources: [
+      { title: 'Find current roles', url: '/jobs', type: 'job' },
+      { title: 'Build your CV', url: '/cv-builder', type: 'external' },
+    ],
+    tags: ['job search', 'planning', 'career'],
+    category: 'career',
+    likeCount: 128,
+    commentCount: 12,
+    bookmarkCount: 34,
+    progress: 0,
+    completed: false,
+    bookmarked: false,
+  },
+  {
+    id: 2,
+    type: 'content',
+    slug: 'interview-readiness',
+    title: 'Interview readiness in 20 minutes',
+    video: '/wise-up-demo/intro.webm',
+    media: {
+      src: '/wise-up-demo/intro.webm',
+      sourceType: 'webm',
+      poster: '/images/workwisesa-logo-hero-image.png',
+      thumbnail: '/images/workwisesa-logo-hero-image.png',
+      durationSec: 5,
+      aspectRatio: '16 / 9',
+      captions: [],
+      chapters: [
+        { title: 'Research the employer', startSec: 0 },
+        { title: 'Prepare your stories', startSec: 2 },
+        { title: 'Close with confidence', startSec: 4 },
+      ],
+      transcript: [
+        {
+          startSec: 0,
+          endSec: 2,
+          text: 'Anchor your interview prep around the company problem you can help solve.',
+        },
+        {
+          startSec: 2,
+          endSec: 5,
+          text: 'Prepare two short stories that show skill, pressure, and outcome.',
+        },
+      ],
+    },
+    creator: {
+      name: 'Naledi Maseko',
+      role: 'Recruitment Lead',
+      avatar: '/images/header-logo.png',
+    },
+    description:
+      'Practical interview prep for job seekers who need structure, confidence, and crisp examples.',
+    resources: [{ title: 'Interview tips', url: '/resources', type: 'article' }],
+    tags: ['interviews', 'confidence', 'applications'],
+    category: 'career',
+    likeCount: 96,
+    commentCount: 8,
+    bookmarkCount: 19,
+    progress: 0,
+    completed: false,
+    bookmarked: false,
+  },
+  {
+    id: 1,
+    type: 'ad',
+    slug: 'cv-builder-boost',
+    advertiser: 'WorkWise SA',
+    title: 'Build a sharper CV before you apply',
+    video: '/wise-up-demo/intro.webm',
+    media: {
+      src: '/wise-up-demo/intro.webm',
+      sourceType: 'webm',
+      poster: '/images/hero-logo.png',
+      thumbnail: '/images/hero-logo.png',
+      durationSec: 5,
+      aspectRatio: '16 / 9',
+      captions: [],
+      chapters: [{ title: 'Start your CV', startSec: 0 }],
+      transcript: [],
+    },
+    cta: {
+      primary: { text: 'Open CV Builder', url: '/cv-builder' },
+      secondary: { text: 'Browse jobs first', url: '/jobs' },
+    },
+    description:
+      'Use the WorkWise CV Builder to tighten your profile, experience, and skills before submitting applications.',
+    notes: 'Free to start. Keep your profile reusable across job applications.',
+    tags: ['cv', 'profile', 'applications'],
+    category: 'sponsored',
+    likeCount: 41,
+    commentCount: 3,
+    bookmarkCount: 7,
+    progress: 0,
+    completed: false,
+    bookmarked: false,
+    sponsored: true,
+  },
+];
+
+function parseJsonField(value: unknown, fallback: unknown) {
+  if (value === null || value === undefined || value === '') {
+    return fallback;
+  }
+
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+}
+
+function asArray(value: unknown) {
+  const parsed = parseJsonField(value, []);
+  return Array.isArray(parsed) ? parsed : [];
+}
+
+function inferSourceType(src: string, explicit?: string | null) {
+  if (explicit === 'hls' || src.toLowerCase().includes('.m3u8')) {
+    return 'hls';
+  }
+
+  if (explicit === 'webm' || src.toLowerCase().includes('.webm')) {
+    return 'webm';
+  }
+
+  if (explicit === 'mov' || src.toLowerCase().includes('.mov')) {
+    return 'mov';
+  }
+
+  return 'mp4';
+}
+
+function wiseupActiveValue() {
+  return isSqliteDatabase() ? 1 : true;
+}
+
+function toMedia(row: any) {
+  const src = row.video || row.media?.src || '';
+  return {
+    src,
+    sourceType: inferSourceType(src, row.sourceType),
+    poster: row.poster || row.thumbnail || '/images/hero-logo.png',
+    thumbnail: row.thumbnail || row.poster || '/images/hero-logo.png',
+    durationSec: Number(row.durationSec || 0),
+    aspectRatio: row.aspectRatio || '16 / 9',
+    captions: asArray(row.captions),
+    chapters: asArray(row.chapters),
+    transcript: asArray(row.transcript),
+  };
+}
+
+function normalizeCta(value: unknown) {
+  const parsed = parseJsonField(value, value);
+  if (parsed && typeof parsed === 'object' && 'primary' in (parsed as Record<string, unknown>)) {
+    return parsed;
+  }
+
+  const text = typeof parsed === 'string' && parsed.trim() ? parsed : 'Learn more';
+  return {
+    primary: { text, url: '/jobs' },
+  };
+}
+
+function toContentFeedItem(row: any, overrides: Record<string, unknown> = {}) {
+  return wiseupFeedItemSchema.parse({
+    id: row.id,
+    type: 'content',
+    slug: row.slug || `content-${row.id}`,
+    title: row.title,
+    video: row.video,
+    media: toMedia(row),
+    creator: {
+      name: 'WorkWise Coach',
+      role: 'Career Guidance',
+      avatar: '/images/header-logo.png',
+      ...(parseJsonField(row.creator, {}) as Record<string, unknown>),
+    },
+    description: row.description,
+    resources: asArray(row.resources),
+    tags: asArray(row.tags),
+    category: row.category || 'career',
+    likeCount: Number(row.likeCount || 0),
+    commentCount: Number(row.commentCount || 0),
+    bookmarkCount: Number(row.bookmarkCount || 0),
+    ...overrides,
+  });
+}
+
+function toAdFeedItem(row: any, overrides: Record<string, unknown> = {}) {
+  return wiseupFeedItemSchema.parse({
+    id: row.id,
+    type: 'ad',
+    slug: row.slug || `ad-${row.id}`,
+    advertiser: row.advertiser,
+    title: row.title,
+    video: row.video,
+    media: toMedia(row),
+    cta: normalizeCta(row.cta),
+    description: row.description,
+    notes: row.notes || '',
+    tags: asArray(row.targetInterests),
+    category: row.category || 'sponsored',
+    likeCount: Number(row.likeCount || 0),
+    commentCount: Number(row.commentCount || 0),
+    bookmarkCount: Number(row.bookmarkCount || 0),
+    sponsored: true,
+    ...overrides,
+  });
+}
+
+function encodeCursor(offset: number, total: number) {
+  return offset < total ? Buffer.from(String(offset)).toString('base64url') : null;
+}
+
+function decodeCursor(cursor: unknown) {
+  if (typeof cursor !== 'string' || cursor.length === 0) {
+    return 0;
+  }
+
+  const decoded = Number.parseInt(Buffer.from(cursor, 'base64url').toString('utf8'), 10);
+  return Number.isFinite(decoded) && decoded >= 0 ? decoded : 0;
+}
+
+function parseItemKey(rawKey: string, fallbackType?: 'content' | 'ad') {
+  const key = wiseupItemKeySchema.parse(rawKey);
+  const [maybeType, maybeId] = key.includes(':') ? key.split(':', 2) : [fallbackType, key];
+  const itemType = maybeType === 'ad' ? 'ad' : 'content';
+  const id = Number.parseInt(maybeId || key, 10);
+
+  if (Number.isNaN(id)) {
+    throw new z.ZodError([
+      {
+        code: 'custom',
+        path: ['id'],
+        message: 'Invalid WiseUp item ID',
+      },
+    ]);
+  }
+
+  return { itemType, id, itemId: String(id) };
+}
+
+async function updateWiseUpProgress(
+  userId: string,
+  contentId: number,
+  progress: number,
+  completed: boolean
+) {
+  const normalizedProgress = Math.max(0, Math.min(100, Math.round(progress)));
+  const [existingProgress] = await db
+    .select()
+    .from(wiseup_user_progress)
+    .where(
+      and(eq(wiseup_user_progress.userId, userId), eq(wiseup_user_progress.contentId, contentId))
+    );
+
+  if (existingProgress) {
+    await db
+      .update(wiseup_user_progress)
+      .set({
+        progress: normalizedProgress,
+        completed,
+        lastWatched: new Date(),
+      })
+      .where(eq(wiseup_user_progress.id, existingProgress.id));
+    return;
+  }
+
+  await db.insert(wiseup_user_progress).values({
+    userId,
+    contentId,
+    progress: normalizedProgress,
+    completed,
+    lastWatched: new Date(),
+  });
+}
+
+function interleaveWiseUpItems(contentItems: any[], adItems: any[]) {
+  const result: any[] = [];
+  let adIndex = 0;
+
+  contentItems.forEach((contentItem, index) => {
+    result.push(contentItem);
+
+    if ((index + 1) % 3 === 0 && adItems[adIndex]) {
+      result.push(adItems[adIndex]);
+      adIndex += 1;
+    }
+  });
+
+  while (adIndex < adItems.length) {
+    result.push(adItems[adIndex]);
+    adIndex += 1;
+  }
+
+  return result;
+}
+
+wiseupRouter.get('/feed', async (req, res) => {
+  try {
+    const limit = Math.max(
+      1,
+      Math.min(Number.parseInt((req.query.limit as string) || '12', 10), 30)
+    );
+    const offset = decodeCursor(req.query.cursor);
+    const search = ((req.query.q as string) || '').trim().toLowerCase();
+    const category = ((req.query.category as string) || '').trim().toLowerCase();
+
+    const [contentRows, adRows] = await Promise.all([
+      db
+        .select()
+        .from(wiseup_content)
+        .where(eq(wiseup_content.active, wiseupActiveValue()))
+        .orderBy(desc(wiseup_content.createdAt))
+        .limit(limit + offset + 1),
+      db
+        .select()
+        .from(wiseup_ads)
+        .where(eq(wiseup_ads.active, wiseupActiveValue()))
+        .orderBy(desc(wiseup_ads.createdAt))
+        .limit(Math.max(3, Math.ceil(limit / 3) + 1)),
+    ]);
+
+    const normalizedContent = contentRows.map(row => toContentFeedItem(row));
+    const normalizedAds = adRows.map(row => toAdFeedItem(row));
+    const sourceItems =
+      normalizedContent.length > 0 || normalizedAds.length > 0
+        ? interleaveWiseUpItems(normalizedContent, normalizedAds)
+        : demoWiseUpItems;
+
+    const filteredItems = sourceItems.filter(item => {
+      const matchesCategory = !category || item.category.toLowerCase() === category;
+      const matchesSearch =
+        !search ||
+        item.title.toLowerCase().includes(search) ||
+        item.description.toLowerCase().includes(search) ||
+        item.tags.some(tag => tag.toLowerCase().includes(search));
+      return matchesCategory && matchesSearch;
+    });
+
+    const pagedItems = filteredItems.slice(offset, offset + limit);
+    res.json({
+      items: pagedItems,
+      nextCursor: encodeCursor(offset + limit, filteredItems.length),
+    });
+  } catch (error) {
+    console.error('Error fetching WiseUp feed:', error);
+    res.status(500).json({ message: 'Failed to fetch WiseUp feed' });
+  }
+});
+
 wiseupRouter.get('/content', async (req, res) => {
   try {
     const maxItems = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
     const contentItems = await db
       .select()
       .from(wiseup_content)
+      .where(eq(wiseup_content.active, wiseupActiveValue()))
       .orderBy(desc(wiseup_content.createdAt))
       .limit(maxItems);
-    res.json(contentItems);
+    res.json(
+      contentItems.length
+        ? contentItems.map(row => toContentFeedItem(row))
+        : demoWiseUpItems.filter(item => item.type === 'content')
+    );
   } catch (error) {
     console.error('Error fetching content:', error);
     res.status(500).json({ message: 'Failed to fetch content' });
@@ -761,12 +1193,192 @@ wiseupRouter.get('/ads', async (req, res) => {
     const adItems = await db
       .select()
       .from(wiseup_ads)
-      .where(eq(wiseup_ads.active, true))
+      .where(eq(wiseup_ads.active, wiseupActiveValue()))
+      .orderBy(desc(wiseup_ads.createdAt))
       .limit(maxItems);
-    res.json(adItems);
+    res.json(
+      adItems.length
+        ? adItems.map(row => toAdFeedItem(row))
+        : demoWiseUpItems.filter(item => item.type === 'ad')
+    );
   } catch (error) {
     console.error('Error fetching ads:', error);
     res.status(500).json({ message: 'Failed to fetch ads' });
+  }
+});
+
+wiseupRouter.get('/items/:id/comments', async (req, res) => {
+  try {
+    const { itemType, itemId } = parseItemKey(
+      req.params.id,
+      req.query.itemType as 'content' | 'ad'
+    );
+    const limit = Math.max(
+      1,
+      Math.min(Number.parseInt((req.query.limit as string) || '20', 10), 50)
+    );
+    const comments = await db
+      .select()
+      .from(wiseup_comments)
+      .where(and(eq(wiseup_comments.itemId, itemId), eq(wiseup_comments.itemType, itemType)))
+      .orderBy(desc(wiseup_comments.createdAt))
+      .limit(limit);
+
+    res.json({
+      comments: comments.map(comment => ({
+        id: comment.id,
+        itemId: comment.itemId,
+        userId: comment.userId,
+        userName: comment.userName,
+        userAvatar: comment.userAvatar || null,
+        text: comment.text,
+        createdAt: comment.createdAt,
+      })),
+      nextCursor: null,
+    });
+  } catch (error) {
+    console.error('Error fetching WiseUp comments:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid item ID', errors: error.issues });
+    }
+    res.status(500).json({ message: 'Failed to fetch comments' });
+  }
+});
+
+wiseupRouter.post('/items/:id/comments', authenticate, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.uid) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const body = wiseupCommentBodySchema.parse(req.body);
+    const { itemType, itemId } = parseItemKey(req.params.id, body.itemType);
+    const [comment] = await db
+      .insert(wiseup_comments)
+      .values({
+        itemId,
+        itemType,
+        userId: req.user.uid,
+        userName: req.user.email || 'WorkWise member',
+        userAvatar: null,
+        text: body.text,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    res.status(201).json({
+      id: comment.id,
+      itemId: comment.itemId,
+      userId: comment.userId,
+      userName: comment.userName,
+      userAvatar: comment.userAvatar || null,
+      text: comment.text,
+      createdAt: comment.createdAt,
+    });
+  } catch (error) {
+    console.error('Error adding WiseUp comment:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid request data', errors: error.issues });
+    }
+    res.status(500).json({ message: 'Failed to add comment' });
+  }
+});
+
+wiseupRouter.get('/items/:id', async (req, res) => {
+  try {
+    const { itemType, id } = parseItemKey(req.params.id, req.query.itemType as 'content' | 'ad');
+    if (itemType === 'ad') {
+      const [ad] = await db.select().from(wiseup_ads).where(eq(wiseup_ads.id, id));
+      const fallbackAd = demoWiseUpItems.find(item => item.type === 'ad' && item.id === id);
+      return ad || fallbackAd
+        ? res.json(ad ? toAdFeedItem(ad) : fallbackAd)
+        : res.status(404).json({ message: 'WiseUp item not found' });
+    }
+
+    const [content] = await db.select().from(wiseup_content).where(eq(wiseup_content.id, id));
+    const fallbackContent = demoWiseUpItems.find(item => item.type === 'content' && item.id === id);
+    return content || fallbackContent
+      ? res.json(content ? toContentFeedItem(content) : fallbackContent)
+      : res.status(404).json({ message: 'WiseUp item not found' });
+  } catch (error) {
+    console.error('Error fetching WiseUp item:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid item ID', errors: error.issues });
+    }
+    res.status(500).json({ message: 'Failed to fetch WiseUp item' });
+  }
+});
+
+wiseupRouter.post('/events', async (req: AuthenticatedRequest, res) => {
+  try {
+    const parsedBody = wiseupEventBatchSchema.parse(req.body);
+    const events = 'events' in parsedBody ? parsedBody.events : [parsedBody];
+
+    await Promise.all(
+      events.map(async event => {
+        await db.insert(wiseup_events).values({
+          itemId: event.itemId,
+          itemType: event.itemType,
+          eventType: event.eventType,
+          userId: req.user?.uid || null,
+          sessionId: event.sessionId || null,
+          progress: event.progress === undefined ? null : Math.round(event.progress),
+          currentTimeSec:
+            event.currentTimeSec === undefined ? null : Math.round(event.currentTimeSec),
+          durationSec: event.durationSec === undefined ? null : Math.round(event.durationSec),
+          metadata: event.metadata || null,
+          createdAt: new Date(),
+        });
+
+        const contentId = Number.parseInt(event.itemId, 10);
+        if (
+          req.user?.uid &&
+          event.itemType === 'content' &&
+          Number.isFinite(contentId) &&
+          (event.eventType === 'progress' || event.eventType === 'complete') &&
+          event.progress !== undefined
+        ) {
+          await updateWiseUpProgress(
+            req.user.uid,
+            contentId,
+            event.progress,
+            event.eventType === 'complete' || event.progress >= 95
+          );
+        }
+      })
+    );
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error recording WiseUp events:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid event data', errors: error.issues });
+    }
+    res.status(500).json({ message: 'Failed to record WiseUp events' });
+  }
+});
+
+wiseupRouter.post('/progress', authenticate, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.uid) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const progress = wiseupProgressSchema.parse(req.body);
+    await updateWiseUpProgress(
+      req.user.uid,
+      progress.contentId,
+      progress.progress,
+      progress.completed
+    );
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating WiseUp progress:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid progress data', errors: error.issues });
+    }
+    res.status(500).json({ message: 'Failed to update progress' });
   }
 });
 
@@ -820,7 +1432,16 @@ wiseupRouter.get('/bookmarks', authenticate, async (req: AuthenticatedRequest, r
       })
     );
 
-    res.json(items.filter(Boolean));
+    const normalizedItems = items
+      .map((item, index) => {
+        if (!item) return null;
+        return bookmarks[index]?.itemType === 'ad'
+          ? toAdFeedItem(item, { bookmarked: true })
+          : toContentFeedItem(item, { bookmarked: true });
+      })
+      .filter(Boolean);
+
+    res.json(normalizedItems);
   } catch (error) {
     console.error('Error fetching bookmarks:', error);
     res.status(500).json({ message: 'Failed to fetch bookmarks' });

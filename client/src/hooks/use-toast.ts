@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { useState } from 'react';
 
 import type { ToastActionElement, ToastProps } from '@/components/ui/toast';
 
@@ -166,7 +165,6 @@ function toast({ ...props }: Toast) {
 
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState);
-  const [toasts, setToasts] = useState<Toast[]>([]);
 
   React.useEffect(() => {
     listeners.push(setState);
@@ -176,19 +174,11 @@ function useToast() {
         listeners.splice(index, 1);
       }
     };
-  }, [state]);
-
-  const addToast = (toast: Toast) => {
-    setToasts(prevToasts => [...prevToasts, toast]);
-    setTimeout(() => {
-      setToasts(prevToasts => prevToasts.filter(t => t !== toast));
-    }, toast.duration || 5000);
-  };
+  }, []);
 
   return {
     ...state,
-    toasts,
-    toast: addToast,
+    toast,
     dismiss: (toastId?: string) => dispatch({ type: 'DISMISS_TOAST', toastId }),
   };
 }

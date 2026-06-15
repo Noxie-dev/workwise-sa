@@ -219,7 +219,7 @@ export function registerCvApiRoutes(app: Express) {
     }
   );
 
-  app.post('/api/cv/generate-summary', validate(generateSummarySchema), async (req, res, next) => {
+  app.post('/api/cv/generate-summary', verifyFirebaseToken, validate(generateSummarySchema), async (req, res, next) => {
     try {
       const { name, skills, experience, education, language } = req.body;
       if (!name || !skills || !experience || !education) {
@@ -242,6 +242,7 @@ export function registerCvApiRoutes(app: Express) {
 
   app.post(
     '/api/cv/generate-job-description',
+    verifyFirebaseToken,
     validate(generateJobDescriptionSchema),
     async (req, res, next) => {
       try {
@@ -257,7 +258,7 @@ export function registerCvApiRoutes(app: Express) {
     }
   );
 
-  app.post('/api/cv/translate', validate(translateSchema), async (req, res, next) => {
+  app.post('/api/cv/translate', verifyFirebaseToken, validate(translateSchema), async (req, res, next) => {
     try {
       const { text, targetLanguage } = req.body;
       if (!text || !targetLanguage) {
@@ -272,6 +273,7 @@ export function registerCvApiRoutes(app: Express) {
 
   app.post(
     '/api/cv/claude/generate-summary',
+    verifyFirebaseToken,
     validate(generateSummarySchema),
     async (req, res, next) => {
       try {
@@ -301,6 +303,7 @@ export function registerCvApiRoutes(app: Express) {
 
   app.post(
     '/api/cv/claude/generate-job-description',
+    verifyFirebaseToken,
     validate(generateJobDescriptionSchema),
     async (req, res, next) => {
       try {
@@ -320,7 +323,7 @@ export function registerCvApiRoutes(app: Express) {
     }
   );
 
-  app.post('/api/cv/claude/translate', validate(translateSchema), async (req, res, next) => {
+  app.post('/api/cv/claude/translate', verifyFirebaseToken, validate(translateSchema), async (req, res, next) => {
     try {
       if (!(await secretManager.getSecret('ANTHROPIC_API_KEY'))) {
         throw Errors.externalService('Anthropic API key is not configured');
@@ -337,7 +340,7 @@ export function registerCvApiRoutes(app: Express) {
     }
   });
 
-  app.post('/api/cv/claude/analyze-image', validate(analyzeImageSchema), async (req, res, next) => {
+  app.post('/api/cv/claude/analyze-image', verifyFirebaseToken, validate(analyzeImageSchema), async (req, res, next) => {
     try {
       if (!(await secretManager.getSecret('ANTHROPIC_API_KEY'))) {
         throw Errors.externalService('Anthropic API key is not configured');

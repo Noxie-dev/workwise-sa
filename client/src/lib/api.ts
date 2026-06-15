@@ -13,7 +13,7 @@ const api = axios.create({
 // Add a request interceptor to include auth token if available
 api.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('auth_token') || localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -26,25 +26,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   response => response,
   error => {
-    // Handle specific error cases
-    if (error.response) {
-      // Server responded with a status code outside of 2xx range
-      console.error('API Error:', error.response.status, error.response.data);
-
-      // Handle authentication errors
-      if (error.response.status === 401) {
-        // Redirect to login or refresh token
-        console.log('Authentication error - redirecting to login');
-        // window.location.href = '/login';
-      }
-    } else if (error.request) {
-      // Request was made but no response received
-      console.error('API Error: No response received', error.request);
-    } else {
-      // Something else happened while setting up the request
-      console.error('API Error:', error.message);
+    if (error.response?.status === 401) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('authToken');
     }
-
     return Promise.reject(error);
   }
 );

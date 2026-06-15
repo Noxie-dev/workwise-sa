@@ -1,8 +1,19 @@
 import { describe, it, expect } from 'vitest';
 
 describe('LoadingScreen Component Mock', () => {
+  type LoadingScreenSize = 'sm' | 'default' | 'lg';
+  type LoadingScreenProps = {
+    message?: string;
+    fullPage?: boolean;
+    size?: LoadingScreenSize;
+    backdropBlur?: string;
+    className?: string;
+    spinnerClassName?: string;
+    messageClassName?: string;
+  };
+
   // Mock the LoadingScreen component functionality
-  const createLoadingScreen = props => {
+  const createLoadingScreen = (props: LoadingScreenProps) => {
     const {
       message = 'Loading...',
       fullPage = true,

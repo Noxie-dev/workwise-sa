@@ -3,8 +3,43 @@ import { z } from 'zod';
 import { storage } from '../storage';
 import { validate } from '../middleware/validation';
 import { Errors } from '../middleware/errorHandler';
+import { type AuthenticatedRequest, verifyFirebaseToken } from '../middleware/auth';
+import { resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
 
 const router = Router();
+
+async function resolveProfileTarget(userIdParam: string) {
+  const numericId = parseInt(userIdParam, 10);
+  if (!Number.isNaN(numericId)) {
+    return {
+      numericId,
+      profile: await storage.getUserProfile(numericId),
+    };
+  }
+
+  const user = await storage.getUserByFirebaseUid(userIdParam);
+  return {
+    numericId: user?.id,
+    profile: user ? await storage.getUserProfile(user.id) : null,
+  };
+}
+
+async function assertProfileAccess(req: AuthenticatedRequest, userIdParam: string) {
+  const authUser = await resolveAuthenticatedDatabaseUser(req.user!);
+  const target = await resolveProfileTarget(userIdParam);
+
+  if (!target.numericId || !target.profile) {
+    throw Errors.notFound('Profile not found');
+  }
+
+  if (authUser.id !== target.numericId && authUser.role !== 'admin') {
+    throw Errors.forbidden('You can only access your own profile');
+  }
+
+  return target;
+}
+
+router.use(verifyFirebaseToken);
 
 // Validation schemas
 const updateProfileSchema = z.object({
@@ -91,15 +126,7 @@ const processAIPromptSchema = z.object({
  */
 router.get('/:userId', async (req, res, next) => {
   try {
-    const userIdParam = req.params.userId;
-    const numericId = parseInt(userIdParam);
-    const profile = Number.isNaN(numericId)
-      ? await storage.getUserProfileByFirebaseUid(userIdParam)
-      : await storage.getUserProfile(numericId);
-
-    if (!profile) {
-      throw Errors.notFound('Profile not found');
-    }
+    const { profile } = await assertProfileAccess(req as AuthenticatedRequest, req.params.userId);
 
     res.json({
       success: true,
@@ -115,19 +142,11 @@ router.get('/:userId', async (req, res, next) => {
  */
 router.put('/:userId', validate(updateProfileSchema), async (req, res, next) => {
   try {
-    const userIdParam = req.params.userId;
-    const numericId = parseInt(userIdParam);
-    const resolvedId = Number.isNaN(numericId)
-      ? (await storage.getUserByFirebaseUid(userIdParam))?.id
-      : numericId;
-
-    if (!resolvedId) {
-      throw Errors.notFound('User not found');
-    }
+    const { numericId } = await assertProfileAccess(req as AuthenticatedRequest, req.params.userId);
 
     const profileData = req.body;
 
-    const updatedProfile = await storage.updateUserProfile(resolvedId, profileData);
+    const updatedProfile = await storage.updateUserProfile(numericId!, profileData);
 
     res.json({
       success: true,

@@ -12,6 +12,8 @@ interface ReviewStepProps {
   onEditStep: (step: number) => void;
 }
 
+const renderMarkdown = (value: string) => marked.parse(value, { async: false }) as string;
+
 const ReviewStep: React.FC<ReviewStepProps> = ({ formState, onEditStep }) => {
   const { values } = formState;
 
@@ -96,7 +98,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formState, onEditStep }) => {
               <h4 className="font-medium mb-2">Description</h4>
               <div
                 className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: marked(values.description || '') }}
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(values.description || '') }}
               />
             </div>
 
@@ -105,7 +107,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formState, onEditStep }) => {
                 <h4 className="font-medium mb-2">Key Responsibilities</h4>
                 <div
                   className="prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: marked(values.responsibilities) }}
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(values.responsibilities) }}
                 />
               </div>
             )}
@@ -115,7 +117,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formState, onEditStep }) => {
                 <h4 className="font-medium mb-2">Requirements & Qualifications</h4>
                 <div
                   className="prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: marked(values.requirements) }}
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(values.requirements) }}
                 />
               </div>
             )}
@@ -170,7 +172,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formState, onEditStep }) => {
                 <h4 className="font-medium mb-2">About the Company</h4>
                 <div
                   className="prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: marked(values.companyBio) }}
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(values.companyBio) }}
                 />
               </div>
             )}
