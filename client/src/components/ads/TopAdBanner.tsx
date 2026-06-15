@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Megaphone } from 'lucide-react';
+import { Bell, ExternalLink, Megaphone, MonitorPlay, SkipForward, Volume2, VolumeX } from 'lucide-react';
 import type { AdSlotConfig } from '@shared/monetization';
 
 const fallbackSlot: AdSlotConfig = {
@@ -8,15 +8,16 @@ const fallbackSlot: AdSlotConfig = {
   maxAds: 1,
   frequency: 1,
   sizes: {
-    mobile: { width: 320, height: 100 },
-    tablet: { width: 728, height: 90 },
-    desktop: { width: 970, height: 90 },
+    mobile: { width: 360, height: 240 },
+    tablet: { width: 540, height: 360 },
+    desktop: { width: 600, height: 400 },
   },
   targeting: {
     mobileOnly: false,
-    allowedFormats: ['display'],
+    allowedFormats: ['display', 'video', 'native'],
   },
-  fallbackLabel: 'Sponsored',
+  fallbackLabel: 'WorkWise Display',
+  canSkip: false,
 };
 
 function createSessionId() {
@@ -44,7 +45,12 @@ function useViewportTier() {
   return tier;
 }
 
-function trackAdEvent(eventType: 'impression' | 'click', sessionId: string, creativeId: string) {
+function trackAdEvent(
+  eventType: 'impression' | 'click' | 'viewable',
+  sessionId: string,
+  creativeId: string,
+  metadata: Record<string, unknown> = {}
+) {
   return fetch('/api/monetization/events', {
     method: 'POST',
     headers: {
@@ -56,22 +62,65 @@ function trackAdEvent(eventType: 'impression' | 'click', sessionId: string, crea
       creativeId,
       sessionId,
       metadata: {
-        source: 'global-header',
+        source: 'led-display',
+        ...metadata,
       },
     }),
     keepalive: true,
   }).catch(() => undefined);
 }
 
+function normalizeEmbedUrl(url?: string | null, muted = true) {
+  if (!url) return '';
+
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, '');
+
+    if (host === 'youtube.com' || host === 'm.youtube.com') {
+      const id = parsed.searchParams.get('v');
+      if (id) return `https://www.youtube.com/embed/${id}?autoplay=1&mute=${muted ? 1 : 0}&controls=0&rel=0&playsinline=1&loop=1&playlist=${id}`;
+    }
+
+    if (host === 'youtu.be') {
+      const id = parsed.pathname.replace('/', '');
+      if (id) return `https://www.youtube.com/embed/${id}?autoplay=1&mute=${muted ? 1 : 0}&controls=0&rel=0&playsinline=1&loop=1&playlist=${id}`;
+    }
+
+    if (host.includes('tiktok.com') && !parsed.pathname.includes('/embed/')) {
+      const videoId = parsed.pathname.split('/video/')[1]?.split(/[/?#]/)[0];
+      if (videoId) return `https://www.tiktok.com/embed/v2/${videoId}`;
+    }
+
+    return url;
+  } catch {
+    return url;
+  }
+}
+
+function isNoticeCreative(type?: string) {
+  return type === 'notification' || type === 'promotion' || type === 'wiseup-promo';
+}
+
 export default function TopAdBanner() {
   const [slot, setSlot] = useState<AdSlotConfig>(fallbackSlot);
+  const [muted, setMuted] = useState(true);
+  const [skipped, setSkipped] = useState(false);
   const tier = useViewportTier();
   const sessionId = useMemo(createSessionId, []);
   const hasTrackedRef = useRef(false);
   const size = slot.sizes[tier] || fallbackSlot.sizes[tier];
   const creative = slot.creative;
+  const creativeType = creative?.creativeType || 'display';
   const creativeId = creative ? String(creative.id) : 'global-top-banner-placeholder';
   const targetUrl = creative?.targetUrl || '/employers/post-job';
+  const canSkip = Boolean(slot.canSkip);
+  const displayTitle =
+    creative?.title ||
+    'New on WorkWise SA: jobs, WiseUp videos, hiring updates, and career promotions';
+  const displayDescription =
+    creative?.description ||
+    'This display carries sponsored opportunities, platform announcements, WiseUp launches, and promotions across WorkWise SA.';
 
   useEffect(() => {
     let active = true;
@@ -88,7 +137,8 @@ export default function TopAdBanner() {
       })
       .then((payload: AdSlotConfig) => {
         if (active) {
-          setSlot(payload);
+          setSlot({ ...payload, canSkip: Boolean(payload.canSkip) });
+          setSkipped(false);
         }
       })
       .catch(() => {
@@ -105,60 +155,160 @@ export default function TopAdBanner() {
   useEffect(() => {
     if (!slot.enabled || hasTrackedRef.current) return;
     hasTrackedRef.current = true;
-    void trackAdEvent('impression', sessionId, creativeId);
-  }, [creativeId, sessionId, slot.enabled]);
+    void trackAdEvent('impression', sessionId, creativeId, { creativeType });
+  }, [creativeId, creativeType, sessionId, slot.enabled]);
 
-  if (!slot.enabled) {
+  if (!slot.enabled || skipped) {
     return null;
   }
 
+  const hasVideo = creativeType === 'video' && Boolean(creative?.videoUrl);
+  const hasEmbed = creativeType === 'embed' && Boolean(creative?.embedUrl);
+  const hasImage = Boolean(creative?.imageUrl);
+  const notice = isNoticeCreative(creativeType);
+
   return (
-    <aside className="mx-auto w-full max-w-7xl px-4 pt-4" aria-label="Sponsored banner">
+    <aside
+      className="sticky top-[66px] z-40 w-full border-b border-slate-950 bg-[#0b0f14] px-3 py-3 shadow-[0_12px_32px_rgba(2,6,23,0.28)] md:top-[73px]"
+      aria-label="WorkWise LED display"
+    >
       <div
-        className="mx-auto flex w-full flex-col justify-center overflow-hidden rounded-md border border-[#f2c94c]/70 bg-[#fff8df] px-4 py-3 text-[#102a47] shadow-sm sm:flex-row sm:items-center sm:justify-between"
+        className="mx-auto w-full"
         style={{
-          maxWidth: `${size.width}px`,
-          minHeight: `${size.height}px`,
-          aspectRatio: `${size.width} / ${size.height}`,
+          maxWidth: `${Math.min(size.width, 600)}px`,
         }}
       >
-        <div className="flex min-w-0 items-start gap-3">
-          {creative?.imageUrl ? (
-            <img
-              src={creative.imageUrl}
-              alt=""
-              className="h-14 w-20 shrink-0 rounded-md object-cover sm:h-16 sm:w-28"
-              loading="lazy"
-            />
-          ) : (
-            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#f2c94c] text-[#102a47]">
-              <Megaphone className="h-5 w-5" aria-hidden="true" />
-            </div>
-          )}
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-[#102a47]">
-                {slot.fallbackLabel}
+        <div className="rounded-[14px] border border-black bg-black p-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14),0_10px_26px_rgba(0,0,0,0.34)]">
+          <div
+            className="relative overflow-hidden rounded-[9px] border border-slate-700 bg-slate-950 text-white"
+            style={{
+              aspectRatio: `${size.width} / ${size.height}`,
+            }}
+          >
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.055)_1px,transparent_1px)] bg-[length:100%_4px] opacity-40" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.2),transparent_36%),radial-gradient(circle_at_82%_34%,rgba(250,204,21,0.16),transparent_32%)]" />
+
+            {hasVideo ? (
+              <video
+                className="absolute inset-0 h-full w-full object-cover"
+                src={creative?.videoUrl || undefined}
+                poster={creative?.imageUrl || undefined}
+                muted={muted}
+                autoPlay
+                loop
+                playsInline
+              />
+            ) : hasEmbed ? (
+              <iframe
+                className="absolute inset-0 h-full w-full"
+                src={normalizeEmbedUrl(creative?.embedUrl, muted)}
+                title={displayTitle}
+                allow="autoplay; encrypted-media; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            ) : hasImage ? (
+              <img
+                src={creative?.imageUrl || undefined}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+                loading="lazy"
+              />
+            ) : null}
+
+            <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-2 bg-gradient-to-b from-black/80 to-transparent px-3 py-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.9)]" />
+                <span className="h-2 w-2 rounded-full bg-amber-300 shadow-[0_0_12px_rgba(252,211,77,0.9)]" />
+                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.9)]" />
+                <span className="truncate text-[11px] font-bold uppercase tracking-[0.24em] text-white/80">
+                  {slot.fallbackLabel}
+                </span>
+              </div>
+              <span className="rounded-sm bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-100">
+                9:6 LED
               </span>
-              <p className="text-sm font-bold">
-                {creative?.title || 'Reach job-ready candidates across South Africa'}
-              </p>
             </div>
-            <p className="mt-1 text-sm text-[#102a47]/80">
-              {creative?.description ||
-                'Promote openings, training, or hiring services in this premium site-wide placement.'}
-            </p>
+
+            <a
+              href={targetUrl}
+              target={targetUrl.startsWith('http') ? '_blank' : undefined}
+              rel={targetUrl.startsWith('http') ? 'noopener noreferrer sponsored' : 'sponsored'}
+              onClick={() => void trackAdEvent('click', sessionId, creativeId, { creativeType })}
+              className="absolute inset-0"
+              aria-label={`Open ${displayTitle}`}
+            />
+
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/78 to-transparent px-3 pb-3 pt-16">
+              <div className="flex items-end gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-cyan-300 text-slate-950 shadow-[0_0_16px_rgba(103,232,249,0.55)]">
+                      {notice ? (
+                        <Bell className="h-4 w-4" aria-hidden="true" />
+                      ) : hasVideo || hasEmbed ? (
+                        <MonitorPlay className="h-4 w-4" aria-hidden="true" />
+                      ) : (
+                        <Megaphone className="h-4 w-4" aria-hidden="true" />
+                      )}
+                    </span>
+                    <span className="rounded-sm bg-white px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-950">
+                      {creativeType === 'wiseup-promo'
+                        ? 'WiseUp'
+                        : creativeType === 'notification'
+                          ? 'Notice'
+                          : creativeType === 'promotion'
+                            ? 'Promo'
+                            : 'Ad'}
+                    </span>
+                  </div>
+                  <p className="line-clamp-2 text-sm font-black leading-tight tracking-normal sm:text-base">
+                    {displayTitle}
+                  </p>
+                  <p className="mt-1 line-clamp-2 text-xs font-medium leading-snug text-white/78">
+                    {displayDescription}
+                  </p>
+                </div>
+                <div className="hidden shrink-0 items-center gap-1 rounded-md bg-white px-2 py-1 text-xs font-bold text-slate-950 sm:inline-flex">
+                  Open
+                  <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute right-2 top-10 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => setMuted(value => !value)}
+                className="relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/68 text-white shadow-sm backdrop-blur transition hover:bg-black/86 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+                aria-label={muted ? 'Unmute display' : 'Mute display'}
+              >
+                {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              </button>
+
+              {canSkip ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSkipped(true);
+                    void trackAdEvent('viewable', sessionId, creativeId, {
+                      creativeType,
+                      action: 'skip',
+                    });
+                  }}
+                  className="relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-cyan-300 text-slate-950 shadow-sm transition hover:bg-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  aria-label="Skip display"
+                >
+                  <SkipForward className="h-4 w-4" />
+                </button>
+              ) : (
+                <span className="relative z-10 rounded-full bg-black/70 px-2 py-1 text-center text-[10px] font-semibold uppercase tracking-wide text-white/75">
+                  Plus skips
+                </span>
+              )}
+            </div>
           </div>
+          <div className="mx-auto mt-1 h-1 w-24 rounded-full bg-white/12" />
         </div>
-        <a
-          href={targetUrl}
-          target={targetUrl.startsWith('http') ? '_blank' : undefined}
-          rel={targetUrl.startsWith('http') ? 'noopener noreferrer sponsored' : 'sponsored'}
-          onClick={() => void trackAdEvent('click', sessionId, creativeId)}
-          className="mt-3 inline-flex shrink-0 items-center justify-center rounded-md bg-[#102a47] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#183e67] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f2c94c] focus-visible:ring-offset-2 sm:ml-4 sm:mt-0"
-        >
-          {creative ? 'Learn more' : 'Advertise here'}
-        </a>
       </div>
     </aside>
   );

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'wouter';
-import { Image, Plus, Save, ShieldAlert, Trash2, Upload } from 'lucide-react';
+import { Bell, Image, MonitorPlay, Plus, Save, ShieldAlert, Trash2, Upload, Video } from 'lucide-react';
 import AdminLayout from '@/components/marketing-rules/AdminLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import apiClient from '@/services/apiClient';
@@ -21,6 +21,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 type CampaignStatus = 'draft' | 'active' | 'paused' | 'archived';
+type CreativeType = 'display' | 'video' | 'embed' | 'notification' | 'promotion' | 'wiseup-promo';
 
 type AdCampaign = {
   id: number;
@@ -28,7 +29,10 @@ type AdCampaign = {
   title: string;
   description: string | null;
   placement: string;
+  creativeType: CreativeType;
   imageUrl: string | null;
+  videoUrl: string | null;
+  embedUrl: string | null;
   targetUrl: string;
   startAt: string | null;
   endAt: string | null;
@@ -45,7 +49,10 @@ type CampaignForm = {
   title: string;
   description: string;
   placement: string;
+  creativeType: CreativeType;
   imageUrl: string;
+  videoUrl: string;
+  embedUrl: string;
   targetUrl: string;
   startAt: string;
   endAt: string;
@@ -67,7 +74,10 @@ const emptyForm: CampaignForm = {
   title: '',
   description: '',
   placement: 'global-top-banner',
+  creativeType: 'video',
   imageUrl: '',
+  videoUrl: '',
+  embedUrl: '',
   targetUrl: '',
   startAt: '',
   endAt: '',
@@ -94,7 +104,10 @@ const toForm = (campaign: AdCampaign): CampaignForm => ({
   title: campaign.title,
   description: campaign.description || '',
   placement: campaign.placement,
+  creativeType: campaign.creativeType || 'display',
   imageUrl: campaign.imageUrl || '',
+  videoUrl: campaign.videoUrl || '',
+  embedUrl: campaign.embedUrl || '',
   targetUrl: campaign.targetUrl,
   startAt: formatDateInput(campaign.startAt),
   endAt: formatDateInput(campaign.endAt),
@@ -134,21 +147,30 @@ const AdminAds: React.FC = () => {
     mutationFn: async (file: File) => {
       const body = new FormData();
       body.append('file', file);
-      const response = await apiClient.post<{ imageUrl: string }>('/admin/ads/upload', body);
-      return response.data.imageUrl;
+      const response = await apiClient.post<{
+        imageUrl: string | null;
+        videoUrl: string | null;
+        url: string;
+        mediaType: 'image' | 'video';
+      }>('/admin/ads/upload', body);
+      return response.data;
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: async (payload: CampaignForm) => {
       let imageUrl = payload.imageUrl;
+      let videoUrl = payload.videoUrl;
       if (selectedFile) {
-        imageUrl = await uploadMutation.mutateAsync(selectedFile);
+        const uploaded = await uploadMutation.mutateAsync(selectedFile);
+        imageUrl = uploaded.imageUrl || imageUrl;
+        videoUrl = uploaded.videoUrl || videoUrl;
       }
 
       const body = {
         ...payload,
         imageUrl,
+        videoUrl,
         startAt: payload.startAt || null,
         endAt: payload.endAt || null,
       };
@@ -307,6 +329,28 @@ const AdminAds: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
+                  <Label>Creative type</Label>
+                  <Select
+                    value={form.creativeType}
+                    onValueChange={value => updateField('creativeType', value as CreativeType)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="video">Uploaded video ad</SelectItem>
+                      <SelectItem value="embed">YouTube/TikTok embed</SelectItem>
+                      <SelectItem value="display">Display image</SelectItem>
+                      <SelectItem value="notification">In-app notification</SelectItem>
+                      <SelectItem value="promotion">Promotion</SelectItem>
+                      <SelectItem value="wiseup-promo">WiseUp promo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
                   <Label>Status</Label>
                   <Select
                     value={form.status}
@@ -356,12 +400,32 @@ const AdminAds: React.FC = () => {
                   id="creativeFile"
                   type="file"
                   className="hidden"
-                  accept="image/png,image/jpeg,image/gif,image/webp"
+                  accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/webm,video/quicktime"
                   onChange={event => setSelectedFile(event.target.files?.[0] || null)}
                 />
                 {selectedFile && (
                   <p className="text-xs text-muted-foreground">{selectedFile.name} selected</p>
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="videoUrl">Uploaded video URL</Label>
+                <Input
+                  id="videoUrl"
+                  value={form.videoUrl}
+                  onChange={event => updateField('videoUrl', event.target.value)}
+                  placeholder="/uploads/ad-videos/display.mp4"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="embedUrl">YouTube or TikTok URL</Label>
+                <Input
+                  id="embedUrl"
+                  value={form.embedUrl}
+                  onChange={event => updateField('embedUrl', event.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                />
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -442,27 +506,65 @@ const AdminAds: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex min-h-[90px] items-center gap-4 rounded-md border border-dashed p-4">
-                {activeTopBanner?.imageUrl ? (
-                  <img
-                    src={activeTopBanner.imageUrl}
-                    alt=""
-                    className="h-16 w-28 rounded-md object-cover"
-                  />
-                ) : (
-                  <div className="flex h-16 w-28 items-center justify-center rounded-md bg-muted">
-                    <Image className="h-6 w-6 text-muted-foreground" />
+              <div className="mx-auto max-w-[360px] rounded-[14px] border border-black bg-black p-2">
+                <div className="relative aspect-[9/6] overflow-hidden rounded-[9px] border border-slate-700 bg-slate-950 text-white">
+                  {activeTopBanner?.creativeType === 'video' && activeTopBanner.videoUrl ? (
+                    <video
+                      src={activeTopBanner.videoUrl}
+                      poster={activeTopBanner.imageUrl || undefined}
+                      className="absolute inset-0 h-full w-full object-cover"
+                      muted
+                      loop
+                      playsInline
+                      autoPlay
+                    />
+                  ) : activeTopBanner?.imageUrl ? (
+                    <img
+                      src={activeTopBanner.imageUrl}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : activeTopBanner?.creativeType === 'embed' ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
+                      <Video className="h-10 w-10 text-cyan-200" />
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
+                      <Image className="h-10 w-10 text-slate-400" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[length:100%_4px]" />
+                  <div className="absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent px-3 py-2">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/80">
+                      WorkWise Display
+                    </span>
+                    <span className="rounded-sm bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em]">
+                      9:6
+                    </span>
                   </div>
-                )}
-                <div>
-                  <p className="font-semibold">
-                    {activeTopBanner?.title || 'Fallback advertise-here creative'}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {activeTopBanner?.description ||
-                      'Create and activate a global-top-banner campaign to replace this.'}
-                  </p>
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent px-3 pb-3 pt-14">
+                    <div className="mb-1 inline-flex h-7 w-7 items-center justify-center rounded-md bg-cyan-300 text-slate-950">
+                      {activeTopBanner?.creativeType === 'notification' ? (
+                        <Bell className="h-4 w-4" />
+                      ) : (
+                        <MonitorPlay className="h-4 w-4" />
+                      )}
+                    </div>
+                    <p className="line-clamp-2 text-sm font-black">
+                      {activeTopBanner?.title || 'Fallback display creative'}
+                    </p>
+                    <p className="mt-1 line-clamp-2 text-xs text-white/75">
+                      {activeTopBanner?.description ||
+                        'Create and activate a global-top-banner campaign to replace this.'}
+                    </p>
+                  </div>
                 </div>
+              </div>
+              <div className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <span className="rounded-full border px-2 py-1">
+                  {activeTopBanner?.creativeType || 'display'}
+                </span>
+                {activeTopBanner?.embedUrl && <span>External embed configured</span>}
               </div>
             </CardContent>
           </Card>
@@ -509,7 +611,7 @@ const AdminAds: React.FC = () => {
                           <td className="py-3 pr-4">
                             <div className="font-medium">{campaign.title}</div>
                             <div className="text-xs text-muted-foreground">
-                              {campaign.advertiserName}
+                              {campaign.advertiserName} · {campaign.creativeType || 'display'}
                             </div>
                           </td>
                           <td className="py-3 pr-4">{campaign.placement}</td>

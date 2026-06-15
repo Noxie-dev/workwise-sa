@@ -4,7 +4,7 @@ import path from 'path';
 import multer from 'multer';
 import { and, desc, eq } from 'drizzle-orm';
 import { adCampaigns } from '@shared/schema';
-import { adPlacementSchema } from '@shared/monetization';
+import { adCreativeTypeSchema, adPlacementSchema } from '@shared/monetization';
 import { db } from '../db';
 import { Errors } from '../middleware/errorHandler';
 import { type AuthenticatedRequest, verifyFirebaseToken } from '../middleware/auth';
@@ -15,13 +15,24 @@ const router = Router();
 const upload = multer({
   dest: 'uploads/temp/',
   limits: {
-    fileSize: 5 * 1024 * 1024,
+    fileSize: 80 * 1024 * 1024,
   },
   fileFilter: (_req, file, cb) => {
-    if (['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'].includes(file.mimetype)) {
+    if (
+      [
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'video/mp4',
+        'video/webm',
+        'video/quicktime',
+      ].includes(file.mimetype)
+    ) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.'));
+      cb(new Error('Invalid file type. Upload JPEG, PNG, GIF, WebP, MP4, WebM, or MOV creatives.'));
     }
   },
 });
@@ -63,10 +74,14 @@ const parseCampaignBody = (body: Record<string, unknown>) => {
   const title = typeof body.title === 'string' ? body.title.trim() : '';
   const targetUrl = typeof body.targetUrl === 'string' ? body.targetUrl.trim() : '';
   const status = typeof body.status === 'string' ? body.status : 'draft';
+  const parsedCreativeType = adCreativeTypeSchema.safeParse(
+    typeof body.creativeType === 'string' ? body.creativeType : 'display'
+  );
 
   if (!advertiserName) throw Errors.validation('Advertiser name is required');
   if (!title) throw Errors.validation('Creative title is required');
   if (!targetUrl) throw Errors.validation('Advertiser URL is required');
+  if (!parsedCreativeType.success) throw Errors.validation('Invalid creative type');
   if (!['draft', 'active', 'paused', 'archived'].includes(status)) {
     throw Errors.validation('Invalid campaign status');
   }
@@ -82,7 +97,10 @@ const parseCampaignBody = (body: Record<string, unknown>) => {
     title,
     description: typeof body.description === 'string' ? body.description.trim() || null : null,
     placement: parsedPlacement.data,
+    creativeType: parsedCreativeType.data,
     imageUrl: typeof body.imageUrl === 'string' ? body.imageUrl.trim() || null : null,
+    videoUrl: typeof body.videoUrl === 'string' ? body.videoUrl.trim() || null : null,
+    embedUrl: typeof body.embedUrl === 'string' ? body.embedUrl.trim() || null : null,
     targetUrl,
     startAt,
     endAt,
@@ -187,20 +205,24 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
     const file = req.file;
     if (!file) throw Errors.badRequest('No file uploaded');
 
-    const uploadDir = path.join(process.cwd(), 'uploads', 'ad-creatives');
+    const isVideo = file.mimetype.startsWith('video/');
+    const uploadDir = path.join(process.cwd(), 'uploads', isVideo ? 'ad-videos' : 'ad-creatives');
     fs.mkdirSync(uploadDir, { recursive: true });
 
-    const extension = path.extname(file.originalname).toLowerCase() || '.png';
-    const filename = `ad-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${extension}`;
+    const extension = path.extname(file.originalname).toLowerCase() || (isVideo ? '.mp4' : '.png');
+    const filename = `ad-${isVideo ? 'video' : 'image'}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${extension}`;
     const finalPath = path.join(uploadDir, filename);
     fs.copyFileSync(file.path, finalPath);
     fs.unlinkSync(file.path);
 
     const baseUrl = process.env.FILE_SERVE_URL || '';
-    const fileUrl = `${baseUrl}/uploads/ad-creatives/${filename}`;
+    const fileUrl = `${baseUrl}/uploads/${isVideo ? 'ad-videos' : 'ad-creatives'}/${filename}`;
 
     res.status(201).json({
-      imageUrl: fileUrl,
+      imageUrl: isVideo ? null : fileUrl,
+      videoUrl: isVideo ? fileUrl : null,
+      url: fileUrl,
+      mediaType: isVideo ? 'video' : 'image',
       filename,
     });
   } catch (error) {

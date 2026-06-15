@@ -13,6 +13,15 @@ export const adSizeSchema = z.object({
   height: z.number().int().min(1),
 });
 
+export const adCreativeTypeSchema = z.enum([
+  'display',
+  'video',
+  'embed',
+  'notification',
+  'promotion',
+  'wiseup-promo',
+]);
+
 export const adSlotSchema = z.object({
   placement: adPlacementSchema,
   enabled: z.boolean(),
@@ -28,13 +37,17 @@ export const adSlotSchema = z.object({
     allowedFormats: z.array(z.enum(['display', 'native', 'video'])).min(1),
   }),
   fallbackLabel: z.string().min(1),
+  canSkip: z.boolean().default(false),
   creative: z
     .object({
       id: z.number().int(),
       advertiserName: z.string(),
       title: z.string(),
       description: z.string().nullable().optional(),
+      creativeType: adCreativeTypeSchema.default('display'),
       imageUrl: z.string().nullable().optional(),
+      videoUrl: z.string().nullable().optional(),
+      embedUrl: z.string().nullable().optional(),
       targetUrl: z.string(),
       budgetCents: z.number().int(),
       currency: z.string(),
@@ -55,6 +68,7 @@ export const adEventSchema = z.object({
 });
 
 export type AdPlacement = z.infer<typeof adPlacementSchema>;
+export type AdCreativeType = z.infer<typeof adCreativeTypeSchema>;
 export type AdSlotConfig = z.infer<typeof adSlotSchema>;
 export type AdEvent = z.infer<typeof adEventSchema>;
 
@@ -65,15 +79,16 @@ export const defaultAdSlots: Record<AdPlacement, AdSlotConfig> = {
     maxAds: 1,
     frequency: 1,
     sizes: {
-      mobile: { width: 320, height: 100 },
-      tablet: { width: 728, height: 90 },
-      desktop: { width: 970, height: 90 },
+      mobile: { width: 360, height: 240 },
+      tablet: { width: 540, height: 360 },
+      desktop: { width: 600, height: 400 },
     },
     targeting: {
       mobileOnly: false,
-      allowedFormats: ['display'],
+      allowedFormats: ['display', 'video', 'native'],
     },
-    fallbackLabel: 'Sponsored',
+    fallbackLabel: 'WorkWise Display',
+    canSkip: false,
   },
   'home-inline': {
     placement: 'home-inline',
@@ -90,6 +105,7 @@ export const defaultAdSlots: Record<AdPlacement, AdSlotConfig> = {
       allowedFormats: ['native', 'display'],
     },
     fallbackLabel: 'Sponsored opportunities',
+    canSkip: false,
   },
   'jobs-inline': {
     placement: 'jobs-inline',
@@ -106,6 +122,7 @@ export const defaultAdSlots: Record<AdPlacement, AdSlotConfig> = {
       allowedFormats: ['native', 'display'],
     },
     fallbackLabel: 'Sponsored jobs',
+    canSkip: false,
   },
   'wiseup-inline': {
     placement: 'wiseup-inline',
@@ -122,6 +139,7 @@ export const defaultAdSlots: Record<AdPlacement, AdSlotConfig> = {
       allowedFormats: ['native', 'video'],
     },
     fallbackLabel: 'Sponsored learning',
+    canSkip: false,
   },
   'footer-banner': {
     placement: 'footer-banner',
@@ -138,5 +156,6 @@ export const defaultAdSlots: Record<AdPlacement, AdSlotConfig> = {
       allowedFormats: ['display'],
     },
     fallbackLabel: 'Sponsored placement',
+    canSkip: false,
   },
 };
