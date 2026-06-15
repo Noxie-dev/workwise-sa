@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import EmployerDashboard from './EmployerDashboard';
 import { employerDashboardService } from '@/services/employerDashboardService';
@@ -143,7 +144,7 @@ describe('EmployerDashboard Component', () => {
 
     // Wait for the data to load
     await waitFor(() => {
-      expect(employerDashboardService.fetchEmployerDashboard).toHaveBeenCalled();
+      expect(employerDashboardService.fetchEmployerDashboard).toHaveBeenCalledWith('30d', 'all');
     });
 
     // Check for stats cards
@@ -160,7 +161,7 @@ describe('EmployerDashboard Component', () => {
 
     // Wait for the data to load
     await waitFor(() => {
-      expect(employerDashboardService.fetchEmployerJobs).toHaveBeenCalled();
+      expect(employerDashboardService.fetchEmployerJobs).toHaveBeenCalledWith('all');
     });
 
     // Check for jobs management tab
@@ -231,6 +232,50 @@ describe('EmployerDashboard Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Failed to load employer dashboard')).toBeInTheDocument();
+    });
+  });
+
+  it('filters applications to the selected job from the jobs list action', async () => {
+    const user = userEvent.setup();
+    renderDashboard();
+
+    await user.click(screen.getByRole('tab', { name: 'Manage Jobs' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Software Developer')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /Applications \(10\)/ }));
+
+    await waitFor(() => {
+      expect(employerDashboardService.fetchEmployerApplications).toHaveBeenLastCalledWith({
+        jobId: 'job1',
+        status: 'all',
+        dateRange: '30d',
+      });
+    });
+    expect(screen.getByText('Review applications for Software Developer')).toBeInTheDocument();
+  });
+
+  it('shows status mutation errors when job status updates fail', async () => {
+    const user = userEvent.setup();
+    (employerDashboardService.updateEmployerJobStatus as any).mockRejectedValueOnce(
+      new Error('Cannot update this job')
+    );
+
+    renderDashboard();
+
+    await user.click(screen.getByRole('tab', { name: 'Manage Jobs' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Software Developer')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /Pause/ }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Job status update failed')).toBeInTheDocument();
+      expect(screen.getByText('Cannot update this job')).toBeInTheDocument();
     });
   });
 });

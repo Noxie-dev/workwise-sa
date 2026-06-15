@@ -3,9 +3,11 @@ import { z } from 'zod';
 import { insertUserSchema } from '@shared/schema';
 import { storage } from '../storage';
 import { validate } from '../middleware/validation';
-import { ApiError, ErrorType, Errors } from '../middleware/errorHandler';
+import { Errors } from '../middleware/errorHandler';
 import { verifyFirebaseToken } from '../middleware/auth';
 import { resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
+import { auth } from '../firebase';
+import { getJobPreviewMatches } from '../services/jobMatchingService';
 
 const getCategorySchema = z.object({ params: z.object({ slug: z.string() }) });
 const getCompanySchema = z.object({ params: z.object({ slug: z.string() }) });
@@ -13,6 +15,36 @@ const searchJobsSchema = z.object({ query: z.object({ q: z.string() }) });
 const getJobsByCompanySchema = z.object({ params: z.object({ id: z.string().regex(/^\d+$/) }) });
 const getJobsByCategorySchema = z.object({ params: z.object({ id: z.string().regex(/^\d+$/) }) });
 const getJobSchema = z.object({ params: z.object({ id: z.string().regex(/^\d+$/) }) });
+const numericQuery = z
+  .union([z.string(), z.number()])
+  .optional()
+  .transform(value => {
+    if (value === undefined || value === '') return undefined;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  });
+const booleanQuery = z
+  .union([z.string(), z.boolean()])
+  .optional()
+  .transform(value => value === true || value === 'true');
+const jobPreviewsSchema = z.object({
+  query: z.object({
+    q: z.string().optional(),
+    query: z.string().optional(),
+    categoryId: numericQuery,
+    location: z.string().optional(),
+    jobType: z.string().optional(),
+    workMode: z.string().optional(),
+    experienceLevel: z.enum(['entry', 'mid', 'senior']).optional(),
+    page: numericQuery,
+    limit: numericQuery,
+    featured: booleanQuery,
+    minSalary: numericQuery,
+    sort: z.enum(['relevance', 'newest']).optional(),
+    personalized: booleanQuery,
+    includeRemote: booleanQuery,
+  }),
+});
 const applyForJobSchema = z.object({
   params: z.object({ id: z.string().regex(/^\d+$/) }),
   body: z.object({
@@ -21,6 +53,36 @@ const applyForJobSchema = z.object({
     notes: z.string().optional(),
   }),
 });
+
+async function resolveOptionalAuthenticatedUser(req: any) {
+  const header = req.headers.authorization || '';
+  const token = typeof header === 'string' && header.startsWith('Bearer ') ? header.slice(7) : '';
+  if (!token) return undefined;
+
+  try {
+    const decodedToken = await auth.verifyIdToken(token);
+    return await resolveAuthenticatedDatabaseUser({
+      uid: decodedToken.uid,
+      email: decodedToken.email,
+      name: decodedToken.name,
+      role: typeof decodedToken.role === 'string' ? decodedToken.role : undefined,
+    });
+  } catch (error) {
+    console.warn('Ignoring invalid optional job preview auth token:', (error as Error).message);
+    return undefined;
+  }
+}
+
+const toOptionalNumber = (value: unknown) => {
+  if (value === undefined || value === null || value === '') return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const toOptionalBoolean = (value: unknown) => {
+  if (value === undefined || value === null || value === '') return undefined;
+  return value === true || value === 'true';
+};
 
 export function registerPublicApiRoutes(app: Express) {
   app.get('/api/categories', async (_req, res, next) => {
@@ -76,6 +138,35 @@ export function registerPublicApiRoutes(app: Express) {
     try {
       const jobs = await storage.getFeaturedJobs();
       res.json(jobs.filter(job => job.status === 'active'));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get('/api/job-previews', validate(jobPreviewsSchema), async (req, res, next) => {
+    try {
+      const dbUser = await resolveOptionalAuthenticatedUser(req);
+      const query = req.query as Record<string, any>;
+      const response = await getJobPreviewMatches(
+        {
+          query: query.query || query.q || undefined,
+          categoryId: toOptionalNumber(query.categoryId),
+          location: query.location || undefined,
+          jobType: query.jobType || undefined,
+          workMode: query.workMode || undefined,
+          experienceLevel: query.experienceLevel || undefined,
+          page: toOptionalNumber(query.page) || 1,
+          limit: toOptionalNumber(query.limit) || 20,
+          featured: toOptionalBoolean(query.featured),
+          minSalary: toOptionalNumber(query.minSalary),
+          sort: query.sort,
+          personalized: toOptionalBoolean(query.personalized),
+          includeRemote: toOptionalBoolean(query.includeRemote),
+        },
+        dbUser
+      );
+
+      res.json(response);
     } catch (error) {
       next(error);
     }

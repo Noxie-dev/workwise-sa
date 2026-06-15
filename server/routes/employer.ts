@@ -18,6 +18,7 @@ import {
   type EmployerJobForm,
   type EmployerJobStatus,
 } from '@shared/platform-contracts';
+import type { User } from '@shared/schema';
 import { db } from '../db';
 import { verifyFirebaseToken } from '../middleware/auth';
 import { Errors } from '../middleware/errorHandler';
@@ -27,6 +28,7 @@ const router = Router();
 
 const employerJobCreateSchema = employerJobFormSchema;
 const employerJobUpdateSchema = employerJobFormSchema;
+type EmployerJobRow = typeof jobs.$inferSelect;
 
 function slugify(value: string) {
   return value
@@ -69,6 +71,82 @@ function composeDescription(payload: EmployerJobForm) {
   ]
     .filter(Boolean)
     .join('\n\n');
+}
+
+function isAdmin(user: Pick<User, 'role'>) {
+  return user.role === 'admin';
+}
+
+function scopeJobsToUser(jobRows: EmployerJobRow[], user: User): EmployerJobRow[] {
+  return isAdmin(user) ? jobRows : jobRows.filter(job => job.ownerUserId === user.id);
+}
+
+function assertCanManageJob(job: EmployerJobRow, user: User) {
+  if (!isAdmin(user) && job.ownerUserId !== user.id) {
+    throw Errors.forbidden('You do not have permission to manage this job');
+  }
+}
+
+function getDateRangeStart(dateRange: unknown) {
+  const now = new Date();
+  const value = typeof dateRange === 'string' ? dateRange : '30d';
+  const daysByRange: Record<string, number> = {
+    '7d': 7,
+    '30d': 30,
+    '90d': 90,
+    '1y': 365,
+  };
+  const days = daysByRange[value] ?? daysByRange['30d'];
+  return new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+}
+
+function isOnOrAfter(dateLike: Date | string | null | undefined, start: Date) {
+  if (!dateLike) {
+    return false;
+  }
+
+  return new Date(dateLike).getTime() >= start.getTime();
+}
+
+function applyStatusFilter<T extends { status?: string | null }>(rows: T[], status: string) {
+  return status === 'all' ? rows : rows.filter(row => row.status === status);
+}
+
+function parsePostingMetadata(value: unknown): Partial<EmployerJobForm> {
+  if (!value) {
+    return {};
+  }
+
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return {};
+    }
+  }
+
+  if (typeof value === 'object') {
+    return value as Partial<EmployerJobForm>;
+  }
+
+  return {};
+}
+
+function composePostingMetadata(payload: EmployerJobForm) {
+  return {
+    applicationDeadline: payload.applicationDeadline || null,
+    companyBio: payload.companyBio,
+    contactName: payload.contactName,
+    contactEmail: payload.contactEmail,
+    contactPhone: payload.contactPhone,
+    website: payload.website,
+    howToApply: payload.howToApply,
+    applicationEmail: payload.applicationEmail,
+    applicationUrl: payload.applicationUrl,
+    customInstructions: payload.customInstructions,
+    isConfidential: payload.isConfidential,
+    screenerQuestions: payload.screenerQuestions,
+  };
 }
 
 async function findOrCreateCompany(payload: EmployerJobForm) {
@@ -130,6 +208,7 @@ function mapJobForm(
     id: String(job.id),
     companyId,
     categoryId,
+    ownerUserId: job.ownerUserId ?? null,
     status: job.status as EmployerJobStatus,
     createdAt: job.createdAt ? new Date(job.createdAt).toISOString() : null,
     ...payload,
@@ -170,11 +249,27 @@ router.get('/dashboard', async (req, res, next) => {
     const dbUser = await resolveAuthenticatedDatabaseUser(authUser);
     assertRole(dbUser, ['admin', 'employer']);
 
-    const [jobRows, applicationRows, interactionRows] = await Promise.all([
+    const statusFilter = String(req.query.status || 'all');
+    const dateRangeStart = getDateRangeStart(req.query.dateRange);
+    const [allJobRows, allApplicationRows, allInteractionRows] = await Promise.all([
       db.select().from(jobs).orderBy(desc(jobs.createdAt)),
       db.select().from(jobApplications).orderBy(desc(jobApplications.appliedAt)),
       db.select().from(userInteractions).orderBy(desc(userInteractions.interactionTime)),
     ]);
+    const scopedJobs = scopeJobsToUser(allJobRows, dbUser);
+    const dateFilteredJobs = scopedJobs.filter(job => isOnOrAfter(job.createdAt, dateRangeStart));
+    const filteredJobs = applyStatusFilter(dateFilteredJobs, statusFilter);
+    const filteredJobIds = new Set(filteredJobs.map(job => job.id));
+    const applicationRows = allApplicationRows.filter(
+      application =>
+        filteredJobIds.has(application.jobId) && isOnOrAfter(application.appliedAt, dateRangeStart)
+    );
+    const interactionRows = allInteractionRows.filter(
+      interaction =>
+        interaction.jobId !== null &&
+        filteredJobIds.has(interaction.jobId) &&
+        isOnOrAfter(interaction.interactionTime, dateRangeStart)
+    );
 
     const applicationTrend = new Map<string, number>();
     applicationRows.forEach(application => {
@@ -182,7 +277,7 @@ router.get('/dashboard', async (req, res, next) => {
       applicationTrend.set(key, (applicationTrend.get(key) || 0) + 1);
     });
 
-    const jobPerformance = jobRows.slice(0, 8).map(job => ({
+    const jobPerformance = filteredJobs.slice(0, 8).map(job => ({
       jobTitle: job.title,
       views: interactionRows.filter(
         interaction => interaction.jobId === job.id && interaction.interactionType === 'view'
@@ -196,13 +291,13 @@ router.get('/dashboard', async (req, res, next) => {
       timestamp: toRelativeTime(application.appliedAt),
     }));
 
-    const activeJobs = jobRows.filter(job => job.status === 'active').length;
+    const activeJobs = filteredJobs.filter(job => job.status === 'active').length;
 
     res.json(
       employerDashboardSchema.parse({
-        scope: 'platform',
+        scope: isAdmin(dbUser) ? 'platform' : 'employer',
         stats: {
-          totalJobs: jobRows.length,
+          totalJobs: filteredJobs.length,
           activeJobs,
           totalApplications: applicationRows.length,
           totalViews: interactionRows.filter(interaction => interaction.interactionType === 'view')
@@ -229,12 +324,13 @@ router.get('/jobs', async (req, res, next) => {
     assertRole(dbUser, ['admin', 'employer']);
 
     const statusFilter = String(req.query.status || 'all');
-    const [jobRows, companyRows, applicationRows, interactionRows] = await Promise.all([
+    const [allJobRows, companyRows, applicationRows, interactionRows] = await Promise.all([
       db.select().from(jobs).orderBy(desc(jobs.createdAt)),
       db.select().from(companies),
       db.select().from(jobApplications),
       db.select().from(userInteractions),
     ]);
+    const jobRows = applyStatusFilter(scopeJobsToUser(allJobRows, dbUser), statusFilter);
 
     const companyMap = new Map<number, any>(
       (companyRows as any[]).map(company => [company.id, company])
@@ -245,6 +341,7 @@ router.get('/jobs', async (req, res, next) => {
       location: job.location,
       type: job.jobType,
       company: companyMap.get(job.companyId)?.name || 'Unknown company',
+      ownerUserId: job.ownerUserId ?? null,
       applications: applicationRows.filter(application => application.jobId === job.id).length,
       views: interactionRows.filter(
         interaction => interaction.jobId === job.id && interaction.interactionType === 'view'
@@ -253,12 +350,7 @@ router.get('/jobs', async (req, res, next) => {
       status: toSummaryStatus(job.status),
     }));
 
-    const payload =
-      statusFilter === 'all'
-        ? enrichedJobs
-        : enrichedJobs.filter(job => job.status === statusFilter);
-
-    res.json(payload.map(item => employerJobSummarySchema.parse(item)));
+    res.json(enrichedJobs.map(item => employerJobSummarySchema.parse(item)));
   } catch (error) {
     next(error);
   }
@@ -279,6 +371,7 @@ router.get('/jobs/:jobId', async (req, res, next) => {
     if (!job) {
       throw Errors.notFound('Job not found');
     }
+    assertCanManageJob(job, dbUser);
 
     const [company, category] = await Promise.all([
       db
@@ -306,12 +399,14 @@ router.get('/jobs/:jobId', async (req, res, next) => {
       sections
         .find(section => section.startsWith('Requirements:'))
         ?.replace(/^Requirements:\n?/, '') || '';
+    const postingMetadata = parsePostingMetadata(job.employerPostingMetadata);
 
     res.json(
       employerJobDetailSchema.parse({
         id: String(job.id),
         companyId: job.companyId,
         categoryId: job.categoryId,
+        ownerUserId: job.ownerUserId ?? null,
         status: toSummaryStatus(job.status),
         createdAt: job.createdAt ? new Date(job.createdAt).toISOString() : null,
         title: job.title,
@@ -319,7 +414,7 @@ router.get('/jobs/:jobId', async (req, res, next) => {
         jobType: job.jobType,
         location: job.location === 'Remote' ? '' : job.location,
         isRemote: /remote/i.test(job.workMode),
-        applicationDeadline: null,
+        applicationDeadline: postingMetadata.applicationDeadline ?? null,
         salaryMin: '',
         salaryMax: '',
         isSalaryNegotiable: job.salary?.toLowerCase().includes('negotiable') ?? false,
@@ -328,18 +423,18 @@ router.get('/jobs/:jobId', async (req, res, next) => {
         requirements,
         companyName: company?.name || '',
         companyLogo: company?.logo || null,
-        companyBio: '',
-        contactName: dbUser.name || '',
-        contactEmail: dbUser.email || '',
-        contactPhone: dbUser.phoneNumber || '',
-        website: '',
-        howToApply: 'email',
-        applicationEmail: dbUser.email || '',
-        applicationUrl: '',
-        customInstructions: '',
-        isConfidential: false,
+        companyBio: postingMetadata.companyBio ?? '',
+        contactName: postingMetadata.contactName ?? dbUser.name ?? '',
+        contactEmail: postingMetadata.contactEmail ?? dbUser.email ?? '',
+        contactPhone: postingMetadata.contactPhone ?? dbUser.phoneNumber ?? '',
+        website: postingMetadata.website ?? '',
+        howToApply: postingMetadata.howToApply ?? 'email',
+        applicationEmail: postingMetadata.applicationEmail ?? dbUser.email ?? '',
+        applicationUrl: postingMetadata.applicationUrl ?? '',
+        customInstructions: postingMetadata.customInstructions ?? '',
+        isConfidential: postingMetadata.isConfidential ?? false,
         isDraft: job.status === 'draft',
-        screenerQuestions: [],
+        screenerQuestions: postingMetadata.screenerQuestions ?? [],
       })
     );
   } catch (error) {
@@ -370,6 +465,8 @@ router.post('/jobs', async (req, res, next) => {
         workMode: payload.isRemote ? 'Remote' : 'On-site',
         companyId: company.id,
         categoryId: category.id,
+        ownerUserId: dbUser.id,
+        employerPostingMetadata: composePostingMetadata(payload),
         status: payload.isDraft ? 'draft' : 'active',
         isFeatured: false,
       })
@@ -397,6 +494,7 @@ router.put('/jobs/:jobId', async (req, res, next) => {
     if (!existingJob) {
       throw Errors.notFound('Job not found');
     }
+    assertCanManageJob(existingJob, dbUser);
 
     const [company, category] = await Promise.all([
       findOrCreateCompany(payload),
@@ -420,6 +518,7 @@ router.put('/jobs/:jobId', async (req, res, next) => {
         workMode: payload.isRemote ? 'Remote' : 'On-site',
         companyId: company.id,
         categoryId: category.id,
+        employerPostingMetadata: composePostingMetadata(payload),
         status: nextStatus,
       })
       .where(eq(jobs.id, jobId))
@@ -443,6 +542,12 @@ router.patch('/jobs/:jobId/status', async (req, res, next) => {
     }
 
     const status = employerJobStatusSchema.parse(req.body?.status);
+    const [existingJob] = await db.select().from(jobs).where(eq(jobs.id, jobId)).limit(1);
+    if (!existingJob) {
+      throw Errors.notFound('Job not found');
+    }
+    assertCanManageJob(existingJob, dbUser);
+
     const [updatedJob] = await db
       .update(jobs)
       .set({ status })
@@ -464,14 +569,29 @@ router.get('/applications', async (req, res, next) => {
     const dbUser = await resolveAuthenticatedDatabaseUser(authUser);
     assertRole(dbUser, ['admin', 'employer']);
 
-    const [applicationRows, userRows, jobRows] = await Promise.all([
+    const statusFilter = String(req.query.status || 'all');
+    const selectedJobId = req.query.jobId ? Number(req.query.jobId) : null;
+    if (req.query.jobId && Number.isNaN(selectedJobId)) {
+      throw Errors.validation('Invalid job ID');
+    }
+
+    const dateRangeStart = getDateRangeStart(req.query.dateRange);
+    const [allApplicationRows, userRows, allJobRows] = await Promise.all([
       db.select().from(jobApplications).orderBy(desc(jobApplications.appliedAt)),
       db.select().from(users),
       db.select().from(jobs),
     ]);
+    const scopedJobs = applyStatusFilter(scopeJobsToUser(allJobRows, dbUser), statusFilter);
+    const scopedJobIds = new Set(scopedJobs.map(job => job.id));
+    const applicationRows = allApplicationRows.filter(
+      application =>
+        scopedJobIds.has(application.jobId) &&
+        (!selectedJobId || application.jobId === selectedJobId) &&
+        isOnOrAfter(application.appliedAt, dateRangeStart)
+    );
 
     const userMap = new Map<number, any>((userRows as any[]).map(user => [user.id, user]));
-    const jobMap = new Map<number, any>((jobRows as any[]).map(job => [job.id, job]));
+    const jobMap = new Map<number, any>((scopedJobs as any[]).map(job => [job.id, job]));
 
     res.json(
       applicationRows.slice(0, 25).map(application => {

@@ -7,6 +7,8 @@ import JobPreviewCard from '@/components/JobPreviewCard';
 import AuthPromptModal from '@/components/AuthPromptModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { MapPin, Sparkles } from 'lucide-react';
 import { JobPreview, JobSearchParams } from '../../../shared/job-types';
 import { tieredJobsService } from '@/services/tieredJobsService';
 import { useAuth } from '@/hooks/useAuth';
@@ -110,6 +112,11 @@ const Jobs: React.FC = () => {
           payload: { isOpen: true, job },
         });
       } else {
+        void tieredJobsService.trackInteraction('view', {
+          jobId: job.id,
+          categoryId: job.category.id,
+          metadata: { source: 'find_jobs' },
+        });
         // Navigate directly to job details for authenticated users
         navigate(`/jobs/${job.id}`);
       }
@@ -148,11 +155,13 @@ const Jobs: React.FC = () => {
     location: searchParams.get('location') || undefined,
     jobType: searchParams.get('jobType') || undefined,
     workMode: searchParams.get('workMode') || undefined,
+    sort: user ? 'relevance' : 'newest',
+    personalized: Boolean(user),
   };
 
   // Fetch job previews (public access)
   const { data, isLoading, error } = useQuery({
-    queryKey: ['job-previews', searchParamsObj],
+    queryKey: ['job-previews', user?.uid || 'anonymous', searchParamsObj],
     queryFn: () => tieredJobsService.getJobPreviews(searchParamsObj),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -208,7 +217,31 @@ const Jobs: React.FC = () => {
             </p>
           </div>
 
-          <JobSearch initialQuery={searchQuery} className="mb-8" />
+          <JobSearch
+            initialQuery={searchQuery}
+            initialLocation={searchParams.get('location') || ''}
+            className="mb-6"
+          />
+
+          <div className="mb-8 flex flex-wrap items-center gap-2 text-sm text-muted">
+            {user ? (
+              <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">
+                <Sparkles className="mr-1 h-3.5 w-3.5" />
+                Ranked by your location, experience, and job activity
+              </Badge>
+            ) : (
+              <Badge variant="secondary" className="bg-white text-gray-700">
+                <Sparkles className="mr-1 h-3.5 w-3.5" />
+                Sign in for personalized matches
+              </Badge>
+            )}
+            {searchParams.get('location') && (
+              <Badge variant="outline" className="bg-white">
+                <MapPin className="mr-1 h-3.5 w-3.5" />
+                {searchParams.get('location')}
+              </Badge>
+            )}
+          </div>
 
           {searchQuery && (
             <div className="mb-6">

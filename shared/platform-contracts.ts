@@ -35,6 +35,7 @@ export const employerJobDetailSchema = employerJobFormSchema.extend({
   id: z.string(),
   companyId: z.number().int().min(1),
   categoryId: z.number().int().min(1),
+  ownerUserId: z.number().int().min(1).nullable().optional(),
   status: employerJobStatusSchema,
   createdAt: z.union([z.string(), z.null()]).optional(),
 });
@@ -149,6 +150,7 @@ export const employerJobSummarySchema = z.object({
   location: z.string(),
   type: z.string(),
   company: z.string(),
+  ownerUserId: z.number().int().min(1).nullable().optional(),
   applications: z.number().int().min(0),
   views: z.number().int().min(0),
   postedDate: z.string(),

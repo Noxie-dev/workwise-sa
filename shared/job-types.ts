@@ -25,6 +25,18 @@ export interface JobPreview {
   isRemote: boolean;
   experienceLevel: 'entry' | 'mid' | 'senior';
   featured: boolean;
+  salaryPreview?: {
+    min?: number;
+    max?: number;
+    currency: 'ZAR';
+    negotiable: boolean;
+    displayText: string;
+  };
+  match?: {
+    score: number;
+    label: 'Strong match' | 'Good match' | 'Possible match';
+    reasons: string[];
+  };
   // NO sensitive information like full description, requirements, salary details, etc.
 }
 
@@ -91,6 +103,10 @@ export interface JobSearchParams {
   page?: number;
   limit?: number;
   featured?: boolean;
+  minSalary?: number;
+  sort?: 'relevance' | 'newest';
+  personalized?: boolean;
+  includeRemote?: boolean;
 }
 
 /**
@@ -124,6 +140,10 @@ export const jobSearchParamsSchema = z.object({
   page: z.number().min(1).prefault(1),
   limit: z.number().min(1).max(100).prefault(20),
   featured: z.boolean().optional(),
+  minSalary: z.number().min(0).optional(),
+  sort: z.enum(['relevance', 'newest']).optional(),
+  personalized: z.boolean().optional(),
+  includeRemote: z.boolean().optional(),
 });
 
 export type JobApplicationInput = z.infer<typeof jobApplicationSchema>;
