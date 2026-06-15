@@ -161,14 +161,33 @@ export default function TopAdBanner() {
   }, [creativeId]);
 
   useEffect(() => {
+    let frameId = 0;
+
     const updateCompactMode = () => {
-      setCompact(window.scrollY > Math.max(520, window.innerHeight * 0.72));
+      if (frameId) return;
+
+      frameId = window.requestAnimationFrame(() => {
+        frameId = 0;
+        const compactAt = Math.max(560, window.innerHeight * 0.78);
+        const expandAt = Math.max(360, compactAt - 180);
+
+        setCompact(current => {
+          if (current) {
+            return window.scrollY > expandAt;
+          }
+
+          return window.scrollY > compactAt;
+        });
+      });
     };
 
     updateCompactMode();
     window.addEventListener('scroll', updateCompactMode, { passive: true });
     window.addEventListener('resize', updateCompactMode);
     return () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
       window.removeEventListener('scroll', updateCompactMode);
       window.removeEventListener('resize', updateCompactMode);
     };
