@@ -169,7 +169,7 @@ export default function TopAdBanner() {
 
   return (
     <aside
-      className="sticky top-[66px] z-40 w-full overflow-hidden border-b border-slate-200 px-3 py-3 shadow-[0_12px_32px_rgba(2,6,23,0.14)] md:top-[73px]"
+      className="sticky top-0 z-40 w-full overflow-hidden border-b border-slate-200 px-3 py-3 shadow-[0_12px_32px_rgba(2,6,23,0.14)]"
       aria-label="WorkWise LED display"
       style={{
         backgroundColor: '#f8fafc',

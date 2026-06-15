@@ -186,7 +186,7 @@ const Header = () => {
   const currentPath = useMemo(() => location, [location]);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-white/95 text-[#102a47] shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80">
+    <header className="relative z-50 w-full border-b border-border bg-white/95 text-[#102a47] shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
