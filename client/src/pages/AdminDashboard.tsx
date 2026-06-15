@@ -20,6 +20,7 @@ import {
   FileText,
   Bell,
   ShieldAlert,
+  Megaphone,
 } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
@@ -63,6 +64,13 @@ const AdminDashboard: React.FC = () => {
       description: 'View site analytics and reports',
       icon: <BarChart3 className="h-8 w-8 text-green-500" />,
       link: '/admin/analytics',
+      notifications: 0,
+    },
+    {
+      title: 'Ad Manager',
+      description: 'Upload creatives, set URLs, schedule dates, and manage ad budgets',
+      icon: <Megaphone className="h-8 w-8 text-amber-500" />,
+      link: '/admin/ads',
       notifications: 0,
     },
     {

@@ -330,6 +330,36 @@ export const systemConfig = pgTable('system_config', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+export const adCampaigns = pgTable(
+  'ad_campaigns',
+  {
+    id: serial('id').primaryKey(),
+    advertiserName: text('advertiser_name').notNull(),
+    title: text('title').notNull(),
+    description: text('description'),
+    placement: text('placement').notNull(),
+    imageUrl: text('image_url'),
+    targetUrl: text('target_url').notNull(),
+    startAt: timestamp('start_at'),
+    endAt: timestamp('end_at'),
+    budgetCents: integer('budget_cents').notNull().default(0),
+    currency: text('currency').notNull().default('ZAR'),
+    status: text('status').notNull().default('draft'),
+    impressions: integer('impressions').notNull().default(0),
+    clicks: integer('clicks').notNull().default(0),
+    createdByUserId: integer('created_by_user_id').references(() => users.id),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  table => ({
+    placementStatusIdx: index('idx_ad_campaigns_placement_status').on(
+      table.placement,
+      table.status
+    ),
+    flightIdx: index('idx_ad_campaigns_flight').on(table.startAt, table.endAt),
+  })
+);
+
 export const billingPlans = pgTable('billing_plans', {
   id: serial('id').primaryKey(),
   code: text('code').notNull().unique(),
@@ -572,6 +602,20 @@ export const insertUserNotificationSchema = createInsertSchema(userNotifications
 });
 
 export const insertSystemConfigSchema = createInsertSchema(systemConfig);
+export const insertAdCampaignSchema = createInsertSchema(adCampaigns).pick({
+  advertiserName: true,
+  title: true,
+  description: true,
+  placement: true,
+  imageUrl: true,
+  targetUrl: true,
+  startAt: true,
+  endAt: true,
+  budgetCents: true,
+  currency: true,
+  status: true,
+  createdByUserId: true,
+});
 export const insertBillingPlanSchema = createInsertSchema(billingPlans);
 export const insertBillingSubscriptionSchema = createInsertSchema(billingSubscriptions);
 export const insertBillingTransactionSchema = createInsertSchema(billingTransactions);
@@ -595,6 +639,8 @@ export type InsertFile = z.infer<typeof insertFileSchema>;
 export type File = typeof files.$inferSelect;
 export type SystemConfig = typeof systemConfig.$inferSelect;
 export type InsertSystemConfig = z.infer<typeof insertSystemConfigSchema>;
+export type AdCampaign = typeof adCampaigns.$inferSelect;
+export type InsertAdCampaign = z.infer<typeof insertAdCampaignSchema>;
 export type BillingPlan = typeof billingPlans.$inferSelect;
 export type InsertBillingPlan = z.infer<typeof insertBillingPlanSchema>;
 export type BillingSubscription = typeof billingSubscriptions.$inferSelect;

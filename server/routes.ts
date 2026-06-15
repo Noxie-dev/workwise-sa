@@ -7,6 +7,7 @@ import scrapingRoutes from './routes/scraping';
 import dashboardRoutes from './routes/dashboard';
 import employerRoutes from './routes/employer';
 import adminAnalyticsRoutes from './routes/adminAnalytics';
+import adminAdsRoutes from './routes/adminAds';
 import jobApplicationRoutes from './routes/jobApplications';
 import jobFavoritesRoutes from './routes/jobFavorites';
 import monetizationRoutes from './routes/monetization';
@@ -37,6 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/dashboard', dashboardRoutes);
   app.use('/api/employer', employerRoutes);
   app.use('/api/admin/analytics', adminAnalyticsRoutes);
+  app.use('/api/admin/ads', adminAdsRoutes);
 
   // Register profile routes
   app.use('/api/profile', profileRoutes);
