@@ -10,7 +10,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import OfflineStatus from '@/components/OfflineStatus';
 import { LoadingScreen } from '@/components/ui/loading-screen';
-import { firebaseStatus } from '@/lib/firebase';
+import TopAdBanner from '@/components/ads/TopAdBanner';
 
 // Lazy load all pages for better performance
 const NotFound = lazy(() => import('@/pages/not-found'));
@@ -31,6 +31,7 @@ const MarketingRulesPage = lazy(() => import('@/pages/MarketingRulesPage'));
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
 const AdminAnalytics = lazy(() => import('@/pages/admin/Analytics'));
 const AdminSettings = lazy(() => import('@/pages/admin/SettingsPage'));
+const AdminAds = lazy(() => import('@/pages/admin/Ads'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const JobDetails = lazy(() => import('@/pages/JobDetails'));
 const HomeSimple = lazy(() => import('@/pages/HomeSimple'));
@@ -70,16 +71,7 @@ const Router = () => {
   return (
     <>
       <Header />
-      {!firebaseStatus.clientOpsEnabled && (
-        <div className="mx-auto w-full max-w-7xl px-4 pt-4">
-          <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            Firebase client features are in demo mode because Firebase keys are missing or
-            placeholder values are being used. Add `VITE_FIREBASE_API_KEY` and
-            `VITE_FIREBASE_APP_ID` in `client/.env`, or enable emulators with
-            `VITE_USE_FIREBASE_EMULATORS=true`.
-          </div>
-        </div>
-      )}
+      <TopAdBanner />
       <ErrorBoundary>
         <Suspense fallback={<LoadingScreen />}>
           <Switch>
@@ -132,6 +124,7 @@ const Router = () => {
             <Route path="/admin" component={AdminDashboard} />
             <Route path="/admin/analytics" component={AdminAnalytics} />
             <Route path="/admin/settings" component={AdminSettings} />
+            <Route path="/admin/ads" component={AdminAds} />
             <Route path="/marketing-rules" component={MarketingRulesPage} />
             <Route path="/dashboard" component={Dashboard} />
             <Route component={NotFound} />
