@@ -47,14 +47,18 @@ router.get('/slots/:placement', async (req, res, next) => {
 
     return res.json({
       ...slot,
-      enabled: slot.enabled && entitlements.adsEnabled,
+      enabled: slot.enabled,
+      canSkip: Boolean(entitlements.workwisePlusActive),
       creative: campaign
         ? {
             id: campaign.id,
             advertiserName: campaign.advertiserName,
             title: campaign.title,
             description: campaign.description,
+            creativeType: campaign.creativeType || 'display',
             imageUrl: campaign.imageUrl,
+            videoUrl: campaign.videoUrl,
+            embedUrl: campaign.embedUrl,
             targetUrl: campaign.targetUrl,
             budgetCents: campaign.budgetCents,
             currency: campaign.currency,

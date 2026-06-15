@@ -11,6 +11,7 @@ import Footer from '@/components/Footer';
 import OfflineStatus from '@/components/OfflineStatus';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import TopAdBanner from '@/components/ads/TopAdBanner';
+import ScrollToTopFab from '@/components/ScrollToTopFab';
 
 // Lazy load all pages for better performance
 const NotFound = lazy(() => import('@/pages/not-found'));
@@ -148,6 +149,7 @@ const App = () => {
           <Router />
           <Toaster />
           <OfflineStatus />
+          <ScrollToTopFab />
         </AuthProvider>
       </QueryClientProvider>
     </HelmetProvider>
