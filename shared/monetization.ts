@@ -79,9 +79,9 @@ export const defaultAdSlots: Record<AdPlacement, AdSlotConfig> = {
     maxAds: 1,
     frequency: 1,
     sizes: {
-      mobile: { width: 360, height: 240 },
-      tablet: { width: 540, height: 360 },
-      desktop: { width: 600, height: 400 },
+      mobile: { width: 240, height: 160 },
+      tablet: { width: 420, height: 280 },
+      desktop: { width: 480, height: 320 },
     },
     targeting: {
       mobileOnly: false,
