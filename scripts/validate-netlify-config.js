@@ -139,7 +139,7 @@ if (fs.existsSync('package.json')) {
 }
 
 // Check for security files
-const securityFiles = ['scripts/netlify-post-build.js', 'NETLIFY_DEPLOYMENT_GUIDE.md'];
+const securityFiles = ['scripts/netlify-post-build.js', 'docs/guides/NETLIFY_DEPLOYMENT_GUIDE.md'];
 
 securityFiles.forEach(file => {
   if (fs.existsSync(file)) {

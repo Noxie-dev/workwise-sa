@@ -13,7 +13,7 @@ const utilityFiles = [
   'src/components/examples/SafeStorageExample.tsx',
   'src/components/examples/ExampleUsage.tsx',
   'src/index.ts',
-  'src/README-HYDRATION-PREVENTION.md'
+  'docs/client/hydration-prevention.md'
 ];
 
 console.log('🧪 Testing Hydration Prevention Utilities...');
@@ -56,7 +56,7 @@ if (allFilesExist) {
   console.log('💡 Next steps:');
   console.log('1. Import these utilities in your React components');
   console.log('2. Replace problematic client-server mismatches with safe alternatives');
-  console.log('3. Review the documentation in src/README-HYDRATION-PREVENTION.md');
+  console.log('3. Review the documentation in docs/client/hydration-prevention.md');
   console.log('4. Test the ExampleUsage component in your app');
 } else {
   console.log('❌ Some files are missing or empty. Please check the implementation.');
@@ -80,4 +80,3 @@ console.log('    </div>');
 console.log('  );');
 console.log('}');
 console.log('```');
-

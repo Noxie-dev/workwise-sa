@@ -339,6 +339,6 @@ export const setupSwagger = (app: Express) => {
 
   // Serve WebSocket documentation
   app.get('/api-docs/websocket', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'server/docs/websocket.md'));
+    res.sendFile(path.join(process.cwd(), 'docs/server/websocket.md'));
   });
 };

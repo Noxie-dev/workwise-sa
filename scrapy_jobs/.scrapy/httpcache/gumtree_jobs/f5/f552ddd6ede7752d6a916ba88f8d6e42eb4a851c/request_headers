@@ -1,7 +1,0 @@
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
-Accept-Language: en-US,en;q=0.5
-Accept-Encoding: gzip, deflate
-Connection: keep-alive
-Upgrade-Insecure-Requests: 1
-User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1
-Cookie: prevRedirect=/; XSRF-TOKEN=a44cf9f9-1420-4dd3-bb90-cb5712766cce; machguid=45097709-d5a4-4d1e-a9dd-b5645a850706-19d1fae8539
