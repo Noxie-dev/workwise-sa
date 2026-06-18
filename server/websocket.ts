@@ -3,7 +3,7 @@
  * WebSocket Server for WorkWise SA
  *
  * This module implements a WebSocket server for real-time updates and notifications.
- * For detailed documentation, see /server/docs/websocket.md or visit /api-docs in the browser.
+ * For detailed documentation, see /docs/server/websocket.md or visit /api-docs in the browser.
  *
  * @module WebSocketServer
  */

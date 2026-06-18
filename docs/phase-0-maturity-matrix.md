@@ -21,7 +21,7 @@ This document is the baseline inventory for moving the repo from mixed maturity 
 | root `src/` frontend-style code | `duplicate` | Retire or move into `client/` | [src/pages/WiseUp/WiseUpPage.tsx](/workspace/src/pages/WiseUp/WiseUpPage.tsx) | Contains active-looking UI/services that are not the canonical browser app. |
 | `functions/` | `partial` | Restrict to supporting Firebase integrations only | [functions/index.js](/workspace/functions/index.js) | Contains TODO-based placeholder implementations and should not own core product workflows. |
 | `netlify/functions/` | `mock-backed` | Retire from primary app path | [netlify/functions/api.js](/workspace/netlify/functions/api.js) | Uses mock Firebase behavior and diverges from the Express backend. |
-| `dataconnect/` + `dataconnect-generated/` | `partial` | Keep only if tied to retained Firebase flows | [dataconnect-generated/js/default-connector/README.md](/workspace/dataconnect-generated/js/default-connector/README.md) | Secondary data path until ownership is clarified. |
+| `dataconnect/` + `dataconnect-generated/` | `partial` | Keep only if tied to retained Firebase flows | [docs/generated/dataconnect/default-connector/README.md](/workspace/docs/generated/dataconnect/default-connector/README.md) | Secondary data path until ownership is clarified. |
 | `scrapy_jobs/` | `partial` | Keep as ingestion subsystem | [scrapy_jobs/run_scrapers.py](/workspace/scrapy_jobs/run_scrapers.py) | Real subsystem with evolving source support and compliance/quality work still needed. |
 
 ## Canonical Ownership Decisions

@@ -1,19 +1,25 @@
 # Dependencies
-node_modules
-.pnpm-store
+node_modules/
+.pnpm-store/
 .pnp
 .pnp.js
+scrapy_jobs/venv/
 
 # Testing
-coverage
+.cache/
+coverage/
 playwright-report/
 test-results/
 *.tsbuildinfo
 
 # Production
-build
-dist
-dist-ssr
+build/
+dist/
+dist-ssr/
+.next/
+.turbo/
+.expo/
+.parcel-cache/
 *.local
 
 # Misc
@@ -63,9 +69,17 @@ lerna-debug.log*
 # Python / scraping local artifacts
 __pycache__/
 *.py[cod]
+.pytest_cache/
 scrapy_jobs/.scrapy/
+scrapy_jobs/logs/
 scrapy_jobs/output/
 scrapy_jobs/scraping_report_*.json
+scrapy_jobs/test_output.json
+
+# Firebase Data Connect local state
+dataconnect/.dataconnect/pgliteData/
 
 # Local databases
 *.db
+*.sqlite
+*.sqlite3

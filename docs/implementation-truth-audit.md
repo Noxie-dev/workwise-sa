@@ -4,11 +4,11 @@ This audit compares the strategic intent in the research documents with the code
 
 Documents reviewed:
 
-- [archive/docs/initial-docs/WWSA-Research-doc.md](/workspace/archive/docs/initial-docs/WWSA-Research-doc.md)
-- [archive/docs/initial-docs/Job Platform Design Analysis_.md](/workspace/archive/docs/initial-docs/Job Platform Design Analysis_.md)
-- [archive/docs/initial-docs/South African Job Board Scraping_.md](/workspace/archive/docs/initial-docs/South African Job Board Scraping_.md)
-- [README.md](/workspace/README.md)
-- [idex.md](/workspace/idex.md)
+- [docs/archive/initial-docs/WWSA-Research-doc.md](/workspace/docs/archive/initial-docs/WWSA-Research-doc.md)
+- [docs/archive/initial-docs/Job Platform Design Analysis_.md](/workspace/docs/archive/initial-docs/Job Platform Design Analysis_.md)
+- [docs/archive/initial-docs/South African Job Board Scraping_.md](/workspace/docs/archive/initial-docs/South African Job Board Scraping_.md)
+- [docs/project/README.md](/workspace/docs/project/README.md)
+- [docs/project/index.md](/workspace/docs/project/index.md)
 
 ## Audit Summary
 
