@@ -260,6 +260,33 @@ router.get('/stats', async (_req, res) => {
   }
 });
 
+router.get('/ledger', async (_req, res) => {
+  try {
+    const ledgerPath = path.join(scrapyDir, 'config', 'source-ledger.json');
+    const registryPath = path.join(scrapyDir, 'config', 'source-registry.json');
+    const [ledgerContent, registryContent] = await Promise.all([
+      fs.readFile(ledgerPath, 'utf-8').catch(() => null),
+      fs.readFile(registryPath, 'utf-8').catch(() => '{}'),
+    ]);
+
+    return res.json({
+      success: true,
+      ledger: ledgerContent
+        ? JSON.parse(ledgerContent)
+        : {
+            schemaVersion: 'source-ledger.v1',
+            runs: [],
+            sources: {},
+            latestRun: null,
+          },
+      registry: JSON.parse(registryContent),
+    });
+  } catch (error) {
+    console.error('Error getting scraping ledger:', error);
+    return res.status(500).json({ success: false, error: 'Failed to get scraping ledger' });
+  }
+});
+
 function startScrapingProcess(sessionId: string, options: TriggerScrapingOptions) {
   const args = ['python3', pythonScript];
   const source = options.source ?? (options.spiders?.length === 1 ? options.spiders[0] : 'all');
