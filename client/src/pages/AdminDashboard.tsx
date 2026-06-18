@@ -21,6 +21,7 @@ import {
   Bell,
   ShieldAlert,
   Megaphone,
+  ListChecks,
 } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
@@ -71,6 +72,13 @@ const AdminDashboard: React.FC = () => {
       description: 'Upload creatives, set URLs, schedule dates, and manage ad budgets',
       icon: <Megaphone className="h-8 w-8 text-amber-500" />,
       link: '/admin/ads',
+      notifications: 0,
+    },
+    {
+      title: 'Job Scraping',
+      description: 'Audit source safety, crawler blockers, ingest runs, and populated jobs',
+      icon: <ListChecks className="h-8 w-8 text-cyan-600" />,
+      link: '/admin/scraping',
       notifications: 0,
     },
     {

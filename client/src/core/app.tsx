@@ -33,6 +33,7 @@ const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
 const AdminAnalytics = lazy(() => import('@/pages/admin/Analytics'));
 const AdminSettings = lazy(() => import('@/pages/admin/SettingsPage'));
 const AdminAds = lazy(() => import('@/pages/admin/Ads'));
+const AdminScraping = lazy(() => import('@/pages/admin/Scraping'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const JobDetails = lazy(() => import('@/pages/JobDetails'));
 const HomeSimple = lazy(() => import('@/pages/HomeSimple'));
@@ -126,6 +127,7 @@ const Router = () => {
             <Route path="/admin/analytics" component={AdminAnalytics} />
             <Route path="/admin/settings" component={AdminSettings} />
             <Route path="/admin/ads" component={AdminAds} />
+            <Route path="/admin/scraping" component={AdminScraping} />
             <Route path="/marketing-rules" component={MarketingRulesPage} />
             <Route path="/dashboard" component={Dashboard} />
             <Route component={NotFound} />
