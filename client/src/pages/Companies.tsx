@@ -269,7 +269,7 @@ const Companies: React.FC = () => {
   const [sortBy, setSortBy] = useState('rating');
 
   // Fetch companies data
-  const { data: companiesResponse, isLoading } = useQuery({
+  const { data: companiesResponse, isLoading, error } = useQuery({
     queryKey: ['/api/companies'],
     queryFn: async () => {
       const response = await fetch('/api/companies');
@@ -286,6 +286,22 @@ const Companies: React.FC = () => {
       return { data: companies };
     }
   });
+
+  if (error) {
+    return (
+      <>
+        <Helmet>
+          <title>Companies unavailable | WorkWise SA</title>
+        </Helmet>
+        <div className="min-h-screen flex items-center justify-center px-6">
+          <div className="max-w-lg text-center" role="alert" data-testid="companies-error">
+            <h1 className="text-2xl font-bold mb-3">Companies are temporarily unavailable</h1>
+            <p className="text-gray-600">Please try again later. No placeholder company data is being shown.</p>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   const companies = companiesResponse?.data || [];
 
