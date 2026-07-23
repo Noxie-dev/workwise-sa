@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-23 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `a14ebff` (`security: gate production company mock paths`)
+**Commit:** `81be2f5` (`fix: terminate cancelled scraping processes`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -11,9 +11,9 @@
 
 ### Verdict: **NOT READY**
 
-**Overall readiness score: 28/100** *(unchanged after Pass 3; P0 authorization and infrastructure caps still apply)*
+**Overall readiness score: 28/100** *(unchanged after the latest `<3>` batch; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `a14ebff` — public job and company surfaces now require explicit development mock mode; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `81be2f5` — company journeys use public APIs and cancelled scraper sessions terminate their child process; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -751,7 +751,7 @@ One person may hold multiple roles, but each row needs a named human before laun
 
 **Status:** PARTIAL — regression foundation exists; journeys are not certified.
 
-**Done:** Server 22 files/85 tests and client 16 files/103 tests pass; the production build completes for client and server; `/cv-builder` is auth-gated; employer job/application-list and dashboard-metric isolation, database-backed ownership and role middleware allow/deny/error cases, cross-employer job-status/application-read denials, candidate status-mutation denial, route-level restricted legacy profile updates, file download/delete IDOR denials, spoofed PDF rejection, temporary-upload cleanup, final-file cleanup after metadata failure, and explicit opt-in-only public job/company mock fallback behavior are covered. **Open:** full two-tenant negative matrix, browser E2E, accessibility, mobile, SEO, duplicate submissions, legacy company pages that still import fixtures, AI fallback governance, and production bundle fixture exclusion. **Next gate:** all critical candidate/employer/platform flows pass positive and negative tests.
+**Done:** Server 22 files/85 tests and client 16 files/103 tests pass; the production build completes for client and server; `/cv-builder` is auth-gated; employer job/application-list and dashboard-metric isolation, database-backed ownership and role middleware allow/deny/error cases, cross-employer job-status/application-read denials, candidate status-mutation denial, route-level restricted legacy profile updates, file download/delete IDOR denials, spoofed PDF rejection, temporary-upload cleanup, final-file cleanup after metadata failure, explicit opt-in-only public job/company mock fallback behavior, API-backed Companies and Company Profile pages, and visible API error handling are covered. **Open:** full two-tenant negative matrix, browser E2E, accessibility, mobile, SEO, duplicate submissions, legacy page fixture imports outside the updated journeys, AI fallback governance, and production bundle fixture exclusion. **Next gate:** all critical candidate/employer/platform flows pass positive and negative tests.
 
 ### 15.2.6 Phase 5 — operability execution feedback
 
@@ -763,7 +763,7 @@ One person may hold multiple roles, but each row needs a named human before laun
 
 **Status:** PARTIAL.
 
-**Done:** Scraper control routes require an authenticated admin and ingest fails closed; registry, robots, throttling, redaction, normalization, and dedupe evidence remain recorded. **Open:** durable queue/cancellation, default-deny approvals, reviewer/expiry/legal evidence, retention, and takedown. **Next gate:** no unapproved source can run or ingest.
+**Done:** Scraper control routes require an authenticated admin, ingest fails closed, and cancellation now sends `SIGTERM` to the tracked child process and preserves the cancelled terminal state; registry, robots, throttling, redaction, normalization, and dedupe evidence remain recorded. **Open:** durable queue/state, forced-kill escalation, default-deny approvals, reviewer/expiry/legal evidence, retention, and takedown. **Next gate:** no unapproved source can run or ingest and cancellation is exercised in staging.
 
 ### 15.2.8 Phase 7 — commercial readiness execution feedback
 
@@ -874,6 +874,10 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Firebase first-login role provisioning | PASS locally | `authenticatedUser.test.ts`: 5/5; a new Firebase identity is always created with database role `user`, even when the presented claim says `admin`; existing database identities remain authoritative |
 | Public job-preview mock fallback | PARTIAL | `client/src/services/tieredJobsService.ts` now requires `VITE_USE_MOCK_PUBLIC_DATA=true` plus development mode for fixture responses; production/non-mock API failures throw an error instead of returning fabricated jobs; client 16 files/103 tests and production build pass |
 | Public company mock fallback | PARTIAL | `client/src/services/companyService.ts`, `CompaniesSection.tsx`, and `CategoriesSection.tsx` now require explicit development mock mode; production API failures surface errors rather than synthetic companies/jobs/alerts; client 16 files/103 tests (clean rerun) and production build pass |
+| Companies page production journey | PARTIAL | Commit `7992c6c`: `client/src/pages/Companies.tsx` fetches `/api/companies`, validates the response shape, and surfaces failures; fixture query path removed; type-check/build evidence recorded below |
+| Company profile production journey | PARTIAL | Commit `4f970bb`: `client/src/pages/CompanyProfile.tsx` resolves company and active jobs through `/api/companies/:slug` and `/api/jobs/company/:id`; fixture imports removed from the rendered journey |
+| Scraper cancellation | PARTIAL | Commit `81be2f5`: active child processes are tracked, cancellation sends `SIGTERM`, and close/error handlers retain `cancelled` instead of overwriting it with `failed`; staging process-tree verification remains open |
+| Browser smoke / E2E | BLOCKED | Playwright skill prerequisite `npx` is available, but the container lacks required browser shared libraries (`libnspr4.so`, `libnss3.so`, GTK/GBM libraries); Chromium was downloaded but cannot launch; browser E2E remains unverified rather than marked PASS |
 | Production startup dependency gate | PARTIAL | `assertProductionDependenciesReady` and `startupReadiness.test.ts` block production startup when Firebase is unavailable while allowing isolated test mode; `assertProductionDatabaseConnection` rejects SQLite in production; live deployment admission, database connectivity, and orchestration probes remain unverified |
 | Client/build release verification | PASS locally | `pnpm run test:client`: 16 files/103 tests; `pnpm run build`: Vite client and esbuild server completed; browser E2E, accessibility, and production topology remain unverified |
 | Production runtime validator | PASS for negative contract | `DATABASE_URL=sqlite:./test.db node scripts/validate-primary-runtime.js` exits non-zero and reports missing Firebase configuration plus SQLite prohibition; `pnpm run check` passes; valid production secrets and deployment orchestration remain unverified |
@@ -894,3 +898,13 @@ The following local Codex skills are installed and exposed for the remaining aud
 MCP discovery was also run. The currently exposed `codex_apps` resources are Canva, Sites, and default artifact templates; none is a repository deployment, observability, source-control, or database MCP. No external connector was installed or authenticated during this pass because a named provider and access scope were not supplied. Recommended future connector choices are GitHub (CI/PR evidence), Sentry (runtime errors), and a team coordination system (Slack/Teams/Notion); each requires explicit selection and authorization before activation.
 
 Operating convention for the remaining execution cycle: a user message containing `<3>` is the signal to execute the next three best passes. After every two completed passes, provide a brief implementation summary. Every completed pass must update the readiness score and confidence in this report, even when the score remains capped at 28/100 because a hard gate is still open.
+
+### 15.9 `<3>` execution feedback — 2026-07-23 UTC
+
+| Pass | Implementation | Evidence | Score / confidence |
+|---|---|---|---|
+| 1 | Replaced the Companies page’s fabricated fixture query with a validated `/api/companies` request. | Commit `7992c6c`; production build path retained. | 28/100; High/medium |
+| 2 | Replaced Company Profile’s direct mock company/job imports with public company and job API queries, loading and error states. | Commit `4f970bb`; `pnpm run type-check` and client suite remain green after the batch. | 28/100; High/medium |
+| 3 | Tracked scraper child processes and terminated them on operator cancellation without converting the cancelled session to failed. | Commit `81be2f5`; `pnpm run type-check`, client 16 files/103 tests, and `pnpm run build` pass. | 28/100; High/medium |
+
+The browser smoke attempt is recorded as an environment-blocked Phase 4 gate: installable Playwright tooling is present, but the current container image has no usable browser runtime libraries. No browser journey is being counted as passing until the staging/runner image supplies those dependencies.
