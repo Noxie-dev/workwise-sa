@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-23 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `8faab43` (`verify: rehearse PostgreSQL migration gate`)
+**Commit:** `1fb4630` (`test: cover legacy profile update authorization`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -13,7 +13,7 @@
 
 **Overall readiness score: 28/100** *(unchanged after the latest upload-safety pass; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `8faab43` — Pass G fresh PostgreSQL migration and repository sanity verification are green; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `1fb4630` — Pass H route-level legacy profile-update authorization tests are green; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -751,7 +751,7 @@ One person may hold multiple roles, but each row needs a named human before laun
 
 **Status:** PARTIAL — regression foundation exists; journeys are not certified.
 
-**Done:** Server 19 files/77 tests and client 16 files/103 tests pass; the production build completes for client and server; `/cv-builder` is auth-gated; employer job/application-list and dashboard-metric isolation, cross-employer job-status/application-read denials, candidate status-mutation denial, restricted legacy profile-update fields, file download/delete IDOR denials, spoofed PDF rejection, temporary-upload cleanup, and final-file cleanup after metadata failure are covered. **Open:** full two-tenant negative matrix, browser E2E, accessibility, mobile, SEO, duplicate submissions, and mock removal. **Next gate:** all critical candidate/employer/platform flows pass positive and negative tests.
+**Done:** Server 20 files/79 tests and client 16 files/103 tests pass; the production build completes for client and server; `/cv-builder` is auth-gated; employer job/application-list and dashboard-metric isolation, cross-employer job-status/application-read denials, candidate status-mutation denial, route-level restricted legacy profile updates, file download/delete IDOR denials, spoofed PDF rejection, temporary-upload cleanup, and final-file cleanup after metadata failure are covered. **Open:** full two-tenant negative matrix, browser E2E, accessibility, mobile, SEO, duplicate submissions, and mock removal. **Next gate:** all critical candidate/employer/platform flows pass positive and negative tests.
 
 ### 15.2.6 Phase 5 — operability execution feedback
 
@@ -862,13 +862,13 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Tracked credential | PARTIAL | The active service-account JSON was removed from the worktree and ignored going forward; provider revocation, access review, and Git/artifact history purge are not locally verifiable |
 | Frontend/API production serving | PASS for isolated smoke | `pnpm run build` passed; isolated built server returned HTML 200 for `/` and `/jobs`, JSON 404 for `/api/missing`, and Helmet headers; dependency readiness is still not a real production gate |
 | Production security baseline | PARTIAL | Helmet, bounded JSON/urlencoded bodies, credentials-aware CORS, auth-gated `/cv-builder`, and explicit `/health`/`/ready` probes are active; distributed rate limiting, trusted proxy policy, and CSP review remain |
-| Type/build/tests | PASS | `pnpm run type-check`; `pnpm run build:server`; server 19 files/77 tests; client 16 files/103 tests |
+| Type/build/tests | PASS | `pnpm run type-check`; `pnpm run build:server`; server 20 files/79 tests; client 16 files/103 tests |
 | Repository sanity | PASS | `pnpm run check` passes after removal of the conflicting root `package-lock.json`; pnpm still warns that the legacy `pnpm.overrides` field is ignored |
 | PostgreSQL migration/restore/operations | PARTIAL | Pass G fresh PostgreSQL 16 container applied all 13 migrations, including `0012_add_job_owner.sql`; fresh SQLite has also applied all 13; `pnpm run check` passes; `/health` returns 200 and production readiness now blocks unavailable Firebase; backup/restore, alert exercise, rollback drill, and browser E2E remain unverified |
 | Employer tenant isolation | PARTIAL | `created_by_user_id` owner column/index and employer scoping are implemented; `employerRoutes.test.ts` now proves employer job/application-list and dashboard-metric isolation, while `jobApplicationsRoutes.test.ts` covers cross-employer denials; legacy jobs with null owners, company onboarding policy, and complete CRUD/integration coverage remain open |
 | Upload content validation | PARTIAL | `server/routes/files.ts` now checks image/PDF magic bytes, derives storage extensions from MIME, cleans Multer temp files on router errors, removes final files when metadata persistence fails, and rejects cross-user download/delete; `fileService.ts` no longer emits public `/uploads` URLs; `fileRoutes.test.ts` covers valid PNG, spoofed PDF rejection, cleanup, and IDOR denials; durable object storage, AV/quarantine, and restore remain open |
 | Application state authority | PARTIAL | `jobApplicationsRoutes.test.ts` now proves candidate status mutation returns 403; employer/admin transition and tenant coverage remain limited to mocked route tests |
-| Legacy profile update authority | PARTIAL | `/api/v1/users/:userId` now accepts only strict profile fields and rejects role/Firebase identity/password mutation; `publicUserRegistrationSchema.test.ts` covers the restricted update schema; route-level integration coverage remains open |
+| Legacy profile update authority | PARTIAL | `/api/v1/users/:userId` now accepts only strict profile fields and rejects role/Firebase identity/password mutation; `v1ProfileUpdateRoutes.test.ts` covers rejection and editable-field forwarding; full authenticated integration remains open |
 | Production startup dependency gate | PARTIAL | `assertProductionDependenciesReady` and `startupReadiness.test.ts` block production startup when Firebase is unavailable while allowing isolated test mode; `assertProductionDatabaseConnection` rejects SQLite in production; live deployment admission, database connectivity, and orchestration probes remain unverified |
 | Client/build release verification | PASS locally | `pnpm run test:client`: 16 files/103 tests; `pnpm run build`: Vite client and esbuild server completed; browser E2E, accessibility, and production topology remain unverified |
 
