@@ -231,6 +231,30 @@ describe('file routes', () => {
     expect(fs.existsSync(tempFile)).toBe(false);
   });
 
+  it('removes the final file when metadata persistence fails', async () => {
+    const tempFile = path.join(uploadsRoot, 'temp', 'persistence-failure.png');
+    fs.writeFileSync(tempFile, Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+    mockedStorage.createFile.mockRejectedValue(new Error('database unavailable'));
+
+    const response = await invokeFinalHandler({
+      path: '/upload-profile-image',
+      method: 'post',
+      req: {
+        body: {},
+        file: {
+          originalname: 'avatar.png',
+          mimetype: 'image/png',
+          size: 8,
+          path: tempFile,
+          encoding: '7bit',
+        },
+      },
+    });
+
+    expect(response.statusCode).toBe(500);
+    expect(fs.readdirSync(path.join(uploadsRoot, 'profile-images', 'user-42'))).toHaveLength(0);
+  });
+
   it('uses the authenticated owner for generic uploads', async () => {
     const tempFile = path.join(uploadsRoot, 'temp', 'note-upload.png');
     fs.writeFileSync(tempFile, Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));

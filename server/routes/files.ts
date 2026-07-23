@@ -78,6 +78,21 @@ function extensionForMime(mimeType: string) {
   return fileExtensions[mimeType] || '.bin';
 }
 
+async function persistFileMetadata(fileData: any, finalPath: string) {
+  try {
+    return await storage.createFile(fileData);
+  } catch (error) {
+    if (fs.existsSync(finalPath)) {
+      try {
+        fs.unlinkSync(finalPath);
+      } catch {
+        // Preserve the persistence error; cleanup is best effort.
+      }
+    }
+    throw error;
+  }
+}
+
 // Authenticate before Multer writes an incoming file to temporary disk.
 router.use(verifyFirebaseToken);
 
@@ -162,7 +177,7 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
       }
     };
 
-    const savedFile = await storage.createFile(fileData);
+    const savedFile = await persistFileMetadata(fileData, finalPath);
 
     res.json({
       success: true,
@@ -235,7 +250,7 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
       }
     };
 
-    const savedFile = await storage.createFile(fileData);
+    const savedFile = await persistFileMetadata(fileData, finalPath);
 
     res.json({
       success: true,
@@ -306,7 +321,7 @@ router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
       }
     };
 
-    const savedFile = await storage.createFile(fileData);
+    const savedFile = await persistFileMetadata(fileData, finalPath);
 
     res.json({
       success: true,
@@ -378,7 +393,7 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
       }
     };
 
-    const savedFile = await storage.createFile(fileData);
+    const savedFile = await persistFileMetadata(fileData, finalPath);
 
     res.json({
       success: true,
