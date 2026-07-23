@@ -113,7 +113,7 @@ describe('file routes', () => {
 
   it('uploads a profile image and persists file metadata', async () => {
     const tempFile = path.join(uploadsRoot, 'temp', 'avatar-upload.png');
-    fs.writeFileSync(tempFile, 'fake-image-content');
+    fs.writeFileSync(tempFile, Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
 
     mockedStorage.createFile.mockImplementation(async (fileData: any) => ({
       id: 321,
@@ -173,9 +173,33 @@ describe('file routes', () => {
     expect(mockedStorage.createFile).not.toHaveBeenCalled();
   });
 
+  it('rejects a spoofed PDF whose bytes are not a PDF', async () => {
+    const tempFile = path.join(uploadsRoot, 'temp', 'spoofed-upload.pdf');
+    fs.writeFileSync(tempFile, 'not-a-pdf');
+
+    const response = await invokeFinalHandler({
+      path: '/upload-cv',
+      method: 'post',
+      req: {
+        body: {},
+        file: {
+          originalname: 'resume.pdf',
+          mimetype: 'application/pdf',
+          size: 9,
+          path: tempFile,
+          encoding: '7bit',
+        },
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.error.message).toMatch(/content does not match/i);
+    expect(mockedStorage.createFile).not.toHaveBeenCalled();
+  });
+
   it('uses the authenticated owner for generic uploads', async () => {
     const tempFile = path.join(uploadsRoot, 'temp', 'note-upload.png');
-    fs.writeFileSync(tempFile, 'fake-image-content');
+    fs.writeFileSync(tempFile, Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
     mockedStorage.createFile.mockImplementation(async (fileData: any) => ({
       id: 322,
       ...fileData,

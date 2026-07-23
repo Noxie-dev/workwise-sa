@@ -34,6 +34,50 @@ const upload = multer({
   },
 });
 
+const fileExtensions: Record<string, string> = {
+  'image/jpeg': '.jpg',
+  'image/jpg': '.jpg',
+  'image/png': '.png',
+  'image/gif': '.gif',
+  'image/webp': '.webp',
+  'application/pdf': '.pdf',
+};
+
+function assertFileSignature(file: Express.Multer.File) {
+  let header: Buffer;
+  try {
+    header = fs.readFileSync(file.path).subarray(0, 12);
+  } catch {
+    throw Errors.badRequest('Uploaded file could not be inspected');
+  }
+
+  const isPng = header.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+  const isJpeg = header.subarray(0, 3).equals(Buffer.from([255, 216, 255]));
+  const isGif = header.subarray(0, 6).toString('ascii') === 'GIF87a' || header.subarray(0, 6).toString('ascii') === 'GIF89a';
+  const isWebp = header.subarray(0, 4).toString('ascii') === 'RIFF' && header.subarray(8, 12).toString('ascii') === 'WEBP';
+  const isPdf = header.subarray(0, 5).toString('ascii') === '%PDF-';
+
+  const matchesMime = file.mimetype === 'application/pdf'
+    ? isPdf
+    : file.mimetype === 'image/png'
+      ? isPng
+      : file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg'
+        ? isJpeg
+        : file.mimetype === 'image/gif'
+          ? isGif
+          : file.mimetype === 'image/webp'
+            ? isWebp
+            : false;
+
+  if (!matchesMime) {
+    throw Errors.badRequest('Uploaded file content does not match its declared type');
+  }
+}
+
+function extensionForMime(mimeType: string) {
+  return fileExtensions[mimeType] || '.bin';
+}
+
 // Authenticate before Multer writes an incoming file to temporary disk.
 router.use(verifyFirebaseToken);
 
@@ -75,11 +119,11 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
     if (!file) {
       throw Errors.badRequest('No file uploaded');
     }
-
     // Validate file is an image
     if (!file.mimetype.startsWith('image/')) {
       throw Errors.badRequest('File must be an image');
     }
+    assertFileSignature(file);
 
     // Create user-specific upload directory
     const uploadDir = path.join(process.cwd(), 'uploads', 'professional-images');
@@ -91,7 +135,7 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
 
     // Generate unique filename
     const timestamp = Date.now();
-    const extension = path.extname(file.originalname);
+    const extension = extensionForMime(file.mimetype);
     const filename = `professional-${timestamp}${extension}`;
     const finalPath = path.join(userDir, filename);
 
@@ -148,11 +192,11 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
     if (!file) {
       throw Errors.badRequest('No file uploaded');
     }
-
     // Validate file is an image
     if (!file.mimetype.startsWith('image/')) {
       throw Errors.badRequest('File must be an image');
     }
+    assertFileSignature(file);
 
     // Create user-specific upload directory
     const uploadDir = path.join(process.cwd(), 'uploads', 'profile-images');
@@ -164,7 +208,7 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
 
     // Generate unique filename
     const timestamp = Date.now();
-    const extension = path.extname(file.originalname);
+    const extension = extensionForMime(file.mimetype);
     const filename = `profile-${timestamp}${extension}`;
     const finalPath = path.join(userDir, filename);
 
@@ -221,11 +265,11 @@ router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
     if (!file) {
       throw Errors.badRequest('No file uploaded');
     }
-
     // Validate file is a PDF
     if (file.mimetype !== 'application/pdf') {
       throw Errors.badRequest('CV must be a PDF file');
     }
+    assertFileSignature(file);
 
     // Create user-specific upload directory
     const uploadDir = path.join(process.cwd(), 'uploads', 'cvs');
@@ -237,7 +281,7 @@ router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
 
     // Generate unique filename
     const timestamp = Date.now();
-    const extension = path.extname(file.originalname);
+    const extension = extensionForMime(file.mimetype);
     const filename = `cv-${timestamp}${extension}`;
     const finalPath = path.join(userDir, filename);
 
@@ -293,6 +337,7 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
     if (!file) {
       throw Errors.badRequest('No file uploaded');
     }
+    assertFileSignature(file);
 
     if (!['general', 'professional_image', 'profile_image', 'cv'].includes(fileType)) {
       throw Errors.badRequest('Invalid file type');
@@ -308,7 +353,7 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
 
     // Generate unique filename
     const timestamp = Date.now();
-    const extension = path.extname(file.originalname);
+    const extension = extensionForMime(file.mimetype);
     const filename = `${fileType}-${timestamp}${extension}`;
     const finalPath = path.join(userDir, filename);
 
