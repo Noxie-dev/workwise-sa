@@ -13,6 +13,7 @@ import { logger } from '../utils/logger';
 import { secretManager } from '../services/secretManager';
 import { cacheService } from '../services/cacheService';
 import { authMonitoringService } from '../services/authMonitoringService';
+import { assertProductionDependenciesReady } from '../services/startupReadiness';
 import { initializeFirebaseServices, isFirebaseInitialized } from '../firebase';
 import dotenv from 'dotenv';
 import fs from 'fs';
@@ -55,6 +56,10 @@ async function startServer() {
   await initializeDatabase();
   const databaseReady = true;
   await initializeFirebaseServices();
+  assertProductionDependenciesReady({
+    database: databaseReady,
+    firebase: isFirebaseInitialized(),
+  });
 
   // Initialize enhanced services
   await cacheService.initialize();

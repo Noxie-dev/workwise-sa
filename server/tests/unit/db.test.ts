@@ -1,6 +1,6 @@
 // server/tests/unit/db.test.ts
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
-import { initializeDatabase, getDB } from '../../db';
+import { assertProductionDatabaseConnection, initializeDatabase, getDB } from '../../db';
 
 const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
@@ -29,6 +29,13 @@ describe('Database Module', () => {
     const db1 = getDB();
     const db2 = getDB();
     expect(db1).toBe(db2);
+  });
+
+  it('rejects SQLite when production is selected', () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    expect(() => assertProductionDatabaseConnection('sqlite:./test.db')).toThrow(/must use PostgreSQL/i);
+    process.env.NODE_ENV = originalNodeEnv;
   });
 
   afterAll(() => {

@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-23 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `aa425ab20a5920cb50e32865e9edd147b1baa6cc` (`Rebranding to T-Square`)
+**Commit:** `78d0dd4` (`reliability: fail closed on production dependencies`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -11,8 +11,9 @@
 
 ### Verdict: **NOT READY**
 
-**Overall readiness score: 28/100**
-**Confidence: High** for repository, build, local runtime, access-control, and migration findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
+**Overall readiness score: 28/100** *(unchanged after the latest upload-safety pass; P0 authorization and infrastructure caps still apply)*
+**Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
+**Latest execution checkpoint:** `78d0dd4` — production startup dependency and PostgreSQL-only database gates verified; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -744,7 +745,7 @@ One person may hold multiple roles, but each row needs a named human before laun
 
 **Status:** PARTIAL — migration execution is locally reproducible; deployment and recovery controls are not certified.
 
-**Done:** Local production build/start smoke; clean PostgreSQL 16 migration applies all 13 migrations, and fresh SQLite migration also applies all 13. **Open:** CI/staging, environment separation, backup/restore, TLS, rollout, and rollback. **Next gate:** clean commit deploys to production-like staging and survives restore/rollback rehearsal.
+**Done:** Local production build/start smoke; clean PostgreSQL 16 migration applies all 13 migrations, fresh SQLite migration also applies all 13, and a production startup dependency gate now blocks traffic admission when Firebase is unavailable. **Open:** CI/staging, environment separation, backup/restore, TLS, rollout, and rollback. **Next gate:** clean commit deploys to production-like staging and survives restore/rollback rehearsal.
 
 ### 15.2.5 Phase 4 — critical journeys execution feedback
 
@@ -861,11 +862,12 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Tracked credential | PARTIAL | The active service-account JSON was removed from the worktree and ignored going forward; provider revocation, access review, and Git/artifact history purge are not locally verifiable |
 | Frontend/API production serving | PASS for isolated smoke | `pnpm run build` passed; isolated built server returned HTML 200 for `/` and `/jobs`, JSON 404 for `/api/missing`, and Helmet headers; dependency readiness is still not a real production gate |
 | Production security baseline | PARTIAL | Helmet, bounded JSON/urlencoded bodies, credentials-aware CORS, auth-gated `/cv-builder`, and explicit `/health`/`/ready` probes are active; distributed rate limiting, trusted proxy policy, and CSP review remain |
-| Type/build/tests | PASS | `pnpm run type-check`; `pnpm run build`; server 18 files/67 tests; client 16 files/103 tests |
+| Type/build/tests | PASS | `pnpm run type-check`; `pnpm run build:server`; server 19 files/71 tests; client 16 files/103 tests |
 | Repository sanity | PASS | `pnpm run check` passes after removal of the conflicting root `package-lock.json`; pnpm still warns that the legacy `pnpm.overrides` field is ignored |
 | PostgreSQL migration/restore/operations | PARTIAL | Fresh SQLite and clean PostgreSQL 16 containers each applied all 13 migrations, including `0012_add_job_owner.sql`; `/health` returns 200 and `/ready` correctly returns 503 when Firebase is unavailable in isolated smoke; backup/restore, alert exercise, rollback drill, and browser E2E remain unverified |
 | Employer tenant isolation | PARTIAL | `created_by_user_id` owner column/index and employer scoping are implemented; `employerRoutes.test.ts` and `jobApplicationsRoutes.test.ts` cover cross-employer denials; legacy jobs with null owners, company onboarding policy, and complete CRUD/integration coverage remain open |
 | Upload content validation | PARTIAL | `server/routes/files.ts` now checks image/PDF magic bytes, derives storage extensions from MIME, and cleans Multer temp files on router errors; `fileService.ts` no longer emits public `/uploads` URLs; `fileRoutes.test.ts` covers valid PNG, spoofed PDF rejection, and cleanup; durable object storage, AV/quarantine, and restore remain open |
 | Application state authority | PARTIAL | `jobApplicationsRoutes.test.ts` now proves candidate status mutation returns 403; employer/admin transition and tenant coverage remain limited to mocked route tests |
+| Production startup dependency gate | PARTIAL | `assertProductionDependenciesReady` and `startupReadiness.test.ts` block production startup when Firebase is unavailable while allowing isolated test mode; `assertProductionDatabaseConnection` rejects SQLite in production; live deployment admission, database connectivity, and orchestration probes remain unverified |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
