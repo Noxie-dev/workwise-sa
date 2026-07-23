@@ -41,8 +41,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-import { mockExtendedCompanies } from './Companies';
-import { mockJobs } from '@/services/mockData';
+import { useCompanyBySlug } from '@/hooks/useCompanies';
 
 const CompanyProfile: React.FC = () => {
   const { slug } = useParams();
@@ -51,13 +50,31 @@ const CompanyProfile: React.FC = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
-  // Find company by slug
-  const company = mockExtendedCompanies.find(c => c.slug === slug);
-  
-  // Mock company jobs
-  const companyJobs = mockJobs.filter(job => 
-    job.company.toLowerCase() === company?.name.toLowerCase()
-  );
+  const companyQuery = useCompanyBySlug(slug || '');
+  const companyPayload = companyQuery.data as any;
+  const company = companyPayload?.data ?? companyPayload;
+
+  const companyJobsQuery = useQuery({
+    queryKey: ['/api/jobs/company', company?.id],
+    queryFn: async () => {
+      const response = await fetch(`/api/jobs/company/${company.id}`);
+      if (!response.ok) {
+        throw new Error(`Failed to load company jobs (${response.status})`);
+      }
+      return response.json();
+    },
+    enabled: Boolean(company?.id),
+  });
+
+  const companyJobs = (Array.isArray(companyJobsQuery.data) ? companyJobsQuery.data : []).map((job: any) => ({
+    ...job,
+    type: job.type ?? job.jobType,
+    postedDate: job.postedDate ?? job.createdAt,
+  }));
+
+  if (companyQuery.isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading company profile…</div>;
+  }
 
   if (!company) {
     return (
