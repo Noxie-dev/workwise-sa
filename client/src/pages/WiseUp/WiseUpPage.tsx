@@ -169,7 +169,7 @@ export default function WiseUpPage() {
   return (
     <div className="container mx-auto px-4 py-8 h-full">
       <h1 className="text-4xl font-bold mb-8 text-center text-blue-800 py-2 border-b-2 border-blue-200">
-        WiseUp Learning Hub
+        SquareUp Learning Hub
       </h1>
 
       <WiseUpLayout

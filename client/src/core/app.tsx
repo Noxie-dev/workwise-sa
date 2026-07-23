@@ -44,6 +44,9 @@ const CVTemplates = lazy(() => import("@/pages/resources/CVTemplates"));
 const InterviewTips = lazy(() => import("@/pages/resources/InterviewTipsPage"));
 const SalaryGuide = lazy(() => import("@/pages/resources/SalaryGuide"));
 const CVBuilderHelp = lazy(() => import("@/pages/resources/CVBuilderHelp"));
+const SalaryHub = lazy(() => import("@/pages/SalaryHub"));
+const TalentPassport = lazy(() => import("@/pages/TalentPassport"));
+const TradeSquare = lazy(() => import("@/pages/TradeSquare"));
 
 // Employer pages
 const PostJob = lazy(() => import("@/pages/employers/PostJob"));
@@ -82,12 +85,19 @@ function Router() {
             <Route path="/home-original" component={Home} />
             <Route path="/jobs" component={Jobs} />
             <Route path="/jobs/:id" component={JobDetails} />
+            <Route path="/square-jobs">
+              {() => <Redirect to="/jobs" />}
+            </Route>
             <Route path="/resources" component={Resources} />
 
             {/* Resource sub-pages */}
             <Route path="/resources/cv-templates" component={CVTemplates} />
             <Route path="/resources/interview-tips" component={InterviewTips} />
             <Route path="/resources/salary-guide" component={SalaryGuide} />
+            <Route path="/salary-hub" component={SalaryHub} />
+            <Route path="/salary-calculator">
+              {() => <Redirect to="/salary-hub" />}
+            </Route>
             <Route path="/resources/cv-builder-help" component={CVBuilderHelp} />
 
             {/* Companies and Blog pages */}
@@ -112,6 +122,9 @@ function Router() {
             <Route path="/faq-wheel" component={FAQWheelPage} />
 
             <Route path="/wise-up" component={WiseUpPage} />
+            <Route path="/square-up" component={WiseUpPage} />
+            <Route path="/talent-passport" component={TalentPassport} />
+            <Route path="/trade-square" component={TradeSquare} />
             <Route path="/cv-builder" component={CVBuilder} />
             <Route path="/billing" component={Billing} />
             <Route path="/login" component={Login} />

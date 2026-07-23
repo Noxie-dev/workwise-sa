@@ -2,6 +2,7 @@ import { useEffect, useReducer, useCallback, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Helmet } from 'react-helmet-async';
+import { talentSquare } from '@/config/brand';
 import JobSearch from '@/components/JobSearch';
 import JobPreviewCard from '@/components/JobPreviewCard';
 import AuthPromptModal from '@/components/AuthPromptModal';
@@ -186,14 +187,14 @@ const Jobs: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Browse Jobs | WorkWise SA</title>
+        <title>{talentSquare.products.jobs.label} | {talentSquare.name}</title>
         <meta name="description" content="Find job opportunities in South Africa. Search, filter and apply for jobs across all industries." />
       </Helmet>
 
       <main className="flex-grow bg-light py-8">
         <div className="container mx-auto px-4">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Find Your Dream Job</h1>
+            <h1 className="text-3xl font-bold mb-2">{talentSquare.products.jobs.label}</h1>
             <p className="text-muted">Browse through our comprehensive list of jobs across South Africa</p>
           </div>
 

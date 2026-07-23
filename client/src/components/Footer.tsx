@@ -1,4 +1,6 @@
 import { Link } from 'wouter';
+import { ProductMark } from '@/components/brand/ProductShell';
+import { talentSquare } from '@/config/brand';
 
 const Footer = () => {
   return (
@@ -6,22 +8,10 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <div>
-            <div className="h-10 mb-4 flex items-center">
-              <div className="flex items-center">
-                <img
-                  src="/images/footer-logo.png"
-                  alt="WorkWise SA Logo"
-                  className="h-8 w-auto mr-2"
-                />
-                <span className="text-xl font-bold text-[#102a47]">
-                  WORK<span className="text-[#f2c94c]">WISE.SA</span>
-                </span>
-              </div>
-            </div>
+            <div className="h-10 mb-4 flex items-center"><ProductMark className="text-xl" /></div>
             <p className="text-[#102a47]/85 mb-4">
-              The Entry Level Jobs Directory is an online platform specifically designed to connect
-              young South Africans with entry-level employment opportunities that require minimal
-              experience or qualifications.
+              {talentSquare.tagline} TalentSquare connects people with opportunities, skills, and
+              tools to shape their future in South Africa.
             </p>
             <div className="flex space-x-4">
               {' '}
@@ -69,7 +59,22 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <Link href="/jobs" className="text-[#102a47]/85 hover:text-[#f2c94c]">
-                  Browse Jobs
+                  Square Jobs
+                </Link>
+              </li>
+              <li>
+                <Link href="/square-up" className="text-[#102a47]/85 hover:text-[#f2c94c]">
+                  SquareUp
+                </Link>
+              </li>
+              <li>
+                <Link href="/talent-passport" className="text-[#102a47]/85 hover:text-[#f2c94c]">
+                  Talent Passport
+                </Link>
+              </li>
+              <li>
+                <Link href="/trade-square" className="text-[#102a47]/85 hover:text-[#f2c94c]">
+                  TradeSquare
                 </Link>
               </li>
               <li>
@@ -95,10 +100,10 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/resources/salary-guide"
+                  href="/salary-hub"
                   className="text-[#102a47]/85 hover:text-[#f2c94c]"
                 >
-                  Salary Guide
+                  Salary Hub
                 </Link>
               </li>
             </ul>
@@ -177,7 +182,7 @@ const Footer = () => {
         </div>
 
         <div className="pt-8 border-t border-[#102a47]/20 text-center text-sm text-[#102a47]/70">
-          <p>&copy; {new Date().getFullYear()} WorkWise SA. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {talentSquare.name}. All rights reserved.</p>
         </div>
       </div>
     </footer>

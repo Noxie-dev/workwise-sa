@@ -6,17 +6,16 @@ import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import UserMenu from '@/components/UserMenu';
 import AdminButton from '@/components/AdminButton';
+import { ProductMark } from '@/components/brand/ProductShell';
+import { talentSquare } from '@/config/brand';
 
 // Navigation items configuration
 const navigationItems = [
-  { href: '/jobs', label: 'Find Jobs', id: 'jobs' },
-  { href: '/companies', label: 'Companies', id: 'companies' },
-  { href: '/cv-builder', label: 'CV Builder', id: 'cv-builder' },
-  { href: '/billing', label: 'Plus', id: 'billing' },
-  { href: '/wise-up', label: 'Wise-Up', id: 'wise-up' },
-  { href: '/blog-wise', label: 'Blog Wise', id: 'blog-wise' },
-  { href: '/resources', label: 'Resources', id: 'resources' },
-  { href: '/contact', label: 'Contact', id: 'contact' },
+  { href: talentSquare.products.jobs.href, label: talentSquare.products.jobs.label, id: 'jobs' },
+  { href: talentSquare.products.squareUp.href, label: talentSquare.products.squareUp.label, id: 'square-up' },
+  { href: talentSquare.products.salaryHub.href, label: talentSquare.products.salaryHub.label, id: 'salary-hub' },
+  { href: talentSquare.products.passport.href, label: talentSquare.products.passport.label, id: 'talent-passport' },
+  { href: talentSquare.products.tradeSquare.href, label: talentSquare.products.tradeSquare.label, id: 'trade-square' },
 ] as const;
 
 /**
@@ -55,17 +54,12 @@ const NavLink = ({ href, label, isActive, className, onClick, tone = 'default' }
 
 /**
  * Logo Component
- * Renders the WorkWise SA logo with proper accessibility
+ * Renders the TalentSquare wordmark without depending on legacy logo assets.
  */
 const Logo = () => (
   <Link href="/" className="flex items-center group">
-    <img
-      src="/images/header-logo.png"
-      alt="WorkWise SA - Job Search Platform"
-      className="h-20 sm:h-24 mr-2 transition-transform duration-200 group-hover:scale-105"
-      loading="lazy"
-    />
-    <span className="sr-only">WorkWise SA Home</span>
+    <ProductMark className="text-xl transition-transform duration-200 group-hover:scale-105 sm:text-2xl" />
+    <span className="sr-only">TalentSquare Home</span>
   </Link>
 );
 
@@ -91,7 +85,7 @@ const MobileNav = ({ navigationItems, currentPath }: MobileNavProps) => {
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden"
+          className="lg:hidden"
           aria-label="Toggle navigation menu"
         >
           <Menu className="h-5 w-5" />
@@ -144,8 +138,8 @@ interface DesktopNavProps {
 }
 
 const DesktopNav = ({ navigationItems, currentPath }: DesktopNavProps) => (
-  <nav className="hidden md:flex items-center space-x-8">
-    <ul className="flex items-center space-x-6">
+  <nav className="hidden lg:flex items-center space-x-5">
+    <ul className="flex items-center space-x-4">
       {navigationItems.map(item => (
         <li key={item.id}>
           <NavLink
@@ -158,7 +152,7 @@ const DesktopNav = ({ navigationItems, currentPath }: DesktopNavProps) => (
       ))}
     </ul>
 
-    <div className="flex items-center space-x-3 ml-6 border-l border-[#102a47]/25 pl-6">
+    <div className="flex items-center space-x-3 ml-4 border-l border-[#102a47]/25 pl-4">
       <AdminButton
         variant="outline"
         className="border-[#102a47]/30 text-[#102a47] hover:bg-[#f2c94c]/15"

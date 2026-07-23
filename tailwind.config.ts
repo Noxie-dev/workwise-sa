@@ -25,6 +25,10 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        talent: {
+          ink: "#102A47",
+          "north-star": "#F2C94C",
+        },
         border: "#E2E8F0",
         input: "#E2E8F0",
         ring: "#63B3ED",

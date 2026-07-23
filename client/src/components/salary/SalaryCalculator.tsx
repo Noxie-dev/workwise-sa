@@ -77,7 +77,11 @@ const formatCurrency = (value: number, currency = SA_CURRENCY, locale = SA_LOCAL
 const IndustryComparisonTabContent = lazy(() => import('./IndustryComparisonTabContent'));
 
 // --- Main App Component ---
-const SalaryCalculator = () => {
+interface SalaryCalculatorProps {
+  showHeader?: boolean;
+}
+
+const SalaryCalculator = ({ showHeader = true }: SalaryCalculatorProps) => {
   const [amount, setAmount] = useState<number | string>(50000); // Default example amount
   const [inputType, setInputType] = useState('monthly'); // Default to monthly
 
@@ -182,19 +186,21 @@ const SalaryCalculator = () => {
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
-      <header className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-[#163b6d]">
-          South African Salary Calculator
-        </h1>
-        <p className="text-muted-foreground">
-          Estimate your net pay, tax, and compare with industry benchmarks for all job levels
-          (2024/2025 Tax Year).
-        </p>
-        <p className="text-sm text-muted-foreground mt-1">
-          Now includes data for entry-level jobs, general workers, and service positions with
-          minimum wage comparisons.
-        </p>
-      </header>
+      {showHeader && (
+        <header className="text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-[#163b6d]">
+            South African Salary Calculator
+          </h1>
+          <p className="text-muted-foreground">
+            Estimate your net pay, tax, and compare with industry benchmarks for all job levels
+            (2024/2025 Tax Year).
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Now includes data for entry-level jobs, general workers, and service positions with
+            minimum wage comparisons.
+          </p>
+        </header>
+      )}
 
       <Tabs defaultValue="calculator" className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:w-1/2 md:mx-auto">
