@@ -1,6 +1,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { auth } from '../firebase';
+import { resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
 
 export type AuthenticatedRequest = Request & {
   user?: {
@@ -50,17 +51,26 @@ export const authorize = (requiredRoles: string[] = ['admin']) => {
 };
 
 export const authorizeOwnership = (userIdParam: string = 'userId') => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
     const resourceUserId = Number.parseInt(req.params[userIdParam], 10);
-    if (req.user.role === 'admin' || req.user.userId === resourceUserId) {
-      return next();
+    if (Number.isNaN(resourceUserId)) {
+      return res.status(400).json({ error: 'Invalid owner ID' });
     }
 
-    return res.status(403).json({ error: 'You can only access your own resources' });
+    try {
+      const dbUser = await resolveAuthenticatedDatabaseUser(req.user);
+      if (dbUser.role === 'admin' || dbUser.id === resourceUserId) {
+        return next();
+      }
+
+      return res.status(403).json({ error: 'You can only access your own resources' });
+    } catch (error) {
+      return next(error);
+    }
   };
 };
 

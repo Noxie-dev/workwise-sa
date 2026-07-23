@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-23 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `9f42874` (`verify: enforce production runtime contract`)
+**Commit:** `dce83c7` (`security: resolve ownership from database identity`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -13,7 +13,7 @@
 
 **Overall readiness score: 28/100** *(unchanged after the latest upload-safety pass; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `9f42874` — Pass I production-runtime validation correctly rejects SQLite and missing Firebase configuration; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `dce83c7` — ownership middleware now resolves database identity from Firebase UID before allowing v1 user-resource access; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -869,6 +869,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Upload content validation | PARTIAL | `server/routes/files.ts` now checks image/PDF magic bytes, derives storage extensions from MIME, cleans Multer temp files on router errors, removes final files when metadata persistence fails, and rejects cross-user download/delete; `fileService.ts` no longer emits public `/uploads` URLs; `fileRoutes.test.ts` covers valid PNG, spoofed PDF rejection, cleanup, and IDOR denials; durable object storage, AV/quarantine, and restore remain open |
 | Application state authority | PARTIAL | `jobApplicationsRoutes.test.ts` now proves candidate status mutation returns 403; employer/admin transition and tenant coverage remain limited to mocked route tests |
 | Legacy profile update authority | PARTIAL | `/api/v1/users/:userId` now accepts only strict profile fields and rejects role/Firebase identity/password mutation; `v1ProfileUpdateRoutes.test.ts` covers rejection and editable-field forwarding; full authenticated integration remains open |
+| Legacy ownership middleware | PARTIAL | `authorizeOwnership` now resolves the authoritative database user from Firebase UID, rejects invalid IDs, and no longer trusts a caller-shaped numeric claim; allow/deny middleware tests are the next pass |
 | Production startup dependency gate | PARTIAL | `assertProductionDependenciesReady` and `startupReadiness.test.ts` block production startup when Firebase is unavailable while allowing isolated test mode; `assertProductionDatabaseConnection` rejects SQLite in production; live deployment admission, database connectivity, and orchestration probes remain unverified |
 | Client/build release verification | PASS locally | `pnpm run test:client`: 16 files/103 tests; `pnpm run build`: Vite client and esbuild server completed; browser E2E, accessibility, and production topology remain unverified |
 | Production runtime validator | PASS for negative contract | `DATABASE_URL=sqlite:./test.db node scripts/validate-primary-runtime.js` exits non-zero and reports missing Firebase configuration plus SQLite prohibition; `pnpm run check` passes; valid production secrets and deployment orchestration remain unverified |
