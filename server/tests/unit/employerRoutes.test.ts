@@ -305,4 +305,39 @@ describe('employer routes', () => {
     expect(response.body).toHaveLength(1);
     expect(response.body[0]).toEqual(expect.objectContaining({ id: '100', jobTitle: 'Owned job' }));
   });
+
+  it('scopes employer dashboard metrics to owned jobs', async () => {
+    selectResults.push(
+      [
+        { id: 55, title: 'Owned job', status: 'active', createdByUserId: 11, createdAt: new Date('2026-03-25T00:00:00Z') },
+        { id: 56, title: 'Other employer job', status: 'active', createdByUserId: 99, createdAt: new Date('2026-03-24T00:00:00Z') },
+      ],
+      [
+        { id: 100, jobId: 55, appliedAt: new Date('2026-03-25T00:00:00Z') },
+        { id: 101, jobId: 56, appliedAt: new Date('2026-03-24T00:00:00Z') },
+      ],
+      [
+        { id: 200, jobId: 55, interactionType: 'view', interactionTime: new Date('2026-03-25T00:00:00Z') },
+        { id: 201, jobId: 56, interactionType: 'view', interactionTime: new Date('2026-03-24T00:00:00Z') },
+      ],
+    );
+
+    const response = await invokeRoute({
+      path: '/dashboard',
+      method: 'get',
+      req: {
+        user: { uid: 'firebase-employer-1' },
+        params: {},
+        query: {},
+        body: {},
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.stats).toEqual(expect.objectContaining({
+      totalJobs: 1,
+      totalApplications: 1,
+      totalViews: 1,
+    }));
+  });
 });
