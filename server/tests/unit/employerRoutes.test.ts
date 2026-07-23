@@ -7,12 +7,16 @@ const updateResults: any[] = [];
 vi.mock('../../db', () => ({
   db: {
     select: vi.fn(() => ({
-      from: vi.fn(() => ({
+      from: vi.fn(() => {
+        const query: any = {
         where: vi.fn(() => ({
           limit: vi.fn(async () => selectResults.shift() ?? []),
         })),
         orderBy: vi.fn(async () => selectResults.shift() ?? []),
-      })),
+        };
+        query.then = (resolve: (value: unknown) => unknown) => Promise.resolve(resolve(selectResults.shift() ?? []));
+        return query;
+      }),
     })),
     insert: vi.fn(() => ({
       values: vi.fn(() => ({
@@ -80,7 +84,7 @@ async function invokeRoute({
   req,
 }: {
   path: string;
-  method: 'post' | 'patch';
+  method: 'get' | 'post' | 'patch';
   req: Record<string, any>;
 }) {
   const handlers = getRouteHandlers(path, method);
@@ -226,5 +230,50 @@ describe('employer routes', () => {
     expect(response.statusCode).toBe(403);
     expect(response.body.error.message).toMatch(/owned by your employer/i);
     expect(updateResults).toHaveLength(0);
+  });
+
+  it('scopes the employer job list to owned jobs', async () => {
+    selectResults.push(
+      [
+        {
+          id: 55,
+          title: 'Owned job',
+          location: 'Cape Town',
+          jobType: 'full-time',
+          companyId: 3,
+          createdByUserId: 11,
+          status: 'active',
+          createdAt: new Date('2026-03-25T00:00:00Z'),
+        },
+        {
+          id: 56,
+          title: 'Other employer job',
+          location: 'Durban',
+          jobType: 'full-time',
+          companyId: 3,
+          createdByUserId: 99,
+          status: 'active',
+          createdAt: new Date('2026-03-24T00:00:00Z'),
+        },
+      ],
+      [{ id: 3, name: 'Acme' }],
+      [],
+      [],
+    );
+
+    const response = await invokeRoute({
+      path: '/jobs',
+      method: 'get',
+      req: {
+        user: { uid: 'firebase-employer-1' },
+        params: {},
+        query: { status: 'all' },
+        body: {},
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(response.body[0].id).toBe('55');
   });
 });
