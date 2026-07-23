@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-23 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `8f6235e` (`test: cover restricted profile update fields`)
+**Commit:** `282dc53` (`verify: complete client release build`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -13,7 +13,7 @@
 
 **Overall readiness score: 28/100** *(unchanged after the latest upload-safety pass; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `8f6235e` — Pass E regression coverage for restricted legacy profile updates is green; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `282dc53` — Pass F full client regression and production build verification is green; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -751,7 +751,7 @@ One person may hold multiple roles, but each row needs a named human before laun
 
 **Status:** PARTIAL — regression foundation exists; journeys are not certified.
 
-**Done:** Server 19 files/77 tests and client 16 files/103 tests pass; `/cv-builder` is auth-gated; employer job/application-list and dashboard-metric isolation, cross-employer job-status/application-read denials, candidate status-mutation denial, restricted legacy profile-update fields, file download/delete IDOR denials, spoofed PDF rejection, temporary-upload cleanup, and final-file cleanup after metadata failure are covered. **Open:** full two-tenant negative matrix, browser E2E, accessibility, mobile, SEO, duplicate submissions, and mock removal. **Next gate:** all critical candidate/employer/platform flows pass positive and negative tests.
+**Done:** Server 19 files/77 tests and client 16 files/103 tests pass; the production build completes for client and server; `/cv-builder` is auth-gated; employer job/application-list and dashboard-metric isolation, cross-employer job-status/application-read denials, candidate status-mutation denial, restricted legacy profile-update fields, file download/delete IDOR denials, spoofed PDF rejection, temporary-upload cleanup, and final-file cleanup after metadata failure are covered. **Open:** full two-tenant negative matrix, browser E2E, accessibility, mobile, SEO, duplicate submissions, and mock removal. **Next gate:** all critical candidate/employer/platform flows pass positive and negative tests.
 
 ### 15.2.6 Phase 5 — operability execution feedback
 
@@ -870,5 +870,6 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Application state authority | PARTIAL | `jobApplicationsRoutes.test.ts` now proves candidate status mutation returns 403; employer/admin transition and tenant coverage remain limited to mocked route tests |
 | Legacy profile update authority | PARTIAL | `/api/v1/users/:userId` now accepts only strict profile fields and rejects role/Firebase identity/password mutation; `publicUserRegistrationSchema.test.ts` covers the restricted update schema; route-level integration coverage remains open |
 | Production startup dependency gate | PARTIAL | `assertProductionDependenciesReady` and `startupReadiness.test.ts` block production startup when Firebase is unavailable while allowing isolated test mode; `assertProductionDatabaseConnection` rejects SQLite in production; live deployment admission, database connectivity, and orchestration probes remain unverified |
+| Client/build release verification | PASS locally | `pnpm run test:client`: 16 files/103 tests; `pnpm run build`: Vite client and esbuild server completed; browser E2E, accessibility, and production topology remain unverified |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
