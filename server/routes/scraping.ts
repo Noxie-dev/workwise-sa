@@ -46,6 +46,7 @@ type ScrapingSession = {
 type TriggerScrapingOptions = z.infer<typeof triggerScrapingSchema>;
 
 const scrapingSessions = new Map<string, ScrapingSession>();
+const scrapingProcesses = new Map<string, ReturnType<typeof spawn>>();
 
 const scrapyDir = path.join(process.cwd(), 'scrapy_jobs');
 const scrapingLogPath = path.join(scrapyDir, 'job_scraping.log');
@@ -183,6 +184,11 @@ router.post('/cancel/:sessionId', async (req, res) => {
     session.status = 'cancelled';
     session.endTime = new Date();
 
+    const scrapingProcess = scrapingProcesses.get(sessionId);
+    if (scrapingProcess && !scrapingProcess.killed) {
+      scrapingProcess.kill('SIGTERM');
+    }
+
     return res.json({
       success: true,
       message: 'Scraping session cancelled',
@@ -279,8 +285,14 @@ function startScrapingProcess(sessionId: string, options: TriggerScrapingOptions
     stdio: ['ignore', 'pipe', 'pipe'],
   });
 
+  scrapingProcesses.set(sessionId, scrapingProcess);
+
   const session = scrapingSessions.get(sessionId);
-  if (!session) return;
+  if (!session) {
+    scrapingProcesses.delete(sessionId);
+    scrapingProcess.kill('SIGTERM');
+    return;
+  }
 
   scrapingProcess.stdout.on('data', (data: Buffer) => {
     const output = data.toString();
@@ -301,7 +313,12 @@ function startScrapingProcess(sessionId: string, options: TriggerScrapingOptions
   });
 
   scrapingProcess.on('close', (code) => {
+    scrapingProcesses.delete(sessionId);
     session.endTime = new Date();
+
+    if (session.status === 'cancelled') {
+      return;
+    }
 
     if (code === 0) {
       session.status = 'completed';
@@ -315,6 +332,11 @@ function startScrapingProcess(sessionId: string, options: TriggerScrapingOptions
   });
 
   scrapingProcess.on('error', (error) => {
+    scrapingProcesses.delete(sessionId);
+    if (session.status === 'cancelled') {
+      return;
+    }
+
     session.status = 'failed';
     session.endTime = new Date();
     session.error = error.message;
