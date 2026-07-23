@@ -43,6 +43,20 @@ export function getMigrationFiles(migrationsFolder: string): string[] {
     .sort();
 }
 
+/**
+ * The checked-in migration history was authored for the SQLite development
+ * fallback. PostgreSQL is the production database, so translate only the
+ * small, explicitly supported dialect differences at the migration boundary.
+ * Keeping this conversion here avoids silently changing the SQLite path and
+ * gives the PostgreSQL runner one testable compatibility contract.
+ */
+export function normalizePostgresMigrationSql(migrationSql: string): string {
+  return migrationSql
+    .replace(/\bINTEGER\s+PRIMARY\s+KEY\s+AUTOINCREMENT\b/gi, 'SERIAL PRIMARY KEY')
+    .replace(/\bDATETIME\b/gi, 'TIMESTAMP')
+    .replace(/INSERT\s+OR\s+IGNORE\s+INTO\s+([\s\S]*?);/gi, 'INSERT INTO $1 ON CONFLICT DO NOTHING;');
+}
+
 export function getSqliteDatabasePath(connectionString: string): string {
   const rawPath = connectionString.replace(/^sqlite:/, '');
 
@@ -131,7 +145,9 @@ export async function runPostgresMigrations({
       }
 
       logger.info(`Applying migration: ${migrationFile}`);
-      const migrationSql = fs.readFileSync(path.join(migrationsFolder, migrationFile), 'utf8');
+      const migrationSql = normalizePostgresMigrationSql(
+        fs.readFileSync(path.join(migrationsFolder, migrationFile), 'utf8'),
+      );
       await sql.begin(async (transaction) => {
         await transaction.unsafe(migrationSql);
         await transaction.unsafe('INSERT INTO migrations (name) VALUES ($1)', [migrationFile]);

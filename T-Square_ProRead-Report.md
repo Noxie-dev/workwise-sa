@@ -732,19 +732,19 @@ One person may hold multiple roles, but each row needs a named human before laun
 
 **Status:** PARTIAL.
 
-**Done:** `pnpm run check` and `pnpm run build` pass; the built server serves `/` and `/jobs` as SPA HTML, preserves API 404s, applies Helmet, bounds request bodies, and uses credentials-aware CORS. **Open:** legacy deployments, remaining mocks, ignored overrides, parallel runtimes, and one typed configuration contract. **Next gate:** clean-clone canonical deployment verification.
+**Done:** `pnpm run check` and `pnpm run build` pass; the built server serves `/` and `/jobs` as SPA HTML, preserves API 404s, applies Helmet, bounds request bodies, and uses credentials-aware CORS. A base-users migration now satisfies the first foreign-key dependency before the files migration. **Open:** legacy deployments, remaining mocks, ignored overrides, parallel runtimes, and one typed configuration contract. **Next gate:** clean-clone canonical deployment verification.
 
 ### 15.2.3 Phase 2 — security and data execution feedback
 
 **Status:** PARTIAL — local controls started; P0 closure is not claimed.
 
-**Done:** Server-owned registration, authenticated owner-bound profile/file routes, fail-closed ingest, authenticated/rate-limited legacy AI, admin-only scraper controls, and startup secret-log removal are implemented and tested. **Open:** provider revocation/history purge, tenant isolation, durable private uploads, PostgreSQL integrity, retention/DSAR/consent, and AI governance. **Next gate:** no P0 or authorization bypass with independent evidence.
+**Done:** Server-owned registration, authenticated owner-bound profile/file routes, fail-closed ingest, authenticated/rate-limited legacy AI, admin-only scraper controls, startup secret-log removal, and PostgreSQL migration normalization are implemented and tested. **Open:** provider revocation/history purge, tenant isolation, durable private uploads, retention/DSAR/consent, and AI governance. **Next gate:** no P0 or authorization bypass with independent evidence.
 
 ### 15.2.4 Phase 3 — delivery platform execution feedback
 
 **Status:** NOT STARTED.
 
-**Done:** Local production build/start smoke only. **Open:** CI/staging, environment separation, PostgreSQL migration delivery, backup/restore, TLS, rollout, and rollback. **Next gate:** clean commit deploys to production-like staging and survives restore/rollback rehearsal.
+**Done:** Local production build/start smoke; clean PostgreSQL 16 migration applies all 12 migrations, and fresh SQLite migration also applies all 12. **Open:** CI/staging, environment separation, backup/restore, TLS, rollout, and rollback. **Next gate:** clean commit deploys to production-like staging and survives restore/rollback rehearsal.
 
 ### 15.2.5 Phase 4 — critical journeys execution feedback
 
@@ -863,6 +863,6 @@ The first remediation cycle has started on the shared worktree. These changes ar
 | Production security baseline | PARTIAL | Helmet, bounded JSON/urlencoded bodies, credentials-aware CORS, auth-gated `/cv-builder`, and explicit `/health`/`/ready` probes are active; distributed rate limiting, trusted proxy policy, and CSP review remain |
 | Type/build/tests | PASS | `pnpm run type-check`; `pnpm run build`; server 17 files/60 tests; client 16 files/103 tests |
 | Repository sanity | PASS | `pnpm run check` passes after removal of the conflicting root `package-lock.json`; pnpm still warns that the legacy `pnpm.overrides` field is ignored |
-| PostgreSQL/restore/operations | PARTIAL | `/health` returns 200 and `/ready` correctly returns 503 when Firebase is unavailable in isolated smoke; SQLite migration evidence only; no PostgreSQL clean migration, backup/restore, alert exercise, rollback drill, or browser E2E evidence yet |
+| PostgreSQL migration/restore/operations | PARTIAL | Fresh SQLite and clean PostgreSQL 16 containers each applied all 12 migrations; `/health` returns 200 and `/ready` correctly returns 503 when Firebase is unavailable in isolated smoke; backup/restore, alert exercise, rollback drill, and browser E2E remain unverified |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, PostgreSQL migration and restore remain unproven, and operational/compliance gates are still open.
