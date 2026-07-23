@@ -10,6 +10,12 @@ import { jobApplications } from '@shared/schema';
 
 const router = Router();
 
+function assertEmployerOwnsJob(dbUser: { id: number; role?: string | null }, job: { createdByUserId?: number | null }) {
+  if (dbUser.role === 'employer' && job.createdByUserId !== dbUser.id) {
+    throw Errors.forbidden('You can only access applications for jobs owned by your employer account');
+  }
+}
+
 // Validation schemas
 const createJobApplicationSchema = z.object({
   body: z.object({
@@ -185,6 +191,14 @@ router.get('/:applicationId',
         throw Errors.notFound('Job application not found');
       }
 
+      if (dbUser.role === 'employer') {
+        const job = await storage.getJob(application.jobId);
+        if (!job) {
+          throw Errors.notFound('Job not found');
+        }
+        assertEmployerOwnsJob(dbUser, job);
+      }
+
       if (application.userId !== userId && !['admin', 'employer'].includes(dbUser.role ?? 'user')) {
         throw Errors.forbidden('You can only view your own job applications');
       }
@@ -216,6 +230,19 @@ router.put('/:applicationId',
       const application = await storage.getJobApplication(applicationId);
       if (!application) {
         throw Errors.notFound('Job application not found');
+      }
+
+      if (dbUser.role === 'employer') {
+        if (!status) {
+          throw Errors.forbidden('Employers must provide a status when updating an application');
+        }
+        const job = await storage.getJob(application.jobId);
+        if (!job) {
+          throw Errors.notFound('Job not found');
+        }
+        assertEmployerOwnsJob(dbUser, job);
+      } else if (status && dbUser.role !== 'admin') {
+        throw Errors.forbidden('Only employers or administrators can change application status');
       }
 
       if (application.userId !== userId && !['admin', 'employer'].includes(dbUser.role ?? 'user')) {
@@ -284,7 +311,11 @@ router.delete('/:applicationId',
         throw Errors.notFound('Job application not found');
       }
 
-      if (application.userId !== userId && !['admin', 'employer'].includes(dbUser.role ?? 'user')) {
+      if (dbUser.role === 'employer') {
+        throw Errors.forbidden('Employers cannot withdraw candidate applications');
+      }
+
+      if (application.userId !== userId && dbUser.role !== 'admin') {
         throw Errors.forbidden('You can only withdraw your own job applications');
       }
 
@@ -336,6 +367,8 @@ router.get('/job/:jobId',
       if (!job) {
         throw Errors.notFound('Job not found');
       }
+
+      assertEmployerOwnsJob(dbUser, job);
 
       // Check if user has permission to view applications for this job
       // This would typically check if user is the job poster or admin

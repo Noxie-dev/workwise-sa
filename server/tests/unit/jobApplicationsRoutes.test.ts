@@ -273,4 +273,36 @@ describe('jobApplications routes', () => {
       }),
     );
   });
+
+  it('blocks an employer from reading another employer\'s application', async () => {
+    mockedResolveAuthenticatedDatabaseUser.mockResolvedValue({
+      id: 11,
+      role: 'employer',
+      email: 'employer@example.com',
+    } as any);
+    mockedStorage.getJobApplication.mockResolvedValue({
+      id: 55,
+      userId: 7,
+      jobId: 22,
+      status: 'applied',
+    } as any);
+    mockedStorage.getJob.mockResolvedValue({
+      id: 22,
+      createdByUserId: 99,
+    } as any);
+
+    const response = await invokeRoute({
+      path: '/:applicationId',
+      method: 'get',
+      req: {
+        body: {},
+        params: { applicationId: '55' },
+        query: {},
+        headers: { authorization: 'Bearer test-token' },
+      },
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.body.error.message).toMatch(/owned by your employer/i);
+  });
 });

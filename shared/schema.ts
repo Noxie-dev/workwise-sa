@@ -130,6 +130,7 @@ export const jobs = pgTable("jobs", {
   workMode: text("work_mode").notNull(), // Remote, On-site, Hybrid
   companyId: integer("company_id").notNull().references(() => companies.id),
   categoryId: integer("category_id").notNull().references(() => categories.id),
+  createdByUserId: integer("created_by_user_id").references(() => users.id),
   status: text("status").notNull().default("active"),
   isFeatured: boolean("is_featured").default(false),
   createdAt: timestamp("created_at").defaultNow(),
@@ -171,6 +172,7 @@ export const insertJobSchema = createInsertSchema(jobs).pick({
   workMode: true,
   companyId: true,
   categoryId: true,
+  createdByUserId: true,
   status: true,
   isFeatured: true,
 });
@@ -212,6 +214,10 @@ export const jobsRelations = relations(jobs, ({ one }) => ({
   category: one(categories, {
     fields: [jobs.categoryId],
     references: [categories.id],
+  }),
+  createdBy: one(users, {
+    fields: [jobs.createdByUserId],
+    references: [users.id],
   }),
 }));
 

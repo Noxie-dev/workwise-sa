@@ -398,6 +398,7 @@ export async function getJobRecommendations(
         workMode: jobs.workMode,
         companyId: jobs.companyId,
         categoryId: jobs.categoryId,
+        createdByUserId: jobs.createdByUserId,
         isFeatured: jobs.isFeatured,
         createdAt: jobs.createdAt,
         company: companies
@@ -649,6 +650,7 @@ export async function personalizedJobSearch(
         workMode: job.workMode,
         companyId: job.companyId,
         categoryId: job.categoryId,
+        createdByUserId: job.createdByUserId,
         status: job.status ?? 'active',
         isFeatured: job.isFeatured,
         createdAt: job.createdAt,

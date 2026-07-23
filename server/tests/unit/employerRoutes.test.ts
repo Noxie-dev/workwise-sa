@@ -187,6 +187,7 @@ describe('employer routes', () => {
   });
 
   it('updates a job status', async () => {
+    selectResults.push([{ id: 55, createdByUserId: 11 }]);
     updateResults.push([{ id: 55, status: 'paused' }]);
 
     const response = await invokeRoute({
@@ -206,5 +207,24 @@ describe('employer routes', () => {
       jobId: '55',
       status: 'paused',
     });
+  });
+
+  it('rejects status changes for another employer\'s job', async () => {
+    selectResults.push([{ id: 55, createdByUserId: 99 }]);
+
+    const response = await invokeRoute({
+      path: '/jobs/:jobId/status',
+      method: 'patch',
+      req: {
+        user: { uid: 'firebase-employer-1' },
+        params: { jobId: '55' },
+        query: {},
+        body: { status: 'paused' },
+      },
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.body.error.message).toMatch(/owned by your employer/i);
+    expect(updateResults).toHaveLength(0);
   });
 });

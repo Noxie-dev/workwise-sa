@@ -21,6 +21,18 @@ const router = Router();
 const employerJobCreateSchema = employerJobFormSchema;
 const employerJobUpdateSchema = employerJobFormSchema;
 
+function assertEmployerJobAccess(dbUser: { id: number; role?: string | null }, job: typeof jobs.$inferSelect) {
+  if (dbUser.role !== "admin" && job.createdByUserId !== dbUser.id) {
+    throw Errors.forbidden("You can only access jobs owned by your employer account");
+  }
+}
+
+function scopeEmployerJobs(dbUser: { id: number; role?: string | null }, jobRows: typeof jobs.$inferSelect[]) {
+  return dbUser.role === "admin"
+    ? jobRows
+    : jobRows.filter((job) => job.createdByUserId === dbUser.id);
+}
+
 function slugify(value: string) {
   return value
     .toLowerCase()
@@ -149,34 +161,38 @@ router.get("/dashboard", async (req, res, next) => {
       db.select().from(jobApplications).orderBy(desc(jobApplications.appliedAt)),
       db.select().from(userInteractions).orderBy(desc(userInteractions.interactionTime)),
     ]);
+    const scopedJobRows = scopeEmployerJobs(dbUser, jobRows);
+    const scopedJobIds = new Set(scopedJobRows.map((job) => job.id));
+    const scopedApplicationRows = applicationRows.filter((application) => scopedJobIds.has(application.jobId));
+    const scopedInteractionRows = interactionRows.filter((interaction) => !interaction.jobId || scopedJobIds.has(interaction.jobId));
 
     const applicationTrend = new Map<string, number>();
-    applicationRows.forEach((application) => {
+    scopedApplicationRows.forEach((application) => {
       const key = new Date(application.appliedAt).toISOString().slice(0, 10);
       applicationTrend.set(key, (applicationTrend.get(key) || 0) + 1);
     });
 
-    const jobPerformance = jobRows.slice(0, 8).map((job) => ({
+    const jobPerformance = scopedJobRows.slice(0, 8).map((job) => ({
       jobTitle: job.title,
-      views: interactionRows.filter((interaction) => interaction.jobId === job.id && interaction.interactionType === "view").length,
-      applications: applicationRows.filter((application) => application.jobId === job.id).length,
+      views: scopedInteractionRows.filter((interaction) => interaction.jobId === job.id && interaction.interactionType === "view").length,
+      applications: scopedApplicationRows.filter((application) => application.jobId === job.id).length,
     }));
 
-    const recentActivity = applicationRows.slice(0, 5).map((application) => ({
+    const recentActivity = scopedApplicationRows.slice(0, 5).map((application) => ({
       title: "New Application",
       description: `Application ${application.id} received for job ${application.jobId}`,
       timestamp: toRelativeTime(application.appliedAt),
     }));
 
-    const activeJobs = jobRows.filter((job) => job.status === "active").length;
+    const activeJobs = scopedJobRows.filter((job) => job.status === "active").length;
 
     res.json(employerDashboardSchema.parse({
       scope: "platform",
       stats: {
-        totalJobs: jobRows.length,
+        totalJobs: scopedJobRows.length,
         activeJobs,
-        totalApplications: applicationRows.length,
-        totalViews: interactionRows.filter((interaction) => interaction.interactionType === "view").length,
+        totalApplications: scopedApplicationRows.length,
+        totalViews: scopedInteractionRows.filter((interaction) => interaction.interactionType === "view").length,
       },
       charts: {
         applications: Array.from(applicationTrend.entries())
@@ -204,16 +220,20 @@ router.get("/jobs", async (req, res, next) => {
       db.select().from(jobApplications),
       db.select().from(userInteractions),
     ]);
+    const scopedJobRows = scopeEmployerJobs(dbUser, jobRows);
+    const scopedJobIds = new Set(scopedJobRows.map((job) => job.id));
+    const scopedApplicationRows = applicationRows.filter((application) => scopedJobIds.has(application.jobId));
+    const scopedInteractionRows = interactionRows.filter((interaction) => scopedJobIds.has(interaction.jobId));
 
     const companyMap = new Map<number, any>((companyRows as any[]).map((company) => [company.id, company]));
-    const enrichedJobs = jobRows.map((job) => ({
+    const enrichedJobs = scopedJobRows.map((job) => ({
       id: String(job.id),
       title: job.title,
       location: job.location,
       type: job.jobType,
       company: companyMap.get(job.companyId)?.name || "Unknown company",
-      applications: applicationRows.filter((application) => application.jobId === job.id).length,
-      views: interactionRows.filter((interaction) => interaction.jobId === job.id && interaction.interactionType === "view").length,
+      applications: scopedApplicationRows.filter((application) => application.jobId === job.id).length,
+      views: scopedInteractionRows.filter((interaction) => interaction.jobId === job.id && interaction.interactionType === "view").length,
       postedDate: job.createdAt ? new Date(job.createdAt).toISOString().slice(0, 10) : "",
       status: toSummaryStatus(job.status),
     }));
@@ -243,6 +263,7 @@ router.get("/jobs/:jobId", async (req, res, next) => {
     if (!job) {
       throw Errors.notFound("Job not found");
     }
+    assertEmployerJobAccess(dbUser, job);
 
     const [company, category] = await Promise.all([
       db.select().from(companies).where(eq(companies.id, job.companyId)).then((rows) => rows[0]),
@@ -313,6 +334,7 @@ router.post("/jobs", async (req, res, next) => {
       workMode: payload.isRemote ? "Remote" : "On-site",
       companyId: company.id,
       categoryId: category.id,
+      createdByUserId: dbUser.id,
       status: payload.isDraft ? "draft" : "active",
       isFeatured: false,
     }).returning();
@@ -339,6 +361,7 @@ router.put("/jobs/:jobId", async (req, res, next) => {
     if (!existingJob) {
       throw Errors.notFound("Job not found");
     }
+    assertEmployerJobAccess(dbUser, existingJob);
 
     const [company, category] = await Promise.all([
       findOrCreateCompany(payload),
@@ -381,6 +404,11 @@ router.patch("/jobs/:jobId/status", async (req, res, next) => {
     }
 
     const status = employerJobStatusSchema.parse(req.body?.status);
+    const [existingJob] = await db.select().from(jobs).where(eq(jobs.id, jobId)).limit(1);
+    if (!existingJob) {
+      throw Errors.notFound("Job not found");
+    }
+    assertEmployerJobAccess(dbUser, existingJob);
     const [updatedJob] = await db.update(jobs).set({ status }).where(eq(jobs.id, jobId)).returning();
     if (!updatedJob) {
       throw Errors.notFound("Job not found");
@@ -403,12 +431,15 @@ router.get("/applications", async (req, res, next) => {
       db.select().from(users),
       db.select().from(jobs),
     ]);
+    const scopedJobRows = scopeEmployerJobs(dbUser, jobRows);
+    const scopedJobIds = new Set(scopedJobRows.map((job) => job.id));
+    const scopedApplicationRows = applicationRows.filter((application) => scopedJobIds.has(application.jobId));
 
     const userMap = new Map<number, any>((userRows as any[]).map((user) => [user.id, user]));
     const jobMap = new Map<number, any>((jobRows as any[]).map((job) => [job.id, job]));
 
     res.json(
-      applicationRows.slice(0, 25).map((application) => {
+      scopedApplicationRows.slice(0, 25).map((application) => {
         const applicant = userMap.get(application.userId);
         const job = jobMap.get(application.jobId);
 

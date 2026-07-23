@@ -738,19 +738,19 @@ One person may hold multiple roles, but each row needs a named human before laun
 
 **Status:** PARTIAL — local controls started; P0 closure is not claimed.
 
-**Done:** Server-owned registration, authenticated owner-bound profile/file routes, fail-closed ingest, authenticated/rate-limited legacy AI, admin-only scraper controls, startup secret-log removal, and PostgreSQL migration normalization are implemented and tested. **Open:** provider revocation/history purge, tenant isolation, durable private uploads, retention/DSAR/consent, and AI governance. **Next gate:** no P0 or authorization bypass with independent evidence.
+**Done:** Server-owned registration, authenticated owner-bound profile/file routes, fail-closed ingest, authenticated/rate-limited legacy AI, admin-only scraper controls, startup secret-log removal, PostgreSQL migration normalization, and the first owner-scoped employer job/application paths are implemented and tested. **Open:** provider revocation/history purge, legacy-job ownership backfill, complete tenant coverage, durable private uploads, retention/DSAR/consent, and AI governance. **Next gate:** no P0 or authorization bypass with independent evidence.
 
 ### 15.2.4 Phase 3 — delivery platform execution feedback
 
-**Status:** NOT STARTED.
+**Status:** PARTIAL — migration execution is locally reproducible; deployment and recovery controls are not certified.
 
-**Done:** Local production build/start smoke; clean PostgreSQL 16 migration applies all 12 migrations, and fresh SQLite migration also applies all 12. **Open:** CI/staging, environment separation, backup/restore, TLS, rollout, and rollback. **Next gate:** clean commit deploys to production-like staging and survives restore/rollback rehearsal.
+**Done:** Local production build/start smoke; clean PostgreSQL 16 migration applies all 13 migrations, and fresh SQLite migration also applies all 13. **Open:** CI/staging, environment separation, backup/restore, TLS, rollout, and rollback. **Next gate:** clean commit deploys to production-like staging and survives restore/rollback rehearsal.
 
 ### 15.2.5 Phase 4 — critical journeys execution feedback
 
 **Status:** PARTIAL — regression foundation exists; journeys are not certified.
 
-**Done:** Server 17 files/60 tests and client 16 files/103 tests pass; `/cv-builder` is auth-gated. **Open:** two-tenant negative matrix, browser E2E, accessibility, mobile, SEO, duplicate submissions, and mock removal. **Next gate:** all critical candidate/employer/platform flows pass positive and negative tests.
+**Done:** Server 18 files/64 tests and client 16 files/103 tests pass; `/cv-builder` is auth-gated; cross-employer job-status and application-read denials are covered. **Open:** full two-tenant negative matrix, browser E2E, accessibility, mobile, SEO, duplicate submissions, and mock removal. **Next gate:** all critical candidate/employer/platform flows pass positive and negative tests.
 
 ### 15.2.6 Phase 5 — operability execution feedback
 
@@ -827,7 +827,7 @@ The full nine-phase programme cannot be responsibly completed in 32 hours. The o
 | Session-secret logging | P0-02 | PARTIAL | Remove value logging; add regression/static check | Rotate deployed secret and review logs | Canary absent from startup/log sinks |
 | Registration role/UID escalation | P0-03 | IN PROGRESS | Public DTO excludes server-owned fields; reject unexpected input; hash or remove password path; tests | Audit existing privileged accounts | Negative API tests and account review |
 | Profile/file IDOR | P0-04 | PARTIAL | Authenticate and ownership-bind current profile/file routes; keep download private | Private object storage and legacy file migration | Cross-user/anonymous tests; private storage |
-| Employer tenant isolation | P0-05 | NOT STARTED | Add ownership data model and predicates | Product/company ownership decision | Two-tenant CRUD suite |
+| Employer tenant isolation | P0-05 | PARTIAL | Add nullable job owner, scope employer dashboards/lists/applications, enforce owner checks on job CRUD/status and application reads/status updates | Legacy-job ownership backfill, company/onboarding policy, complete two-tenant matrix | Two-tenant CRUD suite |
 | Ingest fail-open | P1-05 | IN PROGRESS | Require configured service token and fail closed; tests | Rotate/provision deployment token | Missing/invalid token rejected |
 | Remaining P1 gates | P1-01–15 | NOT STARTED/PARTIAL | Follow hours 10–30 sequence above | Hosting, database, cloud, provider, legal and human ownership | Launch checklist rows become PASS |
 
@@ -848,7 +848,7 @@ Deadline pressure does not convert a failed gate into accepted evidence. If a ha
 
 ### 15.7 Current execution evidence — 2026-07-23 UTC
 
-The first remediation cycle has started on the shared worktree. These changes are **uncommitted** and therefore remain provisional until reviewed and committed by the owning team.
+The remediation cycle is being executed in small reviewed batches. The current tenant-isolation batch is provisional until its final verification and commit are recorded below.
 
 | Check | Result | Evidence and interpretation |
 |---|---|---|
@@ -861,8 +861,9 @@ The first remediation cycle has started on the shared worktree. These changes ar
 | Tracked credential | PARTIAL | The active service-account JSON was removed from the worktree and ignored going forward; provider revocation, access review, and Git/artifact history purge are not locally verifiable |
 | Frontend/API production serving | PASS for isolated smoke | `pnpm run build` passed; isolated built server returned HTML 200 for `/` and `/jobs`, JSON 404 for `/api/missing`, and Helmet headers; dependency readiness is still not a real production gate |
 | Production security baseline | PARTIAL | Helmet, bounded JSON/urlencoded bodies, credentials-aware CORS, auth-gated `/cv-builder`, and explicit `/health`/`/ready` probes are active; distributed rate limiting, trusted proxy policy, and CSP review remain |
-| Type/build/tests | PASS | `pnpm run type-check`; `pnpm run build`; server 17 files/60 tests; client 16 files/103 tests |
+| Type/build/tests | PASS | `pnpm run type-check`; `pnpm run build`; server 18 files/64 tests; client 16 files/103 tests |
 | Repository sanity | PASS | `pnpm run check` passes after removal of the conflicting root `package-lock.json`; pnpm still warns that the legacy `pnpm.overrides` field is ignored |
-| PostgreSQL migration/restore/operations | PARTIAL | Fresh SQLite and clean PostgreSQL 16 containers each applied all 12 migrations; `/health` returns 200 and `/ready` correctly returns 503 when Firebase is unavailable in isolated smoke; backup/restore, alert exercise, rollback drill, and browser E2E remain unverified |
+| PostgreSQL migration/restore/operations | PARTIAL | Fresh SQLite and clean PostgreSQL 16 containers each applied all 13 migrations, including `0012_add_job_owner.sql`; `/health` returns 200 and `/ready` correctly returns 503 when Firebase is unavailable in isolated smoke; backup/restore, alert exercise, rollback drill, and browser E2E remain unverified |
+| Employer tenant isolation | PARTIAL | `created_by_user_id` owner column/index and employer scoping are implemented; `employerRoutes.test.ts` and `jobApplicationsRoutes.test.ts` cover cross-employer denials; legacy jobs with null owners, company onboarding policy, and complete CRUD/integration coverage remain open |
 
-The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, PostgreSQL migration and restore remain unproven, and operational/compliance gates are still open.
+The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
