@@ -16,6 +16,7 @@ import { resolveAuthenticatedDatabaseUser } from "../services/authenticatedUser"
 import { entitlementService } from "../services/entitlementService";
 import { aiUsageMeterService } from "../services/aiUsageMeterService";
 import { aiDocumentGenerationService } from "../services/aiDocumentGenerationService";
+import { rateLimiters } from "../../src/middleware/rateLimit";
 
 const generateSummarySchema = z.object({
   body: z.object({
@@ -190,7 +191,7 @@ export function registerCvApiRoutes(app: Express) {
     }
   });
 
-  app.post("/api/cv/generate-summary", validate(generateSummarySchema), async (req, res, next) => {
+  app.post("/api/cv/generate-summary", verifyFirebaseToken, rateLimiters.ai, validate(generateSummarySchema), async (req, res, next) => {
     try {
       const { name, skills, experience, education, language } = req.body;
       if (!name || !skills || !experience || !education) {
@@ -205,7 +206,7 @@ export function registerCvApiRoutes(app: Express) {
     }
   });
 
-  app.post("/api/cv/generate-job-description", validate(generateJobDescriptionSchema), async (req, res, next) => {
+  app.post("/api/cv/generate-job-description", verifyFirebaseToken, rateLimiters.ai, validate(generateJobDescriptionSchema), async (req, res, next) => {
     try {
       const { jobInfo, language } = req.body;
       if (!jobInfo || !jobInfo.jobTitle || !jobInfo.employer) {
@@ -218,7 +219,7 @@ export function registerCvApiRoutes(app: Express) {
     }
   });
 
-  app.post("/api/cv/translate", validate(translateSchema), async (req, res, next) => {
+  app.post("/api/cv/translate", verifyFirebaseToken, rateLimiters.ai, validate(translateSchema), async (req, res, next) => {
     try {
       const { text, targetLanguage } = req.body;
       if (!text || !targetLanguage) {
@@ -231,7 +232,7 @@ export function registerCvApiRoutes(app: Express) {
     }
   });
 
-  app.post("/api/cv/claude/generate-summary", validate(generateSummarySchema), async (req, res, next) => {
+  app.post("/api/cv/claude/generate-summary", verifyFirebaseToken, rateLimiters.ai, validate(generateSummarySchema), async (req, res, next) => {
     try {
       if (!(await secretManager.getSecret("ANTHROPIC_API_KEY"))) {
         throw Errors.externalService("Anthropic API key is not configured");
@@ -256,7 +257,7 @@ export function registerCvApiRoutes(app: Express) {
     }
   });
 
-  app.post("/api/cv/claude/generate-job-description", validate(generateJobDescriptionSchema), async (req, res, next) => {
+  app.post("/api/cv/claude/generate-job-description", verifyFirebaseToken, rateLimiters.ai, validate(generateJobDescriptionSchema), async (req, res, next) => {
     try {
       if (!(await secretManager.getSecret("ANTHROPIC_API_KEY"))) {
         throw Errors.externalService("Anthropic API key is not configured");
@@ -273,7 +274,7 @@ export function registerCvApiRoutes(app: Express) {
     }
   });
 
-  app.post("/api/cv/claude/translate", validate(translateSchema), async (req, res, next) => {
+  app.post("/api/cv/claude/translate", verifyFirebaseToken, rateLimiters.ai, validate(translateSchema), async (req, res, next) => {
     try {
       if (!(await secretManager.getSecret("ANTHROPIC_API_KEY"))) {
         throw Errors.externalService("Anthropic API key is not configured");
@@ -290,7 +291,7 @@ export function registerCvApiRoutes(app: Express) {
     }
   });
 
-  app.post("/api/cv/claude/analyze-image", validate(analyzeImageSchema), async (req, res, next) => {
+  app.post("/api/cv/claude/analyze-image", verifyFirebaseToken, rateLimiters.ai, validate(analyzeImageSchema), async (req, res, next) => {
     try {
       if (!(await secretManager.getSecret("ANTHROPIC_API_KEY"))) {
         throw Errors.externalService("Anthropic API key is not configured");

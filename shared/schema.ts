@@ -47,6 +47,44 @@ export const insertUserSchema = createInsertSchema(users).pick({
   notificationPreference: true,
 });
 
+/**
+ * Fields accepted from an unauthenticated registration request.
+ *
+ * Authorization fields are deliberately excluded: public callers must never
+ * choose a Firebase identity mapping, role, referral relationship, or other
+ * server-owned attribute.
+ */
+export const publicUserRegistrationSchema = insertUserSchema
+  .pick({
+    username: true,
+    password: true,
+    email: true,
+    name: true,
+    location: true,
+    bio: true,
+    phoneNumber: true,
+    willingToRelocate: true,
+    preferences: true,
+    experience: true,
+    education: true,
+    skills: true,
+    notificationPreference: true,
+  })
+  .extend({
+    username: z
+      .string()
+      .min(3, "Username must be at least 3 characters")
+      .max(50, "Username must be at most 50 characters")
+      .regex(/^[A-Za-z0-9._-]+$/, "Username contains unsupported characters"),
+    password: z
+      .string()
+      .min(12, "Password must be at least 12 characters")
+      .max(128, "Password must be at most 128 characters"),
+    email: z.string().email("Invalid email address").max(254),
+    name: z.string().trim().min(1, "Name is required").max(120),
+  })
+  .strict();
+
 // Job categories schema
 export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),

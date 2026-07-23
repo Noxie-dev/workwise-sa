@@ -42,7 +42,7 @@ firebase-debug.log*
 firebase-debug.*.log*
 ui-debug.log*
 .runtimeconfig.json
-workwisesa-dev-firebase-adminsdk*.json
+*-firebase-adminsdk-*.json
 
 # Uploads
 uploads/*

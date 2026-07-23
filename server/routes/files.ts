@@ -3,8 +3,9 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { storage } from '../storage';
-import { ApiError, Errors } from '../middleware/errorHandler';
-import { secretManager } from '../services/secretManager';
+import { Errors } from '../middleware/errorHandler';
+import { verifyFirebaseToken } from '../middleware/auth';
+import { resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
 
 const router = Router();
 
@@ -33,20 +34,46 @@ const upload = multer({
   },
 });
 
+// Authenticate before Multer writes an incoming file to temporary disk.
+router.use(verifyFirebaseToken);
+
+async function getAuthenticatedDatabaseUser(req: any) {
+  if (!req.user?.uid) {
+    throw Errors.authentication('User authentication required');
+  }
+
+  return resolveAuthenticatedDatabaseUser(req.user);
+}
+
+function assertUserAccess(
+  dbUser: { id: number; role?: string | null },
+  requestedUserId: number | null,
+) {
+  if (requestedUserId === null) {
+    throw Errors.forbidden('File is not assigned to an owner');
+  }
+
+  if (dbUser.role !== 'admin' && dbUser.id !== requestedUserId) {
+    throw Errors.forbidden('You can only access your own files');
+  }
+}
+
+function secureDownloadUrl(fileId: number) {
+  const baseUrl = process.env.FILE_SERVE_URL || 'http://localhost:3001';
+  return `${baseUrl}/api/files/${fileId}/download`;
+}
+
 /**
  * Upload professional image
  */
 router.post('/upload-professional-image', upload.single('file'), async (req, res, next) => {
   try {
     const file = req.file;
-    const userId = req.body.userId;
+    const dbUser = await getAuthenticatedDatabaseUser(req);
+    const userId = dbUser.id;
 
     if (!file) {
       throw Errors.badRequest('No file uploaded');
-    }
-
-    if (!userId) {
-      throw Errors.badRequest('User ID is required');
     }
 
     // Validate file is an image
@@ -73,13 +100,11 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
     fs.unlinkSync(file.path); // Clean up temp file
 
     // Generate file URL
-    const baseUrl = process.env.FILE_SERVE_URL || 'http://localhost:3001';
-    const relativePath = path.relative(path.join(process.cwd(), 'uploads'), finalPath);
-    const fileUrl = `${baseUrl}/uploads/${relativePath.replace(/\\/g, '/')}`;
+    const fileUrl = '';
 
     // Save file metadata to database
     const fileData = {
-      userId: parseInt(userId),
+      userId,
       originalName: file.originalname,
       storagePath: finalPath,
       fileUrl,
@@ -99,7 +124,7 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
       success: true,
       data: {
         fileId: savedFile.id,
-        fileUrl: savedFile.fileUrl,
+        fileUrl: secureDownloadUrl(savedFile.id),
         originalName: savedFile.originalName,
         size: savedFile.size,
       },
@@ -117,14 +142,11 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
 router.post('/upload-profile-image', upload.single('file'), async (req, res, next) => {
   try {
     const file = req.file;
-    const userId = req.body.userId;
+    const dbUser = await getAuthenticatedDatabaseUser(req);
+    const userId = dbUser.id;
 
     if (!file) {
       throw Errors.badRequest('No file uploaded');
-    }
-
-    if (!userId) {
-      throw Errors.badRequest('User ID is required');
     }
 
     // Validate file is an image
@@ -151,13 +173,11 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
     fs.unlinkSync(file.path); // Clean up temp file
 
     // Generate file URL
-    const baseUrl = process.env.FILE_SERVE_URL || 'http://localhost:3001';
-    const relativePath = path.relative(path.join(process.cwd(), 'uploads'), finalPath);
-    const fileUrl = `${baseUrl}/uploads/${relativePath.replace(/\\/g, '/')}`;
+    const fileUrl = '';
 
     // Save file metadata to database
     const fileData = {
-      userId: parseInt(userId),
+      userId,
       originalName: file.originalname,
       storagePath: finalPath,
       fileUrl,
@@ -177,7 +197,7 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
       success: true,
       data: {
         fileId: savedFile.id,
-        fileUrl: savedFile.fileUrl,
+        fileUrl: secureDownloadUrl(savedFile.id),
         originalName: savedFile.originalName,
         size: savedFile.size,
       },
@@ -195,14 +215,11 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
 router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
   try {
     const file = req.file;
-    const userId = req.body.userId;
+    const dbUser = await getAuthenticatedDatabaseUser(req);
+    const userId = dbUser.id;
 
     if (!file) {
       throw Errors.badRequest('No file uploaded');
-    }
-
-    if (!userId) {
-      throw Errors.badRequest('User ID is required');
     }
 
     // Validate file is a PDF
@@ -229,13 +246,11 @@ router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
     fs.unlinkSync(file.path); // Clean up temp file
 
     // Generate file URL
-    const baseUrl = process.env.FILE_SERVE_URL || 'http://localhost:3001';
-    const relativePath = path.relative(path.join(process.cwd(), 'uploads'), finalPath);
-    const fileUrl = `${baseUrl}/uploads/${relativePath.replace(/\\/g, '/')}`;
+    const fileUrl = '';
 
     // Save file metadata to database
     const fileData = {
-      userId: parseInt(userId),
+      userId,
       originalName: file.originalname,
       storagePath: finalPath,
       fileUrl,
@@ -253,7 +268,7 @@ router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
       success: true,
       data: {
         fileId: savedFile.id,
-        fileUrl: savedFile.fileUrl,
+        fileUrl: secureDownloadUrl(savedFile.id),
         originalName: savedFile.originalName,
         size: savedFile.size,
       },
@@ -271,15 +286,16 @@ router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
 router.post('/upload', upload.single('file'), async (req, res, next) => {
   try {
     const file = req.file;
-    const userId = req.body.userId;
+    const dbUser = await getAuthenticatedDatabaseUser(req);
+    const userId = dbUser.id;
     const fileType = req.body.fileType || 'general';
 
     if (!file) {
       throw Errors.badRequest('No file uploaded');
     }
 
-    if (!userId) {
-      throw Errors.badRequest('User ID is required');
+    if (!['general', 'professional_image', 'profile_image', 'cv'].includes(fileType)) {
+      throw Errors.badRequest('Invalid file type');
     }
 
     // Create user-specific upload directory
@@ -301,13 +317,11 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
     fs.unlinkSync(file.path); // Clean up temp file
 
     // Generate file URL
-    const baseUrl = process.env.FILE_SERVE_URL || 'http://localhost:3001';
-    const relativePath = path.relative(path.join(process.cwd(), 'uploads'), finalPath);
-    const fileUrl = `${baseUrl}/uploads/${relativePath.replace(/\\/g, '/')}`;
+    const fileUrl = '';
 
     // Save file metadata to database
     const fileData = {
-      userId: parseInt(userId),
+      userId,
       originalName: file.originalname,
       storagePath: finalPath,
       fileUrl,
@@ -325,7 +339,7 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
       success: true,
       data: {
         fileId: savedFile.id,
-        fileUrl: savedFile.fileUrl,
+        fileUrl: secureDownloadUrl(savedFile.id),
         originalName: savedFile.originalName,
         size: savedFile.size,
         fileType: savedFile.fileType,
@@ -343,12 +357,14 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
  */
 router.get('/user/:userId', async (req, res, next) => {
   try {
+    const dbUser = await getAuthenticatedDatabaseUser(req);
     const userId = parseInt(req.params.userId);
     
     if (isNaN(userId)) {
       throw Errors.badRequest('Invalid user ID');
     }
 
+    assertUserAccess(dbUser, userId);
     const files = await storage.getFilesByUser(userId);
 
     res.json({
@@ -362,10 +378,47 @@ router.get('/user/:userId', async (req, res, next) => {
 });
 
 /**
+ * Download a private file.
+ */
+router.get('/:fileId/download', async (req, res, next) => {
+  try {
+    const dbUser = await getAuthenticatedDatabaseUser(req);
+    const fileId = parseInt(req.params.fileId);
+
+    if (isNaN(fileId)) {
+      throw Errors.badRequest('Invalid file ID');
+    }
+
+    const file = await storage.getFile(fileId);
+    if (!file) {
+      throw Errors.notFound('File not found');
+    }
+
+    assertUserAccess(dbUser, file.userId);
+
+    const uploadsRoot = path.resolve(process.cwd(), 'uploads');
+    const resolvedPath = path.resolve(file.storagePath);
+    if (!resolvedPath.startsWith(`${uploadsRoot}${path.sep}`)) {
+      throw Errors.forbidden('File path is outside the managed upload directory');
+    }
+
+    if (!fs.existsSync(resolvedPath)) {
+      throw Errors.notFound('Stored file not found');
+    }
+
+    res.type(file.mimeType);
+    res.sendFile(resolvedPath);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * Delete file
  */
 router.delete('/:fileId', async (req, res, next) => {
   try {
+    const dbUser = await getAuthenticatedDatabaseUser(req);
     const fileId = parseInt(req.params.fileId);
     
     if (isNaN(fileId)) {
@@ -377,6 +430,8 @@ router.delete('/:fileId', async (req, res, next) => {
     if (!file) {
       throw Errors.notFound('File not found');
     }
+
+    assertUserAccess(dbUser, file.userId);
 
     // Delete file from filesystem
     if (fs.existsSync(file.storagePath)) {

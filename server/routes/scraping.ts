@@ -4,6 +4,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import { z } from 'zod';
 import { storage } from '../storage';
+import { verifyFirebaseToken } from '../middleware/auth';
+import { assertRole, resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
 
 const router = Router();
 
@@ -48,6 +50,18 @@ const scrapingSessions = new Map<string, ScrapingSession>();
 const scrapyDir = path.join(process.cwd(), 'scrapy_jobs');
 const scrapingLogPath = path.join(scrapyDir, 'job_scraping.log');
 const pythonScript = path.join(scrapyDir, 'run_scrapers.py');
+
+// Scraping can launch a local subprocess and expose raw artifacts. It is an
+// operator-only surface, never a public product API.
+router.use(verifyFirebaseToken, async (req, _res, next) => {
+  try {
+    const user = await resolveAuthenticatedDatabaseUser((req as any).user);
+    assertRole(user, ['admin']);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.get('/status', async (_req, res) => {
   try {

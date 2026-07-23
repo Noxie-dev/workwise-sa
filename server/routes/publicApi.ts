@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { z } from "zod";
-import { insertUserSchema } from "@shared/schema";
+import bcrypt from "bcrypt";
+import { publicUserRegistrationSchema } from "@shared/schema";
 import { storage } from "../storage";
 import { validate } from "../middleware/validation";
 import { ApiError, ErrorType, Errors } from "../middleware/errorHandler";
@@ -242,19 +243,29 @@ export function registerPublicApiRoutes(app: Express) {
     }
   });
 
-  app.post("/api/users/register", validate(z.object({ body: insertUserSchema })), async (req, res, next) => {
-    try {
-      const userData = req.body;
-      const existingUser = await storage.getUserByUsername(userData.username);
-      if (existingUser) {
-        throw Errors.conflict("Username already exists");
-      }
+  app.post(
+    "/api/users/register",
+    validate(z.object({ body: publicUserRegistrationSchema })),
+    async (req, res, next) => {
+      try {
+        const userData = req.body;
+        const existingUser = await storage.getUserByUsername(userData.username);
+        if (existingUser) {
+          throw Errors.conflict("Username already exists");
+        }
 
-      const newUser = await storage.createUser(userData);
-      const { password, ...userWithoutPassword } = newUser;
-      res.status(201).json(userWithoutPassword);
-    } catch (error) {
-      next(error);
-    }
-  });
+        const passwordHash = await bcrypt.hash(userData.password, 12);
+        const newUser = await storage.createUser({
+          ...userData,
+          password: passwordHash,
+          firebaseUid: null,
+          role: "user",
+        });
+        const { password: _password, ...userWithoutPassword } = newUser;
+        res.status(201).json(userWithoutPassword);
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
 }

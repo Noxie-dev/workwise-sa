@@ -20,11 +20,17 @@ vi.mock('../../storage', () => ({
   },
 }));
 
+vi.mock('../../services/authenticatedUser', () => ({
+  resolveAuthenticatedDatabaseUser: vi.fn(),
+}));
+
 import { storage } from '../../storage';
+import { resolveAuthenticatedDatabaseUser } from '../../services/authenticatedUser';
 import { errorHandler } from '../../middleware/errorHandler';
 import router from '../../routes/files';
 
 const mockedStorage = vi.mocked(storage);
+const mockedResolveAuthenticatedDatabaseUser = vi.mocked(resolveAuthenticatedDatabaseUser);
 const uploadsRoot = path.join(process.cwd(), 'uploads');
 
 function createMockResponse() {
@@ -72,6 +78,7 @@ async function invokeFinalHandler({
   const handler = getFinalRouteHandler(path, method);
   const response = createMockResponse();
   let capturedError: unknown;
+  req.user = req.user || { uid: 'firebase-uid-42' };
 
   await handler(req, response, (error?: unknown) => {
     if (error) {
@@ -94,6 +101,7 @@ describe('file routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.FILE_SERVE_URL = 'http://localhost:3001';
+    mockedResolveAuthenticatedDatabaseUser.mockResolvedValue({ id: 42, role: 'user' } as any);
   });
 
   afterEach(() => {
@@ -116,7 +124,7 @@ describe('file routes', () => {
       path: '/upload-profile-image',
       method: 'post',
       req: {
-        body: { userId: '42' },
+        body: {},
         file: {
           originalname: 'avatar.png',
           mimetype: 'image/png',
@@ -136,7 +144,7 @@ describe('file routes', () => {
         originalName: 'avatar.png',
         fileType: 'profile_image',
         mimeType: 'image/png',
-        fileUrl: expect.stringContaining('/uploads/profile-images/user-42/'),
+        fileUrl: '',
       }),
     );
   });
@@ -149,7 +157,7 @@ describe('file routes', () => {
       path: '/upload-cv',
       method: 'post',
       req: {
-        body: { userId: '42' },
+        body: {},
         file: {
           originalname: 'avatar.png',
           mimetype: 'image/png',
@@ -165,9 +173,13 @@ describe('file routes', () => {
     expect(mockedStorage.createFile).not.toHaveBeenCalled();
   });
 
-  it('rejects generic uploads without a user id', async () => {
+  it('uses the authenticated owner for generic uploads', async () => {
     const tempFile = path.join(uploadsRoot, 'temp', 'note-upload.png');
     fs.writeFileSync(tempFile, 'fake-image-content');
+    mockedStorage.createFile.mockImplementation(async (fileData: any) => ({
+      id: 322,
+      ...fileData,
+    }));
 
     const response = await invokeFinalHandler({
       path: '/upload',
@@ -184,7 +196,9 @@ describe('file routes', () => {
       },
     });
 
-    expect(response.statusCode).toBe(400);
-    expect(response.body.error.message).toMatch(/user id is required/i);
+    expect(response.statusCode).toBe(200);
+    expect(mockedStorage.createFile).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 42, fileType: 'general' }),
+    );
   });
 });

@@ -10,6 +10,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { firebaseStatus } from '@/lib/firebase';
+import AuthGuard from '@/components/AuthGuard';
 
 // Lazy load all pages for better performance
 const NotFound = lazy(() => import("@/pages/not-found"));
@@ -125,7 +126,13 @@ function Router() {
             <Route path="/square-up" component={WiseUpPage} />
             <Route path="/talent-passport" component={TalentPassport} />
             <Route path="/trade-square" component={TradeSquare} />
-            <Route path="/cv-builder" component={CVBuilder} />
+            <Route path="/cv-builder">
+              {() => (
+                <AuthGuard message="Please sign in to build and generate your CV">
+                  <CVBuilder />
+                </AuthGuard>
+              )}
+            </Route>
             <Route path="/billing" component={Billing} />
             <Route path="/login" component={Login} />
             <Route path="/register" component={Register} />

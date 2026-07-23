@@ -3,7 +3,7 @@ import { Router, type Request } from "express";
 import bcrypt from "bcrypt";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { insertUserSchema } from "@shared/schema";
+import { publicUserRegistrationSchema } from "@shared/schema";
 import {
   wiseup_ad_impressions,
   wiseup_ads,
@@ -46,7 +46,7 @@ const ingestBodySchema = z.union([
 function hasValidIngestToken(req: Request) {
   const configuredToken = process.env.SCRAPING_INGEST_TOKEN;
   if (!configuredToken) {
-    return true;
+    return false;
   }
 
   const headerValue = req.header("x-ingest-token") ?? req.header("authorization");
@@ -360,7 +360,7 @@ v1Router.post("/users/login", rateLimiters.auth, async (req, res) => {
 
 v1Router.post("/users/register", rateLimiters.auth, async (req, res) => {
   try {
-    const userData = insertUserSchema.parse(req.body);
+    const userData = publicUserRegistrationSchema.parse(req.body);
 
     if (userData.username) {
       const existingUser = await storage.getUserByUsername(userData.username);
@@ -378,12 +378,14 @@ v1Router.post("/users/register", rateLimiters.auth, async (req, res) => {
       });
     }
 
-    if (userData.password) {
-      userData.password = await bcrypt.hash(userData.password, 10);
-    }
-
-    const newUser = await storage.createUser(userData);
-    const { password, ...userWithoutPassword } = newUser;
+    const passwordHash = await bcrypt.hash(userData.password, 12);
+    const newUser = await storage.createUser({
+      ...userData,
+      password: passwordHash,
+      firebaseUid: null,
+      role: "user",
+    });
+    const { password: _password, ...userWithoutPassword } = newUser;
     res.status(201).json({
       success: true,
       data: userWithoutPassword,

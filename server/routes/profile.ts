@@ -3,8 +3,41 @@ import { z } from 'zod';
 import { storage } from '../storage';
 import { validate } from '../middleware/validation';
 import { Errors } from '../middleware/errorHandler';
+import { verifyFirebaseToken } from '../middleware/auth';
+import { resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
 
 const router = Router();
+
+router.use(verifyFirebaseToken);
+
+async function resolveOwnedProfileId(req: any, requestedIdentifier: string) {
+  if (!req.user?.uid) {
+    throw Errors.authentication('User authentication required');
+  }
+
+  const dbUser = await resolveAuthenticatedDatabaseUser(req.user);
+  if (dbUser.role !== 'admin') {
+    const isOwnDatabaseId = requestedIdentifier === String(dbUser.id);
+    const isOwnFirebaseUid = requestedIdentifier === dbUser.firebaseUid;
+    if (!isOwnDatabaseId && !isOwnFirebaseUid) {
+      throw Errors.forbidden('You can only access your own profile');
+    }
+
+    return dbUser.id;
+  }
+
+  const numericId = parseInt(requestedIdentifier);
+  if (!Number.isNaN(numericId)) {
+    return numericId;
+  }
+
+  const targetUser = await storage.getUserByFirebaseUid(requestedIdentifier);
+  if (!targetUser) {
+    throw Errors.notFound('User not found');
+  }
+
+  return targetUser.id;
+}
 
 // Validation schemas
 const updateProfileSchema = z.object({
@@ -82,10 +115,8 @@ const processAIPromptSchema = z.object({
 router.get('/:userId', async (req, res, next) => {
   try {
     const userIdParam = req.params.userId;
-    const numericId = parseInt(userIdParam);
-    const profile = Number.isNaN(numericId)
-      ? await storage.getUserProfileByFirebaseUid(userIdParam)
-      : await storage.getUserProfile(numericId);
+    const profileId = await resolveOwnedProfileId(req, userIdParam);
+    const profile = await storage.getUserProfile(profileId);
     
     if (!profile) {
       throw Errors.notFound('Profile not found');
@@ -109,14 +140,7 @@ router.put('/:userId',
   async (req, res, next) => {
     try {
       const userIdParam = req.params.userId;
-      const numericId = parseInt(userIdParam);
-      const resolvedId = Number.isNaN(numericId)
-        ? (await storage.getUserByFirebaseUid(userIdParam))?.id
-        : numericId;
-
-      if (!resolvedId) {
-        throw Errors.notFound('User not found');
-      }
+      const resolvedId = await resolveOwnedProfileId(req, userIdParam);
 
       const profileData = req.body;
       

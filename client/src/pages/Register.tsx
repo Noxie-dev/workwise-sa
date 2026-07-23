@@ -12,13 +12,13 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { insertUserSchema } from '@shared/schema';
+import { publicUserRegistrationSchema } from '@shared/schema';
 import { signUpWithEmail, signInWithGoogle } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { createTestUser } from '@/utils/test-user';
 
-const formSchema = insertUserSchema.extend({
-  confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
+const formSchema = publicUserRegistrationSchema.extend({
+  confirmPassword: z.string().min(12, 'Password must be at least 12 characters'),
   willingToRelocate: z.boolean().prefault(false),
   agreeTerms: z.literal(true, {
     error: () => 'You must agree to the terms and conditions',

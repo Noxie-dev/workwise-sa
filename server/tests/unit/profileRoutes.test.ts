@@ -18,11 +18,17 @@ vi.mock('../../storage', () => ({
   },
 }));
 
+vi.mock('../../services/authenticatedUser', () => ({
+  resolveAuthenticatedDatabaseUser: vi.fn(),
+}));
+
 import { storage } from '../../storage';
+import { resolveAuthenticatedDatabaseUser } from '../../services/authenticatedUser';
 import { errorHandler } from '../../middleware/errorHandler';
 import router from '../../routes/profile';
 
 const mockedStorage = vi.mocked(storage);
+const mockedResolveAuthenticatedDatabaseUser = vi.mocked(resolveAuthenticatedDatabaseUser);
 
 function createMockResponse() {
   const response: any = {
@@ -69,6 +75,7 @@ async function invokeRoute({
   const handlers = getRouteHandlers(path, method);
   const response = createMockResponse();
   let capturedError: unknown;
+  req.user = req.user || { uid: 'firebase-uid-42' };
 
   for (const handler of handlers) {
     await handler(req, response, (error?: unknown) => {
@@ -92,6 +99,11 @@ async function invokeRoute({
 describe('profile routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedResolveAuthenticatedDatabaseUser.mockResolvedValue({
+      id: 42,
+      firebaseUid: 'firebase-uid-42',
+      role: 'user',
+    } as any);
   });
 
   it('returns a profile by numeric user id', async () => {
@@ -122,7 +134,13 @@ describe('profile routes', () => {
   });
 
   it('returns a profile by firebase uid when the route param is non-numeric', async () => {
-    mockedStorage.getUserProfileByFirebaseUid.mockResolvedValue({
+    mockedResolveAuthenticatedDatabaseUser.mockResolvedValue({
+      userId: 77,
+      id: 77,
+      firebaseUid: 'firebase-uid-77',
+      role: 'user',
+    } as any);
+    mockedStorage.getUserProfile.mockResolvedValue({
       userId: 77,
       firebaseUid: 'firebase-uid-77',
       personal: { fullName: 'Firebase User' },
@@ -139,13 +157,14 @@ describe('profile routes', () => {
     });
 
     expect(response.statusCode).toBe(200);
-    expect(mockedStorage.getUserProfileByFirebaseUid).toHaveBeenCalledWith('firebase-uid-77');
+    expect(mockedStorage.getUserProfile).toHaveBeenCalledWith(77);
   });
 
   it('updates a profile by resolved firebase uid lookup', async () => {
-    mockedStorage.getUserByFirebaseUid.mockResolvedValue({
+    mockedResolveAuthenticatedDatabaseUser.mockResolvedValue({
       id: 55,
       firebaseUid: 'firebase-uid-55',
+      role: 'user',
     } as any);
     mockedStorage.updateUserProfile.mockResolvedValue({
       userId: 55,
@@ -178,7 +197,11 @@ describe('profile routes', () => {
   });
 
   it('returns not found when updating a profile for an unknown firebase uid', async () => {
-    mockedStorage.getUserByFirebaseUid.mockResolvedValue(undefined as any);
+    mockedResolveAuthenticatedDatabaseUser.mockResolvedValue({
+      id: 42,
+      firebaseUid: 'firebase-uid-42',
+      role: 'user',
+    } as any);
 
     const response = await invokeRoute({
       path: '/:userId',
@@ -192,7 +215,7 @@ describe('profile routes', () => {
       },
     });
 
-    expect(response.statusCode).toBe(404);
-    expect(response.body.error.message).toMatch(/user not found/i);
+    expect(response.statusCode).toBe(403);
+    expect(response.body.error.message).toMatch(/only access your own profile/i);
   });
 });

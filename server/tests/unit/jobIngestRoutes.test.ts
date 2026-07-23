@@ -53,8 +53,18 @@ async function invokeRoute({
 }) {
   const handler = getRouteHandler(path, method);
   const response = createMockResponse();
+  const headers = Object.fromEntries(
+    Object.entries(req.headers ?? {}).map(([name, value]) => [name.toLowerCase(), value]),
+  );
+  const request = {
+    ...req,
+    headers,
+    header(name: string) {
+      return headers[name.toLowerCase()];
+    },
+  };
 
-  await handler(req, response);
+  await handler(request, response);
 
   return response;
 }
@@ -84,7 +94,37 @@ function buildJob(overrides: Record<string, unknown> = {}) {
 describe('job ingest routes', () => {
   beforeEach(() => {
     mockedIngestJobs.mockReset();
+    process.env.SCRAPING_INGEST_TOKEN = 'test-ingest-token';
+  });
+
+  it('fails closed when no ingest token is configured', async () => {
     delete process.env.SCRAPING_INGEST_TOKEN;
+
+    const response = await invokeRoute({
+      path: '/jobs/ingest',
+      method: 'post',
+      req: {
+        body: [buildJob()],
+        headers: { 'x-ingest-token': 'test-ingest-token' },
+      },
+    });
+
+    expect(response.statusCode).toBe(401);
+    expect(mockedIngestJobs).not.toHaveBeenCalled();
+  });
+
+  it('rejects an invalid ingest token', async () => {
+    const response = await invokeRoute({
+      path: '/jobs/ingest',
+      method: 'post',
+      req: {
+        body: [buildJob()],
+        headers: { 'x-ingest-token': 'wrong-token' },
+      },
+    });
+
+    expect(response.statusCode).toBe(401);
+    expect(mockedIngestJobs).not.toHaveBeenCalled();
   });
 
   it('accepts a valid payload', async () => {
@@ -100,7 +140,7 @@ describe('job ingest routes', () => {
       method: 'post',
       req: {
         body: [buildJob()],
-        headers: {},
+        headers: { 'x-ingest-token': 'test-ingest-token' },
       },
     });
 
@@ -127,7 +167,7 @@ describe('job ingest routes', () => {
       method: 'post',
       req: {
         body: [buildJob()],
-        headers: {},
+        headers: { 'x-ingest-token': 'test-ingest-token' },
       },
     });
 
@@ -144,7 +184,7 @@ describe('job ingest routes', () => {
       method: 'post',
       req: {
         body: [invalidJob],
-        headers: {},
+        headers: { 'x-ingest-token': 'test-ingest-token' },
       },
     });
 
@@ -167,7 +207,7 @@ describe('job ingest routes', () => {
       method: 'post',
       req: {
         body: batch,
-        headers: {},
+        headers: { 'x-ingest-token': 'test-ingest-token' },
       },
     });
 
