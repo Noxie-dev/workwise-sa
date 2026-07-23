@@ -35,7 +35,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 
-import { mockCompanies, createMockResponse } from '@/services/mockData';
 import { type Company } from '@shared/schema';
 import CompanySearchAssistant from '@/components/CompanySearchAssistant';
 import FeaturedCompaniesWidget from '@/components/FeaturedCompaniesWidget';
@@ -273,8 +272,18 @@ const Companies: React.FC = () => {
   const { data: companiesResponse, isLoading } = useQuery({
     queryKey: ['/api/companies'],
     queryFn: async () => {
-      // Use mock data for now
-      return createMockResponse(mockExtendedCompanies);
+      const response = await fetch('/api/companies');
+      if (!response.ok) {
+        throw new Error(`Failed to load companies (${response.status})`);
+      }
+
+      const payload = await response.json();
+      const companies = Array.isArray(payload) ? payload : payload?.data;
+      if (!Array.isArray(companies)) {
+        throw new Error('Company API returned an invalid response');
+      }
+
+      return { data: companies };
     }
   });
 
