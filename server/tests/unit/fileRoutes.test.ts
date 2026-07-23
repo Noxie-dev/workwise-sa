@@ -46,6 +46,10 @@ function createMockResponse() {
       this.body = payload;
       return this;
     },
+    sendFile(filePath: string) {
+      this.sentFile = filePath;
+      return this;
+    },
     setHeader(key: string, value: string) {
       this.headers[key] = value;
     },
@@ -84,7 +88,7 @@ async function invokeFinalHandler({
   req,
 }: {
   path: string;
-  method: 'post';
+  method: 'get' | 'post' | 'delete';
   req: Record<string, any>;
 }) {
   const handler = getFinalRouteHandler(path, method);
@@ -253,6 +257,30 @@ describe('file routes', () => {
 
     expect(response.statusCode).toBe(500);
     expect(fs.readdirSync(path.join(uploadsRoot, 'profile-images', 'user-42'))).toHaveLength(0);
+  });
+
+  it('blocks cross-user file download and deletion', async () => {
+    mockedStorage.getFile.mockResolvedValue({
+      id: 999,
+      userId: 99,
+      storagePath: path.join(uploadsRoot, 'cvs', 'user-99', 'cv.pdf'),
+      mimeType: 'application/pdf',
+    } as any);
+
+    const downloadResponse = await invokeFinalHandler({
+      path: '/:fileId/download',
+      method: 'get',
+      req: { body: {}, params: { fileId: '999' }, query: {} },
+    });
+    const deleteResponse = await invokeFinalHandler({
+      path: '/:fileId',
+      method: 'delete',
+      req: { body: {}, params: { fileId: '999' }, query: {} },
+    });
+
+    expect(downloadResponse.statusCode).toBe(403);
+    expect(deleteResponse.statusCode).toBe(403);
+    expect(mockedStorage.deleteFile).not.toHaveBeenCalled();
   });
 
   it('uses the authenticated owner for generic uploads', async () => {
