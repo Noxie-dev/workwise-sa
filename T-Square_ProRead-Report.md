@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-23 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `036d43c` (`test: protect scraper cancellation behavior`)
+**Commit:** `ef39126` (`fix: escalate stuck scraper cancellation`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -13,7 +13,7 @@
 
 **Overall readiness score: 28/100** *(unchanged after the latest `<3>` batch; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `036d43c` — client company AI failures are no longer fabricated, Companies has an explicit API error state, and scraper termination has regression coverage; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `ef39126` — FAQ/company profile failures are explicit and scraper cancellation escalates from SIGTERM to bounded SIGKILL; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -878,8 +878,11 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Company profile production journey | PARTIAL | Commit `4f970bb`: `client/src/pages/CompanyProfile.tsx` resolves company and active jobs through `/api/companies/:slug` and `/api/jobs/company/:id`; fixture imports removed from the rendered journey |
 | Scraper cancellation | PARTIAL | Commit `81be2f5`: active child processes are tracked, cancellation sends `SIGTERM`, and close/error handlers retain `cancelled` instead of overwriting it with `failed`; staging process-tree verification remains open |
 | Company AI failure behavior | PARTIAL | Commit `6b30f2d`: `generateCompanySummary` and `generateCoverLetter` now propagate provider/API failures instead of returning fabricated summaries or letters; provider entitlement, privacy, and quota controls remain open |
+| FAQ mock fallback | PARTIAL | Commit `4027408`: FAQ fixtures require explicit development mock mode; production and non-mock development paths call `/api/faqs`, and failures are propagated instead of returning canned answers |
 | Companies API error journey | PASS locally | Commit `1497802`: the page renders `data-testid="companies-error"` with a user-visible unavailable state; no fixture fallback is used; client 16 files/103 tests and type-check/build pass |
+| Company profile API error journey | PASS locally | Commit `e9db1ce`: the page renders `data-testid="company-profile-error"` for query failures instead of presenting a not-found state; client 16 files/103 tests and type-check/build pass |
 | Scraper cancellation regression | PASS locally | Commit `036d43c`; `scrapingProcessControl.test.ts` covers active SIGTERM, already-dead process, and missing process (3/3); process-tree staging verification remains open |
+| Scraper cancellation escalation | PARTIAL | Commit `ef39126`: cancellation schedules a 5-second bounded SIGKILL if the child has not exited; timers are cleared on close/error; process-tree staging verification remains open |
 | Browser smoke / E2E | BLOCKED | Playwright skill prerequisite `npx` is available, but the container lacks required browser shared libraries (`libnspr4.so`, `libnss3.so`, GTK/GBM libraries); Chromium was downloaded but cannot launch; browser E2E remains unverified rather than marked PASS |
 | Production startup dependency gate | PARTIAL | `assertProductionDependenciesReady` and `startupReadiness.test.ts` block production startup when Firebase is unavailable while allowing isolated test mode; `assertProductionDatabaseConnection` rejects SQLite in production; live deployment admission, database connectivity, and orchestration probes remain unverified |
 | Client/build release verification | PASS locally | `pnpm run test:client`: 16 files/103 tests; `pnpm run build`: Vite client and esbuild server completed; browser E2E, accessibility, and production topology remain unverified |
@@ -911,6 +914,14 @@ Operating convention for the remaining execution cycle: a user message containin
 | 3 | Tracked scraper child processes and terminated them on operator cancellation without converting the cancelled session to failed. | Commit `81be2f5`; `pnpm run type-check`, client 16 files/103 tests, and `pnpm run build` pass. | 28/100; High/medium |
 
 The browser smoke attempt is recorded as an environment-blocked Phase 4 gate: installable Playwright tooling is present, but the current container image has no usable browser runtime libraries. No browser journey is being counted as passing until the staging/runner image supplies those dependencies.
+
+### 15.11 `<3>` execution feedback — 2026-07-23 UTC
+
+| Pass | Implementation | Evidence | Score / confidence |
+|---|---|---|---|
+| 1 | Removed implicit FAQ fixture fallbacks; only explicit development mock mode can use canned FAQ data. | Commit `4027408`; API errors propagate. | 28/100; High/medium |
+| 2 | Added a dedicated Company Profile API failure state. | Commit `e9db1ce`; client 16 files/103 tests, type-check, and build remain green. | 28/100; High/medium |
+| 3 | Added bounded SIGKILL escalation for scraper processes that ignore SIGTERM, with timer cleanup. | Commit `ef39126`; cancellation tests 3/3, type-check, client suite, and build pass. | 28/100; High/medium |
 
 ### 15.10 `<3>` execution feedback — 2026-07-23 UTC
 
