@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import { storage } from './storage';
 import { InsertFile } from '@shared/schema';
-import { secretManager } from './services/secretManager';
 
 /**
  * Service for handling file operations on the server
@@ -35,17 +34,17 @@ export const fileService = {
 
       // Generate a unique filename
       const timestamp = Date.now();
-      const uniqueFilename = `${timestamp}-${file.originalname}`;
+      const safeOriginalName = path.basename(file.originalname).replace(/[^A-Za-z0-9._-]/g, '_');
+      const uniqueFilename = `${timestamp}-${safeOriginalName}`;
       const fullPath = path.join(filePath, uniqueFilename);
       
       // Move the file from temp upload location to final destination
       fs.copyFileSync(file.path, fullPath);
       fs.unlinkSync(file.path); // Remove the temp file
       
-      // Generate a URL for the file
-      const baseUrl = (await secretManager.getSecret('FILE_SERVE_URL')) || 'http://localhost:3001/uploads';
-      const relativePath = path.relative(uploadDir, fullPath).replace(/\\/g, '/');
-      const fileUrl = `${baseUrl}/${relativePath}`;
+      // Files are served only through the authenticated file route. Do not
+      // persist a public /uploads URL from this legacy service.
+      const fileUrl = '';
       
       // Store file metadata in the database
       const fileData: InsertFile = {
