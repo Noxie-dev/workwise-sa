@@ -276,4 +276,33 @@ describe('employer routes', () => {
     expect(response.body).toHaveLength(1);
     expect(response.body[0].id).toBe('55');
   });
+
+  it('scopes the employer application list to owned jobs', async () => {
+    selectResults.push(
+      [
+        { id: 100, userId: 7, jobId: 55, status: 'applied', appliedAt: new Date('2026-03-25T00:00:00Z'), notes: 'Owned application' },
+        { id: 101, userId: 8, jobId: 56, status: 'applied', appliedAt: new Date('2026-03-24T00:00:00Z'), notes: 'Other application' },
+      ],
+      [{ id: 7, name: 'Candidate A', email: 'candidate-a@example.com' }],
+      [
+        { id: 55, title: 'Owned job', createdByUserId: 11 },
+        { id: 56, title: 'Other employer job', createdByUserId: 99 },
+      ],
+    );
+
+    const response = await invokeRoute({
+      path: '/applications',
+      method: 'get',
+      req: {
+        user: { uid: 'firebase-employer-1' },
+        params: {},
+        query: {},
+        body: {},
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(response.body[0]).toEqual(expect.objectContaining({ id: '100', jobTitle: 'Owned job' }));
+  });
 });
