@@ -71,6 +71,8 @@ const mockFAQData: FAQItem[] = [
   }
 ];
 
+const useMockFaqData = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_PUBLIC_DATA === 'true';
+
 /**
  * Service for FAQ-related API calls
  */
@@ -80,19 +82,16 @@ export const faqService = {
    */
   async getFAQs(): Promise<FAQItem[]> {
     try {
-      // In production, use the real API
-      if (!import.meta.env.DEV) {
-        const response = await apiClient.get<FAQResponse>('/api/faqs');
-        return response.data.data;
+      if (useMockFaqData) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return mockFAQData;
       }
 
-      // In development or if API call fails, use empty mock data
-      console.log('Using mock FAQ data');
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-      return mockFAQData;
+      const response = await apiClient.get<FAQResponse>('/api/faqs');
+      return response.data.data;
     } catch (error) {
       console.error('Error fetching FAQs:', error);
-      return mockFAQData;
+      throw error;
     }
   },
 
@@ -101,19 +100,16 @@ export const faqService = {
    */
   async getFAQsByCategory(category: 'job-seekers' | 'employers' | 'general'): Promise<FAQItem[]> {
     try {
-      // In production, use the real API
-      if (!import.meta.env.DEV) {
-        const response = await apiClient.get<FAQResponse>(`/api/faqs/category/${category}`);
-        return response.data.data;
+      if (useMockFaqData) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return mockFAQData.filter(item => item.category === category);
       }
 
-      // In development or if API call fails, filter mock data by category
-      console.log(`Using mock FAQ data for category: ${category}`);
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-      return mockFAQData.filter(item => item.category === category);
+      const response = await apiClient.get<FAQResponse>(`/api/faqs/category/${category}`);
+      return response.data.data;
     } catch (error) {
       console.error(`Error fetching FAQs for category ${category}:`, error);
-      return mockFAQData.filter(item => item.category === category);
+      throw error;
     }
   }
 };
