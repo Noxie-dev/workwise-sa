@@ -4,7 +4,9 @@ import { JobPreview, JobWithDetails, JobSearchParams, JobSearchResponse, JobAppl
 import { auth } from '@/lib/firebase';
 import { mockJobs, mockCompanies, mockCategories } from '@/services/mockData';
 
-const useMockPublicData = import.meta.env.VITE_USE_MOCK_PUBLIC_DATA !== 'false';
+// Mock fixtures are an explicit local-development opt-in. Missing configuration
+// must never turn a production API failure into fabricated job inventory.
+const useMockPublicData = import.meta.env.VITE_USE_MOCK_PUBLIC_DATA === 'true';
 const apiOrigin = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '');
 const publicJobsBaseUrl = `${apiOrigin}/api`;
 
@@ -101,8 +103,12 @@ const buildMockJobPreviewsResponse = (params: JobSearchParams = {}): JobSearchRe
 };
 
 const getFallbackJobPreviews = (params: JobSearchParams, reason: unknown): JobSearchResponse => {
-  console.warn('Using mock job previews data:', reason);
-  return buildMockJobPreviewsResponse(params);
+  if (import.meta.env.DEV && useMockPublicData) {
+    console.warn('Using mock job previews data:', reason);
+    return buildMockJobPreviewsResponse(params);
+  }
+
+  throw new Error('Job preview service unavailable');
 };
 
 const isJsonResponse = (response: Response) => {
