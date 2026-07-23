@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-23 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `fc03db1` (`test: cover database-backed role authorization`)
+**Commit:** `4ec1f16` (`docs: expose audit acceleration capabilities`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -11,9 +11,9 @@
 
 ### Verdict: **NOT READY**
 
-**Overall readiness score: 28/100** *(unchanged after the latest upload-safety pass; P0 authorization and infrastructure caps still apply)*
+**Overall readiness score: 28/100** *(unchanged after the latest capability-setup pass; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `fc03db1` — role-authorization allow/deny/error-path regressions are green; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `4ec1f16` — capability acceleration skills are installed and MCP discovery is recorded; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -876,3 +876,18 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Production runtime validator | PASS for negative contract | `DATABASE_URL=sqlite:./test.db node scripts/validate-primary-runtime.js` exits non-zero and reports missing Firebase configuration plus SQLite prohibition; `pnpm run check` passes; valid production secrets and deployment orchestration remain unverified |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
+
+### 15.8 Capability acceleration layer — configured 2026-07-23 UTC
+
+The following local Codex skills are installed and exposed for the remaining audit passes. They accelerate evidence collection and review; they do not change the readiness score until their outputs are executed and recorded as release evidence.
+
+| Capability | Local installation | Phase acceleration | Activation rule |
+|---|---|---|---|
+| Playwright CLI | `/home/node/.codex/skills/playwright` | Phase 4/8: browser smoke, critical journeys, screenshots/traces, and accessibility-oriented UI checks | Use against a running isolated/staging build; save artifacts under `output/playwright/` |
+| Security best practices | `/home/node/.codex/skills/security-best-practices` | Phase 2: JavaScript/TypeScript web security review and secure-by-default fixes | Use for an explicitly scoped security review; ground findings in file/line evidence |
+| Security threat model | `/home/node/.codex/skills/security-threat-model` | Phase 0/2/5: trust boundaries, assets, abuse paths, and mitigation priorities | Use when threat-model scope and deployment assumptions are stated; preserve open assumptions |
+| Security ownership map | `/home/node/.codex/skills/security-ownership-map` | Phase 0/5: sensitive-code ownership, bus factor, orphaned security hotspots, and accountability | Use against the repository history; emit bounded CSV/JSON artifacts before assigning owners |
+
+MCP discovery was also run. The currently exposed `codex_apps` resources are Canva, Sites, and default artifact templates; none is a repository deployment, observability, source-control, or database MCP. No external connector was installed or authenticated during this pass because a named provider and access scope were not supplied. Recommended future connector choices are GitHub (CI/PR evidence), Sentry (runtime errors), and a team coordination system (Slack/Teams/Notion); each requires explicit selection and authorization before activation.
+
+Operating convention for the remaining execution cycle: a user message containing `<3>` is the signal to execute the next three best passes. After every two completed passes, provide a brief implementation summary. Every completed pass must update the readiness score and confidence in this report, even when the score remains capped at 28/100 because a hard gate is still open.
