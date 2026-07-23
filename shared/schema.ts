@@ -85,6 +85,25 @@ export const publicUserRegistrationSchema = insertUserSchema
   })
   .strict();
 
+/** Fields that an authenticated user may update on their own profile. */
+export const publicUserProfileUpdateSchema = insertUserSchema
+  .pick({
+    username: true,
+    email: true,
+    name: true,
+    location: true,
+    bio: true,
+    phoneNumber: true,
+    willingToRelocate: true,
+    preferences: true,
+    experience: true,
+    education: true,
+    skills: true,
+    notificationPreference: true,
+  })
+  .partial()
+  .strict();
+
 // Job categories schema
 export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),

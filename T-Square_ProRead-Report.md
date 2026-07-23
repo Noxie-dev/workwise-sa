@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-23 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `1a2f8e7` (`test: prove file download IDOR protection`)
+**Commit:** `2c66318` (`security: restrict legacy profile updates`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -13,7 +13,7 @@
 
 **Overall readiness score: 28/100** *(unchanged after the latest upload-safety pass; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `1a2f8e7` — file download/delete cross-user IDOR denials verified in Pass C; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `2c66318` — Pass D removed server-owned field mutation from legacy profile updates; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -739,7 +739,7 @@ One person may hold multiple roles, but each row needs a named human before laun
 
 **Status:** PARTIAL — local controls started; P0 closure is not claimed.
 
-**Done:** Server-owned registration, authenticated owner-bound profile/file routes, signature-checked uploads with safe MIME-derived extensions, legacy public `/uploads` URL fallback removal, temporary-upload cleanup on route errors, candidate-protected application status transitions, fail-closed ingest, authenticated/rate-limited legacy AI, admin-only scraper controls, startup secret-log removal, PostgreSQL migration normalization, and the first owner-scoped employer job/application paths are implemented and tested. **Open:** provider revocation/history purge, legacy-job ownership backfill, complete tenant coverage, durable private object storage, malware scanning, retention/DSAR/consent, and AI governance. **Next gate:** no P0 or authorization bypass with independent evidence.
+**Done:** Server-owned registration, restricted legacy profile updates (role/Firebase identity/password fields excluded), authenticated owner-bound profile/file routes, signature-checked uploads with safe MIME-derived extensions, legacy public `/uploads` URL fallback removal, temporary-upload cleanup on route errors, candidate-protected application status transitions, fail-closed ingest, authenticated/rate-limited legacy AI, admin-only scraper controls, startup secret-log removal, PostgreSQL migration normalization, and the first owner-scoped employer job/application paths are implemented and tested. **Open:** provider revocation/history purge, legacy-job ownership backfill, complete tenant coverage, durable private object storage, malware scanning, retention/DSAR/consent, and AI governance. **Next gate:** no P0 or authorization bypass with independent evidence.
 
 ### 15.2.4 Phase 3 — delivery platform execution feedback
 
@@ -868,6 +868,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Employer tenant isolation | PARTIAL | `created_by_user_id` owner column/index and employer scoping are implemented; `employerRoutes.test.ts` now proves employer job/application-list and dashboard-metric isolation, while `jobApplicationsRoutes.test.ts` covers cross-employer denials; legacy jobs with null owners, company onboarding policy, and complete CRUD/integration coverage remain open |
 | Upload content validation | PARTIAL | `server/routes/files.ts` now checks image/PDF magic bytes, derives storage extensions from MIME, cleans Multer temp files on router errors, removes final files when metadata persistence fails, and rejects cross-user download/delete; `fileService.ts` no longer emits public `/uploads` URLs; `fileRoutes.test.ts` covers valid PNG, spoofed PDF rejection, cleanup, and IDOR denials; durable object storage, AV/quarantine, and restore remain open |
 | Application state authority | PARTIAL | `jobApplicationsRoutes.test.ts` now proves candidate status mutation returns 403; employer/admin transition and tenant coverage remain limited to mocked route tests |
+| Legacy profile update authority | PARTIAL | `/api/v1/users/:userId` now accepts only strict profile fields and rejects role/Firebase identity/password mutation; route-level regression coverage is the next pass |
 | Production startup dependency gate | PARTIAL | `assertProductionDependenciesReady` and `startupReadiness.test.ts` block production startup when Firebase is unavailable while allowing isolated test mode; `assertProductionDatabaseConnection` rejects SQLite in production; live deployment admission, database connectivity, and orchestration probes remain unverified |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.

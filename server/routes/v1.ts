@@ -11,6 +11,7 @@ import {
   wiseup_content,
 } from "@shared/wiseup-schema";
 import { jobIngestBatchSchema } from "@shared/job-ingest-schema";
+import { publicUserProfileUpdateSchema } from "@shared/schema";
 import { storage } from "../storage";
 import { db } from "../db";
 import recommendationRoutes from "../recommendationRoutes";
@@ -439,7 +440,15 @@ v1Router.put("/users/:userId", authenticate, authorizeOwnership("userId"), async
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    const updatedUser = await storage.updateUser(userId, req.body);
+    const parsedUpdates = publicUserProfileUpdateSchema.safeParse(req.body);
+    if (!parsedUpdates.success) {
+      return res.status(400).json({
+        message: "Invalid profile update",
+        errors: parsedUpdates.error.issues,
+      });
+    }
+
+    const updatedUser = await storage.updateUser(userId, parsedUpdates.data);
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
     }
