@@ -329,12 +329,7 @@ class CompanyService {
       return response.json();
     } catch (error) {
       console.error('Error generating company summary:', error);
-      // Return a mock AI summary
-      return {
-        summary: "This company is known for its innovative approach and strong company culture. They offer competitive benefits and are actively growing their team across multiple departments.",
-        keyStrengths: ["Innovation", "Growth", "Culture", "Benefits"],
-        matchScore: 85
-      };
+      throw error;
     }
   }
 
@@ -353,11 +348,7 @@ class CompanyService {
       return response.json();
     } catch (error) {
       console.error('Error generating cover letter:', error);
-      // Return a mock cover letter
-      return {
-        coverLetter: "Dear Hiring Manager,\n\nI am excited to apply for this position at your company. Based on my experience and skills, I believe I would be a great fit for your team...\n\nBest regards,\n[Your Name]",
-        tips: ["Customize the greeting", "Highlight relevant experience", "Show enthusiasm for the company"]
-      };
+      throw error;
     }
   }
 }
