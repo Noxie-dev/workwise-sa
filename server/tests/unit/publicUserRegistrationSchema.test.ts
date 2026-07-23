@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { publicUserRegistrationSchema } from "@shared/schema";
+import { publicUserProfileUpdateSchema, publicUserRegistrationSchema } from "@shared/schema";
 
 const validRegistration = {
   username: "candidate.test",
@@ -36,6 +36,18 @@ describe("publicUserRegistrationSchema", () => {
     const result = publicUserRegistrationSchema.safeParse({
       ...validRegistration,
       password: "short",
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("restricts profile updates to user-editable fields", () => {
+    const result = publicUserProfileUpdateSchema.safeParse({
+      name: "Updated Candidate",
+      role: "admin",
+      firebaseUid: "attacker-controlled-uid",
+      password: "replacement-password",
+      unknownField: "unexpected",
     });
 
     expect(result.success).toBe(false);
