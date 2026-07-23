@@ -48,6 +48,7 @@ type TriggerScrapingOptions = z.infer<typeof triggerScrapingSchema>;
 
 const scrapingSessions = new Map<string, ScrapingSession>();
 const scrapingProcesses = new Map<string, ReturnType<typeof spawn>>();
+const scrapingTerminationTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 const scrapyDir = path.join(process.cwd(), 'scrapy_jobs');
 const scrapingLogPath = path.join(scrapyDir, 'job_scraping.log');
@@ -186,7 +187,23 @@ router.post('/cancel/:sessionId', async (req, res) => {
     session.endTime = new Date();
 
     const scrapingProcess = scrapingProcesses.get(sessionId);
-    requestScrapingProcessTermination(scrapingProcess);
+    if (scrapingProcess) {
+      requestScrapingProcessTermination(scrapingProcess);
+
+      const existingTimer = scrapingTerminationTimers.get(sessionId);
+      if (existingTimer) {
+        clearTimeout(existingTimer);
+      }
+
+      const terminationTimer = setTimeout(() => {
+        scrapingTerminationTimers.delete(sessionId);
+        if (scrapingProcess.exitCode === null && scrapingProcess.signalCode === null) {
+          scrapingProcess.kill('SIGKILL');
+        }
+      }, 5_000);
+      terminationTimer.unref?.();
+      scrapingTerminationTimers.set(sessionId, terminationTimer);
+    }
 
     return res.json({
       success: true,
@@ -313,6 +330,11 @@ function startScrapingProcess(sessionId: string, options: TriggerScrapingOptions
 
   scrapingProcess.on('close', (code) => {
     scrapingProcesses.delete(sessionId);
+    const terminationTimer = scrapingTerminationTimers.get(sessionId);
+    if (terminationTimer) {
+      clearTimeout(terminationTimer);
+      scrapingTerminationTimers.delete(sessionId);
+    }
     session.endTime = new Date();
 
     if (session.status === 'cancelled') {
@@ -332,6 +354,11 @@ function startScrapingProcess(sessionId: string, options: TriggerScrapingOptions
 
   scrapingProcess.on('error', (error) => {
     scrapingProcesses.delete(sessionId);
+    const terminationTimer = scrapingTerminationTimers.get(sessionId);
+    if (terminationTimer) {
+      clearTimeout(terminationTimer);
+      scrapingTerminationTimers.delete(sessionId);
+    }
     if (session.status === 'cancelled') {
       return;
     }
