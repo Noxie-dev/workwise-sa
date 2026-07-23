@@ -2,6 +2,8 @@
 import { mockExtendedCompanies } from '@/pages/Companies';
 import { createMockResponse } from './mockData';
 
+const canUseMockData = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_PUBLIC_DATA === 'true';
+
 export interface CompanySearchParams {
   query?: string;
   industry?: string;
@@ -51,7 +53,7 @@ class CompanyService {
   async searchCompanies(params: CompanySearchParams = {}) {
     try {
       // In production, this would make an actual API call
-      if (import.meta.env.PROD || window.location.hostname.includes('netlify.app')) {
+      if (canUseMockData) {
         // Filter mock data based on search params
         let filtered = [...mockExtendedCompanies];
 
@@ -139,14 +141,17 @@ class CompanyService {
       return response.json();
     } catch (error) {
       console.error('Error searching companies:', error);
-      // Fallback to mock data
-      return createMockResponse({ companies: mockExtendedCompanies });
+      if (canUseMockData) {
+        return createMockResponse({ companies: mockExtendedCompanies });
+      }
+
+      throw error;
     }
   }
 
   async getCompanyById(id: number) {
     try {
-      if (import.meta.env.PROD || window.location.hostname.includes('netlify.app')) {
+      if (canUseMockData) {
         const company = mockExtendedCompanies.find(c => c.id === id);
         if (!company) {
           throw new Error('Company not found');
@@ -167,7 +172,7 @@ class CompanyService {
 
   async getCompanyBySlug(slug: string) {
     try {
-      if (import.meta.env.PROD || window.location.hostname.includes('netlify.app')) {
+      if (canUseMockData) {
         const company = mockExtendedCompanies.find(c => c.slug === slug);
         if (!company) {
           throw new Error('Company not found');
@@ -199,13 +204,17 @@ class CompanyService {
       return response.json();
     } catch (error) {
       console.error('Error fetching company jobs:', error);
-      return createMockResponse({ jobs: [] });
+      if (canUseMockData) {
+        return createMockResponse({ jobs: [] });
+      }
+
+      throw error;
     }
   }
 
   async getCompanyInsights(): Promise<CompanyInsights> {
     try {
-      if (import.meta.env.PROD || window.location.hostname.includes('netlify.app')) {
+      if (canUseMockData) {
         // Mock insights data
         return {
           hiringTrends: {
@@ -297,7 +306,11 @@ class CompanyService {
       return response.json();
     } catch (error) {
       console.error('Error fetching company alerts:', error);
-      return createMockResponse({ alerts: [] });
+      if (canUseMockData) {
+        return createMockResponse({ alerts: [] });
+      }
+
+      throw error;
     }
   }
 

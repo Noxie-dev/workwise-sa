@@ -22,7 +22,7 @@ const CompaniesSection = () => {
   const { data: companies, isLoading, error } = useQuery<Company[]>({
     queryKey: ['/api/companies'],
     queryFn: async () => {
-      const useMockPublicData = import.meta.env.VITE_USE_MOCK_PUBLIC_DATA !== 'false';
+      const useMockPublicData = import.meta.env.VITE_USE_MOCK_PUBLIC_DATA === 'true';
 
       try {
         const response = await fetch('/api/companies');

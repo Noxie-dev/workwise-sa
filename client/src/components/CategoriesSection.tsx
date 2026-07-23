@@ -22,7 +22,7 @@ const CategoriesSection = () => {
   const { data: categories, isLoading, error } = useQuery<Category[]>({
     queryKey: ['/api/categories'],
     queryFn: async () => {
-      const useMockPublicData = import.meta.env.VITE_USE_MOCK_PUBLIC_DATA !== 'false';
+      const useMockPublicData = import.meta.env.VITE_USE_MOCK_PUBLIC_DATA === 'true';
 
       try {
         const response = await fetch('/api/categories');
