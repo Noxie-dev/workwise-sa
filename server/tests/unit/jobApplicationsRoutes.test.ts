@@ -305,4 +305,33 @@ describe('jobApplications routes', () => {
     expect(response.statusCode).toBe(403);
     expect(response.body.error.message).toMatch(/owned by your employer/i);
   });
+
+  it('prevents candidates from changing employer-controlled application status', async () => {
+    mockedResolveAuthenticatedDatabaseUser.mockResolvedValue({
+      id: 7,
+      role: 'user',
+      email: 'candidate@example.com',
+    } as any);
+    mockedStorage.getJobApplication.mockResolvedValue({
+      id: 56,
+      userId: 7,
+      jobId: 22,
+      status: 'applied',
+    } as any);
+
+    const response = await invokeRoute({
+      path: '/:applicationId',
+      method: 'put',
+      req: {
+        body: { status: 'hired' },
+        params: { applicationId: '56' },
+        query: {},
+        headers: { authorization: 'Bearer test-token' },
+      },
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.body.error.message).toMatch(/only employers or administrators/i);
+    expect(mockedStorage.updateJobApplication).not.toHaveBeenCalled();
+  });
 });

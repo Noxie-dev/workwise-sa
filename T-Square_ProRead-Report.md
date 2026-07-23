@@ -738,7 +738,7 @@ One person may hold multiple roles, but each row needs a named human before laun
 
 **Status:** PARTIAL — local controls started; P0 closure is not claimed.
 
-**Done:** Server-owned registration, authenticated owner-bound profile/file routes, signature-checked uploads with safe MIME-derived extensions, fail-closed ingest, authenticated/rate-limited legacy AI, admin-only scraper controls, startup secret-log removal, PostgreSQL migration normalization, and the first owner-scoped employer job/application paths are implemented and tested. **Open:** provider revocation/history purge, legacy-job ownership backfill, complete tenant coverage, durable private object storage, malware scanning, retention/DSAR/consent, and AI governance. **Next gate:** no P0 or authorization bypass with independent evidence.
+**Done:** Server-owned registration, authenticated owner-bound profile/file routes, signature-checked uploads with safe MIME-derived extensions, candidate-protected application status transitions, fail-closed ingest, authenticated/rate-limited legacy AI, admin-only scraper controls, startup secret-log removal, PostgreSQL migration normalization, and the first owner-scoped employer job/application paths are implemented and tested. **Open:** provider revocation/history purge, legacy-job ownership backfill, complete tenant coverage, durable private object storage, malware scanning, retention/DSAR/consent, and AI governance. **Next gate:** no P0 or authorization bypass with independent evidence.
 
 ### 15.2.4 Phase 3 — delivery platform execution feedback
 
@@ -750,7 +750,7 @@ One person may hold multiple roles, but each row needs a named human before laun
 
 **Status:** PARTIAL — regression foundation exists; journeys are not certified.
 
-**Done:** Server 18 files/65 tests and client 16 files/103 tests pass; `/cv-builder` is auth-gated; cross-employer job-status/application-read denials and spoofed PDF rejection are covered. **Open:** full two-tenant negative matrix, browser E2E, accessibility, mobile, SEO, duplicate submissions, and mock removal. **Next gate:** all critical candidate/employer/platform flows pass positive and negative tests.
+**Done:** Server 18 files/66 tests and client 16 files/103 tests pass; `/cv-builder` is auth-gated; cross-employer job-status/application-read denials, candidate status-mutation denial, and spoofed PDF rejection are covered. **Open:** full two-tenant negative matrix, browser E2E, accessibility, mobile, SEO, duplicate submissions, and mock removal. **Next gate:** all critical candidate/employer/platform flows pass positive and negative tests.
 
 ### 15.2.6 Phase 5 — operability execution feedback
 
@@ -861,10 +861,11 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Tracked credential | PARTIAL | The active service-account JSON was removed from the worktree and ignored going forward; provider revocation, access review, and Git/artifact history purge are not locally verifiable |
 | Frontend/API production serving | PASS for isolated smoke | `pnpm run build` passed; isolated built server returned HTML 200 for `/` and `/jobs`, JSON 404 for `/api/missing`, and Helmet headers; dependency readiness is still not a real production gate |
 | Production security baseline | PARTIAL | Helmet, bounded JSON/urlencoded bodies, credentials-aware CORS, auth-gated `/cv-builder`, and explicit `/health`/`/ready` probes are active; distributed rate limiting, trusted proxy policy, and CSP review remain |
-| Type/build/tests | PASS | `pnpm run type-check`; `pnpm run build`; server 18 files/65 tests; client 16 files/103 tests |
+| Type/build/tests | PASS | `pnpm run type-check`; `pnpm run build`; server 18 files/66 tests; client 16 files/103 tests |
 | Repository sanity | PASS | `pnpm run check` passes after removal of the conflicting root `package-lock.json`; pnpm still warns that the legacy `pnpm.overrides` field is ignored |
 | PostgreSQL migration/restore/operations | PARTIAL | Fresh SQLite and clean PostgreSQL 16 containers each applied all 13 migrations, including `0012_add_job_owner.sql`; `/health` returns 200 and `/ready` correctly returns 503 when Firebase is unavailable in isolated smoke; backup/restore, alert exercise, rollback drill, and browser E2E remain unverified |
 | Employer tenant isolation | PARTIAL | `created_by_user_id` owner column/index and employer scoping are implemented; `employerRoutes.test.ts` and `jobApplicationsRoutes.test.ts` cover cross-employer denials; legacy jobs with null owners, company onboarding policy, and complete CRUD/integration coverage remain open |
 | Upload content validation | PARTIAL | `server/routes/files.ts` now checks image/PDF magic bytes and derives storage extensions from MIME; `fileRoutes.test.ts` covers valid PNG and spoofed PDF rejection; durable object storage, AV/quarantine, cleanup, and restore remain open |
+| Application state authority | PARTIAL | `jobApplicationsRoutes.test.ts` now proves candidate status mutation returns 403; employer/admin transition and tenant coverage remain limited to mocked route tests |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
