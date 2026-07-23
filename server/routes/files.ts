@@ -497,4 +497,19 @@ router.delete('/:fileId', async (req, res, next) => {
   }
 });
 
+// Multer writes to a local temporary file before the route handler runs. Make
+// sure validation, authorization, and persistence failures do not leave
+// unbounded temporary uploads behind.
+router.use((error: unknown, req: any, _res: any, next: (error: unknown) => void) => {
+  const tempPath = req.file?.path;
+  if (tempPath && fs.existsSync(tempPath)) {
+    try {
+      fs.unlinkSync(tempPath);
+    } catch {
+      // Preserve the original request error; cleanup is best effort.
+    }
+  }
+  next(error);
+});
+
 export default router;

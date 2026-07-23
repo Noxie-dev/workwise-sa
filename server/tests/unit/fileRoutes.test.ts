@@ -66,6 +66,18 @@ function getFinalRouteHandler(path: string, method: string) {
   return layer.route.stack[layer.route.stack.length - 1].handle;
 }
 
+function getRouterErrorHandler() {
+  const layer = router.stack.find(
+    (entry: any) => !entry.route && entry.handle.length === 4,
+  );
+
+  if (!layer) {
+    throw new Error('Router error handler not found');
+  }
+
+  return layer.handle;
+}
+
 async function invokeFinalHandler({
   path,
   method,
@@ -195,6 +207,28 @@ describe('file routes', () => {
     expect(response.statusCode).toBe(400);
     expect(response.body.error.message).toMatch(/content does not match/i);
     expect(mockedStorage.createFile).not.toHaveBeenCalled();
+  });
+
+  it('cleans temporary uploads when a route fails', async () => {
+    const tempFile = path.join(uploadsRoot, 'temp', 'cleanup-upload.pdf');
+    fs.writeFileSync(tempFile, 'not-a-pdf');
+    const req: any = {
+      body: {},
+      params: {},
+      file: {
+        originalname: 'resume.pdf',
+        mimetype: 'application/pdf',
+        size: 9,
+        path: tempFile,
+        encoding: '7bit',
+      },
+      user: { uid: 'firebase-uid-42' },
+    };
+
+    const errorHandlerForRouter = getRouterErrorHandler();
+    errorHandlerForRouter(new Error('validation failed'), req, {}, vi.fn());
+
+    expect(fs.existsSync(tempFile)).toBe(false);
   });
 
   it('uses the authenticated owner for generic uploads', async () => {
