@@ -37,16 +37,21 @@ export const verifyFirebaseToken = async (req: Request, res: Response, next: Nex
 export const authenticate = verifyFirebaseToken;
 
 export const authorize = (requiredRoles: string[] = ['admin']) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    if (!req.user.role || !requiredRoles.includes(req.user.role)) {
-      return res.status(403).json({ error: `Requires one of these roles: ${requiredRoles.join(', ')}` });
-    }
+    try {
+      const dbUser = await resolveAuthenticatedDatabaseUser(req.user);
+      if (!requiredRoles.includes(dbUser.role ?? 'user')) {
+        return res.status(403).json({ error: `Requires one of these roles: ${requiredRoles.join(', ')}` });
+      }
 
-    next();
+      return next();
+    } catch (error) {
+      return next(error);
+    }
   };
 };
 
