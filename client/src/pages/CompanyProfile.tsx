@@ -76,6 +76,18 @@ const CompanyProfile: React.FC = () => {
     return <div className="min-h-screen flex items-center justify-center">Loading company profile…</div>;
   }
 
+  if (companyQuery.isError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="max-w-lg text-center" role="alert" data-testid="company-profile-error">
+          <Building2 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-600 mb-2">Company profile unavailable</h2>
+          <p className="text-gray-500">Please try again later. No placeholder company data is being shown.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!company) {
     return (
       <div className="min-h-screen flex items-center justify-center">
