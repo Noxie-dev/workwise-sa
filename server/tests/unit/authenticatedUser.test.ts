@@ -37,20 +37,20 @@ describe('authenticatedUser service', () => {
     expect(mockedStorage.createUser).not.toHaveBeenCalled();
   });
 
-  it('creates a database user from firebase identity when no linked user exists', async () => {
+  it('creates a database user from firebase identity with a server-owned user role', async () => {
     mockedStorage.getUserByFirebaseUid.mockResolvedValue(undefined as any);
     mockedStorage.createUser.mockResolvedValue({
       id: 11,
       firebaseUid: 'firebase-uid-2',
       email: 'new.user@example.com',
       name: 'new.user',
-      role: 'employer',
+      role: 'user',
     } as any);
 
     const result = await resolveAuthenticatedDatabaseUser({
       uid: 'firebase-uid-2',
       email: 'new.user@example.com',
-      role: 'employer',
+      role: 'admin',
     });
 
     expect(mockedStorage.createUser).toHaveBeenCalledWith(
@@ -59,7 +59,7 @@ describe('authenticatedUser service', () => {
         firebaseUid: 'firebase-uid-2',
         username: 'firebase-firebase-uid',
         name: 'new.user',
-        role: 'employer',
+        role: 'user',
       }),
     );
     expect(result.id).toBe(11);

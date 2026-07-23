@@ -9,10 +9,6 @@ type FirebaseLikeUser = {
   role?: string;
 };
 
-function normalizeRole(role: unknown): string {
-  return typeof role === "string" && role.trim() ? role : "user";
-}
-
 function defaultName(user: FirebaseLikeUser) {
   if (user.name?.trim()) {
     return user.name.trim();
@@ -45,7 +41,10 @@ export async function resolveAuthenticatedDatabaseUser(authUser: FirebaseLikeUse
     email: authUser.email,
     name: defaultName(authUser),
     firebaseUid: authUser.uid,
-    role: normalizeRole(authUser.role),
+    // Firebase claims are not an authority for the application role. New
+    // identities start as ordinary users and must be promoted through a
+    // server-controlled workflow backed by the database.
+    role: "user",
     location: null,
     bio: null,
     phoneNumber: null,
