@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-23 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `b2b7732` (`docs: expose audit acceleration capabilities`)
+**Commit:** `7a000b1` (`security: make firebase role provisioning server-owned`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -11,9 +11,9 @@
 
 ### Verdict: **NOT READY**
 
-**Overall readiness score: 28/100** *(unchanged after the latest capability-setup pass; P0 authorization and infrastructure caps still apply)*
+**Overall readiness score: 28/100** *(unchanged after Pass 1; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `b2b7732` — capability acceleration skills are installed and MCP discovery is recorded; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `7a000b1` — first-time Firebase identities are provisioned as database users regardless of token role claims; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -739,7 +739,7 @@ One person may hold multiple roles, but each row needs a named human before laun
 
 **Status:** PARTIAL — local controls started; P0 closure is not claimed.
 
-**Done:** Server-owned registration, restricted legacy profile updates (role/Firebase identity/password fields excluded), authenticated owner-bound profile/file routes, signature-checked uploads with safe MIME-derived extensions, legacy public `/uploads` URL fallback removal, temporary-upload cleanup on route errors, candidate-protected application status transitions, fail-closed ingest, authenticated/rate-limited legacy AI, admin-only scraper controls, startup secret-log removal, PostgreSQL migration normalization, and the first owner-scoped employer job/application paths are implemented and tested. **Open:** provider revocation/history purge, legacy-job ownership backfill, complete tenant coverage, durable private object storage, malware scanning, retention/DSAR/consent, and AI governance. **Next gate:** no P0 or authorization bypass with independent evidence.
+**Done:** Server-owned registration and Firebase first-login provisioning, restricted legacy profile updates (role/Firebase identity/password fields excluded), authenticated owner-bound profile/file routes, signature-checked uploads with safe MIME-derived extensions, legacy public `/uploads` URL fallback removal, temporary-upload cleanup on route errors, candidate-protected application status transitions, fail-closed ingest, authenticated/rate-limited legacy AI, admin-only scraper controls, startup secret-log removal, PostgreSQL migration normalization, and the first owner-scoped employer job/application paths are implemented and tested. **Open:** provider revocation/history purge, legacy-job ownership backfill, complete tenant coverage, durable private object storage, malware scanning, retention/DSAR/consent, and AI governance. **Next gate:** no P0 or authorization bypass with independent evidence.
 
 ### 15.2.4 Phase 3 — delivery platform execution feedback
 
@@ -871,6 +871,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Legacy profile update authority | PARTIAL | `/api/v1/users/:userId` now accepts only strict profile fields and rejects role/Firebase identity/password mutation; `v1ProfileUpdateRoutes.test.ts` covers rejection and editable-field forwarding; full authenticated integration remains open |
 | Legacy ownership middleware | PARTIAL | `authorizeOwnership` now resolves the authoritative database user from Firebase UID, rejects invalid IDs, and no longer trusts a caller-shaped numeric claim; `ownershipMiddleware.test.ts` covers owner allow, cross-user deny, and malformed-ID rejection; full authenticated integration remains open |
 | Database-backed role authorization | PARTIAL | `authorize` now resolves the database user before evaluating required roles; `roleAuthorizationMiddleware.test.ts` proves Firebase admin claims cannot override a database user role, database admins are allowed, and identity failures reach error handling |
+| Firebase first-login role provisioning | PASS locally | `authenticatedUser.test.ts`: 5/5; a new Firebase identity is always created with database role `user`, even when the presented claim says `admin`; existing database identities remain authoritative |
 | Production startup dependency gate | PARTIAL | `assertProductionDependenciesReady` and `startupReadiness.test.ts` block production startup when Firebase is unavailable while allowing isolated test mode; `assertProductionDatabaseConnection` rejects SQLite in production; live deployment admission, database connectivity, and orchestration probes remain unverified |
 | Client/build release verification | PASS locally | `pnpm run test:client`: 16 files/103 tests; `pnpm run build`: Vite client and esbuild server completed; browser E2E, accessibility, and production topology remain unverified |
 | Production runtime validator | PASS for negative contract | `DATABASE_URL=sqlite:./test.db node scripts/validate-primary-runtime.js` exits non-zero and reports missing Firebase configuration plus SQLite prohibition; `pnpm run check` passes; valid production secrets and deployment orchestration remain unverified |
