@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { storage } from '../storage';
 import { verifyFirebaseToken } from '../middleware/auth';
 import { assertRole, resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
+import { requestScrapingProcessTermination } from '../services/scrapingProcessControl';
 
 const router = Router();
 
@@ -185,9 +186,7 @@ router.post('/cancel/:sessionId', async (req, res) => {
     session.endTime = new Date();
 
     const scrapingProcess = scrapingProcesses.get(sessionId);
-    if (scrapingProcess && !scrapingProcess.killed) {
-      scrapingProcess.kill('SIGTERM');
-    }
+    requestScrapingProcessTermination(scrapingProcess);
 
     return res.json({
       success: true,
@@ -290,7 +289,7 @@ function startScrapingProcess(sessionId: string, options: TriggerScrapingOptions
   const session = scrapingSessions.get(sessionId);
   if (!session) {
     scrapingProcesses.delete(sessionId);
-    scrapingProcess.kill('SIGTERM');
+    requestScrapingProcessTermination(scrapingProcess);
     return;
   }
 
