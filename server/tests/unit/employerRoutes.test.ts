@@ -255,6 +255,16 @@ describe('employer routes', () => {
           status: 'active',
           createdAt: new Date('2026-03-24T00:00:00Z'),
         },
+        {
+          id: 57,
+          title: 'Legacy unowned job',
+          location: 'Pretoria',
+          jobType: 'full-time',
+          companyId: 3,
+          createdByUserId: null,
+          status: 'active',
+          createdAt: new Date('2026-03-23T00:00:00Z'),
+        },
       ],
       [{ id: 3, name: 'Acme' }],
       [],
@@ -311,14 +321,17 @@ describe('employer routes', () => {
       [
         { id: 55, title: 'Owned job', status: 'active', createdByUserId: 11, createdAt: new Date('2026-03-25T00:00:00Z') },
         { id: 56, title: 'Other employer job', status: 'active', createdByUserId: 99, createdAt: new Date('2026-03-24T00:00:00Z') },
+        { id: 57, title: 'Legacy unowned job', status: 'active', createdByUserId: null, createdAt: new Date('2026-03-23T00:00:00Z') },
       ],
       [
         { id: 100, jobId: 55, appliedAt: new Date('2026-03-25T00:00:00Z') },
         { id: 101, jobId: 56, appliedAt: new Date('2026-03-24T00:00:00Z') },
+        { id: 102, jobId: 57, appliedAt: new Date('2026-03-23T00:00:00Z') },
       ],
       [
         { id: 200, jobId: 55, interactionType: 'view', interactionTime: new Date('2026-03-25T00:00:00Z') },
         { id: 201, jobId: 56, interactionType: 'view', interactionTime: new Date('2026-03-24T00:00:00Z') },
+        { id: 202, jobId: 57, interactionType: 'view', interactionTime: new Date('2026-03-23T00:00:00Z') },
       ],
     );
 
