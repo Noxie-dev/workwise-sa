@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-24 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `8e5fb18` (`fix: fail closed application withdrawal roles`)
+**Commit:** `d679951` (`test: enforce SquareJUMP route security contract`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -13,7 +13,7 @@
 
 **Overall readiness score: 28/100** *(unchanged after the latest `<3>` batch; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `8e5fb18` — employer and application routes now deny legacy unowned-job access, and application withdrawal fails closed for non-candidate/non-admin roles; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `d679951` — tracked-secret, legacy Firebase, and SquareJUMP route-security gates are now executable; the tracked-secret gate correctly blocks the remaining credential exposure; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -895,6 +895,9 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Startup session-secret logging | PARTIAL | Commit `077c697`; `startupSecretLogging.test.ts` passes 1/1 and asserts the startup module does not log or directly expose `SESSION_SECRET`; deployed-secret rotation and historical log review remain external actions |
 | Employer tenant boundary regression | PARTIAL | Commit `0fd0e7e`; `employerRoutes.test.ts` now proves employer job lists and dashboard metrics exclude another employer's jobs and legacy jobs with null ownership; targeted suite 6/6 and type-check pass; full CRUD/integration evidence and ownership backfill remain open |
 | Employer CRUD/application tenant isolation | PARTIAL | Commits `7c33634`, `58fe770`, `b1b907d`, `6c7e076`, `06b4ec2`, and `8e5fb18`; employer detail reads/edits/status changes and application reads/listings/status/withdrawal mutations reject cross-tenant or unowned-job access; unknown non-admin roles now fail closed; employer suite 9/9, application suite 12/12, and type-check pass; full integration coverage and ownership backfill remain open |
+| Tracked-secret release gate | BLOCKED/P0 | Commit `897022d`; `pnpm run security:tracked-secrets` reports only `.env.production` private-key and credentialed database URL patterns, without printing values; rotation and history purge are required before this gate can pass |
+| Legacy Firebase security regression | PASS locally | Commit `f8b62a6`; `legacyFirebaseSurface.test.ts` passes 2/2 and `node --check functions/index.js` passes, covering authenticated profile/file TODO handlers and callable ownership checks |
+| SquareJUMP route security contract | PASS locally | Commit `d679951`; `squareJumpRouteSecurity.test.ts` passes 11/11, proving authentication on user/event routes and authentication plus authorization on admin policy/review routes |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -988,3 +991,11 @@ The browser smoke attempt is recorded as an environment-blocked Phase 4 gate: in
 | 1 | Added employer status-mutation coverage proving legacy jobs with null ownership cannot be changed. | Commit `6c7e076`; employer route suite passes 9/9. | 28/100; High/medium |
 | 2 | Added application-listing and status-mutation coverage proving legacy unowned jobs cannot expose or mutate candidate applications. | Commit `06b4ec2`; application route suite passes 11/11. | 28/100; High/medium |
 | 3 | Changed application withdrawal to allow only candidate/admin roles and added an unknown-role regression test. | Commit `8e5fb18`; application route suite passes 12/12 and `pnpm run type-check` passes. Company membership modeling, integration coverage, and owner backfill remain open. | 28/100; High/medium |
+
+### 15.19 `<3>` production-safety execution feedback — 2026-07-24 UTC
+
+| Pass | Implementation | Evidence | Score / confidence |
+|---|---|---|---|
+| 1 | Added a tracked-secret release gate that detects private-key material and non-local credentialed database URLs without printing values. | Commit `897022d`; the gate correctly fails on `.env.production`, identifying the unresolved P0 credential exposure. | 28/100; High/medium |
+| 2 | Added regression coverage for the legacy Firebase profile/file and callable processing surface. | Commit `f8b62a6`; security suite 2/2 and `node --check functions/index.js` pass. | 28/100; High/medium |
+| 3 | Added a SquareJUMP route security contract covering authenticated user/event paths and admin-only policy/review paths. | Commit `d679951`; route security suite 11/11 passes. | 28/100; High/medium |
