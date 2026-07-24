@@ -75,6 +75,11 @@ Apply the schema before deploying the API:
 pnpm run db:migrate
 ```
 
+`pnpm run db:generate` writes Drizzle's schema output to the ignored
+`.drizzle-generated/` review directory. It must not be copied into the
+canonical `migrations/` history without review because the repository uses a
+hand-authored raw SQL migration journal.
+
 Run the release worker as a separate process:
 
 ```text

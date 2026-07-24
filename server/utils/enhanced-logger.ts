@@ -1,6 +1,6 @@
 // server/utils/enhanced-logger.ts
 import winston from 'winston';
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 
 // Define log levels
 const levels = {
