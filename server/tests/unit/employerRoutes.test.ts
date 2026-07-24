@@ -84,7 +84,7 @@ async function invokeRoute({
   req,
 }: {
   path: string;
-  method: 'get' | 'post' | 'patch';
+  method: 'get' | 'post' | 'put' | 'patch';
   req: Record<string, any>;
 }) {
   const handlers = getRouteHandlers(path, method);
@@ -224,6 +224,70 @@ describe('employer routes', () => {
         params: { jobId: '55' },
         query: {},
         body: { status: 'paused' },
+      },
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.body.error.message).toMatch(/owned by your employer/i);
+    expect(updateResults).toHaveLength(0);
+  });
+
+  it('rejects detail reads for another employer\'s job', async () => {
+    selectResults.push([{ id: 55, createdByUserId: 99 }]);
+
+    const response = await invokeRoute({
+      path: '/jobs/:jobId',
+      method: 'get',
+      req: {
+        user: { uid: 'firebase-employer-1' },
+        params: { jobId: '55' },
+        query: {},
+        body: {},
+      },
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.body.error.message).toMatch(/owned by your employer/i);
+  });
+
+  it('rejects edits for another employer\'s job before parsing or writing', async () => {
+    selectResults.push([{ id: 55, createdByUserId: 99 }]);
+
+    const response = await invokeRoute({
+      path: '/jobs/:jobId',
+      method: 'put',
+      req: {
+        user: { uid: 'firebase-employer-1' },
+        params: { jobId: '55' },
+        query: {},
+        body: {
+          title: 'Retail Assistant',
+          category: 'retail-assistant',
+          jobType: 'full-time',
+          location: 'Cape Town',
+          isRemote: false,
+          applicationDeadline: '',
+          salaryMin: '',
+          salaryMax: '',
+          isSalaryNegotiable: true,
+          description: 'Help customers on the shop floor.',
+          responsibilities: '',
+          requirements: '',
+          companyName: 'Acme',
+          companyLogo: null,
+          companyBio: '',
+          contactName: 'Employer User',
+          contactEmail: 'employer@example.com',
+          contactPhone: '',
+          website: '',
+          howToApply: 'email',
+          applicationEmail: 'employer@example.com',
+          applicationUrl: '',
+          customInstructions: '',
+          isConfidential: false,
+          isDraft: false,
+          screenerQuestions: [],
+        },
       },
     });
 
