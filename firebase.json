@@ -51,5 +51,17 @@
       "source": "functions",
       "codebase": "default"
     }
-  ]
+  ],
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "auth": {
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "t-square",
+        "supportEmail": "support@undefined.firebaseapp.com"
+      }
+    }
+  }
 }
