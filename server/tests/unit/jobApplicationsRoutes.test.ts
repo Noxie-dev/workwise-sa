@@ -87,7 +87,7 @@ async function invokeRoute({
   req,
 }: {
   path: string;
-  method: 'get' | 'post' | 'put';
+  method: 'get' | 'post' | 'put' | 'delete';
   req: Record<string, any>;
 }) {
   const handlers = getRouteHandlers(path, method);
@@ -468,6 +468,35 @@ describe('jobApplications routes', () => {
 
     expect(response.statusCode).toBe(403);
     expect(response.body.error.message).toMatch(/owned by your employer/i);
+  });
+
+  it('fails closed when an unrecognized role attempts to withdraw an application', async () => {
+    mockedResolveAuthenticatedDatabaseUser.mockResolvedValue({
+      id: 11,
+      role: 'company_manager',
+      email: 'manager@example.com',
+    } as any);
+    mockedStorage.getJobApplication.mockResolvedValue({
+      id: 59,
+      userId: 11,
+      jobId: 23,
+      status: 'applied',
+    } as any);
+
+    const response = await invokeRoute({
+      path: '/:applicationId',
+      method: 'delete',
+      req: {
+        body: {},
+        params: { applicationId: '59' },
+        query: {},
+        headers: { authorization: 'Bearer test-token' },
+      },
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.body.error.message).toMatch(/only candidates/i);
+    expect(mockedStorage.deleteJobApplication).not.toHaveBeenCalled();
   });
 
   it('prevents candidates from changing employer-controlled application status', async () => {

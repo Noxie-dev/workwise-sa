@@ -311,8 +311,8 @@ router.delete('/:applicationId',
         throw Errors.notFound('Job application not found');
       }
 
-      if (dbUser.role === 'employer') {
-        throw Errors.forbidden('Employers cannot withdraw candidate applications');
+      if (dbUser.role !== 'user' && dbUser.role !== 'admin') {
+        throw Errors.forbidden('Only candidates can withdraw job applications');
       }
 
       if (application.userId !== userId && dbUser.role !== 'admin') {
