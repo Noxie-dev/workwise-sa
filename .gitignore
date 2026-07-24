@@ -23,6 +23,8 @@ dist-ssr
 .env.development.local
 .env.test.local
 .env.production.local
+firebase-config.json
+.neon
 *.log*
 
 # Editor directories and files
