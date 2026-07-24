@@ -121,6 +121,7 @@ describe('jobApplications routes', () => {
       role: 'user',
       email: 'candidate@example.com',
     } as any);
+    mockedAssertRole.mockImplementation(() => undefined);
   });
 
   it('creates a job application and logs the interaction', async () => {
@@ -304,6 +305,72 @@ describe('jobApplications routes', () => {
 
     expect(response.statusCode).toBe(403);
     expect(response.body.error.message).toMatch(/owned by your employer/i);
+  });
+
+  it('blocks an employer from listing another employer\'s applications', async () => {
+    mockedResolveAuthenticatedDatabaseUser.mockResolvedValue({
+      id: 11,
+      role: 'employer',
+      email: 'employer@example.com',
+    } as any);
+    mockedStorage.getJob.mockResolvedValue({
+      id: 22,
+      createdByUserId: 99,
+    } as any);
+
+    const response = await invokeRoute({
+      path: '/job/:jobId',
+      method: 'get',
+      req: {
+        body: {},
+        params: { jobId: '22' },
+        query: {
+          page: '1',
+          limit: '20',
+          sortBy: 'appliedAt',
+          sortOrder: 'desc',
+        },
+        headers: { authorization: 'Bearer test-token' },
+      },
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.body.error.message).toMatch(/owned by your employer/i);
+    expect(mockedStorage.getJobApplicationsByJob).not.toHaveBeenCalled();
+  });
+
+  it('blocks an employer from changing another employer\'s application status', async () => {
+    mockedResolveAuthenticatedDatabaseUser.mockResolvedValue({
+      id: 11,
+      role: 'employer',
+      email: 'employer@example.com',
+    } as any);
+    mockedStorage.getJobApplication.mockResolvedValue({
+      id: 56,
+      userId: 7,
+      jobId: 22,
+      status: 'applied',
+    } as any);
+    mockedStorage.getJob.mockResolvedValue({
+      id: 22,
+      createdByUserId: 99,
+    } as any);
+
+    const response = await invokeRoute({
+      path: '/:applicationId',
+      method: 'put',
+      req: {
+        body: { status: 'hired' },
+        params: { applicationId: '56' },
+        query: {},
+        headers: { authorization: 'Bearer test-token' },
+      },
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.body.error.message).toMatch(/owned by your employer/i);
+    expect(mockedStorage.updateJobApplication).not.toHaveBeenCalled();
+    expect(mockedStorage.createUserNotification).not.toHaveBeenCalled();
   });
 
   it('prevents candidates from changing employer-controlled application status', async () => {
