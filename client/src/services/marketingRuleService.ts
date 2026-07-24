@@ -110,10 +110,19 @@ const MOCK_ANALYTICS_DATA: MarketingRuleAnalyticsData = {
   ]
 };
 
+const useMockMarketingData = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_PUBLIC_DATA === 'true';
+
+const requireMockMarketingMode = () => {
+  if (!useMockMarketingData) {
+    throw new Error('Marketing rules service is not configured for this environment');
+  }
+};
+
 // Marketing Rule Service
 const marketingRuleService = {
   // Get all marketing rules
   async getRules(): Promise<MarketingRule[]> {
+    requireMockMarketingMode();
     // In production, replace with actual API call
     // return axios.get('/api/marketing-rules').then(res => res.data);
 
@@ -123,6 +132,7 @@ const marketingRuleService = {
 
   // Get a single rule by ID
   async getRule(id: string): Promise<MarketingRule | undefined> {
+    requireMockMarketingMode();
     // In production, replace with actual API call
     // return axios.get(`/api/marketing-rules/${id}`).then(res => res.data);
 
@@ -132,6 +142,7 @@ const marketingRuleService = {
 
   // Create a new rule
   async createRule(rule: Omit<MarketingRule, 'id' | 'createdAt'>): Promise<MarketingRule> {
+    requireMockMarketingMode();
     // In production, replace with actual API call
     // return axios.post('/api/marketing-rules', rule).then(res => res.data);
 
@@ -150,6 +161,7 @@ const marketingRuleService = {
 
   // Update an existing rule
   async updateRule(id: string, rule: Partial<MarketingRule>): Promise<MarketingRule> {
+    requireMockMarketingMode();
     // In production, replace with actual API call
     // return axios.put(`/api/marketing-rules/${id}`, rule).then(res => res.data);
 
@@ -175,6 +187,7 @@ const marketingRuleService = {
 
   // Delete a rule
   async deleteRule(id: string): Promise<void> {
+    requireMockMarketingMode();
     // In production, replace with actual API call
     // return axios.delete(`/api/marketing-rules/${id}`).then(() => {});
 
@@ -190,6 +203,7 @@ const marketingRuleService = {
 
   // Toggle rule status (active/inactive)
   async toggleRuleStatus(id: string): Promise<MarketingRule> {
+    requireMockMarketingMode();
     // In production, replace with actual API call
     // return axios.patch(`/api/marketing-rules/${id}/toggle-status`).then(res => res.data);
 
@@ -211,6 +225,7 @@ const marketingRuleService = {
 
   // Get analytics for all rules
   async getRulesAnalytics(): Promise<RuleAnalytics[]> {
+    requireMockMarketingMode();
     // In production, replace with actual API call
     // return axios.get('/api/marketing-rules/analytics').then(res => res.data);
 
@@ -220,6 +235,7 @@ const marketingRuleService = {
 
   // Get analytics for a specific rule
   async getRuleAnalytics(id: string): Promise<RuleAnalytics | undefined> {
+    requireMockMarketingMode();
     // In production, replace with actual API call
     // return axios.get(`/api/marketing-rules/${id}/analytics`).then(res => res.data);
 
@@ -229,6 +245,7 @@ const marketingRuleService = {
 
   // Get overall marketing rules stats
   async getOverallStats(): Promise<MarketingRuleStats> {
+    requireMockMarketingMode();
     // In production, replace with actual API call
     // return axios.get('/api/marketing-rules/stats').then(res => res.data);
 
@@ -252,6 +269,7 @@ const marketingRuleService = {
 
   // Get marketing rules analytics data
   async getMarketingAnalytics(): Promise<MarketingRuleAnalyticsData> {
+    requireMockMarketingMode();
     // In production, replace with actual API call
     // return axios.get('/api/marketing-rules/analytics-dashboard').then(res => res.data);
 
