@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-24 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `1321773` (`test: protect tracked secret gate output`)
+**Commit:** `96d34fd` (`chore: isolate Drizzle migration generation`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -13,7 +13,7 @@
 
 **Overall readiness score: 28/100** *(unchanged after the latest `<3>` batch; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `1321773` — SquareJUMP migration/worker safety and tracked-secret output regressions are covered; the tracked-secret gate correctly blocks the remaining credential exposure without printing values; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `96d34fd` — SquareJUMP migration/worker safety, tracked-secret output, and isolated Drizzle generation/status tooling are covered; the tracked-secret gate correctly blocks the remaining credential exposure without printing values; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -901,6 +901,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | SquareJUMP metrics/link operations | PARTIAL | Commit `9774a82`; authenticated events now aggregate daily metrics, rescoring consumes recent engagement/application metrics, and the link-verification worker updates release schedules; `pnpm run type-check` passes; migration rehearsal, worker scheduling, and external URL verification remain open |
 | SquareJUMP migration/worker safety | PARTIAL | Commits `b92e4c9` and `d4efffb`; metrics migration suite passes 4/4, worker safety suite passes 2/2, and type-check passes; live PostgreSQL rehearsal and scheduled-worker evidence remain open |
 | Secret-gate output safety | PASS locally / P0 remains open | Commit `1321773`; gate-output suite passes 1/1 and confirms findings contain paths/pattern names only; credential rotation and history purge remain required |
+| Migration tooling isolation | PASS locally | Commit `96d34fd`; Drizzle generation now writes review output to ignored `.drizzle-generated/`, `db:status` reads applied/pending migrations through a bounded CLI, and type-check passes |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -1017,3 +1018,10 @@ The browser smoke attempt is recorded as an environment-blocked Phase 4 gate: in
 | 1 | Added migration regression coverage for the SquareJUMP daily metrics table, uniqueness constraint, and index. | Commit `b92e4c9`; SQL migration suite passes 4/4. | 28/100; High/medium |
 | 2 | Added worker safety regression coverage for bounded link checks, bounded match batches, timeouts, and database shutdown. | Commit `d4efffb`; worker suite passes 2/2 and type-check passes. | 28/100; High/medium |
 | 3 | Added a tracked-secret gate output regression proving secret values are never printed while unresolved findings remain visible. | Commit `1321773`; gate-output suite passes 1/1; `.env.production` still blocks the release gate. | 28/100; High/medium |
+
+### 15.22 Grouped migration-tooling feedback — 2026-07-24 UTC
+
+| Pass | Implementation | Evidence | Score / confidence |
+|---|---|---|---|
+| 1 | Isolated Drizzle schema generation from the canonical hand-authored migration journal. | Commit `96d34fd`; output is directed to ignored `.drizzle-generated/` and type-check passes. | 28/100; High/medium |
+| 2 | Added a migration-status CLI that reports applied and pending SQLite/PostgreSQL migrations without mutating state. | Commit `96d34fd`; type-check passes; live PostgreSQL status remains unverified. | 28/100; High/medium |
