@@ -1,6 +1,7 @@
 import { Link } from 'wouter';
 import { ProductMark } from '@/components/brand/ProductShell';
 import { talentSquare } from '@/config/brand';
+import { openAccessibilityPreferences } from '@/components/accessibility/AccessibilityPreferencesController';
 
 const Footer = () => {
   return (
@@ -176,6 +177,15 @@ const Footer = () => {
                 <Link href="/faq" className="text-[#102a47]/85 hover:text-[#f2c94c]">
                   FAQ
                 </Link>
+              </li>
+              <li>
+                <button
+                  className="min-h-11 text-left text-[#102a47]/85 hover:text-[#f2c94c] hover:underline"
+                  onClick={openAccessibilityPreferences}
+                  type="button"
+                >
+                  Accessibility preferences
+                </button>
               </li>
             </ul>
           </div>

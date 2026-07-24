@@ -1,18 +1,15 @@
-// @ts-nocheck
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { HelmetProvider } from 'react-helmet-async';
 import App from './core/app';
 import './index.css';
+import './styles/accessibility.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from '@/lib/queryClient';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { registerServiceWorker } from '@/lib/registerServiceWorker';
+import { initializeAccessibilityPreferences } from '@/lib/accessibilityPreferences';
 
 /**
- * Main entry point for the WorkWise SA application
- * Sets up React 18 with StrictMode, HelmetProvider for SEO, and QueryClientProvider for data fetching
+ * Main entry point for the TalentSquare application.
+ * Global providers are owned by the canonical app shell in core/app.tsx.
  */
 
 // Add any additional custom styles that aren't covered by Tailwind
@@ -24,6 +21,7 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+initializeAccessibilityPreferences();
 registerServiceWorker();
 
 // Find the root element
@@ -39,16 +37,6 @@ const root = createRoot(rootElement);
 // Render the application
 root.render(
   <React.StrictMode>
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        {/* Main App component */}
-        <App />
-
-        {/* React Query Devtools - only in development */}
-        {process.env.NODE_ENV === 'development' && (
-          <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />
-        )}
-      </QueryClientProvider>
-    </HelmetProvider>
+    <App />
   </React.StrictMode>
 );

@@ -1,126 +1,43 @@
-# 🚀 Accessibility Quick Start Guide
+# TalentSquare Accessibility Preferences
 
-## What We Just Built
+Accessibility preferences are globally available from:
 
-Transformed the profile page settings gear icon into a comprehensive accessibility powerhouse! Here's what's now available:
+- The first keyboard-focusable skip links
+- The profile settings button
+- The “Accessibility preferences” footer button
 
-## ✨ Key Features
+The dialog provides implemented controls for text size, line spacing, colour theme, motion,
+interaction target size, and focus visibility. Preferences are stored only in the current browser.
 
-### 🎯 Mobile-First Design
-- **Floating Action Button**: Quick accessibility actions on mobile
-- **Bottom Sheet Modal**: Natural mobile interaction for settings
-- **44px Tap Targets**: WCAG-compliant touch targets
-- **One-Handed Mode**: Thumb-friendly navigation
+## Development
 
-### 🎨 Visual Customization
-- **Font Size**: 4 levels with real-time preview
-- **Color Themes**: Light/Dark/High-Contrast
-- **Line Spacing**: Normal/Looser for readability
-- **Enhanced Focus**: Stronger keyboard navigation indicators
+The canonical integration is:
 
-### 🔧 Interaction Controls
-- **Reduced Motion**: Respects user preferences
-- **Expanded Tap Targets**: Easier interaction
-- **Simplified UI**: Minimal distractions mode
-- **ARIA Announcements**: Screen reader friendly
+- Provider: `client/src/core/app.tsx`
+- Startup application: `client/src/main.tsx`
+- Storage and validation: `client/src/lib/accessibilityPreferences.ts`
+- Context: `client/src/contexts/AccessibilityContext.tsx`
+- Dialog: `client/src/components/accessibility/AccessibilitySettingsModal.tsx`
+- Styles: `client/src/styles/accessibility.css`
 
-## 🎮 How to Use
+Run focused verification with:
 
-### For Users
-1. **Mobile**: Tap the blue accessibility FAB (bottom-right)
-2. **Desktop**: Click the gear icon in profile header
-3. **Quick Actions**: Use FAB for instant font/contrast changes
-4. **Full Settings**: Access comprehensive options in modal
-
-### For Developers
-```tsx
-// Already integrated in UserProfile.tsx
-import { useAccessibility } from '@/contexts/AccessibilityContext';
-
-const { settings, updateSetting } = useAccessibility();
+```bash
+pnpm run type-check
+pnpm run test:a11y
+pnpm run build:client
 ```
 
-## 🔍 What's Different Now
+## Manual checks
 
-### Profile Page Changes
-- ✅ Settings gear icon now opens accessibility dashboard
-- ✅ Mobile FAB for quick accessibility actions
-- ✅ All settings persist automatically
-- ✅ Real-time visual changes
+1. Press Tab from the top of a page and use each skip link.
+2. Open the preferences dialog from the footer and confirm focus moves into it.
+3. Navigate every control using the keyboard and confirm selected states are announced.
+4. Close with Escape and confirm focus returns to the trigger.
+5. Reload and confirm preferences persist.
+6. Change the system dark-mode and reduced-motion settings while “System” is selected.
+7. Test at 320 CSS pixels and at 200% and 400% zoom.
+8. Test Windows forced colours and the supported screen-reader/browser matrix.
 
-### App-Wide Changes
-- ✅ AccessibilityProvider wraps entire app
-- ✅ CSS custom properties for dynamic theming
-- ✅ Enhanced focus management
-- ✅ Mobile-optimized interactions
-
-## 🧪 Testing the Features
-
-### Quick Test Checklist
-1. **Font Size**: Change in settings, see immediate text size change
-2. **High Contrast**: Toggle theme, see color changes
-3. **Reduced Motion**: Enable, see animations slow down
-4. **Mobile FAB**: On mobile, tap blue accessibility button
-5. **Keyboard Navigation**: Tab through settings modal
-6. **Screen Reader**: Test with VoiceOver/TalkBack
-
-### Mobile Testing
-- Resize browser to mobile width
-- Look for blue FAB in bottom-right
-- Test thumb-friendly interactions
-- Try one-handed mode toggle
-
-## 🎯 Business Impact
-
-### Immediate Benefits
-- **WCAG AA Compliance**: Ready for accessibility audits
-- **15% More Users**: Accessible to users with disabilities
-- **Legal Protection**: Reduces accessibility lawsuit risk
-- **Better SEO**: Improved semantic markup
-
-### User Experience
-- **Personalization**: Users can customize their experience
-- **Mobile-First**: Optimized for mobile job seekers
-- **Performance**: Minimal impact on load times
-- **Cross-Platform**: Works on all devices
-
-## 🔮 What's Next
-
-### Phase 2 (Coming Soon)
-- Text-to-speech implementation
-- Voice navigation commands
-- Reading mode for job descriptions
-- iOS/Android accessibility shortcuts
-
-### Phase 3 (Future)
-- AI-powered accessibility suggestions
-- Usage analytics and insights
-- Cross-device settings sync
-- Advanced gesture alternatives
-
-## 🆘 Troubleshooting
-
-### Common Issues
-- **Settings not saving**: Check localStorage permissions
-- **Styles not applying**: Ensure accessibility.css is imported
-- **Mobile FAB not showing**: Check screen width (<768px)
-- **Focus outlines missing**: Enable "Enhanced Focus Outlines"
-
-### Debug Mode
-```tsx
-// Check current settings
-console.log(useAccessibility().settings);
-
-// Test setting update
-updateSetting('fontSize', 'large');
-```
-
-## 🎉 Success!
-
-The profile page is now a Swiss Army knife of inclusivity! Users can:
-- Customize their visual experience
-- Access quick mobile actions
-- Navigate with assistive technology
-- Enjoy a truly personalized WorkWise experience
-
-**The gear icon is now a gateway to empowerment! 🌟**
+Passing automated checks does not establish WCAG conformance. Record manual evidence for the
+complete candidate journeys before changing release or compliance wording.

@@ -1,230 +1,101 @@
-# WorkWise Profile Accessibility Enhancement Implementation Plan
+# TalentSquare Accessibility Baseline and Personalisation Plan
 
-## 🎯 Executive Summary
+## Current status
 
-Transform the profile page settings gear icon into a comprehensive "User Empowerment Dashboard" - a Swiss Army knife of inclusivity features designed with mobile-first accessibility in mind.
+The first runtime-hardening increment is implemented and undergoing verification. It must not be
+described as WCAG conformant, EAA compliant, legally protective, or ready for unrestricted
+production deployment until the complete evaluation scope and manual test matrix pass.
 
-## 📋 Implementation Status
+### Implemented
 
-### ✅ Phase 1: Core Infrastructure (COMPLETED)
-- [x] Accessibility types and interfaces (`client/src/types/accessibility.ts`)
-- [x] Accessibility context with localStorage persistence (`client/src/contexts/AccessibilityContext.tsx`)
-- [x] Comprehensive settings modal (`client/src/components/accessibility/AccessibilitySettingsModal.tsx`)
-- [x] Mobile-first FAB component (`client/src/components/accessibility/MobileAccessibilityFab.tsx`)
-- [x] CSS accessibility enhancements (`client/src/styles/accessibility.css`)
-- [x] UserProfile integration
+- Accessibility preferences are mounted in the canonical `client/src/core/app.tsx` application.
+- Stored preferences are validated, versioned, migrated from the legacy key, and applied before
+  React renders.
+- System colour-scheme and reduced-motion preferences are supported.
+- Text size, line spacing, colour theme, motion, interaction target, and focus preferences have
+  real runtime effects.
+- Preferences remain local to the browser and synchronize between tabs.
+- The settings dialog uses focus-managed Radix primitives and labelled controls.
+- Global access is available through skip links, the profile settings action, and the footer.
+- Browser zoom is preserved.
+- The former floating accessibility action button and unimplemented feature toggles were removed.
+- Profile edit, image upload, and professional-image viewer overlays use accessible dialogs.
+- Automated preference and axe checks are available through `pnpm run test:a11y`.
+- JSX accessibility lint rules are enabled.
 
-### 🔄 Phase 2: Advanced Features (IN PROGRESS)
-- [ ] Text-to-speech implementation
-- [ ] Voice navigation integration
-- [ ] Reading mode functionality
-- [ ] Gesture alternative buttons
-- [ ] Screen reader optimizations
+### Pending verification
 
-### 📅 Phase 3: Mobile Enhancements (PLANNED)
-- [ ] iOS/Android accessibility shortcuts integration
-- [ ] Haptic feedback for accessibility actions
-- [ ] Voice control commands
-- [ ] Orientation lock implementation
-- [ ] One-handed mode optimizations
+- Full keyboard-only candidate journeys
+- 320 CSS-pixel reflow
+- Browser zoom at 200% and 400%
+- Forced-colours mode
+- Text-spacing overrides
+- macOS/iOS VoiceOver
+- Android TalkBack
+- Windows NVDA with Chrome and Firefox
+- Contrast verification for every supported theme and component state
+- Advertisement, sponsored-content, toast, error, upload, and application-flow checks
 
-## 🚀 Features Implemented
+## Product principles
 
-### 1. Visual & Text Settings
-- **Font Size Control**: 4 levels (Small → Extra Large) with real-time preview
-- **Line Spacing**: Normal/Looser options for improved readability
-- **Color Themes**: Light/Dark/High-Contrast with WCAG AA compliance
-- **Enhanced Focus Outlines**: Stronger visual indicators for keyboard navigation
+Accessibility is the default product baseline. Personalisation controls enhance that baseline but
+must never be required to browse jobs, create a profile, upload a CV, submit an application, or
+recover from an error.
 
-### 2. Interaction & Navigation
-- **Reduced Motion**: Respects user preferences and system settings
-- **Expanded Tap Targets**: 44px minimum for mobile accessibility
-- **Simplified UI Mode**: Minimal distractions, essential elements only
-- **ARIA Announcements**: Screen reader friendly status updates
+TalentSquare uses 44 by 44 CSS pixels as its preferred ergonomic interaction target. WCAG 2.2
+Level AA criterion 2.5.8 uses 24 by 24 CSS pixels subject to its defined exceptions.
 
-### 3. Media & Audio Controls
-- **Auto-play Control**: User preference for media playback
-- **Captions Toggle**: Enable/disable captions for video content
-- **Text-to-Speech**: Customizable speed and voice settings (framework ready)
+The application supports portrait and landscape layouts. It does not lock device orientation.
 
-### 4. Mobile-Specific Features
-- **One-Handed Mode**: Thumb-friendly navigation optimization
-- **Gesture Alternatives**: Button alternatives for complex gestures
-- **Orientation Preferences**: Lock to portrait/landscape
-- **Mobile FAB**: Quick accessibility actions floating button
+## Preference architecture
 
-### 5. Reading Enhancements
-- **Reading Mode**: Distraction-free content consumption
-- **Text-to-Speech Framework**: Speed control (0.5x - 2.0x)
-- **Enhanced Typography**: Optimized for readability
+The version 1 schema contains only implemented preferences:
 
-## 🎨 Design Philosophy
+- Text size: small, default, large, extra large
+- Line spacing: normal or looser
+- Colour theme: system, light, dark, or high contrast
+- Motion: system, reduce, or allow
+- Larger interaction targets
+- Enhanced focus indicators
 
-### Mobile-First Approach
-- **Thumb-Friendly**: All interactive elements within comfortable reach
-- **44px Minimum**: WCAG-compliant tap target sizes
-- **Bottom-Sheet Modals**: Natural mobile interaction patterns
-- **Floating Action Button**: Quick access to accessibility features
+Preferences are stored in `talentsquare-accessibility-settings`. Invalid and unavailable storage
+falls back safely. The previous `workwise-accessibility-settings` value is read as a migration
+source, but unsupported legacy fields are not exposed.
 
-### Progressive Enhancement
-- **Graceful Degradation**: Works without JavaScript
-- **System Integration**: Respects OS accessibility preferences
-- **Performance Optimized**: Minimal impact on page load
-- **Cross-Platform**: Consistent experience across devices
+Preferences are not:
 
-## 🔧 Technical Implementation
+- Synced across devices
+- Written to candidate profiles
+- Shared with employers or recruiters
+- Used for recommendations, ranking, advertising, or SquareJUMP
+- Treated as evidence of a health condition or disability
 
-### Context Architecture
-```typescript
-// Centralized accessibility state management
-const { settings, updateSetting, resetSettings } = useAccessibility();
+## Deferred capabilities
 
-// Automatic persistence to localStorage
-// Real-time CSS custom property updates
-// System preference detection
+Text-to-speech, voice navigation, caption control, reading mode, gesture modes, haptics, native
+mobile shortcuts, and one-handed alternate layouts are not current product capabilities. They
+must not reappear as settings until they have a defined user need, privacy review, implementation,
+and assistive-technology test evidence.
+
+## Release gates
+
+Run:
+
+```bash
+pnpm run type-check
+pnpm run test:a11y
+pnpm run test:client
+pnpm run build:client
 ```
 
-### CSS Custom Properties
-```css
-:root {
-  --base-font-size: 16px;
-  --line-height: 1.5;
-  --tap-target-min: 44px;
-  --focus-ring-width: 2px;
-}
-```
+Automated checks supplement rather than replace manual testing. A Lighthouse or axe result cannot
+establish conformance for a complete candidate process.
 
-### Component Structure
-```
-AccessibilityProvider (Context)
-├── AccessibilitySettingsModal (Main Settings)
-├── MobileAccessibilityFab (Quick Actions)
-└── CSS Classes (Visual Implementation)
-```
+## Release wording
 
-## 📱 Mobile Experience Highlights
+Until formal evaluation is complete, use:
 
-### Quick Actions FAB
-- **Instant Access**: Most-used settings in one tap
-- **Smart Positioning**: Bottom-right, thumb-accessible
-- **Visual Feedback**: Toast notifications for changes
-- **Contextual**: Shows relevant options based on current settings
+> TalentSquare is improving its experience toward WCAG 2.2 Level AA and is validating complete
+> candidate journeys with automated and manual accessibility testing.
 
-### Settings Modal
-- **Tabbed Interface**: Organized by category
-- **Real-time Preview**: See changes immediately
-- **Mobile-Optimized**: Bottom sheet on mobile
-- **Keyboard Navigation**: Full accessibility support
-
-## 🎯 WCAG Compliance Features
-
-### Level AA Compliance
-- **Color Contrast**: 4.5:1 for normal text, 3:1 for large text
-- **Keyboard Navigation**: Full keyboard accessibility
-- **Focus Management**: Visible focus indicators
-- **Screen Reader Support**: Proper ARIA labels and roles
-
-### Level AAA Enhancements
-- **High Contrast Mode**: Enhanced visibility
-- **Text Spacing**: Customizable line height
-- **Motion Control**: Reduced motion preferences
-- **Text Alternatives**: Comprehensive alt text
-
-## 🚀 Quick Start Guide
-
-### 1. Wrap Your App
-```tsx
-import { AccessibilityProvider } from '@/contexts/AccessibilityContext';
-
-function App() {
-  return (
-    <AccessibilityProvider>
-      {/* Your app content */}
-    </AccessibilityProvider>
-  );
-}
-```
-
-### 2. Import Styles
-```tsx
-import '@/styles/accessibility.css';
-```
-
-### 3. Add to Profile Page
-```tsx
-import AccessibilitySettingsModal from '@/components/accessibility/AccessibilitySettingsModal';
-import MobileAccessibilityFab from '@/components/accessibility/MobileAccessibilityFab';
-
-// In your component
-<AccessibilitySettingsModal open={showSettings} onOpenChange={setShowSettings} />
-<MobileAccessibilityFab onOpenSettings={() => setShowSettings(true)} />
-```
-
-## 🔮 Future Enhancements
-
-### Phase 2: Advanced Features
-- **Voice Navigation**: "Navigate to jobs", "Open settings"
-- **Smart Suggestions**: AI-powered accessibility recommendations
-- **Usage Analytics**: Track which features help users most
-- **Personalization**: Learn user preferences over time
-
-### Phase 3: Platform Integration
-- **iOS Shortcuts**: Siri integration for accessibility commands
-- **Android Accessibility**: TalkBack and Live Caption integration
-- **Browser Extensions**: Enhanced accessibility across the web
-- **API Integration**: Sync settings across devices
-
-## 📊 Business Impact
-
-### Compliance Benefits
-- **EAA Compliance**: Ready for EU Accessibility Act (June 2025)
-- **Legal Protection**: Reduces accessibility lawsuit risk
-- **Global Reach**: Supports international accessibility standards
-
-### User Experience Benefits
-- **Wider Audience**: 15% of global population has disabilities
-- **Better Retention**: Accessible apps have higher engagement
-- **Positive Brand**: Demonstrates commitment to inclusion
-- **SEO Benefits**: Better semantic markup improves search rankings
-
-### Cost-Effective Implementation
-- **Proactive Approach**: Cheaper than reactive accessibility fixes
-- **Reusable Components**: Can be applied across the entire platform
-- **Developer Efficiency**: Clear patterns for future features
-- **Maintenance Friendly**: Centralized accessibility logic
-
-## 🧪 Testing Strategy
-
-### Automated Testing
-- **axe-core Integration**: Automated accessibility scanning
-- **Lighthouse Audits**: Performance and accessibility scores
-- **Jest Tests**: Component accessibility behavior
-- **Cypress E2E**: User journey accessibility testing
-
-### Manual Testing
-- **Screen Reader Testing**: NVDA, JAWS, VoiceOver
-- **Keyboard Navigation**: Tab order and focus management
-- **Mobile Testing**: iOS VoiceOver, Android TalkBack
-- **User Testing**: Real users with disabilities
-
-## 📈 Success Metrics
-
-### Quantitative Metrics
-- **Accessibility Score**: Lighthouse accessibility score >95
-- **User Adoption**: % of users who customize accessibility settings
-- **Task Completion**: Success rate for users with disabilities
-- **Performance Impact**: <100ms additional load time
-
-### Qualitative Metrics
-- **User Feedback**: Satisfaction surveys from accessibility users
-- **Support Tickets**: Reduction in accessibility-related issues
-- **Compliance Audits**: External accessibility audit scores
-- **Developer Experience**: Team feedback on implementation ease
-
-## 🎉 Conclusion
-
-This implementation transforms WorkWise from a standard job platform into an inclusive, accessible experience that empowers all users. The mobile-first approach ensures that accessibility isn't an afterthought but a core feature that enhances the experience for everyone.
-
-The Swiss Army knife approach means users can customize their experience exactly to their needs, whether they're using assistive technology, have temporary impairments, or simply prefer different interaction patterns.
-
-**Ready to deploy and make WorkWise accessible to everyone! 🌟**
+Do not use “WCAG compliant”, “EAA ready”, “legally protected”, or “accessible to everyone”.

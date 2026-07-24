@@ -68,11 +68,11 @@ const Logo = () => (
  * Handles mobile navigation using Sheet component
  */
 interface MobileNavProps {
-  navigationItems: readonly { href: string; label: string; id: string }[];
+  items: readonly { href: string; label: string; id: string }[];
   currentPath: string;
 }
 
-const MobileNav = ({ navigationItems, currentPath }: MobileNavProps) => {
+const MobileNav = ({ items, currentPath }: MobileNavProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleLinkClick = useCallback(() => {
@@ -106,7 +106,7 @@ const MobileNav = ({ navigationItems, currentPath }: MobileNavProps) => {
           </div>
 
           <nav className="flex flex-col space-y-4">
-            {navigationItems.map(item => (
+            {items.map(item => (
               <NavLink
                 key={item.id}
                 href={item.href}
@@ -133,14 +133,14 @@ const MobileNav = ({ navigationItems, currentPath }: MobileNavProps) => {
  * Handles desktop navigation layout
  */
 interface DesktopNavProps {
-  navigationItems: readonly { href: string; label: string; id: string }[];
+  items: readonly { href: string; label: string; id: string }[];
   currentPath: string;
 }
 
-const DesktopNav = ({ navigationItems, currentPath }: DesktopNavProps) => (
+const DesktopNav = ({ items, currentPath }: DesktopNavProps) => (
   <nav className="hidden lg:flex items-center space-x-5">
     <ul className="flex items-center space-x-4">
-      {navigationItems.map(item => (
+      {items.map(item => (
         <li key={item.id}>
           <NavLink
             href={item.href}
@@ -173,7 +173,10 @@ const Header = () => {
   const currentPath = useMemo(() => location, [location]);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-white/95 text-[#102a47] shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80">
+    <header
+      className="sticky top-0 z-50 w-full border-b border-border bg-white/95 text-[#102a47] shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80"
+      id="navigation"
+    >
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -182,10 +185,10 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <DesktopNav navigationItems={navigationItems} currentPath={currentPath} />
+          <DesktopNav items={navigationItems} currentPath={currentPath} />
 
           {/* Mobile Navigation */}
-          <MobileNav navigationItems={navigationItems} currentPath={currentPath} />
+          <MobileNav items={navigationItems} currentPath={currentPath} />
         </div>
       </div>
     </header>

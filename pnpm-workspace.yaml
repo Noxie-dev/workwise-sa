@@ -14,3 +14,9 @@ allowBuilds:
   protobufjs: true
   sharp: true
   unix-dgram: true
+
+overrides:
+  minimist: ^1.2.8
+  effect: ^3.20.0
+  esbuild: ^0.25.0
+  '@tootallnate/once@<3.0.1': '>=3.0.1'

@@ -1,69 +1,26 @@
-// Accessibility and user preference types
-export interface AccessibilitySettings {
-  // Visual & Text Settings
-  fontSize: 'small' | 'medium' | 'large' | 'extra-large';
-  lineSpacing: 'normal' | 'looser';
-  colorTheme: 'light' | 'dark' | 'high-contrast';
-  
-  // Media & Interaction Controls
-  reduceMotion: boolean;
-  autoPlayMedia: boolean;
-  captionsEnabled: boolean;
-  
-  // Navigation & Input Preferences
-  simplifiedUI: boolean;
-  voiceNavigation: boolean;
-  expandedTapTargets: boolean;
-  
-  // Screen Reader & Semantic Support
-  ariaAnnouncements: boolean;
-  enhancedFocusOutlines: boolean;
-  
-  // Reading Enhancements
-  readingMode: boolean;
-  textToSpeech: {
-    enabled: boolean;
-    speed: number; // 0.5 to 2.0
-    voice: string;
-  };
-  
-  // Mobile-Specific
-  oneHandedMode: boolean;
-  gestureAlternatives: boolean;
-  orientationLock: 'none' | 'portrait' | 'landscape';
-}
+export const ACCESSIBILITY_SETTINGS_VERSION = 1 as const;
 
-export interface UserPreferences extends AccessibilitySettings {
-  // Profile-specific preferences
-  profileVisibility: 'public' | 'private' | 'recruiters-only';
-  notificationSettings: {
-    email: boolean;
-    push: boolean;
-    sms: boolean;
-  };
-  language: string;
-  timezone: string;
+export type FontSizePreference = 'small' | 'medium' | 'large' | 'extra-large';
+export type LineSpacingPreference = 'normal' | 'looser';
+export type ColorThemePreference = 'system' | 'light' | 'dark' | 'high-contrast';
+export type MotionPreference = 'system' | 'reduce' | 'allow';
+
+export interface AccessibilitySettings {
+  version: typeof ACCESSIBILITY_SETTINGS_VERSION;
+  fontSize: FontSizePreference;
+  lineSpacing: LineSpacingPreference;
+  colorTheme: ColorThemePreference;
+  motionPreference: MotionPreference;
+  expandedTapTargets: boolean;
+  enhancedFocusOutlines: boolean;
 }
 
 export const DEFAULT_ACCESSIBILITY_SETTINGS: AccessibilitySettings = {
+  version: ACCESSIBILITY_SETTINGS_VERSION,
   fontSize: 'medium',
   lineSpacing: 'normal',
-  colorTheme: 'light',
-  reduceMotion: false,
-  autoPlayMedia: true,
-  captionsEnabled: false,
-  simplifiedUI: false,
-  voiceNavigation: false,
+  colorTheme: 'system',
+  motionPreference: 'system',
   expandedTapTargets: false,
-  ariaAnnouncements: false,
   enhancedFocusOutlines: false,
-  readingMode: false,
-  textToSpeech: {
-    enabled: false,
-    speed: 1.0,
-    voice: 'default',
-  },
-  oneHandedMode: false,
-  gestureAlternatives: false,
-  orientationLock: 'none',
 };

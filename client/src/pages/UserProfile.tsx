@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { useParams } from 'wouter';
+import { useLocation } from 'wouter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
@@ -13,32 +20,23 @@ import {
   MapPin,
   Calendar,
   Briefcase,
-  Award,
   ChevronLeft,
   ChevronRight,
   Edit,
-  MessageSquare,
   Bell,
   Settings,
-  FileText,
-  Heart,
   Eye,
   Clock,
-  X,
-  Accessibility,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { profileService } from '@/services/profileService';
-import { fileUploadService } from '@/services/fileUploadService';
-import { updateProfile as firebaseUpdateProfile } from 'firebase/auth';
+import { profileService, type ProfileData } from '@/services/profileService';
 import ProfileImageUpload from '@/components/ProfileImageUpload';
 import ProfessionalImageUpload from '@/components/ProfessionalImageUpload';
 import ProfessionalImageViewer from '@/components/ProfessionalImageViewer';
 import ProfileCompletionTracker from '@/components/ProfileCompletionTracker';
 import ProfileAnalytics from '@/components/ProfileAnalytics';
 import ProfileEditModal from '@/components/ProfileEditModal';
-import AccessibilitySettingsModal from '@/components/accessibility/AccessibilitySettingsModal';
-import MobileAccessibilityFab from '@/components/accessibility/MobileAccessibilityFab';
+import { openAccessibilityPreferences } from '@/components/accessibility/AccessibilityPreferencesController';
 
 // Calculate level based on engagement score
 const getUserLevel = (score: number) => {
@@ -49,25 +47,56 @@ const getUserLevel = (score: number) => {
   return { level: 1, title: 'Novice' };
 };
 
+interface ProfileActivity {
+  content: string;
+  timestamp: string;
+  icon?: React.ComponentType<{ className?: string }>;
+}
+
+interface ProfileViewData extends ProfileData {
+  personal: ProfileData['personal'] & {
+    caption?: string;
+  };
+  preferences?: {
+    jobTypes?: string[];
+    locations?: string[];
+    minSalary?: number;
+    willingToRelocate?: boolean;
+  };
+  memberSince?: string;
+  engagementScore?: number;
+  applications?: {
+    current: number;
+    total: number;
+    successRate: number;
+  };
+  ratings?: {
+    overall: number;
+  };
+  notifications?: number;
+  recentActivity?: ProfileActivity[];
+}
+
 const UserProfile = () => {
-  const { username } = useParams();
   const { currentUser } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
+  const [, navigate] = useLocation();
+  const [profile, setProfile] = useState<ProfileViewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [uploading, setUploading] = useState(false);
   const [profileImages, setProfileImages] = useState<string[]>([]);
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [professionalImage, setProfessionalImage] = useState<string | null>(null);
   const [showProfessionalUpload, setShowProfessionalUpload] = useState(false);
   const [showProfessionalViewer, setShowProfessionalViewer] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showAccessibilitySettings, setShowAccessibilitySettings] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!currentUser) return;
+      if (!currentUser) {
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const data = await profileService.getProfile(currentUser.uid);
@@ -79,16 +108,15 @@ const UserProfile = () => {
         setProfileImages(images);
         // Set professional image if available
         setProfessionalImage(data?.personal?.professionalImage || null);
-      } catch (e) {
-        console.error('Failed to fetch profile:', e);
+      } catch {
         // Create a default profile structure if fetch fails
         setProfile({
           personal: {
             fullName: currentUser.displayName || 'User',
             phoneNumber: '',
             location: 'Not specified',
-            bio: 'Welcome to WorkWise SA! Complete your profile to get better job matches.',
-            profilePicture: currentUser.photoURL,
+            bio: 'Welcome to TalentSquare! Complete your profile to get better job matches.',
+            profilePicture: currentUser.photoURL || undefined,
           },
           education: {
             highestEducation: 'Not specified',
@@ -131,7 +159,7 @@ const UserProfile = () => {
       }
     };
     fetchProfile();
-  }, [currentUser]);
+  }, [currentUser, navigate]);
 
   const userLevel = getUserLevel(profile?.engagementScore || 0);
 
@@ -146,21 +174,34 @@ const UserProfile = () => {
 
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64">Loading...</div>;
+    return (
+      <div aria-live="polite" className="flex h-64 items-center justify-center" role="status">
+        Loading profile…
+      </div>
+    );
   }
   if (!profile) {
-    return <div className="flex items-center justify-center h-64">Profile not found.</div>;
+    return (
+      <main className="flex h-64 items-center justify-center px-4 text-center">
+        <div>
+          <h1 className="text-xl font-semibold">Sign in to view your profile</h1>
+          <p className="mt-2 text-muted-foreground">
+            Your candidate profile is available after authentication.
+          </p>
+        </div>
+      </main>
+    );
   }
 
   return (
     <>
       <Helmet>
-        <title>{profile.personal?.fullName || 'User'} | Profile | WorkWise SA</title>
+        <title>{profile.personal?.fullName || 'User'} | Profile | TalentSquare</title>
         <meta
           name="description"
           content={`${
             profile.personal?.fullName || 'User'
-          }'s profile on WorkWise SA. View details and activity history.`}
+          }'s profile on TalentSquare. View details and activity history.`}
         />
       </Helmet>
 
@@ -172,7 +213,7 @@ const UserProfile = () => {
             <div className="absolute top-4 left-4 md:left-8">
               <img
                 src="/images/logo.png"
-                alt="WorkWise SA Logo"
+                alt="TalentSquare"
                 className="h-24 rounded-md shadow-md transition-all duration-200 hover:scale-105"
               />
             </div>
@@ -189,7 +230,6 @@ const UserProfile = () => {
                     variant="outline"
                     className="absolute bottom-2 right-2 z-10"
                     onClick={() => setShowImageUpload(true)}
-                    disabled={uploading}
                   >
                     <Edit className="h-3 w-3 mr-1" />
                     Edit
@@ -199,6 +239,7 @@ const UserProfile = () => {
                   <>
                     <div className="absolute -right-2 bottom-0">
                       <Button
+                        aria-label="Show next profile image"
                         size="sm"
                         variant="ghost"
                         className="h-8 w-8 rounded-full bg-white"
@@ -209,6 +250,7 @@ const UserProfile = () => {
                     </div>
                     <div className="absolute -left-2 bottom-0">
                       <Button
+                        aria-label="Show previous profile image"
                         size="sm"
                         variant="ghost"
                         className="h-8 w-8 rounded-full bg-white"
@@ -258,9 +300,14 @@ const UserProfile = () => {
                 <Mail className="h-4 w-4 mr-1" />
                 <span>Message</span>
               </Button>
-              <Button size="sm" variant="outline" className="relative">
-                <Bell className="h-4 w-4" />
-                {profile.notifications > 0 && (
+              <Button
+                aria-label={`Notifications${(profile.notifications ?? 0) > 0 ? `, ${profile.notifications} unread` : ''}`}
+                className="relative"
+                size="sm"
+                variant="outline"
+              >
+                <Bell aria-hidden="true" className="h-4 w-4" />
+                {(profile.notifications ?? 0) > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                     {profile.notifications}
                   </span>
@@ -269,7 +316,7 @@ const UserProfile = () => {
               <Button 
                 size="sm" 
                 variant="outline"
-                onClick={() => setShowAccessibilitySettings(true)}
+                onClick={openAccessibilityPreferences}
                 aria-label="Open accessibility and user settings"
               >
                 <Settings className="h-4 w-4" />
@@ -279,7 +326,7 @@ const UserProfile = () => {
         </div>
         {/* Main Content Area */}
         <div className="container mx-auto px-4 pb-12">
-          <Tabs defaultValue="overview" className="w-full" onValueChange={setActiveTab}>
+          <Tabs defaultValue="overview" className="w-full">
             <TabsList className="mb-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="applications">Applications</TabsTrigger>
@@ -294,7 +341,7 @@ const UserProfile = () => {
                     profile={profile}
                     onSectionClick={(sectionId) => {
                       // Navigate to profile setup with specific section
-                      console.log('Navigate to section:', sectionId);
+                      navigate(`/profile-setup?section=${encodeURIComponent(sectionId)}`);
                     }}
                   />
                 </div>
@@ -370,6 +417,7 @@ const UserProfile = () => {
                             </span>
                           </div>
                           <Progress
+                            aria-label="Active applications"
                             value={
                               ((profile.applications?.current || 0) /
                                 (profile.applications?.total || 1)) *
@@ -386,6 +434,7 @@ const UserProfile = () => {
                             </span>
                           </div>
                           <Progress
+                            aria-label="Application success rate"
                             value={(profile.applications?.successRate || 0) * 100}
                             className="h-2"
                           />
@@ -397,7 +446,11 @@ const UserProfile = () => {
                               {profile.engagementScore || 0}/100
                             </span>
                           </div>
-                          <Progress value={profile.engagementScore || 0} className="h-2" />
+                          <Progress
+                            aria-label="Profile engagement"
+                            className="h-2"
+                            value={profile.engagementScore || 0}
+                          />
                         </div>
                       </div>
                     </CardContent>
@@ -436,7 +489,7 @@ const UserProfile = () => {
                       <div className="space-y-4">
                         {(profile.recentActivity || [])
                           .slice(0, 3)
-                          .map((activity: any, index: number) => (
+                          .map((activity: ProfileActivity, index: number) => (
                             <div key={index} className="flex items-start">
                               <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
                                 {activity.icon ? (
@@ -460,7 +513,9 @@ const UserProfile = () => {
                 <CardContent className="p-6">
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-semibold">Job Applications</h3>
-                    <Badge variant={profile.applications?.current > 0 ? 'default' : 'outline'}>
+                    <Badge
+                      variant={(profile.applications?.current ?? 0) > 0 ? 'default' : 'outline'}
+                    >
                       {profile.applications?.current || 0} Active Applications
                     </Badge>
                   </div>
@@ -479,7 +534,8 @@ const UserProfile = () => {
                       <h3 className="text-xl font-semibold mb-6">Activity History</h3>
                       <div className="space-y-4">
                         {(profile.recentActivity || []).length > 0 ? (
-                          (profile.recentActivity || []).map((activity: any, index: number) => (
+                          (profile.recentActivity || []).map(
+                            (activity: ProfileActivity, index: number) => (
                             <div key={index} className="flex items-start border-b pb-4 last:border-0">
                               <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-4 flex-shrink-0">
                                 {activity.icon ? (
@@ -493,7 +549,8 @@ const UserProfile = () => {
                                 <p className="text-sm text-gray-500">{activity.timestamp}</p>
                               </div>
                             </div>
-                          ))
+                            )
+                          )
                         ) : (
                           <div className="text-center py-8">
                             <Clock className="h-12 w-12 text-gray-300 mx-auto mb-4" />
@@ -587,6 +644,7 @@ const UserProfile = () => {
                         <div className="flex gap-2">
                           {professionalImage && (
                             <Button
+                              aria-label="View professional image"
                               variant="outline"
                               size="sm"
                               onClick={() => setShowProfessionalViewer(true)}
@@ -616,58 +674,42 @@ const UserProfile = () => {
         </div>
 
         {/* Profile Image Upload Modal */}
-        {showImageUpload && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-4 border-b flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Update Profile Image</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowImageUpload(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="p-4">
-                <ProfileImageUpload
-                  currentImageUrl={profileImages[activeImageIndex]}
-                  onImageUpdate={(newImageUrl) => {
-                    setProfileImages(prev => [newImageUrl, ...prev.slice(1)]);
-                    setShowImageUpload(false);
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        <Dialog onOpenChange={setShowImageUpload} open={showImageUpload}>
+          <DialogContent className="max-h-[90dvh] max-w-md overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Update profile image</DialogTitle>
+              <DialogDescription>
+                Choose and crop an image for your candidate profile.
+              </DialogDescription>
+            </DialogHeader>
+            <ProfileImageUpload
+              currentImageUrl={profileImages[activeImageIndex]}
+              onImageUpdate={newImageUrl => {
+                setProfileImages(prev => [newImageUrl, ...prev.slice(1)]);
+                setShowImageUpload(false);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
 
         {/* Professional Image Upload Modal */}
-        {showProfessionalUpload && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-4 border-b flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Professional Image</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowProfessionalUpload(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="p-4">
-                <ProfessionalImageUpload
-                  currentImageUrl={professionalImage || undefined}
-                  onImageUpdate={(newImageUrl) => {
-                    setProfessionalImage(newImageUrl);
-                    setShowProfessionalUpload(false);
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        <Dialog onOpenChange={setShowProfessionalUpload} open={showProfessionalUpload}>
+          <DialogContent className="max-h-[90dvh] max-w-lg overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Professional image</DialogTitle>
+              <DialogDescription>
+                Add or update the professional image made available to recruiters.
+              </DialogDescription>
+            </DialogHeader>
+            <ProfessionalImageUpload
+              currentImageUrl={professionalImage || undefined}
+              onImageUpdate={newImageUrl => {
+                setProfessionalImage(newImageUrl);
+                setShowProfessionalUpload(false);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
 
         {/* Professional Image Viewer Modal */}
         {showProfessionalViewer && professionalImage && (
@@ -692,16 +734,6 @@ const UserProfile = () => {
           />
         )}
 
-        {/* Accessibility Settings Modal */}
-        <AccessibilitySettingsModal
-          open={showAccessibilitySettings}
-          onOpenChange={setShowAccessibilitySettings}
-        />
-
-        {/* Mobile Accessibility FAB */}
-        <MobileAccessibilityFab
-          onOpenSettings={() => setShowAccessibilitySettings(true)}
-        />
       </main>
     </>
   );

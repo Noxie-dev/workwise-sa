@@ -4,6 +4,7 @@ import pluginImport from 'eslint-plugin-import';
 import pluginPrettier from 'eslint-plugin-prettier';
 import pluginReact from 'eslint-plugin-react';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
+import pluginJsxA11y from 'eslint-plugin-jsx-a11y';
 import tseslint from 'typescript-eslint';
 import prettierConfig from 'eslint-config-prettier';
 
@@ -48,6 +49,7 @@ export default tseslint.config(
       import: pluginImport,
       react: pluginReact,
       'react-hooks': pluginReactHooks,
+      'jsx-a11y': pluginJsxA11y,
       prettier: pluginPrettier,
     },
     settings: {
@@ -61,6 +63,7 @@ export default tseslint.config(
       },
     },
     rules: {
+      ...pluginJsxA11y.configs.recommended.rules,
       'react/jsx-filename-extension': [1, { extensions: ['.tsx', '.jsx'] }],
       'no-use-before-define': 'off',
       '@typescript-eslint/no-use-before-define': 'error',

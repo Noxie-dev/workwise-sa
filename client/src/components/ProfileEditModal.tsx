@@ -5,24 +5,36 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { 
   X, 
   Save, 
   User, 
-  Phone, 
-  MapPin, 
-  FileText,
   Plus,
-  Trash2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { profileService } from '@/services/profileService';
+import { profileService, type ProfileData } from '@/services/profileService';
+
+interface EditableProfile extends ProfileData {
+  preferences?: {
+    jobTypes?: string[];
+    locations?: string[];
+    minSalary?: number;
+    willingToRelocate?: boolean;
+  };
+}
 
 interface ProfileEditModalProps {
-  profile: any;
+  profile: EditableProfile;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (updatedProfile: any) => void;
+  onSave: (updatedProfile: EditableProfile) => void;
   userId: string;
 }
 
@@ -61,7 +73,11 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleInputChange = (section: string, field: string, value: any) => {
+  const handleInputChange = (
+    section: 'personal' | 'skills' | 'preferences',
+    field: string,
+    value: string | number | boolean
+  ) => {
     setFormData(prev => ({
       ...prev,
       [section]: {
@@ -180,11 +196,14 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         title: "Profile Updated",
         description: "Your profile has been successfully updated.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Update Failed",
-        description: error.message || "Failed to update profile. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update profile. Please try again.",
       });
     } finally {
       setSaving(false);
@@ -192,18 +211,14 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Edit Profile</h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+    <Dialog onOpenChange={open => !open && onClose()} open={isOpen}>
+      <DialogContent className="max-h-[90dvh] max-w-2xl overflow-y-auto p-0">
+        <DialogHeader className="border-b p-4 pr-12 text-left">
+          <DialogTitle>Edit profile</DialogTitle>
+          <DialogDescription>
+            Update personal information, skills, languages and job preferences.
+          </DialogDescription>
+        </DialogHeader>
 
         <div className="p-6 space-y-6">
           {/* Personal Information */}
@@ -268,6 +283,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                     <Badge key={index} variant="outline" className="flex items-center gap-1">
                       {skill}
                       <button
+                        aria-label={`Remove ${skill} skill`}
+                        type="button"
                         onClick={() => removeSkill(skill)}
                         className="ml-1 hover:text-red-500"
                       >
@@ -279,13 +296,14 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
               </div>
               <div className="flex gap-2">
                 <Input
+                  aria-label="New skill"
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
                   placeholder="Add a skill"
-                  onKeyPress={(e) => e.key === 'Enter' && addSkill()}
+                  onKeyDown={e => e.key === 'Enter' && addSkill()}
                 />
-                <Button onClick={addSkill} size="sm">
-                  <Plus className="h-4 w-4" />
+                <Button aria-label="Add skill" onClick={addSkill} size="sm" type="button">
+                  <Plus aria-hidden="true" className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
@@ -304,6 +322,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                     <Badge key={index} variant="outline" className="flex items-center gap-1">
                       {language}
                       <button
+                        aria-label={`Remove ${language} language`}
+                        type="button"
                         onClick={() => removeLanguage(language)}
                         className="ml-1 hover:text-red-500"
                       >
@@ -315,13 +335,14 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
               </div>
               <div className="flex gap-2">
                 <Input
+                  aria-label="New language"
                   value={newLanguage}
                   onChange={(e) => setNewLanguage(e.target.value)}
                   placeholder="Add a language"
-                  onKeyPress={(e) => e.key === 'Enter' && addLanguage()}
+                  onKeyDown={e => e.key === 'Enter' && addLanguage()}
                 />
-                <Button onClick={addLanguage} size="sm">
-                  <Plus className="h-4 w-4" />
+                <Button aria-label="Add language" onClick={addLanguage} size="sm" type="button">
+                  <Plus aria-hidden="true" className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
@@ -340,6 +361,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                     <Badge key={index} variant="outline" className="flex items-center gap-1">
                       {jobType}
                       <button
+                        aria-label={`Remove ${jobType} preferred job type`}
+                        type="button"
                         onClick={() => removeJobType(jobType)}
                         className="ml-1 hover:text-red-500"
                       >
@@ -350,13 +373,19 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                 </div>
                 <div className="flex gap-2 mt-2">
                   <Input
+                    aria-label="New preferred job type"
                     value={newJobType}
                     onChange={(e) => setNewJobType(e.target.value)}
                     placeholder="Add job type (e.g., Full-time, Part-time)"
-                    onKeyPress={(e) => e.key === 'Enter' && addJobType()}
+                    onKeyDown={e => e.key === 'Enter' && addJobType()}
                   />
-                  <Button onClick={addJobType} size="sm">
-                    <Plus className="h-4 w-4" />
+                  <Button
+                    aria-label="Add preferred job type"
+                    onClick={addJobType}
+                    size="sm"
+                    type="button"
+                  >
+                    <Plus aria-hidden="true" className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -368,6 +397,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                     <Badge key={index} variant="outline" className="flex items-center gap-1">
                       {location}
                       <button
+                        aria-label={`Remove ${location} preferred location`}
+                        type="button"
                         onClick={() => removePreferredLocation(location)}
                         className="ml-1 hover:text-red-500"
                       >
@@ -378,13 +409,19 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                 </div>
                 <div className="flex gap-2 mt-2">
                   <Input
+                    aria-label="New preferred location"
                     value={newLocation}
                     onChange={(e) => setNewLocation(e.target.value)}
                     placeholder="Add preferred location"
-                    onKeyPress={(e) => e.key === 'Enter' && addPreferredLocation()}
+                    onKeyDown={e => e.key === 'Enter' && addPreferredLocation()}
                   />
-                  <Button onClick={addPreferredLocation} size="sm">
-                    <Plus className="h-4 w-4" />
+                  <Button
+                    aria-label="Add preferred location"
+                    onClick={addPreferredLocation}
+                    size="sm"
+                    type="button"
+                  >
+                    <Plus aria-hidden="true" className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -429,8 +466,8 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
             )}
           </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

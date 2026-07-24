@@ -11,6 +11,9 @@ import Footer from '@/components/Footer';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { firebaseStatus } from '@/lib/firebase';
 import AuthGuard from '@/components/AuthGuard';
+import { AccessibilityProvider } from '@/contexts/AccessibilityContext';
+import AccessibilityPreferencesController from '@/components/accessibility/AccessibilityPreferencesController';
+import SkipLinks from '@/components/accessibility/SkipLinks';
 
 // Lazy load all pages for better performance
 const NotFound = lazy(() => import("@/pages/not-found"));
@@ -67,9 +70,10 @@ const FAQ = lazy(() => import("@/pages/FAQ"));
 /**
  * Router component with lazy-loaded routes and error boundaries
  */
-function Router() {
+const Router = () => {
   return (
     <>
+      <SkipLinks />
       <Header />
       {!firebaseStatus.clientOpsEnabled && (
         <div className="mx-auto w-full max-w-7xl px-4 pt-4">
@@ -79,9 +83,10 @@ function Router() {
           </div>
         </div>
       )}
-      <ErrorBoundary>
-        <Suspense fallback={<LoadingScreen />}>
-          <Switch>
+      <div id="main-content" tabIndex={-1}>
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingScreen />}>
+            <Switch>
             <Route path="/" component={HomeSimple} />
             <Route path="/home-original" component={Home} />
             <Route path="/jobs" component={Jobs} />
@@ -152,29 +157,33 @@ function Router() {
             <Route path="/marketing-rules" component={MarketingRulesPage} />
             <Route path="/dashboard" component={Dashboard} />
             <Route component={NotFound} />
-          </Switch>
-        </Suspense>
-      </ErrorBoundary>
+            </Switch>
+          </Suspense>
+        </ErrorBoundary>
+      </div>
       <Footer />
     </>
   );
-}
+};
 
 /**
  * Main App component
  * Provides global providers (Helmet, QueryClient, Auth) and main layout
  */
-function App() {
+const App = () => {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <Router />
-          <Toaster />
+          <AccessibilityProvider>
+            <Router />
+            <AccessibilityPreferencesController />
+            <Toaster />
+          </AccessibilityProvider>
         </AuthProvider>
       </QueryClientProvider>
     </HelmetProvider>
   );
-}
+};
 
 export default App;
