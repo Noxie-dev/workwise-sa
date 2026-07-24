@@ -373,6 +373,38 @@ describe('jobApplications routes', () => {
     expect(mockedStorage.createUserNotification).not.toHaveBeenCalled();
   });
 
+  it('fails closed for an unrecognized non-admin role on another tenant\'s application', async () => {
+    mockedResolveAuthenticatedDatabaseUser.mockResolvedValue({
+      id: 11,
+      role: 'company_manager',
+      email: 'manager@example.com',
+    } as any);
+    mockedStorage.getJobApplication.mockResolvedValue({
+      id: 57,
+      userId: 11,
+      jobId: 22,
+      status: 'applied',
+    } as any);
+    mockedStorage.getJob.mockResolvedValue({
+      id: 22,
+      createdByUserId: 99,
+    } as any);
+
+    const response = await invokeRoute({
+      path: '/:applicationId',
+      method: 'get',
+      req: {
+        body: {},
+        params: { applicationId: '57' },
+        query: {},
+        headers: { authorization: 'Bearer test-token' },
+      },
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.body.error.message).toMatch(/owned by your employer/i);
+  });
+
   it('prevents candidates from changing employer-controlled application status', async () => {
     mockedResolveAuthenticatedDatabaseUser.mockResolvedValue({
       id: 7,

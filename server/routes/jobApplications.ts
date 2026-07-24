@@ -11,7 +11,7 @@ import { jobApplications } from '@shared/schema';
 const router = Router();
 
 function assertEmployerOwnsJob(dbUser: { id: number; role?: string | null }, job: { createdByUserId?: number | null }) {
-  if (dbUser.role === 'employer' && job.createdByUserId !== dbUser.id) {
+  if (dbUser.role !== 'admin' && job.createdByUserId !== dbUser.id) {
     throw Errors.forbidden('You can only access applications for jobs owned by your employer account');
   }
 }
@@ -191,7 +191,7 @@ router.get('/:applicationId',
         throw Errors.notFound('Job application not found');
       }
 
-      if (dbUser.role === 'employer') {
+      if (dbUser.role !== 'user' && dbUser.role !== 'admin') {
         const job = await storage.getJob(application.jobId);
         if (!job) {
           throw Errors.notFound('Job not found');
@@ -232,7 +232,7 @@ router.put('/:applicationId',
         throw Errors.notFound('Job application not found');
       }
 
-      if (dbUser.role === 'employer') {
+      if (dbUser.role !== 'user' && dbUser.role !== 'admin') {
         if (!status) {
           throw Errors.forbidden('Employers must provide a status when updating an application');
         }
