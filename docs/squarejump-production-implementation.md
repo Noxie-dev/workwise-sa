@@ -81,6 +81,16 @@ Run the release worker as a separate process:
 pnpm run worker:squarejump
 ```
 
+Refresh materialized user/job placement rows as a separate batch worker:
+
+```text
+pnpm run worker:squarejump:matches
+```
+
+The recommendation API reads materialized matches with signed database
+keyset cursors. It falls back to the legacy bounded scorer only while a user
+has no materialized rows.
+
 The worker poll interval is configured with
 `SQUAREJUMP_RELEASE_POLL_MS` (default: 5000 ms). Its persisted idempotency keys,
 conditional claims, stale-claim recovery, retry count, and dead-letter state
