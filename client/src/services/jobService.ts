@@ -1,5 +1,13 @@
 import { JobFormValues } from "@/constants/formConstants";
 
+const useMockJobService = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_PUBLIC_DATA === 'true';
+
+const requireMockJobService = () => {
+  if (!useMockJobService) {
+    throw new Error('Job service is not configured for this environment');
+  }
+};
+
 export const fetchCategories = async () => {
   // Simulate API call
   const data = {
@@ -44,6 +52,7 @@ export const fetchCategories = async () => {
 };
 
 export const generateAIContent = async (prompt: string, type: string, jobInfo: Partial<JobFormValues>) => {
+  requireMockJobService();
   // In a real app, this would be an API call to your AI service
   // For now, we'll return dummy data
   const wait = () => new Promise(resolve => setTimeout(resolve, 1000));
@@ -90,6 +99,7 @@ If you're passionate about [industry] and ready to take the next step in your ca
 };
 
 export const submitJobPost = async (formData: JobFormValues) => {
+  requireMockJobService();
   // In a real app, this would be an API call to your backend
   console.log('Submitting job post:', formData);
   
@@ -104,6 +114,7 @@ export const submitJobPost = async (formData: JobFormValues) => {
 };
 
 export const fetchLocationSuggestions = async (query: string) => {
+  requireMockJobService();
   // Simulate API call with dummy data
   const mockLocations = [
     "Cape Town, Western Cape",
