@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-24 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `0fd0e7e` (`test: cover employer tenant boundaries`)
+**Commit:** `b1b907d` (`fix: fail closed application tenant checks`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -13,7 +13,7 @@
 
 **Overall readiness score: 28/100** *(unchanged after the latest `<3>` batch; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `0fd0e7e` — employer list and dashboard regression coverage excludes cross-employer and legacy unowned jobs; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `b1b907d` — employer CRUD and application routes now include cross-tenant denial coverage, and unknown non-admin roles fail closed on application access; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -894,6 +894,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Legacy Firebase profile/file surface | PARTIAL | Commit `768389c`; `functions/index.js` now verifies Firebase bearer tokens, restricts profile access to the caller/admin, rejects unauthenticated callable image/CV processing, and returns 501 instead of success-shaped TODO responses; `node --check functions/index.js` and `pnpm --dir functions run build` pass; canonical storage migration and deployed-function retirement remain open |
 | Startup session-secret logging | PARTIAL | Commit `077c697`; `startupSecretLogging.test.ts` passes 1/1 and asserts the startup module does not log or directly expose `SESSION_SECRET`; deployed-secret rotation and historical log review remain external actions |
 | Employer tenant boundary regression | PARTIAL | Commit `0fd0e7e`; `employerRoutes.test.ts` now proves employer job lists and dashboard metrics exclude another employer's jobs and legacy jobs with null ownership; targeted suite 6/6 and type-check pass; full CRUD/integration evidence and ownership backfill remain open |
+| Employer CRUD/application tenant isolation | PARTIAL | Commits `7c33634`, `58fe770`, and `b1b907d`; employer detail reads/edits/status changes and application reads/listings/status changes reject cross-tenant access; unknown non-admin roles now fail closed; employer suite 8/8, application suite 9/9, and type-check pass; full integration coverage and ownership backfill remain open |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -971,3 +972,11 @@ The browser smoke attempt is recorded as an environment-blocked Phase 4 gate: in
 | Pass | Implementation | Evidence | Score / confidence |
 |---|---|---|---|
 | 1 | Extended employer isolation regression coverage to exclude cross-employer jobs and legacy jobs without an owner from employer lists and dashboard metrics. | Commit `0fd0e7e`; `employerRoutes.test.ts` passes 6/6 and `pnpm run type-check` passes. Full CRUD/integration coverage, company ownership policy, and legacy ownership backfill remain open. | 28/100; High/medium |
+
+### 15.17 `<3>` P0-05 tenant-isolation execution feedback — 2026-07-24 UTC
+
+| Pass | Implementation | Evidence | Score / confidence |
+|---|---|---|---|
+| 1 | Added cross-tenant denial coverage for employer job detail reads and edits, completing the missing CRUD read/write assertions. | Commit `7c33634`; employer route suite passes 8/8. | 28/100; High/medium |
+| 2 | Added cross-tenant denial coverage for application detail reads, job-level listings, and employer status mutations. | Commit `58fe770`; application route suite passes 8/8 and type-check passes. | 28/100; High/medium |
+| 3 | Changed application ownership checks to fail closed for every non-`user`/non-`admin` role, and added an unknown-role regression test. | Commit `b1b907d`; application route suite passes 9/9 and type-check passes. Full integration, company membership, and legacy owner backfill remain open. | 28/100; High/medium |
