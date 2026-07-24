@@ -385,7 +385,12 @@ const CompanyProfile: React.FC = () => {
 
               {/* Jobs List */}
               <div className="space-y-4">
-                {companyJobs.map((job) => (
+                {companyJobsQuery.isError ? (
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center" role="alert" data-testid="company-jobs-error">
+                    <h3 className="text-lg font-semibold text-red-800">Jobs are temporarily unavailable</h3>
+                    <p className="mt-2 text-sm text-red-700">Please try again later. No placeholder jobs are being shown.</p>
+                  </div>
+                ) : companyJobs.map((job) => (
                   <Card key={job.id} className="border-0 shadow-lg bg-card hover:shadow-xl transition-shadow">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
