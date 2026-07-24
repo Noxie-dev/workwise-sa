@@ -339,6 +339,38 @@ describe('jobApplications routes', () => {
     expect(mockedStorage.getJobApplicationsByJob).not.toHaveBeenCalled();
   });
 
+  it('blocks an employer from listing applications for a legacy unowned job', async () => {
+    mockedResolveAuthenticatedDatabaseUser.mockResolvedValue({
+      id: 11,
+      role: 'employer',
+      email: 'employer@example.com',
+    } as any);
+    mockedStorage.getJob.mockResolvedValue({
+      id: 23,
+      createdByUserId: null,
+    } as any);
+
+    const response = await invokeRoute({
+      path: '/job/:jobId',
+      method: 'get',
+      req: {
+        body: {},
+        params: { jobId: '23' },
+        query: {
+          page: '1',
+          limit: '20',
+          sortBy: 'appliedAt',
+          sortOrder: 'desc',
+        },
+        headers: { authorization: 'Bearer test-token' },
+      },
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.body.error.message).toMatch(/owned by your employer/i);
+    expect(mockedStorage.getJobApplicationsByJob).not.toHaveBeenCalled();
+  });
+
   it('blocks an employer from changing another employer\'s application status', async () => {
     mockedResolveAuthenticatedDatabaseUser.mockResolvedValue({
       id: 11,
@@ -371,6 +403,39 @@ describe('jobApplications routes', () => {
     expect(response.body.error.message).toMatch(/owned by your employer/i);
     expect(mockedStorage.updateJobApplication).not.toHaveBeenCalled();
     expect(mockedStorage.createUserNotification).not.toHaveBeenCalled();
+  });
+
+  it('blocks an employer from changing application status for a legacy unowned job', async () => {
+    mockedResolveAuthenticatedDatabaseUser.mockResolvedValue({
+      id: 11,
+      role: 'employer',
+      email: 'employer@example.com',
+    } as any);
+    mockedStorage.getJobApplication.mockResolvedValue({
+      id: 58,
+      userId: 7,
+      jobId: 23,
+      status: 'applied',
+    } as any);
+    mockedStorage.getJob.mockResolvedValue({
+      id: 23,
+      createdByUserId: null,
+    } as any);
+
+    const response = await invokeRoute({
+      path: '/:applicationId',
+      method: 'put',
+      req: {
+        body: { status: 'hired' },
+        params: { applicationId: '58' },
+        query: {},
+        headers: { authorization: 'Bearer test-token' },
+      },
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.body.error.message).toMatch(/owned by your employer/i);
+    expect(mockedStorage.updateJobApplication).not.toHaveBeenCalled();
   });
 
   it('fails closed for an unrecognized non-admin role on another tenant\'s application', async () => {
