@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-24 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `abdce0c` (`test: cover scraper kill escalation`)
+**Commit:** `421fb00` (`test: cover production mock service guards`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -13,7 +13,7 @@
 
 **Overall readiness score: 28/100** *(unchanged after the latest `<3>` batch; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `abdce0c` — FAQ and company-job failures have regression coverage and scraper SIGKILL escalation is tested; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `421fb00` — marketing and job-service mock fallbacks now require explicit development mode, including the resolver-selected JavaScript service, with regression coverage; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -890,6 +890,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Production startup dependency gate | PARTIAL | `assertProductionDependenciesReady` and `startupReadiness.test.ts` block production startup when Firebase is unavailable while allowing isolated test mode; `assertProductionDatabaseConnection` rejects SQLite in production; live deployment admission, database connectivity, and orchestration probes remain unverified |
 | Client/build release verification | PASS locally | `pnpm run test:client`: 16 files/103 tests; `pnpm run build`: Vite client and esbuild server completed; browser E2E, accessibility, and production topology remain unverified |
 | Production runtime validator | PASS for negative contract | `DATABASE_URL=sqlite:./test.db node scripts/validate-primary-runtime.js` exits non-zero and reports missing Firebase configuration plus SQLite prohibition; `pnpm run check` passes; valid production secrets and deployment orchestration remain unverified |
+| Marketing/job mock guard coverage | PASS locally | Commits `42c374e`, `ca97b1d`, and `421fb00`; marketing rules and job-service fixture paths require explicit development mock mode, including the resolver-selected `client/src/services/jobService.js`; `productionMockGuards.test.ts` passes 3/3, full client suite passes 20 files/116 tests, and type-check passes |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -941,3 +942,11 @@ The browser smoke attempt is recorded as an environment-blocked Phase 4 gate: in
 | 1 | Added FAQ API success and failure regression coverage, including category failures. | Commit `f93d871`; targeted FAQ suite 3/3. | 28/100; High/medium |
 | 2 | Added a visible Company Profile jobs-query failure state. | Commit `be52d8d`; type-check/build path retained. | 28/100; High/medium |
 | 3 | Added regression coverage for the scraper’s bounded SIGKILL decision after SIGTERM. | Commit `abdce0c`; targeted scraper suite 4/4 and type-check pass. | 28/100; High/medium |
+
+### 15.13 `<3>` execution feedback — 2026-07-24 UTC
+
+| Pass | Implementation | Evidence | Score / confidence |
+|---|---|---|---|
+| 1 | Removed implicit marketing-rule and analytics fixtures unless development mock mode is explicitly enabled. | Commit `42c374e`; non-mock calls now fail visibly instead of fabricating campaign data. | 28/100; High/medium |
+| 2 | Added the same explicit-mode guard to AI content, job submission, and location-suggestion paths. | Commit `ca97b1d`; non-mock job-service calls no longer simulate successful production behavior. | 28/100; High/medium |
+| 3 | Closed the duplicate `.js` service shadow path and added regression coverage for marketing and job-service guards. | Commit `421fb00`; focused suite 3/3, full client suite 20 files/116 tests, and `pnpm run type-check` pass. | 28/100; High/medium |
