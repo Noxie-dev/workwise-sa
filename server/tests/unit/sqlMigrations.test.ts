@@ -36,4 +36,16 @@ describe('PostgreSQL migration compatibility', () => {
       '-- POSTGRES_ONLY: ALTER TABLE jobs ALTER COLUMN juid SET NOT NULL;',
     )).toBe('ALTER TABLE jobs ALTER COLUMN juid SET NOT NULL;');
   });
+
+  it('keeps the SquareJUMP daily metrics migration in the checked-in history', () => {
+    const migrationPath = path.resolve(
+      process.cwd(),
+      'migrations/0015_add_squarejump_job_metric_aggregates.sql',
+    );
+    const source = fs.readFileSync(migrationPath, 'utf8');
+
+    expect(source).toContain('CREATE TABLE IF NOT EXISTS squarejump_job_metric_aggregates');
+    expect(source).toContain('UNIQUE(job_id, bucket_start)');
+    expect(source).toContain('idx_squarejump_job_metric_aggregates_job_bucket');
+  });
 });
