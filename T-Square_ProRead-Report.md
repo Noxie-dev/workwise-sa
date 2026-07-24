@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-24 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `768389c` (`security: fail closed legacy profile functions`)
+**Commit:** `077c697` (`test: guard startup secret logging`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -13,7 +13,7 @@
 
 **Overall readiness score: 28/100** *(unchanged after the latest `<3>` batch; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `768389c` — the competing Firebase Functions profile/file surface now requires Firebase authentication, enforces self-profile access, and returns an explicit disabled response until a canonical implementation exists; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `077c697` — startup secret handling now has a regression guard preventing `SESSION_SECRET` value logging; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -892,6 +892,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Production runtime validator | PASS for negative contract | `DATABASE_URL=sqlite:./test.db node scripts/validate-primary-runtime.js` exits non-zero and reports missing Firebase configuration plus SQLite prohibition; `pnpm run check` passes; valid production secrets and deployment orchestration remain unverified |
 | Marketing/job mock guard coverage | PASS locally | Commits `42c374e`, `ca97b1d`, and `421fb00`; marketing rules and job-service fixture paths require explicit development mock mode, including the resolver-selected `client/src/services/jobService.js`; `productionMockGuards.test.ts` passes 3/3, full client suite passes 20 files/116 tests, and type-check passes |
 | Legacy Firebase profile/file surface | PARTIAL | Commit `768389c`; `functions/index.js` now verifies Firebase bearer tokens, restricts profile access to the caller/admin, rejects unauthenticated callable image/CV processing, and returns 501 instead of success-shaped TODO responses; `node --check functions/index.js` and `pnpm --dir functions run build` pass; canonical storage migration and deployed-function retirement remain open |
+| Startup session-secret logging | PARTIAL | Commit `077c697`; `startupSecretLogging.test.ts` passes 1/1 and asserts the startup module does not log or directly expose `SESSION_SECRET`; deployed-secret rotation and historical log review remain external actions |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -957,3 +958,9 @@ The browser smoke attempt is recorded as an environment-blocked Phase 4 gate: in
 | Pass | Implementation | Evidence | Score / confidence |
 |---|---|---|---|
 | 1 | Hardened the competing Firebase Functions profile/file runtime: bearer-token verification, self-profile/admin authorization, callable-function ownership checks, and fail-closed 501 responses for unimplemented legacy handlers. | Commit `768389c`; `node --check functions/index.js` and `pnpm --dir functions run build` pass. This reduces the P0-04 bypass surface, but private object storage, deployment retirement, and canonical route integration remain open. | 28/100; High/medium |
+
+### 15.15 P0-priority execution feedback — 2026-07-24 UTC
+
+| Pass | Implementation | Evidence | Score / confidence |
+|---|---|---|---|
+| 1 | Added a startup regression guard that fails if `server/server/index.ts` logs or directly reads `SESSION_SECRET` for output. | Commit `077c697`; `startupSecretLogging.test.ts` passes 1/1 and `pnpm run type-check` passes. Credential rotation, access review, and historical log purge remain open, so the P0 gate is not closed. | 28/100; High/medium |
