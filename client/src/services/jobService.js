@@ -1,3 +1,11 @@
+const useMockJobService = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_PUBLIC_DATA === 'true';
+
+const requireMockJobService = () => {
+  if (!useMockJobService) {
+    throw new Error('Job service is not configured for this environment');
+  }
+};
+
 // Mock API functions
 const MOCK_CATEGORIES_DATA = {
   "entry_level": [
@@ -29,12 +37,14 @@ export const fetchCategories = async () => {
 };
 
 export const fetchLocationSuggestions = async (query) => {
+  requireMockJobService();
   await new Promise(resolve => setTimeout(resolve, 300));
   const filteredLocations = MOCK_LOCATIONS_DATA.filter(loc => loc.toLowerCase().includes(query.toLowerCase()));
   return filteredLocations.map((desc, idx) => ({ id: `loc-${idx}`, description: desc }));
 };
 
 export const generateAIContent = async (type, jobInfo, aiPrefs) => {
+  requireMockJobService();
   await new Promise(resolve => setTimeout(resolve, 1500));
 
   let content = "";
@@ -58,6 +68,7 @@ export const generateAIContent = async (type, jobInfo, aiPrefs) => {
 };
 
 export const submitJobPost = async (formData) => {
+  requireMockJobService();
   console.log("Submitting job post:", formData);
   await new Promise(resolve => setTimeout(resolve, 2000));
   if (formData.title && formData.title.toLowerCase().includes("error")) {
