@@ -8,7 +8,7 @@ import { errorHandler, notFoundHandler, requestIdMiddleware } from '../middlewar
 import { setupSwagger } from '../utils/swagger';
 import { WiseUpService } from '../wiseup';
 import { storage } from '../storage';
-import { initializeDatabase } from '../db';
+import { closeDatabase, initializeDatabase } from '../db';
 import { logger } from '../utils/logger';
 import { secretManager } from '../services/secretManager';
 import { cacheService } from '../services/cacheService';
@@ -19,7 +19,7 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 
-dotenv.config();
+dotenv.config({ path: ['.env.local', '.env'] });
 
 function serveProductionStatic(app: Application) {
   const distPath = path.resolve(import.meta.dirname, 'public');
@@ -158,12 +158,14 @@ async function startServer() {
 process.on('SIGINT', async () => {
   logger.info("Shutting down gracefully...");
   await cacheService.shutdown();
+  await closeDatabase();
   process.exit();
 });
 
 process.on('SIGTERM', async () => {
   logger.info("Shutting down gracefully...");
   await cacheService.shutdown();
+  await closeDatabase();
   process.exit();
 });
 

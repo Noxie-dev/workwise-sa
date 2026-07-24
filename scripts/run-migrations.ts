@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: ['.env.local', '.env'] });
 
 const logger = {
   info: console.log,

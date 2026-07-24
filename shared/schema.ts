@@ -123,27 +123,52 @@ export const insertCategorySchema = createInsertSchema(categories).pick({
 // Companies schema
 export const companies = pgTable("companies", {
   id: serial("id").primaryKey(),
+  organisationUid: text("organisation_uid").unique(),
   name: text("name").notNull(),
   logo: text("logo"),
   location: text("location"),
   slug: text("slug").notNull().unique(),
   openPositions: integer("open_positions").default(0),
+  organisationType: text("organisation_type").notNull().default("employer"),
+  verifiedDomain: text("verified_domain"),
+  careerDomain: text("career_domain"),
+  verificationStatus: text("verification_status").notNull().default("unverified"),
+  registrationReference: text("registration_reference"),
+  trustStatus: text("trust_status").notNull().default("unknown"),
 });
 
 export const insertCompanySchema = createInsertSchema(companies).pick({
+  organisationUid: true,
   name: true,
   logo: true,
   location: true,
   slug: true,
   openPositions: true,
+  organisationType: true,
+  verifiedDomain: true,
+  careerDomain: true,
+  verificationStatus: true,
+  registrationReference: true,
+  trustStatus: true,
+}).partial({
+  organisationUid: true,
 });
 
 // Jobs schema
 export const jobs = pgTable("jobs", {
   id: serial("id").primaryKey(),
+  // SquareJUMP business identity. The numeric primary key remains in place so
+  // existing application and analytics foreign keys do not need to migrate.
+  juid: text("juid").notNull().unique(),
+  publicJobRef: text("public_job_ref").unique(),
   title: text("title").notNull(),
   description: text("description").notNull(),
   location: text("location").notNull(),
+  countryCode: text("country_code").notNull().default("ZA"),
+  provinceCode: text("province_code"),
+  municipalityCode: text("municipality_code"),
+  locationCode: text("location_code"),
+  primaryCategoryCode: text("primary_category_code"),
   salary: text("salary"),
   jobType: text("job_type").notNull(), // Full-time, Part-time, Contract
   workMode: text("work_mode").notNull(), // Remote, On-site, Hybrid
@@ -151,11 +176,22 @@ export const jobs = pgTable("jobs", {
   categoryId: integer("category_id").notNull().references(() => categories.id),
   createdByUserId: integer("created_by_user_id").references(() => users.id),
   status: text("status").notNull().default("active"),
+  riskStatus: text("risk_status").notNull().default("clear"),
+  applicationLinkStatus: text("application_link_status").notNull().default("unverified"),
+  verifiedAt: timestamp("verified_at"),
+  subscriberReleaseAt: timestamp("subscriber_release_at"),
+  memberReleaseAt: timestamp("member_release_at"),
+  publicReleaseAt: timestamp("public_release_at"),
+  expiresAt: timestamp("expires_at"),
+  releasePolicyVersion: text("release_policy_version"),
   isFeatured: boolean("is_featured").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => ({
+  juidUnique: uniqueIndex("idx_jobs_juid_unique").on(table.juid),
   createdAtIdx: index("idx_jobs_created_at").on(table.createdAt),
   statusCreatedAtIdx: index("idx_jobs_status_created_at").on(table.status, table.createdAt),
+  statusPublicReleaseIdx: index("idx_jobs_status_public_release").on(table.status, table.publicReleaseAt),
+  statusSubscriberReleaseIdx: index("idx_jobs_status_subscriber_release").on(table.status, table.subscriberReleaseAt),
 }));
 
 export const jobIngestRecords = pgTable(
@@ -183,9 +219,16 @@ export const jobIngestRecords = pgTable(
 );
 
 export const insertJobSchema = createInsertSchema(jobs).pick({
+  juid: true,
+  publicJobRef: true,
   title: true,
   description: true,
   location: true,
+  countryCode: true,
+  provinceCode: true,
+  municipalityCode: true,
+  locationCode: true,
+  primaryCategoryCode: true,
   salary: true,
   jobType: true,
   workMode: true,
@@ -193,7 +236,18 @@ export const insertJobSchema = createInsertSchema(jobs).pick({
   categoryId: true,
   createdByUserId: true,
   status: true,
+  riskStatus: true,
+  applicationLinkStatus: true,
+  verifiedAt: true,
+  subscriberReleaseAt: true,
+  memberReleaseAt: true,
+  publicReleaseAt: true,
+  expiresAt: true,
+  releasePolicyVersion: true,
   isFeatured: true,
+}).partial({
+  juid: true,
+  publicJobRef: true,
 });
 
 // Export types
@@ -245,6 +299,261 @@ export const jobIngestRecordsRelations = relations(jobIngestRecords, ({ one }) =
     fields: [jobIngestRecords.jobId],
     references: [jobs.id],
   }),
+}));
+
+// SquareJUMP keeps every source occurrence separate from the canonical job.
+export const jobSourceRecords = pgTable("job_source_records", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => jobs.id),
+  sourceId: text("source_id").notNull(),
+  externalJobId: text("external_job_id").notNull(),
+  sourceUrl: text("source_url").notNull(),
+  applyUrl: text("apply_url"),
+  sourcePublishedAt: timestamp("source_published_at"),
+  firstSeenAt: timestamp("first_seen_at").notNull().defaultNow(),
+  lastSeenAt: timestamp("last_seen_at").notNull().defaultNow(),
+  rawPayloadHash: text("raw_payload_hash"),
+  normalisedPayloadHash: text("normalised_payload_hash").notNull(),
+  exactFingerprint: text("exact_fingerprint").notNull(),
+  contentFingerprint: text("content_fingerprint").notNull(),
+  sourceReference: text("source_reference"),
+  ingestStatus: text("ingest_status").notNull().default("accepted"),
+  duplicateConfidence: integer("duplicate_confidence").notNull().default(0),
+  metadata: jsonb("metadata"),
+}, (table) => ({
+  sourceExternalUnique: uniqueIndex("idx_job_source_records_source_external").on(
+    table.sourceId,
+    table.externalJobId,
+  ),
+  exactFingerprintIdx: index("idx_job_source_records_exact_fingerprint").on(table.exactFingerprint),
+  contentFingerprintIdx: index("idx_job_source_records_content_fingerprint").on(table.contentFingerprint),
+  jobIdx: index("idx_job_source_records_job").on(table.jobId),
+}));
+
+export const jobClassifications = pgTable("job_classifications", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => jobs.id),
+  primaryCategoryCode: text("primary_category_code").notNull(),
+  secondaryCategoryCodes: jsonb("secondary_category_codes").notNull(),
+  occupationCode: text("occupation_code"),
+  taxonomyVersion: text("taxonomy_version").notNull(),
+  classifierName: text("classifier_name").notNull(),
+  classifierVersion: text("classifier_version").notNull(),
+  confidence: integer("confidence").notNull(),
+  classificationSource: text("classification_source").notNull(),
+  status: text("status").notNull().default("accepted"),
+  classifiedAt: timestamp("classified_at").notNull().defaultNow(),
+}, (table) => ({
+  jobTaxonomyUnique: uniqueIndex("idx_job_classifications_job_taxonomy").on(
+    table.jobId,
+    table.taxonomyVersion,
+  ),
+  categoryJobIdx: index("idx_job_classifications_category_job").on(
+    table.primaryCategoryCode,
+    table.jobId,
+  ),
+}));
+
+export const jobRequirements = pgTable("job_requirements", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => jobs.id),
+  requirementType: text("requirement_type").notNull(),
+  code: text("code"),
+  label: text("label").notNull(),
+  necessity: text("necessity").notNull(),
+  confidence: integer("confidence").notNull().default(100),
+  source: text("source").notNull().default("rules"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+  jobRequirementIdx: index("idx_job_requirements_job").on(table.jobId),
+}));
+
+export const scorePolicies = pgTable("score_policies", {
+  id: serial("id").primaryKey(),
+  policyType: text("policy_type").notNull(),
+  version: text("version").notNull(),
+  status: text("status").notNull().default("draft"),
+  weights: jsonb("weights").notNull(),
+  thresholds: jsonb("thresholds").notNull(),
+  createdByUserId: integer("created_by_user_id").references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  approvedAt: timestamp("approved_at"),
+  activatedAt: timestamp("activated_at"),
+  retiredAt: timestamp("retired_at"),
+}, (table) => ({
+  typeVersionUnique: uniqueIndex("idx_score_policies_type_version").on(
+    table.policyType,
+    table.version,
+  ),
+  activePolicyIdx: index("idx_score_policies_active").on(table.policyType, table.status),
+}));
+
+export const jobScores = pgTable("job_scores", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => jobs.id),
+  scoreType: text("score_type").notNull(),
+  scoreValue: integer("score_value").notNull(),
+  componentScores: jsonb("component_scores").notNull(),
+  penalties: jsonb("penalties").notNull(),
+  policyVersion: text("policy_version").notNull(),
+  featureSnapshot: jsonb("feature_snapshot").notNull(),
+  calculatedAt: timestamp("calculated_at").notNull().defaultNow(),
+}, (table) => ({
+  jobScoreTypeUnique: uniqueIndex("idx_job_scores_job_type").on(table.jobId, table.scoreType),
+  opportunityRankIdx: index("idx_job_scores_rank").on(table.scoreType, table.scoreValue, table.calculatedAt),
+}));
+
+export const jobScoreHistory = pgTable("job_score_history", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => jobs.id),
+  scoreType: text("score_type").notNull(),
+  scoreValue: integer("score_value").notNull(),
+  componentScores: jsonb("component_scores").notNull(),
+  penalties: jsonb("penalties").notNull(),
+  policyVersion: text("policy_version").notNull(),
+  featureSnapshot: jsonb("feature_snapshot").notNull(),
+  calculationReason: text("calculation_reason").notNull(),
+  calculatedAt: timestamp("calculated_at").notNull().defaultNow(),
+}, (table) => ({
+  jobHistoryIdx: index("idx_job_score_history_job_time").on(table.jobId, table.calculatedAt),
+}));
+
+export const userMatchProfiles = pgTable("user_match_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id).unique(),
+  preferredCategoryCodes: jsonb("preferred_category_codes").notNull(),
+  preferredOccupationCodes: jsonb("preferred_occupation_codes").notNull(),
+  preferredLocationCodes: jsonb("preferred_location_codes").notNull(),
+  travelRadiusKm: integer("travel_radius_km").notNull().default(50),
+  workModes: jsonb("work_modes").notNull(),
+  employmentTypes: jsonb("employment_types").notNull(),
+  minimumSalaryCents: integer("minimum_salary_cents"),
+  skills: jsonb("skills").notNull(),
+  qualifications: jsonb("qualifications").notNull(),
+  licences: jsonb("licences").notNull(),
+  certifications: jsonb("certifications").notNull(),
+  behaviouralPersonalisationEnabled: boolean("behavioural_personalisation_enabled").notNull().default(true),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const userJobMatches = pgTable("user_job_matches", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  jobId: integer("job_id").notNull().references(() => jobs.id),
+  matchScore: integer("match_score").notNull(),
+  placementScore: integer("placement_score").notNull(),
+  componentScores: jsonb("component_scores").notNull(),
+  reasons: jsonb("reasons").notNull(),
+  missingRequirements: jsonb("missing_requirements").notNull(),
+  policyVersion: text("policy_version").notNull(),
+  calculatedAt: timestamp("calculated_at").notNull().defaultNow(),
+}, (table) => ({
+  userJobUnique: uniqueIndex("idx_user_job_matches_user_job").on(table.userId, table.jobId),
+  userPlacementIdx: index("idx_user_job_matches_user_placement").on(
+    table.userId,
+    table.placementScore,
+  ),
+}));
+
+export const jobReleaseEvents = pgTable("job_release_events", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => jobs.id),
+  audience: text("audience").notNull(),
+  releaseAt: timestamp("release_at").notNull(),
+  policyVersion: text("policy_version").notNull(),
+  idempotencyKey: text("idempotency_key").notNull().unique(),
+  status: text("status").notNull().default("scheduled"),
+  attemptCount: integer("attempt_count").notNull().default(0),
+  availableAt: timestamp("available_at"),
+  lockedAt: timestamp("locked_at"),
+  lastError: text("last_error"),
+  processedAt: timestamp("processed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+  dueReleaseIdx: index("idx_job_release_events_due").on(table.status, table.releaseAt),
+}));
+
+export const notificationConsents = pgTable("notification_consents", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  channel: text("channel").notNull(),
+  consentStatus: text("consent_status").notNull(),
+  notificationMode: text("notification_mode").notNull().default("in-app-only"),
+  consentedAt: timestamp("consented_at"),
+  consentSource: text("consent_source"),
+  policyVersion: text("policy_version").notNull(),
+  withdrawnAt: timestamp("withdrawn_at"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+  userChannelUnique: uniqueIndex("idx_notification_consents_user_channel").on(
+    table.userId,
+    table.channel,
+  ),
+}));
+
+export const recommendationExposures = pgTable("recommendation_exposures", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  jobId: integer("job_id").notNull().references(() => jobs.id),
+  trackingToken: text("tracking_token").notNull().unique(),
+  surface: text("surface").notNull(),
+  position: integer("position").notNull(),
+  releaseStage: text("release_stage").notNull(),
+  experimentKey: text("experiment_key"),
+  exposedAt: timestamp("exposed_at").notNull().defaultNow(),
+}, (table) => ({
+  jobExposureIdx: index("idx_recommendation_exposures_job_time").on(table.jobId, table.exposedAt),
+}));
+
+export const jobEvents = pgTable("job_events", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  jobId: integer("job_id").notNull().references(() => jobs.id),
+  eventType: text("event_type").notNull(),
+  trackingToken: text("tracking_token").notNull(),
+  eventKey: text("event_key").notNull().unique(),
+  durationSeconds: integer("duration_seconds"),
+  metadata: jsonb("metadata").notNull(),
+  occurredAt: timestamp("occurred_at").notNull().defaultNow(),
+}, (table) => ({
+  jobTypeTimeIdx: index("idx_job_events_job_type_time").on(
+    table.jobId,
+    table.eventType,
+    table.occurredAt,
+  ),
+}));
+
+export const jobDuplicateCandidates = pgTable("job_duplicate_candidates", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => jobs.id),
+  candidateJobId: integer("candidate_job_id").references(() => jobs.id),
+  candidateSourceRecordId: integer("candidate_source_record_id").references(() => jobSourceRecords.id),
+  confidence: integer("confidence").notNull(),
+  evidence: jsonb("evidence").notNull(),
+  status: text("status").notNull().default("pending"),
+  reviewedByUserId: integer("reviewed_by_user_id").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+  pendingConfidenceIdx: index("idx_job_duplicate_candidates_pending").on(table.status, table.confidence),
+}));
+
+export const squareJumpAuditLog = pgTable("squarejump_audit_log", {
+  id: serial("id").primaryKey(),
+  actorUserId: integer("actor_user_id").references(() => users.id),
+  action: text("action").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
+  beforeState: jsonb("before_state"),
+  afterState: jsonb("after_state"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+  entityTimeIdx: index("idx_squarejump_audit_entity_time").on(
+    table.entityType,
+    table.entityId,
+    table.createdAt,
+  ),
 }));
 
 // User engagement tracking tables
@@ -323,6 +632,31 @@ export const userJobPreferences = pgTable("user_job_preferences", {
   minSalary: integer("min_salary"),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+export const squareJumpNotificationDeliveries = pgTable("squarejump_notification_deliveries", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  jobId: integer("job_id").notNull().references(() => jobs.id),
+  channel: text("channel").notNull(),
+  releaseStage: text("release_stage").notNull(),
+  reason: text("reason").notNull(),
+  dedupeKey: text("dedupe_key").notNull().unique(),
+  status: text("status").notNull().default("queued"),
+  attemptCount: integer("attempt_count").notNull().default(0),
+  lastError: text("last_error"),
+  queuedAt: timestamp("queued_at").notNull().defaultNow(),
+  deliveredAt: timestamp("delivered_at"),
+}, (table) => ({
+  userJobChannelIdx: index("idx_squarejump_notification_deliveries_user_job").on(
+    table.userId,
+    table.jobId,
+    table.channel,
+  ),
+  statusQueuedIdx: index("idx_squarejump_notification_deliveries_status").on(
+    table.status,
+    table.queuedAt,
+  ),
+}));
 
 export const systemConfig = pgTable("system_config", {
   id: serial("id").primaryKey(),

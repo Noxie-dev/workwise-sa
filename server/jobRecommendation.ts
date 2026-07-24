@@ -656,7 +656,10 @@ export async function personalizedJobSearch(
         createdAt: job.createdAt,
       };
 
-      const matchScore = await calculateJobMatchScore(userId, jobData);
+      // Legacy search selects a projection. This module is no longer mounted
+      // as the canonical recommendation API; preserve its fallback behaviour
+      // until it is removed without weakening the SquareJUMP Job type.
+      const matchScore = await calculateJobMatchScore(userId, jobData as Job);
 
       return {
         job,

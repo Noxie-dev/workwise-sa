@@ -14,7 +14,7 @@ import { jobIngestBatchSchema } from "@shared/job-ingest-schema";
 import { publicUserProfileUpdateSchema } from "@shared/schema";
 import { storage } from "../storage";
 import { db } from "../db";
-import recommendationRoutes from "../recommendationRoutes";
+import squareJumpRoutes from "./squareJump";
 import {
   generateProfessionalSummary,
   generateJobDescription,
@@ -31,6 +31,7 @@ import { ingestJobs } from "../services/jobIngestionService";
 import { secretManager } from "../services/secretManager";
 import { authenticate, authorize, authorizeOwnership, type AuthenticatedRequest } from "../middleware/auth";
 import { rateLimiters } from "../../src/middleware/rateLimit";
+import { isJobVisibleToAudience } from "../services/squarejump/releasePolicyService";
 
 const v1Router = Router();
 
@@ -216,7 +217,8 @@ v1Router.get("/companies/:slug", async (req, res) => {
 
 v1Router.get("/jobs", async (_req, res) => {
   try {
-    res.json(await storage.getJobsWithCompanies());
+    const jobs = await storage.getJobsWithCompanies();
+    res.json(jobs.filter((job) => isJobVisibleToAudience(job, "public")));
   } catch (error) {
     console.error("Error fetching jobs:", error);
     res.status(500).json({ message: "Failed to fetch jobs" });
@@ -225,7 +227,8 @@ v1Router.get("/jobs", async (_req, res) => {
 
 v1Router.get("/jobs/featured", async (_req, res) => {
   try {
-    res.json(await storage.getFeaturedJobs());
+    const jobs = await storage.getFeaturedJobs();
+    res.json(jobs.filter((job) => isJobVisibleToAudience(job, "public")));
   } catch (error) {
     console.error("Error fetching featured jobs:", error);
     res.status(500).json({ message: "Failed to fetch featured jobs" });
@@ -235,12 +238,18 @@ v1Router.get("/jobs/featured", async (_req, res) => {
 v1Router.get("/jobs/search", async (req, res) => {
   try {
     const query = (req.query.q as string) || "";
-    res.json(await storage.searchJobs(query));
+    const jobs = await storage.searchJobs(query);
+    res.json(jobs.filter((job) => isJobVisibleToAudience(job, "public")));
   } catch (error) {
     console.error("Error searching jobs:", error);
     res.status(500).json({ message: "Failed to search jobs" });
   }
 });
+
+// SquareJUMP owns the canonical authenticated recommendation and event
+// surfaces. Mount it before /jobs/:id so "recommendations" is never parsed as
+// a numeric job identifier.
+v1Router.use("/", squareJumpRoutes);
 
 v1Router.get("/jobs/company/:id", async (req, res) => {
   try {
@@ -248,7 +257,8 @@ v1Router.get("/jobs/company/:id", async (req, res) => {
     if (Number.isNaN(companyId)) {
       return res.status(400).json({ message: "Invalid company ID" });
     }
-    res.json(await storage.getJobsByCompany(companyId));
+    const jobs = await storage.getJobsByCompany(companyId);
+    res.json(jobs.filter((job) => isJobVisibleToAudience(job, "public")));
   } catch (error) {
     console.error("Error fetching jobs by company:", error);
     res.status(500).json({ message: "Failed to fetch jobs by company" });
@@ -261,7 +271,8 @@ v1Router.get("/jobs/category/:id", async (req, res) => {
     if (Number.isNaN(categoryId)) {
       return res.status(400).json({ message: "Invalid category ID" });
     }
-    res.json(await storage.getJobsByCategory(categoryId));
+    const jobs = await storage.getJobsByCategory(categoryId);
+    res.json(jobs.filter((job) => isJobVisibleToAudience(job, "public")));
   } catch (error) {
     console.error("Error fetching jobs by category:", error);
     res.status(500).json({ message: "Failed to fetch jobs by category" });
@@ -276,7 +287,7 @@ v1Router.get("/jobs/:id", async (req, res) => {
     }
 
     const job = await storage.getJob(jobId);
-    if (!job) {
+    if (!job || !isJobVisibleToAudience(job, "public")) {
       return res.status(404).json({ message: "Job not found" });
     }
 
@@ -709,8 +720,6 @@ cvRouter.post("/generate-template", buildCVTemplate);
 cvRouter.post("/cv/generate-template", buildCVTemplate);
 
 v1Router.use("/cv", cvRouter);
-v1Router.use("/recommendations", authenticate, rateLimiters.strict, recommendationRoutes);
-
 const wiseupRouter = Router();
 
 wiseupRouter.get("/content", async (req, res) => {

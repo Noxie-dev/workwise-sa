@@ -30,4 +30,10 @@ describe('PostgreSQL migration compatibility', () => {
       expect(normalized, file).not.toMatch(/AUTOINCREMENT|DATETIME|INSERT\s+OR\s+IGNORE/i);
     }
   });
+
+  it('activates explicitly marked PostgreSQL-only statements', () => {
+    expect(normalizePostgresMigrationSql(
+      '-- POSTGRES_ONLY: ALTER TABLE jobs ALTER COLUMN juid SET NOT NULL;',
+    )).toBe('ALTER TABLE jobs ALTER COLUMN juid SET NOT NULL;');
+  });
 });

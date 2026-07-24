@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 import { logger } from '../server/utils/enhanced-logger';
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: ['.env.local', '.env'] });
 
 async function generateMigrations() {
   logger.info('Generating database migrations...');

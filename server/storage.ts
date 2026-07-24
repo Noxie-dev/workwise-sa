@@ -109,6 +109,11 @@ export interface IStorage {
 }
 
 import { ApiError, Errors, ErrorType } from './middleware/errorHandler';
+import {
+  createJuid,
+  createOrganisationUid,
+  createPublicJobRef,
+} from './services/squarejump/identityService';
 
 function asRecord(value: unknown): Record<string, any> {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, any> : {};
@@ -291,7 +296,10 @@ export class DatabaseStorage {
 
   async createCompany(insertCompany: InsertCompany): Promise<Company> {
     try {
-      const [company] = await db.insert(companies).values(insertCompany).returning();
+      const [company] = await db.insert(companies).values({
+        ...insertCompany,
+        organisationUid: insertCompany.organisationUid ?? createOrganisationUid(),
+      }).returning();
       return company;
     } catch (error: any) {
       if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === '23505') {
@@ -394,24 +402,53 @@ export class DatabaseStorage {
 
   async createJob(insertJob: InsertJob): Promise<Job> {
     try {
+      const identity = {
+        juid: insertJob.juid ?? createJuid(),
+        publicJobRef: insertJob.publicJobRef ?? createPublicJobRef({
+          provinceCode: insertJob.provinceCode,
+          categoryCode: insertJob.primaryCategoryCode,
+        }),
+      };
       if (isSqliteDatabase()) {
         const sqlite = getSqliteConnection();
         const createdAt = new Date().toISOString();
         const result = sqlite
           .prepare(
             `INSERT INTO jobs (
-              title, description, location, salary, job_type, work_mode, company_id, category_id, is_featured, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+              juid, public_job_ref, title, description, location, country_code,
+              province_code, municipality_code, location_code, primary_category_code,
+              salary, job_type, work_mode, company_id, category_id, created_by_user_id,
+              status, risk_status, application_link_status, verified_at,
+              subscriber_release_at, member_release_at, public_release_at, expires_at,
+              release_policy_version, is_featured, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
           )
           .run(
+            identity.juid,
+            identity.publicJobRef,
             insertJob.title,
             insertJob.description,
             insertJob.location,
+            insertJob.countryCode ?? "ZA",
+            insertJob.provinceCode ?? null,
+            insertJob.municipalityCode ?? null,
+            insertJob.locationCode ?? null,
+            insertJob.primaryCategoryCode ?? null,
             insertJob.salary ?? null,
             insertJob.jobType,
             insertJob.workMode,
             insertJob.companyId,
             insertJob.categoryId,
+            insertJob.createdByUserId ?? null,
+            insertJob.status ?? "active",
+            insertJob.riskStatus ?? "clear",
+            insertJob.applicationLinkStatus ?? "unverified",
+            insertJob.verifiedAt?.toISOString() ?? null,
+            insertJob.subscriberReleaseAt?.toISOString() ?? null,
+            insertJob.memberReleaseAt?.toISOString() ?? null,
+            insertJob.publicReleaseAt?.toISOString() ?? null,
+            insertJob.expiresAt?.toISOString() ?? null,
+            insertJob.releasePolicyVersion ?? null,
             insertJob.isFeatured ? 1 : 0,
             createdAt
           );
@@ -419,14 +456,31 @@ export class DatabaseStorage {
         const row = sqlite.prepare(`SELECT * FROM jobs WHERE id = ?`).get(result.lastInsertRowid);
         return {
           id: Number(row.id),
+          juid: row.juid,
+          publicJobRef: row.public_job_ref,
           title: row.title,
           description: row.description,
           location: row.location,
+          countryCode: row.country_code,
+          provinceCode: row.province_code,
+          municipalityCode: row.municipality_code,
+          locationCode: row.location_code,
+          primaryCategoryCode: row.primary_category_code,
           salary: row.salary,
           jobType: row.job_type,
           workMode: row.work_mode,
           companyId: row.company_id,
           categoryId: row.category_id,
+          createdByUserId: row.created_by_user_id,
+          status: row.status,
+          riskStatus: row.risk_status,
+          applicationLinkStatus: row.application_link_status,
+          verifiedAt: row.verified_at,
+          subscriberReleaseAt: row.subscriber_release_at,
+          memberReleaseAt: row.member_release_at,
+          publicReleaseAt: row.public_release_at,
+          expiresAt: row.expires_at,
+          releasePolicyVersion: row.release_policy_version,
           isFeatured: Boolean(row.is_featured),
           createdAt: row.created_at,
         } as Job;
@@ -436,7 +490,8 @@ export class DatabaseStorage {
         .insert(jobs)
         .values({
           ...insertJob,
-          createdAt: new Date().toISOString(),
+          ...identity,
+          createdAt: new Date(),
         })
         .returning();
       return job;

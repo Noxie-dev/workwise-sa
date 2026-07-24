@@ -10,6 +10,7 @@ import { secretManager } from './services/secretManager';
 let db: any;
 let dbInitialized = false;
 let sqliteConnection: any = null;
+let postgresConnection: ReturnType<typeof postgres> | null = null;
 
 export function assertProductionDatabaseConnection(connectionString: string) {
   if (process.env.NODE_ENV === 'production' && connectionString.startsWith('sqlite')) {
@@ -39,11 +40,13 @@ export async function initializeDatabase() {
       const sqlitePath = connectionString.replace(/^sqlite:\/*/, '') || 'test.db';
       const sqlite = new Database(sqlitePath);
       sqliteConnection = sqlite;
+      postgresConnection = null;
       db = drizzle(sqlite, { schema });
     } else {
       // PostgreSQL for production
       const client = postgres(connectionString as string);
       sqliteConnection = null;
+      postgresConnection = client;
       db = drizzlePostgres(client, { schema });
     }
     
@@ -70,6 +73,21 @@ export function getSqliteConnection() {
 
 export function isSqliteDatabase() {
   return Boolean(sqliteConnection);
+}
+
+export async function closeDatabase() {
+  if (postgresConnection) {
+    await postgresConnection.end({ timeout: 5 });
+    postgresConnection = null;
+  }
+
+  if (sqliteConnection) {
+    sqliteConnection.close();
+    sqliteConnection = null;
+  }
+
+  dbInitialized = false;
+  db = undefined;
 }
 
 // Export database instance (for backward compatibility)

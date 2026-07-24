@@ -25,6 +25,9 @@ Use this before promoting a release on the canonical Express deployment path.
 ## Database And Storage
 
 - [ ] latest migrations have been applied
+- [ ] SquareJUMP migration `0013_add_squarejump_foundations.sql` has been rehearsed on a production-shaped snapshot
+- [ ] every canonical job has a non-null unique JUID and source occurrences remain traceable
+- [ ] score-policy activation and rollback have been rehearsed
 - [ ] backup policy exists for PostgreSQL
 - [ ] restore procedure has been tested
 - [ ] file upload storage has retention and cleanup rules
@@ -38,6 +41,10 @@ Use this before promoting a release on the canonical Express deployment path.
 - [ ] verify uploads and file retrieval
 - [ ] verify Firebase auth sign-in and protected API access
 - [ ] verify scraper ingest remains gated by source readiness and token checks
+- [ ] run the dedicated SquareJUMP release worker and alert on retries/dead-letter records
+- [ ] verify subscriber, member, and public release gates with urgent-job exceptions
+- [ ] verify recommendation exposure tokens, event deduplication, and notification consent withdrawal
+- [ ] confirm `ENABLE_SQUAREJUMP_SEMANTIC` and `ENABLE_SQUAREJUMP_BEHAVIOURAL` remain off until their data gates pass
 
 ## Rollback
 

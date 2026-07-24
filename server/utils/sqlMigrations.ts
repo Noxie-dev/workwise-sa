@@ -52,6 +52,7 @@ export function getMigrationFiles(migrationsFolder: string): string[] {
  */
 export function normalizePostgresMigrationSql(migrationSql: string): string {
   return migrationSql
+    .replace(/^-- POSTGRES_ONLY:\s*(.+)$/gim, '$1')
     .replace(/\bINTEGER\s+PRIMARY\s+KEY\s+AUTOINCREMENT\b/gi, 'SERIAL PRIMARY KEY')
     .replace(/\bDATETIME\b/gi, 'TIMESTAMP')
     .replace(/INSERT\s+OR\s+IGNORE\s+INTO\s+([\s\S]*?);/gi, 'INSERT INTO $1 ON CONFLICT DO NOTHING;');

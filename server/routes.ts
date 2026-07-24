@@ -1,6 +1,5 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import recommendationRoutes from "./recommendationRoutes";
 import fileRoutes from "./routes/files";
 import profileRoutes from "./routes/profile";
 import scrapingRoutes from "./routes/scraping";
@@ -20,9 +19,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerPublicApiRoutes(app);
   registerCvApiRoutes(app);
 
-  // Register job recommendation routes
-  app.use('/api/recommendations', recommendationRoutes);
-  
   // Register file upload routes
   app.use('/api/files', fileRoutes);
 

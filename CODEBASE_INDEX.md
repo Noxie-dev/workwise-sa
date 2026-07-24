@@ -1,4 +1,4 @@
-# WorkWise Codebase Index
+# TalentSquare Codebase Index
 
 ## 📁 Project Structure Overview
 
@@ -98,6 +98,7 @@ workwise-sa/
 ### Services & Middleware
 - **Services** (`server/services/`)
   - Business logic services
+  - `server/services/squarejump/` - SquareJUMP identity, deduplication, taxonomy, scoring, matching, release, and policy services
 - **Middleware** (`server/middleware/`)
   - Express middleware components
 - **Utils** (`server/utils/`)
@@ -139,6 +140,7 @@ workwise-sa/
 
 ### Types & Schemas
 - `shared/schema.ts` - Shared data schemas (9.4KB)
+- `shared/squarejump-contracts.ts` - SquareJUMP API and scoring contracts
 - `shared/wiseup-schema.ts` - WiseUp-specific schemas (4.0KB)
 - `shared/job-types.ts` - Job-related type definitions (3.0KB)
 
@@ -152,6 +154,7 @@ workwise-sa/
   - `0003_add_missing_tables.sql` - Missing tables migration
   - `0004_payment_subscription_system.sql` - Payment system migration
   - `0005_update_users_table.sql` - Users table update
+  - `0013_add_squarejump_foundations.sql` - SquareJUMP identity, source, scoring, matching, release, consent, and audit tables
 
 ### Database Files
 - `database.db` - SQLite database file

@@ -7,6 +7,8 @@ import { validate } from "../middleware/validation";
 import { ApiError, ErrorType, Errors } from "../middleware/errorHandler";
 import { verifyFirebaseToken } from "../middleware/auth";
 import { resolveAuthenticatedDatabaseUser } from "../services/authenticatedUser";
+import { entitlementService } from "../services/entitlementService";
+import { isJobVisibleToAudience } from "../services/squarejump/releasePolicyService";
 
 const getCategorySchema = z.object({ params: z.object({ slug: z.string() }) });
 const getCompanySchema = z.object({ params: z.object({ slug: z.string() }) });
@@ -67,7 +69,7 @@ export function registerPublicApiRoutes(app: Express) {
   app.get("/api/jobs", async (_req, res, next) => {
     try {
       const jobs = await storage.getJobsWithCompanies();
-      res.json(jobs.filter((job) => job.status === "active"));
+      res.json(jobs.filter((job) => isJobVisibleToAudience(job, "public")));
     } catch (error) {
       next(error);
     }
@@ -76,7 +78,7 @@ export function registerPublicApiRoutes(app: Express) {
   app.get("/api/jobs/featured", async (_req, res, next) => {
     try {
       const jobs = await storage.getFeaturedJobs();
-      res.json(jobs.filter((job) => job.status === "active"));
+      res.json(jobs.filter((job) => isJobVisibleToAudience(job, "public")));
     } catch (error) {
       next(error);
     }
@@ -86,7 +88,7 @@ export function registerPublicApiRoutes(app: Express) {
     try {
       const query = (req.query.q as string) || "";
       const jobs = await storage.searchJobs(query);
-      res.json(jobs.filter((job) => job.status === "active"));
+      res.json(jobs.filter((job) => isJobVisibleToAudience(job, "public")));
     } catch (error) {
       next(error);
     }
@@ -99,7 +101,7 @@ export function registerPublicApiRoutes(app: Express) {
         throw Errors.validation("Invalid company ID");
       }
       const jobs = await storage.getJobsByCompany(companyId);
-      res.json(jobs.filter((job) => job.status === "active"));
+      res.json(jobs.filter((job) => isJobVisibleToAudience(job, "public")));
     } catch (error) {
       next(error);
     }
@@ -112,7 +114,7 @@ export function registerPublicApiRoutes(app: Express) {
         throw Errors.validation("Invalid category ID");
       }
       const jobs = await storage.getJobsByCategory(categoryId);
-      res.json(jobs.filter((job) => job.status === "active"));
+      res.json(jobs.filter((job) => isJobVisibleToAudience(job, "public")));
     } catch (error) {
       next(error);
     }
@@ -129,7 +131,7 @@ export function registerPublicApiRoutes(app: Express) {
       if (!job) {
         throw Errors.notFound("Job not found");
       }
-      if (job.status !== "active") {
+      if (!isJobVisibleToAudience(job, "public")) {
         throw Errors.notFound("Job not found");
       }
 
@@ -146,6 +148,8 @@ export function registerPublicApiRoutes(app: Express) {
 
       res.json({
         id: job.id,
+        juid: job.juid,
+        publicJobRef: job.publicJobRef,
         title: job.title,
         location: job.location,
         jobType: job.jobType,
@@ -205,12 +209,13 @@ export function registerPublicApiRoutes(app: Express) {
       if (!job) {
         throw Errors.notFound("Job not found");
       }
-      if (job.status !== "active") {
-        throw Errors.notFound("Job not available for applications");
-      }
-
       const dbUser = await resolveAuthenticatedDatabaseUser(authUser);
       const userId = dbUser.id;
+      const entitlements = await entitlementService.getEntitlementsForUser(userId);
+      const audience = entitlements.workwisePlusActive ? "subscriber" : "member";
+      if (!isJobVisibleToAudience(job, audience)) {
+        throw Errors.notFound("Job not available for applications");
+      }
       const existingApplication = await storage.getJobApplicationByUserAndJob(userId, jobId);
       if (existingApplication) {
         throw Errors.conflict("You have already applied for this job");

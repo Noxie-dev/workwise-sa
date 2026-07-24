@@ -7,7 +7,11 @@ export type MonetizationFeatureFlag =
   | "ENABLE_AI_CV"
   | "ENABLE_AI_COVER_LETTER"
   | "ENABLE_PAYFAST"
-  | "ENABLE_AD_SUPPRESSION";
+  | "ENABLE_AD_SUPPRESSION"
+  | "ENABLE_SQUAREJUMP"
+  | "ENABLE_SQUAREJUMP_SEMANTIC"
+  | "ENABLE_SQUAREJUMP_BEHAVIOURAL"
+  | "ENABLE_SQUAREJUMP_RELEASES";
 
 const DEFAULT_FLAGS: Record<MonetizationFeatureFlag, boolean> = {
   ENABLE_PLUS_SUBSCRIPTIONS: true,
@@ -15,6 +19,13 @@ const DEFAULT_FLAGS: Record<MonetizationFeatureFlag, boolean> = {
   ENABLE_AI_COVER_LETTER: true,
   ENABLE_PAYFAST: true,
   ENABLE_AD_SUPPRESSION: true,
+  // New ranking/release capabilities must be explicitly enabled by deployment
+  // configuration or a persisted system flag. A configuration read failure
+  // must not silently activate them.
+  ENABLE_SQUAREJUMP: false,
+  ENABLE_SQUAREJUMP_SEMANTIC: false,
+  ENABLE_SQUAREJUMP_BEHAVIOURAL: false,
+  ENABLE_SQUAREJUMP_RELEASES: false,
 };
 
 const col = (column: unknown) => column as any;
@@ -29,11 +40,18 @@ function parseFlag(value: string | null | undefined, fallback: boolean) {
 
 export class FeatureFlagService {
   async isEnabled(key: MonetizationFeatureFlag): Promise<boolean> {
+    const environmentValue = process.env[key];
+    if (typeof environmentValue === "string") {
+      return parseFlag(environmentValue, DEFAULT_FLAGS[key]);
+    }
+
     try {
       const [record] = await db.select().from(systemConfig).where(eq(col(systemConfig.key), key));
       return parseFlag(record?.value, DEFAULT_FLAGS[key]);
     } catch (error) {
-      return DEFAULT_FLAGS[key];
+      // Fail closed for SquareJUMP rollout flags. Existing monetisation flags
+      // retain their established defaults for backwards compatibility.
+      return key.startsWith("ENABLE_SQUAREJUMP") ? false : DEFAULT_FLAGS[key];
     }
   }
 
