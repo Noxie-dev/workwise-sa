@@ -6,7 +6,10 @@ import { z } from 'zod';
 import { storage } from '../storage';
 import { verifyFirebaseToken } from '../middleware/auth';
 import { assertRole, resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
-import { requestScrapingProcessTermination } from '../services/scrapingProcessControl';
+import {
+  requestScrapingProcessTermination,
+  shouldForceScrapingProcessKill,
+} from '../services/scrapingProcessControl';
 
 const router = Router();
 
@@ -197,7 +200,7 @@ router.post('/cancel/:sessionId', async (req, res) => {
 
       const terminationTimer = setTimeout(() => {
         scrapingTerminationTimers.delete(sessionId);
-        if (scrapingProcess.exitCode === null && scrapingProcess.signalCode === null) {
+        if (shouldForceScrapingProcessKill(scrapingProcess)) {
           scrapingProcess.kill('SIGKILL');
         }
       }, 5_000);

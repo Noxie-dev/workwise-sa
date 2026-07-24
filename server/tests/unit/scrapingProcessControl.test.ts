@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { requestScrapingProcessTermination } from '../../services/scrapingProcessControl';
+import {
+  requestScrapingProcessTermination,
+  shouldForceScrapingProcessKill,
+} from '../../services/scrapingProcessControl';
 
 describe('scraping process control', () => {
   it('sends SIGTERM to an active process', () => {
@@ -18,5 +21,11 @@ describe('scraping process control', () => {
 
   it('returns false when no process is registered', () => {
     expect(requestScrapingProcessTermination(undefined)).toBe(false);
+  });
+
+  it('forces termination only while a process has not exited', () => {
+    expect(shouldForceScrapingProcessKill({ exitCode: null, signalCode: null })).toBe(true);
+    expect(shouldForceScrapingProcessKill({ exitCode: 0, signalCode: null })).toBe(false);
+    expect(shouldForceScrapingProcessKill({ exitCode: null, signalCode: 'SIGTERM' })).toBe(false);
   });
 });
