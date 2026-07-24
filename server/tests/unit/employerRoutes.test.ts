@@ -232,6 +232,25 @@ describe('employer routes', () => {
     expect(updateResults).toHaveLength(0);
   });
 
+  it('rejects status changes for legacy jobs without an owner', async () => {
+    selectResults.push([{ id: 56, createdByUserId: null }]);
+
+    const response = await invokeRoute({
+      path: '/jobs/:jobId/status',
+      method: 'patch',
+      req: {
+        user: { uid: 'firebase-employer-1' },
+        params: { jobId: '56' },
+        query: {},
+        body: { status: 'paused' },
+      },
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.body.error.message).toMatch(/owned by your employer/i);
+    expect(updateResults).toHaveLength(0);
+  });
+
   it('rejects detail reads for another employer\'s job', async () => {
     selectResults.push([{ id: 55, createdByUserId: 99 }]);
 
