@@ -16,6 +16,7 @@
     "dev:client": "kill-port 5173 && vite --host 0.0.0.0 --force",
     "dev:server": "kill-port 3001 && tsx --watch server/server/index.ts",
     "worker:squarejump": "tsx server/workers/squareJumpReleaseWorker.ts",
+    "worker:squarejump:matches": "tsx server/workers/squareJumpMatchMaterializationWorker.ts",
     "dev:original": "pnpm run copy-assets && concurrently --kill-others-on-fail \"pnpm run dev:server\" \"node -e \\\"setTimeout(() => require('child_process').spawn('pnpm', ['run', 'dev:client'], {stdio:'inherit'}), 2000)\\\"\"",
     "dev": "pnpm run copy-assets && concurrently --kill-others-on-fail \"pnpm run dev:server\" \"node -e \\\"setTimeout(() => require('child_process').spawn('pnpm', ['run', 'dev:client'], {stdio:'inherit'}), 2000)\\\"\"",
     "dev:with-checks": "pnpm run copy-assets && pnpm run check:emulators && concurrently --kill-others-on-fail \"pnpm run dev:server\" \"node -e \\\"setTimeout(() => require('child_process').spawn('pnpm', ['run', 'dev:client'], {stdio:'inherit'}), 2000)\\\"\"",
