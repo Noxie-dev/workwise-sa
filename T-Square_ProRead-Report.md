@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-24 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `d679951` (`test: enforce SquareJUMP route security contract`)
+**Commit:** `9774a82` (`feat: add SquareJUMP metrics and link verification`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -13,7 +13,7 @@
 
 **Overall readiness score: 28/100** *(unchanged after the latest `<3>` batch; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `d679951` — tracked-secret, legacy Firebase, and SquareJUMP route-security gates are now executable; the tracked-secret gate correctly blocks the remaining credential exposure; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `9774a82` — tracked-secret, legacy Firebase, SquareJUMP route-security, metrics aggregation, and application-link verification gates are executable; the tracked-secret gate correctly blocks the remaining credential exposure; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -898,6 +898,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Tracked-secret release gate | BLOCKED/P0 | Commit `897022d`; `pnpm run security:tracked-secrets` reports only `.env.production` private-key and credentialed database URL patterns, without printing values; rotation and history purge are required before this gate can pass |
 | Legacy Firebase security regression | PASS locally | Commit `f8b62a6`; `legacyFirebaseSurface.test.ts` passes 2/2 and `node --check functions/index.js` passes, covering authenticated profile/file TODO handlers and callable ownership checks |
 | SquareJUMP route security contract | PASS locally | Commit `d679951`; `squareJumpRouteSecurity.test.ts` passes 11/11, proving authentication on user/event routes and authentication plus authorization on admin policy/review routes |
+| SquareJUMP metrics/link operations | PARTIAL | Commit `9774a82`; authenticated events now aggregate daily metrics, rescoring consumes recent engagement/application metrics, and the link-verification worker updates release schedules; `pnpm run type-check` passes; migration rehearsal, worker scheduling, and external URL verification remain open |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -999,3 +1000,10 @@ The browser smoke attempt is recorded as an environment-blocked Phase 4 gate: in
 | 1 | Added a tracked-secret release gate that detects private-key material and non-local credentialed database URLs without printing values. | Commit `897022d`; the gate correctly fails on `.env.production`, identifying the unresolved P0 credential exposure. | 28/100; High/medium |
 | 2 | Added regression coverage for the legacy Firebase profile/file and callable processing surface. | Commit `f8b62a6`; security suite 2/2 and `node --check functions/index.js` pass. | 28/100; High/medium |
 | 3 | Added a SquareJUMP route security contract covering authenticated user/event paths and admin-only policy/review paths. | Commit `d679951`; route security suite 11/11 passes. | 28/100; High/medium |
+
+### 15.20 Grouped SquareJUMP operations feedback — 2026-07-24 UTC
+
+| Pass | Implementation | Evidence | Score / confidence |
+|---|---|---|---|
+| 1 | Added daily authenticated job-event metric aggregation and policy-aware opportunity rescoring inputs. | Commit `9774a82`; type-check passes. | 28/100; High/medium |
+| 2 | Added application-link verification with bounded HTTP checks, release-event rescheduling, and a dedicated worker. | Commit `9774a82`; type-check passes; live URL verification and scheduler evidence remain open. | 28/100; High/medium |
