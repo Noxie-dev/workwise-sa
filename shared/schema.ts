@@ -633,6 +633,25 @@ export const userJobPreferences = pgTable("user_job_preferences", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const squareJumpJobMetricAggregates = pgTable("squarejump_job_metric_aggregates", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => jobs.id),
+  bucketStart: timestamp("bucket_start").notNull(),
+  impressions: integer("impressions").notNull().default(0),
+  qualifiedViews: integer("qualified_views").notNull().default(0),
+  saves: integer("saves").notNull().default(0),
+  shares: integer("shares").notNull().default(0),
+  hides: integer("hides").notNull().default(0),
+  reports: integer("reports").notNull().default(0),
+  applicationStarts: integer("application_starts").notNull().default(0),
+  applicationCompletions: integer("application_completions").notNull().default(0),
+  outboundApplications: integer("outbound_applications").notNull().default(0),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+  jobBucketUnique: uniqueIndex("squarejump_job_metric_aggregates_job_bucket").on(table.jobId, table.bucketStart),
+  jobBucketIdx: index("idx_squarejump_job_metric_aggregates_job_bucket").on(table.jobId, table.bucketStart),
+}));
+
 export const squareJumpNotificationDeliveries = pgTable("squarejump_notification_deliveries", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),

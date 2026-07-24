@@ -42,6 +42,8 @@ Use this before promoting a release on the canonical Express deployment path.
 - [ ] verify Firebase auth sign-in and protected API access
 - [ ] verify scraper ingest remains gated by source readiness and token checks
 - [ ] run the dedicated SquareJUMP release worker and alert on retries/dead-letter records
+- [ ] schedule `worker:squarejump:matches` and `worker:squarejump:links` with run-duration, failure, and stale-data alerts
+- [ ] verify daily SquareJUMP metric aggregates are populated from authenticated exposure events
 - [ ] verify subscriber, member, and public release gates with urgent-job exceptions
 - [ ] verify recommendation exposure tokens, event deduplication, and notification consent withdrawal
 - [ ] confirm `ENABLE_SQUAREJUMP_SEMANTIC` and `ENABLE_SQUAREJUMP_BEHAVIOURAL` remain off until their data gates pass

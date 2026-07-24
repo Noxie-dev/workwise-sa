@@ -7,7 +7,7 @@ import {
   userJobMatches,
   userNotifications,
 } from '@shared/schema';
-import { and, asc, eq, gte, lte, or, isNull } from 'drizzle-orm';
+import { and, asc, count, eq, gte, lte, ne, or, isNull } from 'drizzle-orm';
 import { db } from '../../db';
 import { featureFlagService } from '../featureFlagService';
 
@@ -18,6 +18,7 @@ async function deliverInAppNotifications(event: typeof jobReleaseEvents.$inferSe
       jobId: userJobMatches.jobId,
       matchScore: userJobMatches.matchScore,
       title: jobs.title,
+      notificationMode: notificationConsents.notificationMode,
     })
     .from(userJobMatches)
     .innerJoin(
@@ -26,6 +27,7 @@ async function deliverInAppNotifications(event: typeof jobReleaseEvents.$inferSe
         eq(notificationConsents.userId, userJobMatches.userId),
         eq(notificationConsents.channel, 'in-app'),
         eq(notificationConsents.consentStatus, 'granted'),
+        ne(notificationConsents.notificationMode, 'paused'),
       ),
     )
     .innerJoin(jobs, eq(jobs.id, userJobMatches.jobId))
@@ -35,6 +37,17 @@ async function deliverInAppNotifications(event: typeof jobReleaseEvents.$inferSe
   for (const recipient of recipients) {
     const dedupeKey = `${event.idempotencyKey}:user:${recipient.userId}:in-app`;
     await db.transaction(async transaction => {
+      const startOfDay = new Date(now);
+      startOfDay.setUTCHours(0, 0, 0, 0);
+      const [daily] = await transaction
+        .select({ total: count() })
+        .from(squareJumpNotificationDeliveries)
+        .where(and(
+          eq(squareJumpNotificationDeliveries.userId, recipient.userId),
+          eq(squareJumpNotificationDeliveries.channel, 'in-app'),
+          gte(squareJumpNotificationDeliveries.queuedAt, startOfDay),
+        ));
+      if (Number(daily?.total ?? 0) >= 10) return;
       const [created] = await transaction
         .insert(squareJumpNotificationDeliveries)
         .values({

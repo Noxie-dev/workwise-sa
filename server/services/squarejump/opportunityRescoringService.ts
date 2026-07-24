@@ -6,8 +6,9 @@ import {
   jobSourceRecords,
   jobs,
   squareJumpAuditLog,
+  squareJumpJobMetricAggregates,
 } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq, gte } from 'drizzle-orm';
 import { db } from '../../db';
 import { calculateOpportunityScore, OPPORTUNITY_WEIGHTS, type OpportunityPenalty } from './opportunityScoringService';
 import { getActivePolicy, numericPolicyWeights } from './scorePolicyRepository';
@@ -33,6 +34,37 @@ export async function recalculateOpportunityScore(
     .select({ id: jobRequirements.id })
     .from(jobRequirements)
     .where(eq(jobRequirements.jobId, row.job.id));
+  const metricSince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const metrics = await db
+    .select()
+    .from(squareJumpJobMetricAggregates)
+    .where(and(
+      eq(squareJumpJobMetricAggregates.jobId, row.job.id),
+      gte(squareJumpJobMetricAggregates.bucketStart, metricSince),
+    ));
+  const jobMetrics = metrics.reduce(
+    (totals, metric) => ({
+      impressions: totals.impressions + metric.impressions,
+      qualifiedViews: totals.qualifiedViews + metric.qualifiedViews,
+      saves: totals.saves + metric.saves,
+      reports: totals.reports + metric.reports,
+      applicationStarts: totals.applicationStarts + metric.applicationStarts,
+      applicationCompletions: totals.applicationCompletions + metric.applicationCompletions,
+    }),
+    { impressions: 0, qualifiedViews: 0, saves: 0, reports: 0, applicationStarts: 0, applicationCompletions: 0 },
+  );
+  const engagementQuality = jobMetrics.impressions > 0
+    ? Math.max(0, Math.min(100, Math.round(
+        (jobMetrics.qualifiedViews / jobMetrics.impressions) * 70 +
+        Math.min(1, jobMetrics.saves / Math.max(1, jobMetrics.impressions)) * 40 -
+        Math.min(1, jobMetrics.reports / Math.max(1, jobMetrics.impressions)) * 100,
+      )))
+    : 50;
+  const applicationPerformance = jobMetrics.applicationStarts > 0
+    ? Math.max(0, Math.min(100, Math.round(
+        (jobMetrics.applicationCompletions / jobMetrics.applicationStarts) * 100,
+      )))
+    : 50;
   const referenceAt = row.job.verifiedAt ?? row.job.createdAt ?? new Date();
   const opportunityPolicy = await getActivePolicy('opportunity');
   const ageHours = Math.max(0, (Date.now() - new Date(referenceAt).getTime()) / 3_600_000);
@@ -62,8 +94,8 @@ export async function recalculateOpportunityScore(
     employerHistoryScore: row.company.trustStatus === 'trusted' ? 90 : 50,
     employerReportRateScore: 50,
     ageHours,
-    engagementQuality: 50,
-    applicationPerformance: 50,
+    engagementQuality,
+    applicationPerformance,
     sourceReliability: 80,
     marketSignal: 50,
     penalties,

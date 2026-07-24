@@ -13,8 +13,9 @@ import {
   recommendationExposures,
   userInteractions,
   userMatchProfiles,
+  squareJumpJobMetricAggregates,
 } from '@shared/schema';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { db } from '../db';
 import { authenticate, authorize, type AuthenticatedRequest } from '../middleware/auth';
 import { resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
@@ -228,6 +229,35 @@ router.post('/job-events', authenticate, async (req: AuthenticatedRequest, res, 
       .onConflictDoNothing({ target: jobEvents.eventKey })
       .returning({ id: jobEvents.id });
     if (!insertedEvent) return res.status(202).json({ accepted: true, duplicate: true });
+    const metricFields: Record<string, string> = {
+      impression: 'impressions',
+      qualified_view: 'qualifiedViews',
+      save: 'saves',
+      share: 'shares',
+      hide: 'hides',
+      report: 'reports',
+      application_start: 'applicationStarts',
+      application_complete: 'applicationCompletions',
+      outbound_application: 'outboundApplications',
+    };
+    const metricField = metricFields[parsed.data.eventType];
+    if (metricField) {
+      const bucketStart = new Date();
+      bucketStart.setUTCHours(0, 0, 0, 0);
+      const metricColumn = (squareJumpJobMetricAggregates as any)[metricField];
+      await db.insert(squareJumpJobMetricAggregates).values({
+        jobId: job.id,
+        bucketStart,
+        updatedAt: new Date(),
+        [metricField]: 1,
+      } as any).onConflictDoUpdate({
+        target: [squareJumpJobMetricAggregates.jobId, squareJumpJobMetricAggregates.bucketStart],
+        set: {
+          [metricField]: sql`${metricColumn} + 1`,
+          updatedAt: new Date(),
+        } as any,
+      });
+    }
     await db.insert(userInteractions).values({
       userId: user.id,
       interactionType: parsed.data.eventType,
