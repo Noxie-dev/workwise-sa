@@ -27,6 +27,10 @@ import { MATCH_WEIGHTS } from './matchScoringService';
 import { OPPORTUNITY_WEIGHTS } from './opportunityScoringService';
 import { getActivePolicy, numericPolicyWeights } from './scorePolicyRepository';
 import { calculatePlacementScore } from './placementService';
+import {
+  getMaterializedRecommendations,
+  materializeUserJobMatches,
+} from './matchMaterializationService';
 
 type RecommendationRow = {
   job: typeof jobs.$inferSelect;
@@ -178,6 +182,66 @@ export async function getSquareJumpRecommendations(userId: number, query: Recomm
     getActivePolicy('match'),
     getActivePolicy('placement'),
   ]);
+
+  if (process.env.SQUAREJUMP_MATERIALIZED_FEED !== 'false') {
+    const materializedCursor = query.cursor ? decodeCursor(query.cursor, [
+      opportunityPolicy?.version ?? 'opportunity-v1.0',
+      matchPolicy?.version ?? 'match-v1.0',
+      placementPolicy?.version ?? 'placement-v1.0',
+    ].join('|')) : undefined;
+    let materialized = await getMaterializedRecommendations(userId, query, materializedCursor);
+    if (materialized.rows.length === 0 && !query.cursor) {
+      await materializeUserJobMatches(userId);
+      materialized = await getMaterializedRecommendations(userId, query);
+    }
+    if (materialized.rows.length > 0 || query.cursor) {
+      const pageRows = materialized.rows.slice(0, query.limit);
+      const exposures = pageRows.map((row, index) => ({
+        userId,
+        jobId: row.job.id,
+        trackingToken: crypto.randomBytes(24).toString('base64url'),
+        surface: query.surface,
+        position: index + 1,
+        releaseStage: materialized.entitlements.workwisePlusActive ? 'subscriber' : 'member',
+        exposedAt: materialized.now,
+      }));
+      if (exposures.length) await db.insert(recommendationExposures).values(exposures);
+      const nextRow = materialized.rows.length > query.limit ? pageRows[pageRows.length - 1] : null;
+      return {
+        items: pageRows.map((row, index) => ({
+          job: { ...row.job, company: row.company, applyUrl: row.source?.applyUrl ?? null },
+          opportunityScore: row.score?.scoreValue ?? 50,
+          placementScore: row.match.placementScore,
+          ...userExplanation({
+            match: {
+              score: row.match.matchScore,
+              components: objectValue(row.match.componentScores) as any,
+              reasons: arrayValue(row.match.reasons),
+              missingRequirements: arrayValue(row.match.missingRequirements),
+              policyVersion: row.match.policyVersion,
+            },
+            earlyAccessEndsAt: materialized.entitlements.workwisePlusActive ? row.job.memberReleaseAt : null,
+            applicationLinkVerified: row.job.applicationLinkStatus === 'verified',
+          }),
+          releaseState: materialized.entitlements.workwisePlusActive ? 'subscriber' : 'member',
+          trackingToken: exposures[index].trackingToken,
+        })),
+        nextCursor: nextRow
+          ? encodeCursor({
+              placementScore: nextRow.match.placementScore,
+              createdAt: new Date(nextRow.job.createdAt ?? 0).toISOString(),
+              jobId: nextRow.job.id,
+              policyVersions: materialized.policyVersions,
+            })
+          : null,
+        policyVersions: {
+          match: matchPolicy?.version ?? 'match-v1.0',
+          placement: placementPolicy?.version ?? 'placement-v1.0',
+          opportunity: opportunityPolicy?.version ?? 'opportunity-v1.0',
+        },
+      };
+    }
+  }
 
   const now = new Date();
   const releaseAt = entitlements.workwisePlusActive ? jobs.subscriberReleaseAt : jobs.memberReleaseAt;
