@@ -64,6 +64,7 @@
     "lighthouse": "lhci autorun",
     "security:audit": "npm audit",
     "security:tracked-secrets": "node scripts/check-tracked-secrets.js",
+    "security:rotate-session-secret": "node scripts/rotate-session-secret.js",
     "check:upload-volume": "node scripts/check-upload-volume.js",
     "security:fix": "npm audit fix",
     "netlify:dev": "netlify dev",
