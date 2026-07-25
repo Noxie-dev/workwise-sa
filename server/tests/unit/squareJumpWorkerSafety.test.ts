@@ -36,4 +36,15 @@ describe('SquareJUMP worker safety contracts', () => {
     expect(worker).toContain('Number(daily?.total ?? 0) >= 10');
     expect(worker).toContain('squareJumpNotificationDeliveries');
   });
+
+  it('only releases jobs after application-link verification', () => {
+    const service = source('server/services/squarejump/applicationLinkVerificationService.ts');
+
+    expect(service).toContain("eq(jobs.status, 'active')");
+    expect(service).toContain("ne(jobs.applicationLinkStatus, 'verified')");
+    expect(service).toContain("method: 'HEAD'");
+    expect(service).toContain('[405, 403].includes(response.status)');
+    expect(service).toContain("applicationLinkStatus: healthy ? 'verified' : 'broken'");
+    expect(service).toContain("status: 'scheduled'");
+  });
 });
