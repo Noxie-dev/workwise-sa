@@ -27,4 +27,13 @@ describe('SquareJUMP worker safety contracts', () => {
     expect(worker).toContain('refreshAllUserJobMatches');
     expect(worker).toContain('closeDatabase()');
   });
+
+  it('honors notification consent and per-user delivery limits', () => {
+    const worker = source('server/services/squarejump/releaseWorker.ts');
+
+    expect(worker).toContain("eq(notificationConsents.consentStatus, 'granted')");
+    expect(worker).toContain("ne(notificationConsents.notificationMode, 'paused')");
+    expect(worker).toContain('Number(daily?.total ?? 0) >= 10');
+    expect(worker).toContain('squareJumpNotificationDeliveries');
+  });
 });
