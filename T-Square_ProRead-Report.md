@@ -907,6 +907,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Session-secret rotation and hygiene | BLOCKED/P0 | Commit `d7b8652`; `security:rotate-session-secret --dry-run`, `sessionSecretRotation.test.ts` 1/1, `startupSecretLogging.test.ts` 1/1, and type-check pass; the real Secret Manager rotation attempt is blocked by missing Google ADC and deployed log/old-secret invalidation evidence remains external |
 | External Secret Manager bootstrap review | PARTIAL/P0 | User-supplied terminal transcript shows `talentsquare-za-prod` billing/API enablement, `SESSION_SECRET` version 1 creation/access, and ADC authentication; the original `workwise-sa-project` API activation remains billing-blocked, and Cloud Run lists zero services, so no deployed workload has been restarted or verified |
 | Firebase TalentSquare-Network readiness | BLOCKED/P0 | Firebase CLI version check passed, but Firebase project/auth discovery failed here without ADC; `.firebaserc` and client production config still point at `workwise-sa-project`, `firebase.json` contains a placeholder Auth support email, and `check:firebase-config` fails because `client/.env` is absent |
+| Firebase/GCloud account connection | BLOCKED | Firebase CLI reports no authorized accounts, `firebase use` cannot load ADC, and `gcloud` is not installed in this workspace; no project selection or deployment mutation was performed |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -1100,3 +1101,13 @@ The attached terminal transcript is recorded as **user-supplied evidence and was
 5. Keep PostgreSQL as the canonical application database. Enable Firestore or Firebase Storage only for explicitly approved client features, with deny-by-default rules and `request.auth.uid` ownership checks; do not deploy the legacy Firebase Functions path as the primary API.
 6. Deploy the bundled Express service to Cloud Run (the transcript showed zero services), run `pnpm run build` and the production validator, verify `/health`, `/ready`, Auth sign-in, an authenticated API request, and private file access. Use Firebase Hosting only if it is intentionally configured as a front door/rewrite to Cloud Run; otherwise do not run the legacy Hosting deploy command.
 7. Add rollback, logs/alerts, database backup/restore, and a two-tenant authorization smoke test before changing the readiness score.
+
+### 15.29 `<3>` Firebase/GCloud account connection feedback — 2026-07-25 UTC
+
+| Pass | Action | Evidence | Score / confidence |
+|---|---|---|---|
+| 1 | Verified Firebase tooling and checked for Google Cloud CLI availability. | `npx -y firebase-tools@latest --version` passed; `gcloud` is not installed in this workspace. | 28/100; High/medium |
+| 2 | Checked account/project state without changing resources. | `firebase login:list` reports no authorized accounts; `firebase use` fails closed because ADC is unavailable. | 28/100; High/medium |
+| 3 | Started the Firebase no-localhost device-login flow, then cancelled before accepting a one-time authorization code in this chat. | No Firebase account was connected and no project/deployment mutation occurred. | 28/100; High/medium |
+
+**Secure unblock:** on the operator workstation, run `npx -y firebase-tools@latest login --no-localhost`, complete the browser flow locally, then run `npx -y firebase-tools@latest projects:list` and `npx -y firebase-tools@latest use <confirmed-firebase-project-id>`. Install the Google Cloud CLI separately, authenticate the same account, and set the confirmed GCP project before any deployment. Never paste authorization codes, access tokens, service-account JSON, or secret values into chat.
