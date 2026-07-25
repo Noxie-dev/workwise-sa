@@ -908,7 +908,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | External Secret Manager bootstrap review | PARTIAL/P0 | User-supplied terminal transcript shows `talentsquare-za-prod` billing/API enablement, `SESSION_SECRET` version 1 creation/access, and ADC authentication; the original `workwise-sa-project` API activation remains billing-blocked, and Cloud Run lists zero services, so no deployed workload has been restarted or verified |
 | Firebase TalentSquare-Network readiness | BLOCKED/P0 | Firebase CLI version check passed, but Firebase project/auth discovery failed here without ADC; `.firebaserc` and client production config still point at `workwise-sa-project`, `firebase.json` contains a placeholder Auth support email, and `check:firebase-config` fails because `client/.env` is absent |
 | Firebase/GCloud account connection | BLOCKED | Firebase CLI reports no authorized accounts, `firebase use` cannot load ADC, and `gcloud` is not installed in this workspace; no project selection or deployment mutation was performed |
-| Firebase init safety review | BLOCKED/P0 | User-supplied transcript confirms Firebase login and `talentsquare-za-prod`, but `firebase init` overwrote local Data Connect/Firestore artifacts, generated Hosting workflows, created a Hosting-admin GitHub service account/secret, and produced permissive Firestore starter rules; no generated Firebase changes are approved for deployment |
+| Firebase init safety review | PARTIAL/P0 | User-supplied transcript confirmed Firebase login and `talentsquare-za-prod`; the open starter Firestore rule, generated Data Connect/Firestore artifacts, and Hosting workflow retargeting were restored locally, but the externally created Hosting-admin GitHub service account/secret remains to be reviewed or revoked and Storage remains incomplete |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -1126,4 +1126,12 @@ The attached transcript confirms the Firebase project mapping but also records u
 | Storage setup | Initialization stopped because Firebase Storage was not yet provisioned. | INCOMPLETE |
 | Canonical runtime | The repository’s deployment strategy still names bundled Express/Cloud Run as canonical; Firebase Hosting/Functions remain legacy unless deliberately adopted as a Cloud Run front door. | DECISION REQUIRED |
 
-No Firebase deploy was approved or executed from this workspace. The current working tree contains the generated changes plus unrelated user changes; they remain uncommitted for deliberate review.
+No Firebase deploy was approved or executed from this workspace. The open starter Firestore rule, generated Data Connect schema/query files, generated indexes, and Hosting workflow retargeting were restored to the repository baseline; only harmless final-newline normalization remains in a few restored files. The externally created Hosting-admin GitHub service account/secret was not changed from this workspace and requires separate least-privilege review or revocation. Unrelated user changes remain uncommitted.
+
+### 15.31 Firebase init cleanup execution feedback — 2026-07-25 UTC
+
+| Pass | Cleanup | Evidence | Score / confidence |
+|---|---|---|---|
+| 1 | Removed the Firebase CLI’s unauthenticated Firestore starter rule from the pending change set. | `firestore.rules` restored to the repository’s prior ownership/admin rules; no Firebase rules deploy executed. | 28/100; High/medium |
+| 2 | Restored the pre-init Data Connect schema, connector, queries, seed data, and Firestore indexes after the failed SDK generation. | Target files now differ only by final-newline normalization; the failed generated `_Data` model is no longer pending for commit. | 28/100; High/medium |
+| 3 | Undid generated Hosting workflow retargeting to `talentsquare-za-prod` so no new Firebase Hosting deployment path is pushed before an architecture decision. | Both workflow files match their pre-init project/secret references; no workflow or Firebase deployment was pushed. | 28/100; High/medium |
