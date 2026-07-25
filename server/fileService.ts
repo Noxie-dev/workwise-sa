@@ -43,8 +43,11 @@ export const fileService = {
       fs.unlinkSync(file.path); // Remove the temp file
 
       // Generate a URL for the file
-      const baseUrl =
-        (await secretManager.getSecret('FILE_SERVE_URL')) || 'http://localhost:3001/uploads';
+      const renderBaseUrl = process.env.RENDER_EXTERNAL_URL
+        ? `${process.env.RENDER_EXTERNAL_URL.replace(/\/$/, '')}/uploads`
+        : null;
+      const fileServeUrl = (await secretManager.getSecret('FILE_SERVE_URL'))?.replace(/\/$/, '');
+      const baseUrl = fileServeUrl || renderBaseUrl || 'http://localhost:3001/uploads';
       const relativePath = path.relative(uploadDir, fullPath).replace(/\\/g, '/');
       const fileUrl = `${baseUrl}/${relativePath}`;
 

@@ -415,7 +415,9 @@ export class BillingService {
       return configured;
     }
 
-    const baseUrl = (await this.optionalSecret('PUBLIC_BASE_URL')) || 'http://localhost:3001';
+    const renderBaseUrl = process.env.RENDER_EXTERNAL_URL?.replace(/\/$/, '');
+    const baseUrl =
+      (await this.optionalSecret('PUBLIC_BASE_URL')) || renderBaseUrl || 'http://localhost:3001';
     return `${baseUrl}${path}`;
   }
 
