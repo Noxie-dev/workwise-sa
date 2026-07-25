@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-24 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `f81ad21` (`test: enforce SquareJUMP link release gate`)
+**Commit:** `ee31d68` (`perf: harden upload volume and bundle delivery`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -13,7 +13,7 @@
 
 **Overall readiness score: 28/100** *(unchanged after the latest `<3>` batch; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `f81ad21` — SquareJUMP event integrity, notification safeguards, and application-link release gating are covered; the tracked-secret gate correctly blocks the remaining credential exposure without printing values; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `ee31d68` — upload-volume isolation/health checks, bounded image optimization, private download caching, and deterministic bundle-size enforcement are covered; the tracked-secret gate still blocks the remaining credential exposure without printing values; score remains 28/100 and confidence remains High/medium as stated above.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -903,6 +903,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Secret-gate output safety | PASS locally / P0 remains open | Commit `1321773`; gate-output suite passes 1/1 and confirms findings contain paths/pattern names only; credential rotation and history purge remain required |
 | Migration tooling isolation | PASS locally | Commit `96d34fd`; Drizzle generation now writes review output to ignored `.drizzle-generated/`, `db:status` reads applied/pending migrations through a bounded CLI, and type-check passes |
 | SquareJUMP event/notification/link safeguards | PARTIAL | Commits `70beb83`, `1eb0e85`, and `f81ad21`; event binding suite 1/1, worker safety suite 4/4, and type-check pass; live event ingestion, scheduled worker execution, and external link verification remain open |
+| Upload volume and bundle delivery | PARTIAL | Commit `ee31d68`; upload paths share `UPLOAD_DIR`, startup validates writable subdirectories, image uploads are bounded/normalized when decodable, private downloads receive immutable cache headers, and bundle analysis fails on oversized chunks; durable object storage, malware quarantine, and production CDN evidence remain open |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -1034,3 +1035,11 @@ The browser smoke attempt is recorded as an environment-blocked Phase 4 gate: in
 | 1 | Added event-integrity coverage for authenticated user, job, exposure-token, and idempotency-key binding. | Commit `70beb83`; event-integrity suite passes 1/1. | 28/100; High/medium |
 | 2 | Added notification safety coverage for consent, paused-mode suppression, and the per-user daily delivery cap. | Commit `1eb0e85`; worker safety suite passes 3/3. | 28/100; High/medium |
 | 3 | Added application-link release-gate coverage for bounded HEAD/GET checks, verified/broken state, and release-event scheduling. | Commit `f81ad21`; worker safety suite passes 4/4 and type-check passes. | 28/100; High/medium |
+
+### 15.24 Grouped upload-volume and delivery feedback — 2026-07-25 UTC
+
+| Pass | Implementation | Evidence | Score / confidence |
+|---|---|---|---|
+| 1 | Centralized local upload-volume resolution and startup writability checks, including isolated temporary/profile/CV/general subdirectories and a bounded volume-health command. | Commit `ee31d68`; `pnpm run check:upload-volume` passes (0.00 MB / 5120 MB); type-check passes. | 28/100; High/medium |
+| 2 | Added bounded image optimization with WebP normalization and metadata, while retaining a safe fallback for malformed legacy image bytes and deterministic persistence-failure cleanup. | Commit `ee31d68`; `fileRoutes.test.ts` passes 7/7. | 28/100; High/medium |
+| 3 | Removed fake client lazy wrappers, split Firebase chunks consistently, and made bundle analysis repository-rooted with a configurable hard size gate. | Commit `ee31d68`; `pnpm run analyze:bundle` completes successfully and CI now invokes the enforcing analyzer. | 28/100; High/medium |
