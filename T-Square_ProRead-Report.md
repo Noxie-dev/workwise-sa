@@ -3,7 +3,7 @@
 **Audit date:** 2026-07-24 (UTC)
 **Repository:** `/workspace`
 **Branch:** `codex/shared-layout-visuals`
-**Commit:** `ee31d68` (`perf: harden upload volume and bundle delivery`)
+**Commit:** `d7b8652` (`security: add non-printing session secret rotation`)
 **Requested output:** `T-Square_ProRead-Report.md`
 **Audit mode:** Read-only review, local builds, static analysis, safe local test execution, and isolated local startup. No deployment, destructive migration, credential use against live services, scraping, messages, or paid API requests were performed.
 
@@ -13,7 +13,7 @@
 
 **Overall readiness score: 28/100** *(unchanged after the latest `<3>` batch; P0 authorization and infrastructure caps still apply)*
 **Confidence: High** for repository, build, local runtime, access-control, migration, and upload-boundary findings; **medium** for live infrastructure, provider, legal, mobile-device, and disaster-recovery conclusions because no production environment or contracts were supplied.
-**Latest execution checkpoint:** `ee31d68` — upload-volume isolation/health checks, bounded image optimization, private download caching, and deterministic bundle-size enforcement are covered; the tracked-secret gate still blocks the remaining credential exposure without printing values; score remains 28/100 and confidence remains High/medium as stated above.
+**Latest execution checkpoint:** `d7b8652` — a non-printing Secret Manager rotation/verification command and startup-hygiene regression test are in place; local dry-run and hygiene checks pass, but the real rotation is blocked because this runner has no Google ADC, so P0-02 remains open and the score remains 28/100 with High/medium confidence.
 
 | Severity | Count | Launch effect |
 |---|---:|---|
@@ -904,6 +904,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Migration tooling isolation | PASS locally | Commit `96d34fd`; Drizzle generation now writes review output to ignored `.drizzle-generated/`, `db:status` reads applied/pending migrations through a bounded CLI, and type-check passes |
 | SquareJUMP event/notification/link safeguards | PARTIAL | Commits `70beb83`, `1eb0e85`, and `f81ad21`; event binding suite 1/1, worker safety suite 4/4, and type-check pass; live event ingestion, scheduled worker execution, and external link verification remain open |
 | Upload volume and bundle delivery | PARTIAL | Commit `ee31d68`; upload paths share `UPLOAD_DIR`, startup validates writable subdirectories, image uploads are bounded/normalized when decodable, private downloads receive immutable cache headers, and bundle analysis fails on oversized chunks; durable object storage, malware quarantine, and production CDN evidence remain open |
+| Session-secret rotation and hygiene | BLOCKED/P0 | Commit `d7b8652`; `security:rotate-session-secret --dry-run`, `sessionSecretRotation.test.ts` 1/1, `startupSecretLogging.test.ts` 1/1, and type-check pass; the real Secret Manager rotation attempt is blocked by missing Google ADC and deployed log/old-secret invalidation evidence remains external |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -1057,3 +1058,11 @@ The current **28/100** is a launch-gated score, not a measure of elapsed enginee
 | 5 / 20–24h | **Recalculate the score from a clean release candidate.** Run tracked-secret scan, type/build, migration/status, restore rehearsal, startup/readiness, anonymous/cross-tenant smoke, and bundle/upload gates; update the weighted table only from recorded results. | Signed evidence index linked to commit, test output, deployment/restore records, and explicit residual-risk approvals. | Release lead; staging environment and approvers |
 
 **Score-lift rule:** Steps 1–3 are the minimum security evidence package expected to recover at least two points on the next audit recalculation. If the server-side authorization cap still applies after that recalculation, Step 4 is mandatory before claiming **30/100**. A failed or unverifiable step leaves the score at 28 and the verdict **NOT READY**; time spent is never substituted for gate evidence.
+
+### 15.26 P0-02 session-secret rotation execution feedback — 2026-07-25 UTC
+
+| Pass | Implementation | Evidence | Score / confidence |
+|---|---|---|---|
+| 1 | Added a Secret Manager rotation command that generates 48 random bytes, adds a new version, reads it back in memory for exact verification, and optionally disables previous enabled versions without printing the candidate. | Commit `d7b8652`; `pnpm run security:rotate-session-secret -- --dry-run` passes; no secret value is emitted or persisted. | 28/100; High/medium |
+| 2 | Added source-level hygiene regression coverage for rotation output and startup handling. | Commit `d7b8652`; `sessionSecretRotation.test.ts` and `startupSecretLogging.test.ts` pass 2/2; `pnpm run type-check` passes. | 28/100; High/medium |
+| 3 | Executed the real rotation command and fail-closed when Google Application Default Credentials were unavailable. | No Secret Manager mutation occurred; command returned exit 1 with a non-sensitive configuration error. Production rotation, workload restart, old-version invalidation, and retained-log scan still require authorized deployment access. | 28/100; High/medium |
