@@ -1223,3 +1223,13 @@ Do not paste tokens, secret values, or credential JSON. The first query should s
 | Value disclosure | PASS | Validation emitted only key names, categories, and policy results; no secret values were printed. |
 
 **Required correction before any deploy:** remove env files from Git tracking/history, store production values in Secret Manager/deployment configuration, set mode `600` for any temporary local copy, make root and client Firebase project IDs consistently `talentsquare-za-prod`, add the missing canonical keys, remove duplicate keys, set emulator/mock flags to `false`, and rerun the parser plus tracked-secret gate. Do not paste the updated values into chat.
+
+### 15.37 P0-01 secret-history purge execution feedback — 2026-07-25 UTC
+
+| Pass | Action | Evidence | Score / confidence |
+|---|---|---|---|
+| 1 | Rewrote the `codex/shared-layout-visuals` branch to remove historical production environment and Firebase service-account files. | `git filter-branch` completed; removed paths were `.env.production`, `client/.env.production`, `service-account.json`, and `workwise-sa-project-firebase-adminsdk-fbsvc-727ba80ab5.json`. The rewritten branch is `823762d7d301b003d1da68df24139fbbbf23be60`. | 28/100; High/medium |
+| 2 | Force-pushed the rewritten branch using an explicit lease against the observed remote tip. | `git push --force-with-lease` succeeded; local and remote `codex/shared-layout-visuals` now resolve to `823762d7d301b003d1da68df24139fbbbf23be60`. A remote-branch object/path scan found no listed sensitive paths. | 28/100; High/medium |
+| 3 | Restored unrelated in-progress work and re-ran local secret hygiene checks. | The pre-rewrite stash was restored without conflict; unrelated modifications and `migrations/0016_add_employer_job_posting_fields.sql` remain present. Root/client env files are mode `600`, ignored, and untracked. `pnpm run security:tracked-secrets` passes for 2,441 files. | 28/100; High/medium |
+
+**Scope note:** a local backup ref, `refs/backup/pre-secret-purge-20260725224340`, is intentionally retained for recovery and was not pushed. Filter-branch/orchestrator checkpoint refs also retain pre-rewrite objects locally; they must never be published. The remote branch itself is clean for the targeted historical paths. Credential revocation/rotation, derived artifact cleanup, Cloud Audit Log review, and proof that old credentials fail remain required before P0-01 can be promoted to fully closed. Readiness therefore remains **28/100** with **High/medium** confidence and launch remains **NO-GO**.
