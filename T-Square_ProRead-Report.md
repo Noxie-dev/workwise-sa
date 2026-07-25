@@ -906,6 +906,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Upload volume and bundle delivery | PARTIAL | Commit `ee31d68`; upload paths share `UPLOAD_DIR`, startup validates writable subdirectories, image uploads are bounded/normalized when decodable, private downloads receive immutable cache headers, and bundle analysis fails on oversized chunks; durable object storage, malware quarantine, and production CDN evidence remain open |
 | Session-secret rotation and hygiene | BLOCKED/P0 | Commit `d7b8652`; `security:rotate-session-secret --dry-run`, `sessionSecretRotation.test.ts` 1/1, `startupSecretLogging.test.ts` 1/1, and type-check pass; the real Secret Manager rotation attempt is blocked by missing Google ADC and deployed log/old-secret invalidation evidence remains external |
 | External Secret Manager bootstrap review | PARTIAL/P0 | User-supplied terminal transcript shows `talentsquare-za-prod` billing/API enablement, `SESSION_SECRET` version 1 creation/access, and ADC authentication; the original `workwise-sa-project` API activation remains billing-blocked, and Cloud Run lists zero services, so no deployed workload has been restarted or verified |
+| Firebase TalentSquare-Network readiness | BLOCKED/P0 | Firebase CLI version check passed, but Firebase project/auth discovery failed here without ADC; `.firebaserc` and client production config still point at `workwise-sa-project`, `firebase.json` contains a placeholder Auth support email, and `check:firebase-config` fails because `client/.env` is absent |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -1081,3 +1082,21 @@ The attached terminal transcript is recorded as **user-supplied evidence and was
 | Cloud Run in `africa-south1` returned zero services. | There is no discovered production workload to restart, configure with the secret, or check at `/ready`. | BLOCKED |
 
 **Next required sequence:** deploy the application with `SESSION_SECRET` sourced from `talentsquare-za-prod/SESSION_SECRET` and grant the runtime service account Secret Manager accessor permission; verify `/ready` and startup-log redaction; then add a second version, perform a complete rollout, and disable version 1. Until those workload and log records exist, P0-02 remains open and the readiness score stays **28/100** with **High/medium** confidence.
+
+### 15.28 `<3>` Firebase TalentSquare-Network readiness feedback — 2026-07-25 UTC
+
+| Pass | Implementation / finding | Evidence | Score / confidence |
+|---|---|---|---|
+| 1 | Audited the Firebase deployment contract. The repository’s default/production aliases still target `workwise-sa-project`; Hosting/Functions are documented as legacy, while the canonical runtime is the bundled Express service. The Auth block also contains `support@undefined.firebaseapp.com`. | `firebase.json`, `.firebaserc`, `docs/deployment-strategy.md`; no Firebase mutation performed. | 28/100; High/medium |
+| 2 | Verified Firebase tooling and operator access prerequisites. | `npx -y firebase-tools@latest --version` passed; `firebase use` failed closed because this workspace has no Google ADC/Firebase login. | 28/100; High/medium |
+| 3 | Ran the repository Firebase configuration gate and inspected configuration presence without printing values. | `pnpm run check:firebase-config` fails because it loads `client/.env`, which is absent; `client/.env.production` contains configured fields but still targets the old project. | 28/100; High/medium |
+
+**Required TalentSquare-Network configuration before deployment:**
+
+1. Confirm the Firebase project ID for the `TalentSquare-Network` display name. The transcript’s `talentsquare-za-prod` must be confirmed as the Firebase project, not assumed from its GCP display name.
+2. Register the production web app and populate `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`, and the public API key in the deployment configuration. Do not commit Admin SDK keys or service-account JSON.
+3. Enable only approved Auth providers: Email/Password and Google initially; configure the verified support email, authorized domains (`localhost` only for development plus the real production domain), email verification/password-reset templates, and MFA for administrator accounts. Do not enable anonymous auth for production.
+4. Configure the backend with Workload Identity or an attached runtime service account, `FIREBASE_PROJECT_ID`, the correct storage bucket, Secret Manager access, and the rotated `SESSION_SECRET`. Do not use the tracked `.env.production` service-account material.
+5. Keep PostgreSQL as the canonical application database. Enable Firestore or Firebase Storage only for explicitly approved client features, with deny-by-default rules and `request.auth.uid` ownership checks; do not deploy the legacy Firebase Functions path as the primary API.
+6. Deploy the bundled Express service to Cloud Run (the transcript showed zero services), run `pnpm run build` and the production validator, verify `/health`, `/ready`, Auth sign-in, an authenticated API request, and private file access. Use Firebase Hosting only if it is intentionally configured as a front door/rewrite to Cloud Run; otherwise do not run the legacy Hosting deploy command.
+7. Add rollback, logs/alerts, database backup/restore, and a two-tenant authorization smoke test before changing the readiness score.
