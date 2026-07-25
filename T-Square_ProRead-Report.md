@@ -908,6 +908,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | External Secret Manager bootstrap review | PARTIAL/P0 | User-supplied terminal transcript shows `talentsquare-za-prod` billing/API enablement, `SESSION_SECRET` version 1 creation/access, and ADC authentication; the original `workwise-sa-project` API activation remains billing-blocked, and Cloud Run lists zero services, so no deployed workload has been restarted or verified |
 | Firebase TalentSquare-Network readiness | BLOCKED/P0 | Firebase CLI version check passed, but Firebase project/auth discovery failed here without ADC; `.firebaserc` and client production config still point at `workwise-sa-project`, `firebase.json` contains a placeholder Auth support email, and `check:firebase-config` fails because `client/.env` is absent |
 | Firebase/GCloud account connection | BLOCKED | Firebase CLI reports no authorized accounts, `firebase use` cannot load ADC, and `gcloud` is not installed in this workspace; no project selection or deployment mutation was performed |
+| Firebase init safety review | BLOCKED/P0 | User-supplied transcript confirms Firebase login and `talentsquare-za-prod`, but `firebase init` overwrote local Data Connect/Firestore artifacts, generated Hosting workflows, created a Hosting-admin GitHub service account/secret, and produced permissive Firestore starter rules; no generated Firebase changes are approved for deployment |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -1111,3 +1112,18 @@ The attached terminal transcript is recorded as **user-supplied evidence and was
 | 3 | Started the Firebase no-localhost device-login flow, then cancelled before accepting a one-time authorization code in this chat. | No Firebase account was connected and no project/deployment mutation occurred. | 28/100; High/medium |
 
 **Secure unblock:** on the operator workstation, run `npx -y firebase-tools@latest login --no-localhost`, complete the browser flow locally, then run `npx -y firebase-tools@latest projects:list` and `npx -y firebase-tools@latest use <confirmed-firebase-project-id>`. Install the Google Cloud CLI separately, authenticate the same account, and set the confirmed GCP project before any deployment. Never paste authorization codes, access tokens, service-account JSON, or secret values into chat.
+
+### 15.30 Firebase init safety review — 2026-07-25 UTC
+
+The attached transcript confirms the Firebase project mapping but also records unsafe or incomplete initialization outcomes:
+
+| Finding | Required action | Status |
+|---|---|---|
+| Shell placeholder syntax | `<confirmed-firebase-project-id>` was interpreted literally by the shell. The confirmed ID is `talentsquare-za-prod`; angle brackets are documentation placeholders, not command text. | Resolved in operator terminal |
+| Firestore starter rules | `firestore.rules` now allows unauthenticated read/write until 2026-08-24. Do not deploy these rules; restore/review the repository’s ownership rules before any Firestore deploy. | BLOCKED/P0 |
+| Data Connect generation | SDK generation failed on unsupported `_Data` input types after existing schema/query files were overwritten. | BLOCKED; do not deploy or commit generated Data Connect changes |
+| Hosting automation | Firebase CLI created two GitHub workflows and a Hosting-admin service account secret. Review branch, build command, permissions, and secret scope before pushing workflow files. | REVIEW REQUIRED |
+| Storage setup | Initialization stopped because Firebase Storage was not yet provisioned. | INCOMPLETE |
+| Canonical runtime | The repository’s deployment strategy still names bundled Express/Cloud Run as canonical; Firebase Hosting/Functions remain legacy unless deliberately adopted as a Cloud Run front door. | DECISION REQUIRED |
+
+No Firebase deploy was approved or executed from this workspace. The current working tree contains the generated changes plus unrelated user changes; they remain uncommitted for deliberate review.
