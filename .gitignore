@@ -74,3 +74,5 @@ scrapy_jobs/scraping_report_*.json
 
 # Local databases
 *.db
+.env.production
+client/.env.production
