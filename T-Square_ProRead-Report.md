@@ -910,6 +910,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Firebase/GCloud account connection | BLOCKED | Firebase CLI reports no authorized accounts, `firebase use` cannot load ADC, and `gcloud` is not installed in this workspace; no project selection or deployment mutation was performed |
 | Firebase init safety review | PARTIAL/P0 | User-supplied transcript confirmed Firebase login and `talentsquare-za-prod`; the open starter Firestore rule, generated Data Connect/Firestore artifacts, and Hosting workflow retargeting were restored locally, but the externally created Hosting-admin GitHub service account/secret remains to be reviewed or revoked and Storage remains incomplete |
 | Firebase Hosting automation revocation | PARTIAL/P0 | User-supplied terminal transcript confirms deletion of GitHub secret `FIREBASE_SERVICE_ACCOUNT_TALENTSQUARE_ZA_PROD` and service account `github-action-978338874`; repository workflow scan finds no remaining references, the supplied GitHub app lists show no Firebase CLI OAuth app, and Cloud Audit Log review remains outstanding |
+| Production environment-file validation | BLOCKED/P0 | Root `.env.production` parses but is missing canonical production keys (`NODE_ENV`, client Firebase API/App identifiers, mock flag), contains duplicate `DATABASE_URL`, is tracked with mode `755`, and `security:tracked-secrets` still detects private-key/database credentials; `client/.env.production` parses but still targets the old Firebase project and lacks `VITE_API_URL` |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -1210,3 +1211,15 @@ Do not paste tokens, secret values, or credential JSON. The first query should s
 | Hosting automation credential | User-supplied transcript confirms GitHub secret and generated service account deletion; repository scan finds no TalentSquare credential reference. | Cloud Audit Log review and confirmation of no external workflow/job using the deleted identity. | PARTIAL/P0 |
 
 **P0 decision:** local evidence is materially stronger, but no P0 is promoted to fully closed until its external evidence column is satisfied. Readiness remains **28/100** and launch remains **NO-GO**.
+
+### 15.36 Production environment-file validation — 2026-07-25 UTC
+
+| Check | Result | Evidence |
+|---|---|---|
+| Root `.env.production` syntax | PASS with policy failures | Parsed 21 keys without printing values; duplicate `DATABASE_URL` detected. |
+| Root production contract | FAIL/P0 | Missing `NODE_ENV`, `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`, and `VITE_USE_MOCK_PUBLIC_DATA`; `NODE_ENV` cannot be verified as production. |
+| Firebase project alignment | FAIL/P0 | `client/.env.production` still uses the prior Firebase project rather than `talentsquare-za-prod`; the client file also lacks `VITE_API_URL`. |
+| Secret storage hygiene | FAIL/P0 | Both env files have filesystem mode `755`; root `.env.production` is tracked. `pnpm run security:tracked-secrets` reports private-key material and a credentialed database URL in the tracked root file. |
+| Value disclosure | PASS | Validation emitted only key names, categories, and policy results; no secret values were printed. |
+
+**Required correction before any deploy:** remove env files from Git tracking/history, store production values in Secret Manager/deployment configuration, set mode `600` for any temporary local copy, make root and client Firebase project IDs consistently `talentsquare-za-prod`, add the missing canonical keys, remove duplicate keys, set emulator/mock flags to `false`, and rerun the parser plus tracked-secret gate. Do not paste the updated values into chat.
