@@ -909,7 +909,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Firebase TalentSquare-Network readiness | BLOCKED/P0 | Firebase CLI version check passed, but Firebase project/auth discovery failed here without ADC; `.firebaserc` and client production config still point at `workwise-sa-project`, `firebase.json` contains a placeholder Auth support email, and `check:firebase-config` fails because `client/.env` is absent |
 | Firebase/GCloud account connection | BLOCKED | Firebase CLI reports no authorized accounts, `firebase use` cannot load ADC, and `gcloud` is not installed in this workspace; no project selection or deployment mutation was performed |
 | Firebase init safety review | PARTIAL/P0 | User-supplied transcript confirmed Firebase login and `talentsquare-za-prod`; the open starter Firestore rule, generated Data Connect/Firestore artifacts, and Hosting workflow retargeting were restored locally, but the externally created Hosting-admin GitHub service account/secret remains to be reviewed or revoked and Storage remains incomplete |
-| Firebase Hosting automation revocation | BLOCKED/P0 | Target is the transcript-created `github-action-978338874` service account and GitHub secret `FIREBASE_SERVICE_ACCOUNT_TALENTSQUARE_ZA_PROD`; this workspace has Firebase CLI auth but no `gcloud` or `gh`, so no deletion/revocation mutation was attempted |
+| Firebase Hosting automation revocation | PARTIAL/P0 | User-supplied terminal transcript confirms deletion of GitHub secret `FIREBASE_SERVICE_ACCOUNT_TALENTSQUARE_ZA_PROD` and service account `github-action-978338874`; Firebase CLI GitHub OAuth revocation and Cloud Audit Log review remain outstanding |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -1158,4 +1158,12 @@ gcloud iam service-accounts delete \
   --project talentsquare-za-prod
 ```
 
-The `describe` step is the final target check; do not substitute a different service account. This workspace has not run the deletion because `gh` and `gcloud` are unavailable. Score remains **28/100** until revocation and audit evidence are recorded.
+The `describe` step was completed against the intended target, followed by deletion. The GitHub secret and service account are now revoked according to the user-supplied terminal transcript. Firebase CLI GitHub OAuth revocation and Cloud Audit Log review remain outstanding; score remains **28/100** until those residual checks and the other P0 gates are complete.
+
+### 15.33 Firebase Hosting credential revocation execution feedback — 2026-07-25 UTC
+
+| Pass | Action | Evidence | Score / confidence |
+|---|---|---|---|
+| 1 | Deleted the GitHub Actions secret created by `firebase init`. | User-supplied terminal output: `FIREBASE_SERVICE_ACCOUNT_TALENTSQUARE_ZA_PROD` deleted from `Noxie-dev/workwise-sa`. | 28/100; High/medium |
+| 2 | Described and target-checked the generated Hosting/Functions deploy service account. | User-supplied `gcloud iam service-accounts describe` output matched the intended `talentsquare-za-prod` account and repository description. | 28/100; High/medium |
+| 3 | Deleted the generated Google service account, revoking its keys and Hosting-admin access. | User-supplied terminal output confirms deletion after explicit confirmation. GitHub OAuth authorization revocation and audit-log review remain open. | 28/100; High/medium |
