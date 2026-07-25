@@ -905,6 +905,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | SquareJUMP event/notification/link safeguards | PARTIAL | Commits `70beb83`, `1eb0e85`, and `f81ad21`; event binding suite 1/1, worker safety suite 4/4, and type-check pass; live event ingestion, scheduled worker execution, and external link verification remain open |
 | Upload volume and bundle delivery | PARTIAL | Commit `ee31d68`; upload paths share `UPLOAD_DIR`, startup validates writable subdirectories, image uploads are bounded/normalized when decodable, private downloads receive immutable cache headers, and bundle analysis fails on oversized chunks; durable object storage, malware quarantine, and production CDN evidence remain open |
 | Session-secret rotation and hygiene | BLOCKED/P0 | Commit `d7b8652`; `security:rotate-session-secret --dry-run`, `sessionSecretRotation.test.ts` 1/1, `startupSecretLogging.test.ts` 1/1, and type-check pass; the real Secret Manager rotation attempt is blocked by missing Google ADC and deployed log/old-secret invalidation evidence remains external |
+| External Secret Manager bootstrap review | PARTIAL/P0 | User-supplied terminal transcript shows `talentsquare-za-prod` billing/API enablement, `SESSION_SECRET` version 1 creation/access, and ADC authentication; the original `workwise-sa-project` API activation remains billing-blocked, and Cloud Run lists zero services, so no deployed workload has been restarted or verified |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -1066,3 +1067,17 @@ The current **28/100** is a launch-gated score, not a measure of elapsed enginee
 | 1 | Added a Secret Manager rotation command that generates 48 random bytes, adds a new version, reads it back in memory for exact verification, and optionally disables previous enabled versions without printing the candidate. | Commit `d7b8652`; `pnpm run security:rotate-session-secret -- --dry-run` passes; no secret value is emitted or persisted. | 28/100; High/medium |
 | 2 | Added source-level hygiene regression coverage for rotation output and startup handling. | Commit `d7b8652`; `sessionSecretRotation.test.ts` and `startupSecretLogging.test.ts` pass 2/2; `pnpm run type-check` passes. | 28/100; High/medium |
 | 3 | Executed the real rotation command and fail-closed when Google Application Default Credentials were unavailable. | No Secret Manager mutation occurred; command returned exit 1 with a non-sensitive configuration error. Production rotation, workload restart, old-version invalidation, and retained-log scan still require authorized deployment access. | 28/100; High/medium |
+
+### 15.27 P0-02 external bootstrap evidence review — 2026-07-25 UTC
+
+The attached terminal transcript is recorded as **user-supplied evidence and was not independently executed in this workspace**:
+
+| Evidence | Interpretation | Gate status |
+|---|---|---|
+| `workwise-sa-project` could not enable Secret Manager because no billing account was attached. | The originally documented project is not currently usable for this rotation path. | OPEN |
+| New project `talentsquare-za-prod` was created, billed, and had Secret Manager enabled. | A replacement deployment project is provisioned. | PASS for project bootstrap |
+| Secret Manager `SESSION_SECRET` version 1 was created and accessed without printing its value. | A new baseline secret exists in the replacement project. This is not proof that an existing production secret was rotated. | PARTIAL |
+| ADC authentication was established for the operator account. | The operator can use Google client libraries, subject to IAM and quota policy. | PASS for operator authentication |
+| Cloud Run in `africa-south1` returned zero services. | There is no discovered production workload to restart, configure with the secret, or check at `/ready`. | BLOCKED |
+
+**Next required sequence:** deploy the application with `SESSION_SECRET` sourced from `talentsquare-za-prod/SESSION_SECRET` and grant the runtime service account Secret Manager accessor permission; verify `/ready` and startup-log redaction; then add a second version, perform a complete rollout, and disable version 1. Until those workload and log records exist, P0-02 remains open and the readiness score stays **28/100** with **High/medium** confidence.
