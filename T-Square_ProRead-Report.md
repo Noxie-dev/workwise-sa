@@ -909,6 +909,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Firebase TalentSquare-Network readiness | BLOCKED/P0 | Firebase CLI version check passed, but Firebase project/auth discovery failed here without ADC; `.firebaserc` and client production config still point at `workwise-sa-project`, `firebase.json` contains a placeholder Auth support email, and `check:firebase-config` fails because `client/.env` is absent |
 | Firebase/GCloud account connection | BLOCKED | Firebase CLI reports no authorized accounts, `firebase use` cannot load ADC, and `gcloud` is not installed in this workspace; no project selection or deployment mutation was performed |
 | Firebase init safety review | PARTIAL/P0 | User-supplied transcript confirmed Firebase login and `talentsquare-za-prod`; the open starter Firestore rule, generated Data Connect/Firestore artifacts, and Hosting workflow retargeting were restored locally, but the externally created Hosting-admin GitHub service account/secret remains to be reviewed or revoked and Storage remains incomplete |
+| Firebase Hosting automation revocation | BLOCKED/P0 | Target is the transcript-created `github-action-978338874` service account and GitHub secret `FIREBASE_SERVICE_ACCOUNT_TALENTSQUARE_ZA_PROD`; this workspace has Firebase CLI auth but no `gcloud` or `gh`, so no deletion/revocation mutation was attempted |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -1135,3 +1136,26 @@ No Firebase deploy was approved or executed from this workspace. The open starte
 | 1 | Removed the Firebase CLI’s unauthenticated Firestore starter rule from the pending change set. | `firestore.rules` restored to the repository’s prior ownership/admin rules; no Firebase rules deploy executed. | 28/100; High/medium |
 | 2 | Restored the pre-init Data Connect schema, connector, queries, seed data, and Firestore indexes after the failed SDK generation. | Target files now differ only by final-newline normalization; the failed generated `_Data` model is no longer pending for commit. | 28/100; High/medium |
 | 3 | Undid generated Hosting workflow retargeting to `talentsquare-za-prod` so no new Firebase Hosting deployment path is pushed before an architecture decision. | Both workflow files match their pre-init project/secret references; no workflow or Firebase deployment was pushed. | 28/100; High/medium |
+
+### 15.32 Firebase Hosting automation revocation gate — 2026-07-25 UTC
+
+The Firebase CLI-created Hosting automation credential must be revoked before deployment work continues. The transcript identifies the exact targets without exposing the service-account key:
+
+1. Delete the GitHub Actions secret `FIREBASE_SERVICE_ACCOUNT_TALENTSQUARE_ZA_PROD` from `Noxie-dev/workwise-sa`.
+2. Delete the Google service account `github-action-978338874@talentsquare-za-prod.iam.gserviceaccount.com`; deleting the account revokes its keys and Hosting-admin access.
+3. Revoke the Firebase CLI GitHub OAuth authorization created during `firebase init` from the operator’s GitHub settings.
+4. Confirm no workflow references the deleted secret, then run a repository secret scan and review Cloud Audit Logs for the account.
+
+Safe operator commands, after installing/authenticating both CLIs, are:
+
+```bash
+gh secret delete FIREBASE_SERVICE_ACCOUNT_TALENTSQUARE_ZA_PROD --repo Noxie-dev/workwise-sa
+gcloud config set project talentsquare-za-prod
+gcloud iam service-accounts describe \
+  github-action-978338874@talentsquare-za-prod.iam.gserviceaccount.com
+gcloud iam service-accounts delete \
+  github-action-978338874@talentsquare-za-prod.iam.gserviceaccount.com \
+  --project talentsquare-za-prod
+```
+
+The `describe` step is the final target check; do not substitute a different service account. This workspace has not run the deletion because `gh` and `gcloud` are unavailable. Score remains **28/100** until revocation and audit evidence are recorded.
