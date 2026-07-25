@@ -909,7 +909,7 @@ The remediation cycle is being executed in small reviewed batches. Tenant isolat
 | Firebase TalentSquare-Network readiness | BLOCKED/P0 | Firebase CLI version check passed, but Firebase project/auth discovery failed here without ADC; `.firebaserc` and client production config still point at `workwise-sa-project`, `firebase.json` contains a placeholder Auth support email, and `check:firebase-config` fails because `client/.env` is absent |
 | Firebase/GCloud account connection | BLOCKED | Firebase CLI reports no authorized accounts, `firebase use` cannot load ADC, and `gcloud` is not installed in this workspace; no project selection or deployment mutation was performed |
 | Firebase init safety review | PARTIAL/P0 | User-supplied transcript confirmed Firebase login and `talentsquare-za-prod`; the open starter Firestore rule, generated Data Connect/Firestore artifacts, and Hosting workflow retargeting were restored locally, but the externally created Hosting-admin GitHub service account/secret remains to be reviewed or revoked and Storage remains incomplete |
-| Firebase Hosting automation revocation | PARTIAL/P0 | User-supplied terminal transcript confirms deletion of GitHub secret `FIREBASE_SERVICE_ACCOUNT_TALENTSQUARE_ZA_PROD` and service account `github-action-978338874`; Firebase CLI GitHub OAuth revocation and Cloud Audit Log review remain outstanding |
+| Firebase Hosting automation revocation | PARTIAL/P0 | User-supplied terminal transcript confirms deletion of GitHub secret `FIREBASE_SERVICE_ACCOUNT_TALENTSQUARE_ZA_PROD` and service account `github-action-978338874`; repository workflow scan finds no remaining references, the supplied GitHub app lists show no Firebase CLI OAuth app, and Cloud Audit Log review remains outstanding |
 
 The cycle improves the release candidate but does not change the **NOT READY** verdict: P0-01/P0-02/P0-04/P0-05 require external or broader evidence, legacy job ownership and full tenant coverage remain open, PostgreSQL restore is unproven, and operational/compliance gates are still open.
 
@@ -1143,7 +1143,7 @@ The Firebase CLI-created Hosting automation credential must be revoked before de
 
 1. Delete the GitHub Actions secret `FIREBASE_SERVICE_ACCOUNT_TALENTSQUARE_ZA_PROD` from `Noxie-dev/workwise-sa`.
 2. Delete the Google service account `github-action-978338874@talentsquare-za-prod.iam.gserviceaccount.com`; deleting the account revokes its keys and Hosting-admin access.
-3. Revoke the Firebase CLI GitHub OAuth authorization created during `firebase init` from the operator’s GitHub settings.
+3. If a Firebase CLI GitHub OAuth authorization is actually present, revoke it; the supplied Installed/Authorized GitHub app lists show no Firebase CLI entry, so do not revoke unrelated integrations.
 4. Confirm no workflow references the deleted secret, then run a repository secret scan and review Cloud Audit Logs for the account.
 
 Safe operator commands, after installing/authenticating both CLIs, are:
@@ -1158,7 +1158,7 @@ gcloud iam service-accounts delete \
   --project talentsquare-za-prod
 ```
 
-The `describe` step was completed against the intended target, followed by deletion. The GitHub secret and service account are now revoked according to the user-supplied terminal transcript. Firebase CLI GitHub OAuth revocation and Cloud Audit Log review remain outstanding; score remains **28/100** until those residual checks and the other P0 gates are complete.
+The `describe` step was completed against the intended target, followed by deletion. The GitHub secret and service account are now revoked according to the user-supplied terminal transcript. No Firebase CLI OAuth app appears in the supplied GitHub lists; Cloud Audit Log review remains outstanding. Score remains **28/100** until the audit evidence and other P0 gates are complete.
 
 ### 15.33 Firebase Hosting credential revocation execution feedback — 2026-07-25 UTC
 
@@ -1167,3 +1167,33 @@ The `describe` step was completed against the intended target, followed by delet
 | 1 | Deleted the GitHub Actions secret created by `firebase init`. | User-supplied terminal output: `FIREBASE_SERVICE_ACCOUNT_TALENTSQUARE_ZA_PROD` deleted from `Noxie-dev/workwise-sa`. | 28/100; High/medium |
 | 2 | Described and target-checked the generated Hosting/Functions deploy service account. | User-supplied `gcloud iam service-accounts describe` output matched the intended `talentsquare-za-prod` account and repository description. | 28/100; High/medium |
 | 3 | Deleted the generated Google service account, revoking its keys and Hosting-admin access. | User-supplied terminal output confirms deletion after explicit confirmation. GitHub OAuth authorization revocation and audit-log review remain open. | 28/100; High/medium |
+
+### 15.34 Hosting credential post-revocation verification — 2026-07-25 UTC
+
+| Check | Result | Evidence |
+|---|---|---|
+| Deleted TalentSquare secret reference in active workflows | PASS locally | `rg` across `.github/workflows` finds no `FIREBASE_SERVICE_ACCOUNT_TALENTSQUARE_ZA_PROD` or deleted service-account email. |
+| Legacy workflow references | REVIEW | Existing Hosting workflows still reference `FIREBASE_SERVICE_ACCOUNT_WORKWISE_SA_PROJECT` and `workwise-sa-project`; they do not reference the deleted TalentSquare credential but should remain disabled or deliberately migrated. |
+| Firebase CLI OAuth entry | NOT FOUND in supplied lists | User-provided Installed GitHub Apps and Authorized OAuth Apps lists contain no Firebase CLI entry; no unrelated app was revoked. |
+| Cloud Audit Logs | PENDING | `gcloud` is unavailable in this workspace. Run the read-only queries below from the authenticated GCP terminal and retain metadata-only output. |
+
+```bash
+PROJECT_ID=talentsquare-za-prod
+SERVICE_ACCOUNT=github-action-978338874@talentsquare-za-prod.iam.gserviceaccount.com
+
+gcloud logging read \
+  "protoPayload.authenticationInfo.principalEmail=\\\"${SERVICE_ACCOUNT}\\\"" \
+  --project="$PROJECT_ID" \
+  --freshness=30d \
+  --limit=100 \
+  --format='table(timestamp,protoPayload.methodName,resource.type,protoPayload.status.code)'
+
+gcloud logging read \
+  'protoPayload.serviceName="iam.googleapis.com" AND protoPayload.resourceName:"github-action-978338874"' \
+  --project="$PROJECT_ID" \
+  --freshness=30d \
+  --limit=100 \
+  --format='table(timestamp,protoPayload.methodName,protoPayload.resourceName,protoPayload.status.code)'
+```
+
+Do not paste tokens, secret values, or credential JSON. The first query should show any historical API activity by the deleted account; the second should show service-account/key lifecycle events.
