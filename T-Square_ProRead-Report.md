@@ -1233,3 +1233,13 @@ Do not paste tokens, secret values, or credential JSON. The first query should s
 | 3 | Restored unrelated in-progress work and re-ran local secret hygiene checks. | The pre-rewrite stash was restored without conflict; unrelated modifications and `migrations/0016_add_employer_job_posting_fields.sql` remain present. Root/client env files are mode `600`, ignored, and untracked. `pnpm run security:tracked-secrets` passes for 2,441 files. | 28/100; High/medium |
 
 **Scope note:** a local backup ref, `refs/backup/pre-secret-purge-20260725224340`, is intentionally retained for recovery and was not pushed. Filter-branch/orchestrator checkpoint refs also retain pre-rewrite objects locally; they must never be published. The remote branch itself is clean for the targeted historical paths. Credential revocation/rotation, derived artifact cleanup, Cloud Audit Log review, and proof that old credentials fail remain required before P0-01 can be promoted to fully closed. Readiness therefore remains **28/100** with **High/medium** confidence and launch remains **NO-GO**.
+
+### 15.38 Legacy gRPC dependency purge execution feedback — 2026-07-25 UTC
+
+| Check | Result | Evidence | Score / confidence |
+|---|---|---|---|
+| Remove legacy dependency | PASS | Removed the uncommitted root `gcloud` dependency that introduced `grpc@0.14.1`, and removed its `allowBuilds.grpc` entry. | 28/100; High/medium |
+| Lockfile/install integrity | PASS | `pnpm install --frozen-lockfile --ignore-scripts` completed successfully. | 28/100; High/medium |
+| Residual reference/graph scan | PASS | No `grpc@0.14.1`, legacy `gcloud` manifest/lock reference, or installed `grpc@0.14.1` package remains; supported `@grpc/*` packages used by other dependencies remain untouched. | 28/100; High/medium |
+
+This removes the deprecated legacy gRPC package from the repository dependency graph. It does not change the outstanding production authorization, tenant-isolation, session-secret rollout, storage, or external audit gates, so readiness remains **28/100** and launch remains **NO-GO**.
