@@ -1197,3 +1197,16 @@ gcloud logging read \
 ```
 
 Do not paste tokens, secret values, or credential JSON. The first query should show any historical API activity by the deleted account; the second should show service-account/key lifecycle events.
+
+### 15.35 P0 gate convergence — 2026-07-25 UTC
+
+| Gate | Local evidence | External evidence still required | Current status |
+|---|---|---|---|
+| P0-01 tracked Firebase Admin credential | `security:tracked-secrets` safely reports only `.env.production` private-key/database-URL patterns; history scan still finds historical Firebase service-account filenames. | Revoke/rotate every affected credential, purge Git/artifact history, review access logs, and prove old keys fail. | BLOCKED/P0 |
+| P0-02 session secret | `startupSecretLogging.test.ts` and rotation hygiene pass; non-printing rotation command exists. | Deploy/restart a workload using `talentsquare-za-prod` Secret Manager, verify `/ready` and logs, then disable the prior version. | PARTIAL/P0 |
+| P0-03 registration privilege escalation | Registration/identity suite passes 12/12, including role/Firebase-UID rejection and database-role authorization. | Production API negative test and privileged-account audit. | LOCAL PASS / EXTERNAL OPEN |
+| P0-04 profile/file IDOR | Profile/file suite passes 11/11, including owner binding, signature validation, cleanup, and cross-user denial. | Anonymous/cross-user staging smoke, private durable storage or signed-download proof, and legacy URL/access revocation. | LOCAL PASS / EXTERNAL OPEN |
+| P0-05 employer tenant isolation | Employer/application suites pass 22/22, including cross-tenant reads/writes, legacy unowned jobs, and unknown-role fail-closed behavior. | Repeatable PostgreSQL two-tenant integration, ownership backfill/quarantine, and production-like smoke. | LOCAL PASS / EXTERNAL OPEN |
+| Hosting automation credential | User-supplied transcript confirms GitHub secret and generated service account deletion; repository scan finds no TalentSquare credential reference. | Cloud Audit Log review and confirmation of no external workflow/job using the deleted identity. | PARTIAL/P0 |
+
+**P0 decision:** local evidence is materially stronger, but no P0 is promoted to fully closed until its external evidence column is satisfied. Readiness remains **28/100** and launch remains **NO-GO**.
