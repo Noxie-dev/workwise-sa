@@ -59,7 +59,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "preview": "vite preview",
-    "analyze": "vite build --mode analyze"
+    "analyze": "node ../scripts/analyze-bundle.js"
   },
   "eslintConfig": {
     "extends": [

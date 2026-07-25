@@ -91,7 +91,7 @@ jobs:
       run: pnpm run test:integration
 
     - name: Bundle size check
-      run: pnpm run build:analyze
+      run: pnpm run analyze:bundle
       
     - name: Lighthouse CI
       uses: treosh/lighthouse-ci-action@v9

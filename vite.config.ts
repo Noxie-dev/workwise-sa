@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => ({
           }
           
           // Firebase - split into smaller chunks
-          if (id.includes('node_modules/firebase/')) {
+          if (id.includes('node_modules/firebase/') || id.includes('node_modules/@firebase/')) {
             if (id.includes('auth')) {
               return 'vendor-firebase-auth';
             }

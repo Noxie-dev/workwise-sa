@@ -6,12 +6,14 @@ import { authenticate } from '../middleware/auth';
 import { Errors } from '../middleware/errorHandler';
 import { rateLimiter } from '../middleware/rateLimiter';
 import multer from 'multer';
+import path from 'node:path';
+import { getUploadRoot } from '../services/uploadVolume';
 
 const router = Router();
 
 // Multer configuration for file uploads
 const upload = multer({
-  dest: 'uploads/',
+  dest: path.join(getUploadRoot(), 'temp'),
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },

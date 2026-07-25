@@ -31,7 +31,7 @@ import router from '../../routes/files';
 
 const mockedStorage = vi.mocked(storage);
 const mockedResolveAuthenticatedDatabaseUser = vi.mocked(resolveAuthenticatedDatabaseUser);
-const uploadsRoot = path.join(process.cwd(), 'uploads');
+const uploadsRoot = path.resolve(process.env.UPLOAD_DIR || 'uploads');
 
 function createMockResponse() {
   const response: any = {

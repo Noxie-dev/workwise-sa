@@ -434,17 +434,14 @@ const OriginalNewsletterCTA = () => (
   </div>
 );
 
-// --- LAZY-LOADED COMPONENTS ---
-// In a real project, these would be imported from separate files:
-// const LazyHeroCarousel = React.lazy(() => import('./components/HeroCarousel'));
-// const LazyPopularPostsSection = React.lazy(() => import('./components/PopularPostsSection'));
-// etc.
-
-const LazyHeroCarousel = React.lazy(() => Promise.resolve({ default: HeroCarousel }));
-const LazyPopularPostsSection = React.lazy(() => Promise.resolve({ default: OriginalPopularPostsSection }));
-const LazySearchAndFilter = React.lazy(() => Promise.resolve({ default: SearchAndFilter }));
-const LazyLatestArticlesSection = React.lazy(() => Promise.resolve({ default: OriginalLatestArticlesSection }));
-const LazyNewsletterCTA = React.lazy(() => Promise.resolve({ default: OriginalNewsletterCTA }));
+// These components live in this module, so wrapping them in Promise.resolve()
+// would not create a bundle boundary. Keep them direct until they are moved to
+// separate modules with real dynamic imports.
+const LazyHeroCarousel = HeroCarousel;
+const LazyPopularPostsSection = OriginalPopularPostsSection;
+const LazySearchAndFilter = SearchAndFilter;
+const LazyLatestArticlesSection = OriginalLatestArticlesSection;
+const LazyNewsletterCTA = OriginalNewsletterCTA;
 
 
 // --- MAIN PAGE COMPONENT ---

@@ -6,12 +6,15 @@ import { storage } from '../storage';
 import { Errors } from '../middleware/errorHandler';
 import { verifyFirebaseToken } from '../middleware/auth';
 import { resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
+import { optimizeUploadedImage } from '../services/imageOptimization';
+import { getUploadRoot } from '../services/uploadVolume';
 
 const router = Router();
+const uploadRoot = getUploadRoot();
 
 // Configure multer for file uploads
 const upload = multer({
-  dest: 'uploads/temp/',
+  dest: path.join(uploadRoot, 'temp'),
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
@@ -89,6 +92,9 @@ async function persistFileMetadata(fileData: any, finalPath: string) {
         // Preserve the persistence error; cleanup is best effort.
       }
     }
+    // Keep the managed user directory present even when the only upload in it
+    // is rolled back, which also makes volume health checks deterministic.
+    fs.mkdirSync(path.dirname(finalPath), { recursive: true });
     throw error;
   }
 }
@@ -141,7 +147,7 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
     assertFileSignature(file);
 
     // Create user-specific upload directory
-    const uploadDir = path.join(process.cwd(), 'uploads', 'professional-images');
+    const uploadDir = path.join(uploadRoot, 'professional-images');
     const userDir = path.join(uploadDir, `user-${userId}`);
     
     if (!fs.existsSync(userDir)) {
@@ -150,13 +156,12 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
 
     // Generate unique filename
     const timestamp = Date.now();
-    const extension = extensionForMime(file.mimetype);
-    const filename = `professional-${timestamp}${extension}`;
-    const finalPath = path.join(userDir, filename);
-
-    // Move file from temp to final location
-    fs.copyFileSync(file.path, finalPath);
-    fs.unlinkSync(file.path); // Clean up temp file
+    const optimized = await optimizeUploadedImage(
+      file.path,
+      path.join(userDir, `professional-${timestamp}`),
+      { maxWidth: 1600, maxHeight: 1200 },
+    );
+    const finalPath = optimized.path;
 
     // Generate file URL
     const fileUrl = '';
@@ -167,12 +172,14 @@ router.post('/upload-professional-image', upload.single('file'), async (req, res
       originalName: file.originalname,
       storagePath: finalPath,
       fileUrl,
-      mimeType: file.mimetype,
-      size: file.size,
+      mimeType: optimized.optimized ? optimized.mimeType : file.mimetype,
+      size: optimized.size,
       fileType: 'professional_image',
       metadata: {
-        width: null,
-        height: null,
+        width: optimized.width,
+        height: optimized.height,
+        format: optimized.format,
+        optimized: optimized.optimized,
         encoding: file.encoding,
       }
     };
@@ -214,7 +221,7 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
     assertFileSignature(file);
 
     // Create user-specific upload directory
-    const uploadDir = path.join(process.cwd(), 'uploads', 'profile-images');
+    const uploadDir = path.join(uploadRoot, 'profile-images');
     const userDir = path.join(uploadDir, `user-${userId}`);
     
     if (!fs.existsSync(userDir)) {
@@ -223,13 +230,12 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
 
     // Generate unique filename
     const timestamp = Date.now();
-    const extension = extensionForMime(file.mimetype);
-    const filename = `profile-${timestamp}${extension}`;
-    const finalPath = path.join(userDir, filename);
-
-    // Move file from temp to final location
-    fs.copyFileSync(file.path, finalPath);
-    fs.unlinkSync(file.path); // Clean up temp file
+    const optimized = await optimizeUploadedImage(
+      file.path,
+      path.join(userDir, `profile-${timestamp}`),
+      { maxWidth: 512, maxHeight: 512 },
+    );
+    const finalPath = optimized.path;
 
     // Generate file URL
     const fileUrl = '';
@@ -240,12 +246,14 @@ router.post('/upload-profile-image', upload.single('file'), async (req, res, nex
       originalName: file.originalname,
       storagePath: finalPath,
       fileUrl,
-      mimeType: file.mimetype,
-      size: file.size,
+      mimeType: optimized.optimized ? optimized.mimeType : file.mimetype,
+      size: optimized.size,
       fileType: 'profile_image',
       metadata: {
-        width: null, // Could be populated with image dimensions
-        height: null,
+        width: optimized.width,
+        height: optimized.height,
+        format: optimized.format,
+        optimized: optimized.optimized,
         encoding: file.encoding,
       }
     };
@@ -287,7 +295,7 @@ router.post('/upload-cv', upload.single('file'), async (req, res, next) => {
     assertFileSignature(file);
 
     // Create user-specific upload directory
-    const uploadDir = path.join(process.cwd(), 'uploads', 'cvs');
+    const uploadDir = path.join(uploadRoot, 'cvs');
     const userDir = path.join(uploadDir, `user-${userId}`);
     
     if (!fs.existsSync(userDir)) {
@@ -359,7 +367,7 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
     }
 
     // Create user-specific upload directory
-    const uploadDir = path.join(process.cwd(), 'uploads', fileType);
+    const uploadDir = path.join(uploadRoot, fileType);
     const userDir = path.join(uploadDir, `user-${userId}`);
     
     if (!fs.existsSync(userDir)) {
@@ -456,7 +464,7 @@ router.get('/:fileId/download', async (req, res, next) => {
 
     assertUserAccess(dbUser, file.userId);
 
-    const uploadsRoot = path.resolve(process.cwd(), 'uploads');
+    const uploadsRoot = uploadRoot;
     const resolvedPath = path.resolve(file.storagePath);
     if (!resolvedPath.startsWith(`${uploadsRoot}${path.sep}`)) {
       throw Errors.forbidden('File path is outside the managed upload directory');
@@ -466,6 +474,9 @@ router.get('/:fileId/download', async (req, res, next) => {
       throw Errors.notFound('Stored file not found');
     }
 
+    // Upload filenames are immutable, so private long-lived caching avoids
+    // repeatedly transferring profile assets while preserving auth checks.
+    res.setHeader('Cache-Control', 'private, max-age=31536000, immutable');
     res.type(file.mimeType);
     res.sendFile(resolvedPath);
   } catch (error) {

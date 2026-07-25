@@ -18,6 +18,7 @@ import { initializeFirebaseServices, isFirebaseInitialized } from '../firebase';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
+import { ensureUploadVolumeReady } from '../services/uploadVolume';
 
 dotenv.config({ path: ['.env.local', '.env'] });
 
@@ -52,6 +53,7 @@ async function preloadSecrets() {
 }
 
 async function startServer() {
+  ensureUploadVolumeReady();
   await preloadSecrets();
   await initializeDatabase();
   const databaseReady = true;

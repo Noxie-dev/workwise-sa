@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useRef, useEffect, lazy, Suspense, memo } from 'react';
+import React, { useRef, useEffect, Suspense, memo } from 'react';
 import { X, ChevronLeft, ChevronRight, RotateCw, Loader, KeyRound, HelpCircle } from 'lucide-react';
 import { useFAQWheel, ItemPosition } from '../hooks/useFAQWheel';
 import { FAQItem } from '@/services/faqService';
@@ -29,15 +29,10 @@ interface FAQModalProps {
 
 
 /**
- * Lazy loaded modal component for displaying FAQ details
- * Uses React.lazy for code splitting and performance optimization
+ * Modal component for displaying FAQ details.
  * Enhanced with animations, better styling, and improved accessibility
  */
-const FAQModal = lazy(() => new Promise<{ default: React.FC<FAQModalProps> }>(resolve => {
-  // Small delay to ensure smooth loading transition
-  setTimeout(() => {
-    resolve({
-      default: ({ question, answer, onClose }: FAQModalProps) => {
+const FAQModal: React.FC<FAQModalProps> = ({ question, answer, onClose }) => {
         // Handle keyboard events for accessibility
         const handleKeyDown = (e: React.KeyboardEvent): void => {
           if (e.key === 'Escape') {
@@ -138,10 +133,7 @@ const FAQModal = lazy(() => new Promise<{ default: React.FC<FAQModalProps> }>(re
             </div>
           </div>
         );
-      }
-    });
-  }, 100);
-}));
+};
 
 /**
  * Memoized FAQ Item component

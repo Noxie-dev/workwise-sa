@@ -7,12 +7,14 @@ import path from 'path';
 console.log('🔍 Analyzing bundle size...\n');
 
 try {
+  const repoRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+  const maxChunkKb = Number(process.env.BUNDLE_MAX_KB || 600);
   // Build with analysis
   console.log('Building with bundle analysis...');
-  execSync('npm run build:analyze', { stdio: 'inherit' });
+  execSync('pnpm run build:analyze', { stdio: 'inherit', cwd: repoRoot });
   
   // Check if dist directory exists
-  const distPath = path.join(process.cwd(), 'dist', 'public', 'assets');
+  const distPath = path.join(repoRoot, 'dist', 'public', 'assets');
   
   if (fs.existsSync(distPath)) {
     const files = fs.readdirSync(distPath);
@@ -34,22 +36,23 @@ try {
     }).sort((a, b) => b.size - a.size);
     
     bundleInfo.forEach(({ name, sizeKB }) => {
-      const status = sizeKB > 600 ? '⚠️ ' : sizeKB > 300 ? '⚡' : '✅';
+      const status = sizeKB > maxChunkKb ? '⚠️ ' : sizeKB > 300 ? '⚡' : '✅';
       console.log(`${status} ${name}: ${sizeKB} KB`);
     });
     
     const totalSize = bundleInfo.reduce((sum, file) => sum + file.sizeKB, 0);
     console.log(`\n📦 Total JS Bundle Size: ${totalSize.toFixed(2)} KB`);
     
-    const largeChunks = bundleInfo.filter(file => file.sizeKB > 600);
+    const largeChunks = bundleInfo.filter(file => file.sizeKB > maxChunkKb);
     if (largeChunks.length > 0) {
-      console.log('\n⚠️  Large chunks (>600KB):');
+      console.log(`\n⚠️  Large chunks (>${maxChunkKb}KB):`);
       largeChunks.forEach(({ name, sizeKB }) => {
         console.log(`   - ${name}: ${sizeKB} KB`);
       });
       console.log('\n💡 Consider further code splitting for these chunks.');
+      process.exitCode = 1;
     } else {
-      console.log('\n✅ All chunks are under 600KB!');
+      console.log(`\n✅ All chunks are under ${maxChunkKb}KB!`);
     }
     
   } else {

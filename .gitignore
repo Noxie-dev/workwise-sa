@@ -50,6 +50,8 @@ ui-debug.log*
 # Uploads
 uploads/*
 !uploads/.gitkeep
+backups/
+uploads-test/
 
 # Logs
 logs
