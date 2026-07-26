@@ -124,7 +124,7 @@ function assertUserAccess(
 }
 
 function secureDownloadUrl(fileId: number) {
-  const baseUrl = process.env.FILE_SERVE_URL || 'http://localhost:3001';
+  const baseUrl = process.env.FILE_SERVE_URL || process.env.PUBLIC_APP_URL || 'http://localhost:3001';
   return `${baseUrl}/api/files/${fileId}/download`;
 }
 

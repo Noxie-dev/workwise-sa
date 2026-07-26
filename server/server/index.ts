@@ -18,7 +18,7 @@ import { initializeFirebaseServices, isFirebaseInitialized } from '../firebase';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import { ensureUploadVolumeReady } from '../services/uploadVolume';
+import { ensureUploadVolumeReady, getUploadRoot } from '../services/uploadVolume';
 
 dotenv.config({ path: ['.env.local', '.env'] });
 
@@ -93,12 +93,20 @@ async function startServer() {
 
   app.get('/ready', (_req, res) => {
     const firebaseReady = isFirebaseInitialized();
-    const ready = databaseReady && firebaseReady;
+    let uploadVolumeReady = false;
+    try {
+      fs.accessSync(getUploadRoot(), fs.constants.R_OK | fs.constants.W_OK);
+      uploadVolumeReady = true;
+    } catch {
+      uploadVolumeReady = false;
+    }
+    const ready = databaseReady && firebaseReady && uploadVolumeReady;
     res.status(ready ? 200 : 503).json({
       status: ready ? 'ready' : 'not_ready',
       dependencies: {
         database: databaseReady,
         firebase: firebaseReady,
+        uploadVolume: uploadVolumeReady,
       },
     });
   });

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, lt, or } from "drizzle-orm";
 import { categories, companies, jobApplications, jobs, userInteractions, users } from "@shared/schema";
 import {
   employerApplicationSummarySchema,
@@ -15,11 +15,46 @@ import { db } from "../db";
 import { verifyFirebaseToken } from "../middleware/auth";
 import { Errors } from "../middleware/errorHandler";
 import { assertRole, resolveAuthenticatedDatabaseUser } from "../services/authenticatedUser";
+import { createJuid, createPublicJobRef } from "../services/squarejump/identityService";
 
 const router = Router();
 
 const employerJobCreateSchema = employerJobFormSchema;
 const employerJobUpdateSchema = employerJobFormSchema;
+
+async function withTransaction<T>(callback: (transaction: any) => Promise<T>): Promise<T> {
+  if (typeof db.transaction === "function") {
+    return db.transaction(callback);
+  }
+  // Unit-test doubles may not implement Drizzle's transaction method.
+  return callback(db);
+}
+
+async function fetchOrderedRows(table: any, condition: any, orderColumn: any) {
+  const baseQuery: any = db.select().from(table);
+  const filteredQuery = condition && typeof baseQuery.where === "function"
+    ? baseQuery.where(condition)
+    : baseQuery;
+  // Keeps lightweight unit-test query doubles compatible while production uses
+  // the filtered Drizzle query before ordering.
+  return typeof filteredQuery.orderBy === "function"
+    ? filteredQuery.orderBy(desc(orderColumn))
+    : baseQuery.orderBy(desc(orderColumn));
+}
+
+const allowedJobStatusTransitions: Record<string, readonly string[]> = {
+  draft: ["draft", "active"],
+  active: ["active", "paused", "closed"],
+  paused: ["paused", "active", "closed"],
+  closed: ["closed", "archived"],
+  archived: ["archived"],
+};
+
+function assertValidJobStatusTransition(current: string, next: string) {
+  if (!allowedJobStatusTransitions[current]?.includes(next)) {
+    throw Errors.conflict(`Invalid job status transition: ${current} -> ${next}`);
+  }
+}
 
 function assertEmployerJobAccess(dbUser: { id: number; role?: string | null }, job: typeof jobs.$inferSelect) {
   if (dbUser.role !== "admin" && job.createdByUserId !== dbUser.id) {
@@ -76,16 +111,25 @@ function composeDescription(payload: EmployerJobForm) {
     .join("\n\n");
 }
 
-async function findOrCreateCompany(payload: EmployerJobForm) {
+async function findOrCreateCompany(payload: EmployerJobForm, transaction: any = db) {
   const companySlug = slugify(payload.companyName) || "company";
-  const [existingCompany] = await db.select().from(companies).where(eq(companies.slug, companySlug)).limit(1);
+  const [existingCompany] = await transaction.select().from(companies).where(eq(companies.slug, companySlug)).limit(1);
   if (existingCompany) {
+    if (!existingCompany.bio && payload.companyBio) {
+      const [updatedCompany] = await transaction
+        .update(companies)
+        .set({ bio: payload.companyBio })
+        .where(eq(companies.id, existingCompany.id))
+        .returning();
+      return updatedCompany || existingCompany;
+    }
     return existingCompany;
   }
 
-  const [createdCompany] = await db.insert(companies).values({
+  const [createdCompany] = await transaction.insert(companies).values({
     name: payload.companyName,
     logo: typeof payload.companyLogo === "string" ? payload.companyLogo : null,
+    bio: payload.companyBio || null,
     location: payload.location || null,
     slug: companySlug,
     openPositions: 0,
@@ -94,14 +138,14 @@ async function findOrCreateCompany(payload: EmployerJobForm) {
   return createdCompany;
 }
 
-async function findOrCreateCategory(payload: EmployerJobForm) {
+async function findOrCreateCategory(payload: EmployerJobForm, transaction: any = db) {
   const categorySlug = slugify(payload.category) || "general";
-  const [existingCategory] = await db.select().from(categories).where(eq(categories.slug, categorySlug)).limit(1);
+  const [existingCategory] = await transaction.select().from(categories).where(eq(categories.slug, categorySlug)).limit(1);
   if (existingCategory) {
     return existingCategory;
   }
 
-  const [createdCategory] = await db.insert(categories).values({
+  const [createdCategory] = await transaction.insert(categories).values({
     name: titleFromSlug(categorySlug),
     icon: "briefcase",
     slug: categorySlug,
@@ -156,13 +200,38 @@ router.get("/dashboard", async (req, res, next) => {
     const dbUser = await resolveAuthenticatedDatabaseUser(authUser);
     assertRole(dbUser, ["admin", "employer"]);
 
-    const [jobRows, applicationRows, interactionRows] = await Promise.all([
-      db.select().from(jobs).orderBy(desc(jobs.createdAt)),
-      db.select().from(jobApplications).orderBy(desc(jobApplications.appliedAt)),
-      db.select().from(userInteractions).orderBy(desc(userInteractions.interactionTime)),
-    ]);
-    const scopedJobRows = scopeEmployerJobs(dbUser, jobRows);
+    const statusFilter = String(req.query.status || "all");
+    const dateRange = String(req.query.dateRange || "30d");
+    const rangeMatch = dateRange.match(/^(\d+)d$/);
+    const since = rangeMatch ? new Date(Date.now() - Number(rangeMatch[1]) * 24 * 60 * 60 * 1000) : null;
+
+    const jobRows = await fetchOrderedRows(
+      jobs,
+      dbUser.role === "admin" ? null : eq(jobs.createdByUserId, dbUser.id),
+      jobs.createdAt,
+    );
+    const ownedJobRows = scopeEmployerJobs(dbUser, jobRows);
+    const scopedJobRows = statusFilter === "all"
+      ? ownedJobRows
+      : ownedJobRows.filter((job) => job.status === statusFilter);
     const scopedJobIds = new Set(scopedJobRows.map((job) => job.id));
+    const scopedIds = Array.from(scopedJobIds) as number[];
+    const [applicationRows, interactionRows] = scopedIds.length === 0
+      ? [[], []]
+      : await Promise.all([
+          fetchOrderedRows(
+            jobApplications,
+            since ? and(inArray(jobApplications.jobId, scopedIds), gte(jobApplications.appliedAt, since)) : inArray(jobApplications.jobId, scopedIds),
+            jobApplications.appliedAt,
+          ),
+          fetchOrderedRows(
+            userInteractions,
+            since
+              ? and(or(isNull(userInteractions.jobId), inArray(userInteractions.jobId, scopedIds)), gte(userInteractions.interactionTime, since))
+              : or(isNull(userInteractions.jobId), inArray(userInteractions.jobId, scopedIds)),
+            userInteractions.interactionTime,
+          ),
+        ]);
     const scopedApplicationRows = applicationRows.filter((application) => scopedJobIds.has(application.jobId));
     const scopedInteractionRows = interactionRows.filter((interaction) => !interaction.jobId || scopedJobIds.has(interaction.jobId));
 
@@ -214,12 +283,35 @@ router.get("/jobs", async (req, res, next) => {
     assertRole(dbUser, ["admin", "employer"]);
 
     const statusFilter = String(req.query.status || "all");
-    const [jobRows, companyRows, applicationRows, interactionRows] = await Promise.all([
-      db.select().from(jobs).orderBy(desc(jobs.createdAt)),
+    const requestedLimit = Number(req.query.limit);
+    const hasCursorPaging = req.query.cursor !== undefined || Number.isFinite(requestedLimit);
+    const pageSize = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 100) : 50;
+    const cursor = req.query.cursor ? Number(req.query.cursor) : null;
+    let pagedJobQuery: any = db.select().from(jobs);
+    const pageConditions: any[] = [];
+    if (dbUser.role !== "admin") {
+      pageConditions.push(eq(jobs.createdByUserId, dbUser.id));
+    }
+    if (hasCursorPaging && statusFilter !== "all") {
+      pageConditions.push(eq(jobs.status, statusFilter));
+    }
+    if (cursor !== null && Number.isInteger(cursor) && cursor > 0) {
+      pageConditions.push(lt(jobs.id, cursor));
+    }
+    if (pageConditions.length > 0) {
+      pagedJobQuery = pagedJobQuery.where(and(...pageConditions));
+    }
+    const jobRowsPromise = hasCursorPaging
+      ? pagedJobQuery.orderBy(desc(jobs.id)).limit(pageSize + 1)
+      : db.select().from(jobs).orderBy(desc(jobs.createdAt));
+    const [rawJobRows, companyRows, applicationRows, interactionRows] = await Promise.all([
+      jobRowsPromise,
       db.select().from(companies),
       db.select().from(jobApplications),
       db.select().from(userInteractions),
     ]);
+    const hasNextPage = hasCursorPaging && rawJobRows.length > pageSize;
+    const jobRows = hasCursorPaging ? rawJobRows.slice(0, pageSize) : rawJobRows;
     const scopedJobRows = scopeEmployerJobs(dbUser, jobRows);
     const scopedJobIds = new Set(scopedJobRows.map((job) => job.id));
     const scopedApplicationRows = applicationRows.filter((application) => scopedJobIds.has(application.jobId));
@@ -242,6 +334,9 @@ router.get("/jobs", async (req, res, next) => {
         ? enrichedJobs
         : enrichedJobs.filter((job) => job.status === statusFilter);
 
+    if (hasCursorPaging && hasNextPage && typeof res.setHeader === "function") {
+      res.setHeader("X-Next-Cursor", String(jobRows[jobRows.length - 1]?.id || ""));
+    }
     res.json(payload.map((item) => employerJobSummarySchema.parse(item)));
   } catch (error) {
     next(error);
@@ -286,27 +381,27 @@ router.get("/jobs/:jobId", async (req, res, next) => {
       jobType: job.jobType,
       location: job.location === "Remote" ? "" : job.location,
       isRemote: /remote/i.test(job.workMode),
-      applicationDeadline: null,
-      salaryMin: "",
-      salaryMax: "",
+      applicationDeadline: job.applicationDeadline ? new Date(job.applicationDeadline).toISOString().slice(0, 10) : null,
+      salaryMin: job.salary?.match(/From R([\d.]+)/)?.[1] || job.salary?.match(/R([\d.]+)\s*-/)?.[1] || "",
+      salaryMax: job.salary?.match(/Up to R([\d.]+)/)?.[1] || job.salary?.match(/- R([\d.]+)/)?.[1] || "",
       isSalaryNegotiable: job.salary?.toLowerCase().includes("negotiable") ?? false,
       description,
       responsibilities,
       requirements,
       companyName: company?.name || "",
       companyLogo: company?.logo || null,
-      companyBio: "",
-      contactName: dbUser.name || "",
-      contactEmail: dbUser.email || "",
-      contactPhone: dbUser.phoneNumber || "",
-      website: "",
-      howToApply: "email",
-      applicationEmail: dbUser.email || "",
-      applicationUrl: "",
-      customInstructions: "",
-      isConfidential: false,
+      companyBio: company?.bio || "",
+      contactName: job.contactName || dbUser.name || "",
+      contactEmail: job.contactEmail || dbUser.email || "",
+      contactPhone: job.contactPhone || dbUser.phoneNumber || "",
+      website: job.website || "",
+      howToApply: job.howToApply || "email",
+      applicationEmail: job.applicationEmail || "",
+      applicationUrl: job.applicationUrl || "",
+      customInstructions: job.customInstructions || "",
+      isConfidential: job.isConfidential,
       isDraft: job.status === "draft",
-      screenerQuestions: [],
+      screenerQuestions: Array.isArray(job.screenerQuestions) ? job.screenerQuestions : [],
     }));
   } catch (error) {
     next(error);
@@ -320,26 +415,39 @@ router.post("/jobs", async (req, res, next) => {
     assertRole(dbUser, ["admin", "employer"]);
 
     const payload = employerJobCreateSchema.parse(req.body);
-    const [company, category] = await Promise.all([
-      findOrCreateCompany(payload),
-      findOrCreateCategory(payload),
-    ]);
+    const result = await withTransaction(async (transaction: any) => {
+      const company = await findOrCreateCompany(payload, transaction);
+      const category = await findOrCreateCategory(payload, transaction);
+      const [job] = await transaction.insert(jobs).values({
+        juid: createJuid(),
+        publicJobRef: createPublicJobRef({ categoryCode: payload.category }),
+        title: payload.title,
+        description: composeDescription(payload),
+        location: payload.isRemote ? "Remote" : payload.location,
+        salary: composeSalary(payload),
+        jobType: payload.jobType,
+        workMode: payload.isRemote ? "Remote" : "On-site",
+        companyId: company.id,
+        categoryId: category.id,
+        createdByUserId: dbUser.id,
+        status: payload.isDraft ? "draft" : "active",
+        isFeatured: false,
+        applicationDeadline: payload.applicationDeadline ? new Date(payload.applicationDeadline) : null,
+        contactName: payload.contactName,
+        contactEmail: payload.contactEmail,
+        contactPhone: payload.contactPhone || null,
+        website: payload.website || null,
+        howToApply: payload.howToApply,
+        applicationEmail: payload.applicationEmail || null,
+        applicationUrl: payload.applicationUrl || null,
+        customInstructions: payload.customInstructions || null,
+        isConfidential: payload.isConfidential,
+        screenerQuestions: payload.screenerQuestions,
+      }).returning();
+      return mapJobForm(job, payload, company.id, category.id);
+    });
 
-    const [job] = await db.insert(jobs).values({
-      title: payload.title,
-      description: composeDescription(payload),
-      location: payload.isRemote ? "Remote" : payload.location,
-      salary: composeSalary(payload),
-      jobType: payload.jobType,
-      workMode: payload.isRemote ? "Remote" : "On-site",
-      companyId: company.id,
-      categoryId: category.id,
-      createdByUserId: dbUser.id,
-      status: payload.isDraft ? "draft" : "active",
-      isFeatured: false,
-    }).returning();
-
-    res.status(201).json(mapJobForm(job, payload, company.id, category.id));
+    res.status(201).json(result);
   } catch (error) {
     next(error);
   }
@@ -363,30 +471,42 @@ router.put("/jobs/:jobId", async (req, res, next) => {
     }
     assertEmployerJobAccess(dbUser, existingJob);
 
-    const [company, category] = await Promise.all([
-      findOrCreateCompany(payload),
-      findOrCreateCategory(payload),
-    ]);
-
     const nextStatus = payload.isDraft
       ? "draft"
       : existingJob.status === "draft"
         ? "active"
         : existingJob.status;
+    assertValidJobStatusTransition(existingJob.status, nextStatus);
 
-    const [updatedJob] = await db.update(jobs).set({
-      title: payload.title,
-      description: composeDescription(payload),
-      location: payload.isRemote ? "Remote" : payload.location,
-      salary: composeSalary(payload),
-      jobType: payload.jobType,
-      workMode: payload.isRemote ? "Remote" : "On-site",
-      companyId: company.id,
-      categoryId: category.id,
-      status: nextStatus,
-    }).where(eq(jobs.id, jobId)).returning();
+    const result = await withTransaction(async (transaction: any) => {
+      const company = await findOrCreateCompany(payload, transaction);
+      const category = await findOrCreateCategory(payload, transaction);
+      const [updatedJob] = await transaction.update(jobs).set({
+        title: payload.title,
+        description: composeDescription(payload),
+        location: payload.isRemote ? "Remote" : payload.location,
+        salary: composeSalary(payload),
+        jobType: payload.jobType,
+        workMode: payload.isRemote ? "Remote" : "On-site",
+        companyId: company.id,
+        categoryId: category.id,
+        status: nextStatus,
+        applicationDeadline: payload.applicationDeadline ? new Date(payload.applicationDeadline) : null,
+        contactName: payload.contactName,
+        contactEmail: payload.contactEmail,
+        contactPhone: payload.contactPhone || null,
+        website: payload.website || null,
+        howToApply: payload.howToApply,
+        applicationEmail: payload.applicationEmail || null,
+        applicationUrl: payload.applicationUrl || null,
+        customInstructions: payload.customInstructions || null,
+        isConfidential: payload.isConfidential,
+        screenerQuestions: payload.screenerQuestions,
+      }).where(eq(jobs.id, jobId)).returning();
+      return mapJobForm(updatedJob, payload, company.id, category.id);
+    });
 
-    res.json(mapJobForm(updatedJob, payload, company.id, category.id));
+    res.json(result);
   } catch (error) {
     next(error);
   }
@@ -409,6 +529,7 @@ router.patch("/jobs/:jobId/status", async (req, res, next) => {
       throw Errors.notFound("Job not found");
     }
     assertEmployerJobAccess(dbUser, existingJob);
+    assertValidJobStatusTransition(existingJob.status, status);
     const [updatedJob] = await db.update(jobs).set({ status }).where(eq(jobs.id, jobId)).returning();
     if (!updatedJob) {
       throw Errors.notFound("Job not found");

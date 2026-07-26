@@ -135,6 +135,7 @@ export const companies = pgTable("companies", {
   verificationStatus: text("verification_status").notNull().default("unverified"),
   registrationReference: text("registration_reference"),
   trustStatus: text("trust_status").notNull().default("unknown"),
+  bio: text("bio"),
 });
 
 export const insertCompanySchema = createInsertSchema(companies).pick({
@@ -150,6 +151,7 @@ export const insertCompanySchema = createInsertSchema(companies).pick({
   verificationStatus: true,
   registrationReference: true,
   trustStatus: true,
+  bio: true,
 }).partial({
   organisationUid: true,
 });
@@ -185,6 +187,17 @@ export const jobs = pgTable("jobs", {
   expiresAt: timestamp("expires_at"),
   releasePolicyVersion: text("release_policy_version"),
   isFeatured: boolean("is_featured").default(false),
+  applicationDeadline: timestamp("application_deadline"),
+  contactName: text("contact_name"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  website: text("website"),
+  howToApply: text("how_to_apply").notNull().default("email"),
+  applicationEmail: text("application_email"),
+  applicationUrl: text("application_url"),
+  customInstructions: text("custom_instructions"),
+  isConfidential: boolean("is_confidential").notNull().default(false),
+  screenerQuestions: jsonb("screener_questions").notNull().default([]),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => ({
   juidUnique: uniqueIndex("idx_jobs_juid_unique").on(table.juid),
@@ -245,6 +258,17 @@ export const insertJobSchema = createInsertSchema(jobs).pick({
   expiresAt: true,
   releasePolicyVersion: true,
   isFeatured: true,
+  applicationDeadline: true,
+  contactName: true,
+  contactEmail: true,
+  contactPhone: true,
+  website: true,
+  howToApply: true,
+  applicationEmail: true,
+  applicationUrl: true,
+  customInstructions: true,
+  isConfidential: true,
+  screenerQuestions: true,
 }).partial({
   juid: true,
   publicJobRef: true,

@@ -191,7 +191,7 @@ describe('employer routes', () => {
   });
 
   it('updates a job status', async () => {
-    selectResults.push([{ id: 55, createdByUserId: 11 }]);
+    selectResults.push([{ id: 55, createdByUserId: 11, status: 'active' }]);
     updateResults.push([{ id: 55, status: 'paused' }]);
 
     const response = await invokeRoute({
@@ -211,6 +211,25 @@ describe('employer routes', () => {
       jobId: '55',
       status: 'paused',
     });
+  });
+
+  it('rejects reopening an archived job', async () => {
+    selectResults.push([{ id: 55, createdByUserId: 11, status: 'archived' }]);
+
+    const response = await invokeRoute({
+      path: '/jobs/:jobId/status',
+      method: 'patch',
+      req: {
+        user: { uid: 'firebase-employer-1' },
+        params: { jobId: '55' },
+        query: {},
+        body: { status: 'active' },
+      },
+    });
+
+    expect(response.statusCode).toBe(409);
+    expect(response.body.error.message).toMatch(/invalid job status transition/i);
+    expect(updateResults).toHaveLength(0);
   });
 
   it('rejects status changes for another employer\'s job', async () => {
