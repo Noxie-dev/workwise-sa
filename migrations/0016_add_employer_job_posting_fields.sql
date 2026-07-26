@@ -11,4 +11,4 @@ ALTER TABLE jobs ADD COLUMN application_email TEXT;
 ALTER TABLE jobs ADD COLUMN application_url TEXT;
 ALTER TABLE jobs ADD COLUMN custom_instructions TEXT;
 ALTER TABLE jobs ADD COLUMN is_confidential BOOLEAN NOT NULL DEFAULT FALSE;
-ALTER TABLE jobs ADD COLUMN screener_questions JSON NOT NULL DEFAULT '[]';
+ALTER TABLE jobs ADD COLUMN screener_questions JSONB NOT NULL DEFAULT '[]'::jsonb;
