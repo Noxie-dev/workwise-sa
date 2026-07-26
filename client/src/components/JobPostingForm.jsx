@@ -18,7 +18,7 @@ import useJobFormState from '../hooks/useJobFormState';
 import useFormAutosave from '../hooks/useFormAutosave';
 import { fetchCategories, generateAIContent, submitJobPost } from '../services/jobService';
 
-import Button from './ui/Button';
+import Button from './ui/button';
 import { Card, CardContent } from './ui/card';
 import {
   AlertDialog,
