@@ -1243,3 +1243,19 @@ Do not paste tokens, secret values, or credential JSON. The first query should s
 | Residual reference/graph scan | PASS | No `grpc@0.14.1`, legacy `gcloud` manifest/lock reference, or installed `grpc@0.14.1` package remains; supported `@grpc/*` packages used by other dependencies remain untouched. | 28/100; High/medium |
 
 This removes the deprecated legacy gRPC package from the repository dependency graph. It does not change the outstanding production authorization, tenant-isolation, session-secret rollout, storage, or external audit gates, so readiness remains **28/100** and launch remains **NO-GO**.
+
+### 15.39 Readiness re-audit execution feedback — 2026-07-27 UTC
+
+| Gate | Result | Evidence | Score / confidence |
+|---|---|---|---|
+| Tracked-secret hygiene | PASS | `pnpm run security:tracked-secrets` passed for 2,442 files without exposing values. | 28/100; High/medium |
+| Historical secret-path purge | PASS on remote branch | The remote branch scan found no targeted production-env or Firebase service-account paths; local and remote commit tips require synchronization review. | 28/100; High/medium |
+| Server authorization/session tests | PASS | `pnpm run test:server`: 31 files, 129 tests passed, including ownership, profile/file access, registration schema, tenant routes, and session-secret logging/rotation. | 28/100; High/medium |
+| Client tests | PASS | `pnpm run test:client`: 20 files, 116 tests passed. | 28/100; High/medium |
+| Type-check and production build | PASS | `pnpm run type-check` and `pnpm run build` completed successfully. | 28/100; High/medium |
+| Production environment contract | FAIL/P0 | `.env.production` is mode `600`, but `NODE_ENV` and `VITE_USE_MOCK_PUBLIC_DATA` are missing; root/client Firebase project IDs do not align; `client/.env.production` lacks `VITE_API_URL`. Values were not printed. | 28/100; High/medium |
+| Firebase configuration gate | FAIL/P0 | `pnpm run check:firebase-config` loads `client/.env` and reports all required Firebase variables missing in this runner. | 28/100; High/medium |
+| Canonical runtime contract | FAIL/P0 | `node scripts/validate-primary-runtime.js` passes build-artifact checks but lacks `DATABASE_URL`, `FIREBASE_PROJECT_ID`, and `FIREBASE_STORAGE_BUCKET` in the runner environment. | 28/100; High/medium |
+| Release synchronization | REVIEW | Local `HEAD` is one commit behind `origin/codex/shared-layout-visuals` (`634d56a`); no push was performed during this read-only audit. | 28/100; High/medium |
+
+**Re-audit decision:** local code quality and security regression evidence is green, but production configuration and external deployment proof remain absent. The score stays **28/100**, confidence stays **High/medium**, and launch remains **NO-GO**. The next highest-value gate is to correct and validate the production environment contract, then run authenticated two-tenant staging smoke tests against the deployed runtime.
