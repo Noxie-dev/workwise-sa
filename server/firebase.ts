@@ -1,4 +1,4 @@
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 import { logger } from './utils/logger';
 import { secretManager } from './services/secretManager';
 import * as fs from 'fs';
