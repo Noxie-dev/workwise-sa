@@ -1,3 +1,6 @@
+import { verifyFirebaseToken } from '../middleware/auth';
+import { resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
+import path from 'path';
 // server/server/index.ts - Updated to include Swagger documentation and WiseUp
 import express, { Application, Router } from 'express';
 import cors from 'cors';
@@ -18,7 +21,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 console.log('PORT from .env:', process.env.PORT);
-console.log('SESSION_SECRET from .env:', process.env.SESSION_SECRET);
 
 async function preloadSecrets() {
   const secretKeys = [
@@ -53,6 +55,26 @@ async function startServer() {
   app.use(requestIdMiddleware);
 
   // Serve uploaded files statically
+  app.use('/uploads/temp', (_req, res) => {
+    res.sendStatus(404);
+  });
+  app.use('/uploads/cvs', verifyFirebaseToken, async (req, res, next) => {
+    try {
+      const user = await resolveAuthenticatedDatabaseUser((req as any).user);
+      const parts = req.path.split('/').filter(Boolean);
+      if (
+        parts.length !== 2 ||
+        parts[0] !== `user-${user.id}` ||
+        !/^cv-\d+\.pdf$/i.test(parts[1])
+      ) {
+        res.sendStatus(403);
+        return;
+      }
+      res.sendFile(path.resolve('uploads', 'cvs', parts[0], parts[1]));
+    } catch (error) {
+      next(error);
+    }
+  });
   app.use('/uploads', express.static('uploads'));
 
   // Set up Swagger documentation

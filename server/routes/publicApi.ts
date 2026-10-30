@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import type { Express } from 'express';
 import { z } from 'zod';
 import { insertUserSchema } from '@shared/schema';
@@ -360,10 +361,11 @@ export function registerPublicApiRoutes(app: Express) {
 
   app.post(
     '/api/users/register',
-    validate(z.object({ body: insertUserSchema })),
+    validate(z.object({ body: insertUserSchema.omit({ role: true, firebaseUid: true }).strict() })),
     async (req, res, next) => {
       try {
-        const userData = req.body;
+        const userData = { ...req.body, role: 'user', firebaseUid: null };
+        if (userData.password) userData.password = await bcrypt.hash(userData.password, 10);
         const existingUser = await storage.getUserByUsername(userData.username);
         if (existingUser) {
           throw Errors.conflict('Username already exists');

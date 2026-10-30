@@ -54,6 +54,8 @@ async function invokeRoute({
   const handler = getRouteHandler(path, method);
   const response = createMockResponse();
 
+  req.header = (name: string) =>
+    req.headers?.[name] ?? (name === 'x-ingest-token' ? 'test-ingest-secret' : undefined);
   await handler(req, response);
 
   return response;
@@ -84,7 +86,28 @@ function buildJob(overrides: Record<string, unknown> = {}) {
 describe('job ingest routes', () => {
   beforeEach(() => {
     mockedIngestJobs.mockReset();
+    process.env.SCRAPING_INGEST_TOKEN = 'test-ingest-secret';
+  });
+
+  it('fails closed when the ingestion secret is absent', async () => {
     delete process.env.SCRAPING_INGEST_TOKEN;
+    const response = await invokeRoute({
+      path: '/jobs/ingest',
+      method: 'post',
+      req: { body: [buildJob()], headers: {} },
+    });
+    expect(response.statusCode).toBe(503);
+    expect(mockedIngestJobs).not.toHaveBeenCalled();
+  });
+
+  it('rejects an invalid ingestion secret', async () => {
+    const response = await invokeRoute({
+      path: '/jobs/ingest',
+      method: 'post',
+      req: { body: [buildJob()], headers: { 'x-ingest-token': 'wrong' } },
+    });
+    expect(response.statusCode).toBe(401);
+    expect(mockedIngestJobs).not.toHaveBeenCalled();
   });
 
   it('accepts a valid payload', async () => {

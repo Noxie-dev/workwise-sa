@@ -28,28 +28,24 @@ export const fileUploadService = {
    * @returns The download URL of the uploaded image
    */
   async uploadProfessionalImage(file: File, userId: string): Promise<string> {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('userId', userId);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userId', userId);
 
-      const uploadUrl = `${API_URL}/api/files/upload-professional-image`;
+    const uploadUrl = `${API_URL}/api/files/upload-professional-image`;
 
-      const response = await fetch(uploadUrl, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: formData,
-      });
+    const response = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: formData,
+    });
 
-      if (!response.ok) {
-        throw new Error(await parseUploadError(response, 'Failed to upload professional image'));
-      }
-
-      const data = await response.json();
-      return data.data.fileUrl;
-    } catch (error) {
-      throw error;
+    if (!response.ok) {
+      throw new Error(await parseUploadError(response, 'Failed to upload professional image'));
     }
+
+    const data = await response.json();
+    return data.data.fileUrl;
   },
 
   /**
@@ -59,28 +55,24 @@ export const fileUploadService = {
    * @returns The download URL of the uploaded image
    */
   async uploadProfileImage(file: File, userId: string): Promise<string> {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('userId', userId);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userId', userId);
 
-      const uploadUrl = `${API_URL}/api/files/upload-profile-image`;
+    const uploadUrl = `${API_URL}/api/files/upload-profile-image`;
 
-      const response = await fetch(uploadUrl, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: formData,
-      });
+    const response = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: formData,
+    });
 
-      if (!response.ok) {
-        throw new Error(await parseUploadError(response, 'Failed to upload profile image'));
-      }
-
-      const data = await response.json();
-      return data.data.fileUrl;
-    } catch (error) {
-      throw error;
+    if (!response.ok) {
+      throw new Error(await parseUploadError(response, 'Failed to upload profile image'));
     }
+
+    const data = await response.json();
+    return data.data.fileUrl;
   },
 
   /**
@@ -90,26 +82,22 @@ export const fileUploadService = {
    * @returns The download URL of the uploaded CV
    */
   async uploadCV(file: File, userId: string): Promise<string> {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('userId', userId);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userId', userId);
 
-      const response = await fetch(`${API_URL}/api/files/upload-cv`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: formData,
-      });
+    const response = await fetch(`${API_URL}/api/files/upload-cv`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: formData,
+    });
 
-      if (!response.ok) {
-        throw new Error(await parseUploadError(response, 'Failed to upload CV'));
-      }
-
-      const data = await response.json();
-      return data.data.fileUrl;
-    } catch (error) {
-      throw error;
+    if (!response.ok) {
+      throw new Error(await parseUploadError(response, 'Failed to upload CV'));
     }
+
+    const data = await response.json();
+    return data.data.fileUrl;
   },
 
   /**
@@ -120,27 +108,23 @@ export const fileUploadService = {
    * @returns The file data including the download URL
    */
   async uploadFile(file: File, userId: string, fileType: string): Promise<any> {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('userId', userId);
-      formData.append('fileType', fileType);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userId', userId);
+    formData.append('fileType', fileType);
 
-      const response = await fetch(`${API_URL}/api/files/upload`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: formData,
-      });
+    const response = await fetch(`${API_URL}/api/files/upload`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: formData,
+    });
 
-      if (!response.ok) {
-        throw new Error(await parseUploadError(response, 'Failed to upload file'));
-      }
-
-      const data = await response.json();
-      return data.data;
-    } catch (error) {
-      throw error;
+    if (!response.ok) {
+      throw new Error(await parseUploadError(response, 'Failed to upload file'));
     }
+
+    const data = await response.json();
+    return data.data;
   },
 
   /**
@@ -149,20 +133,16 @@ export const fileUploadService = {
    * @returns Array of file data
    */
   async getUserFiles(userId: string): Promise<any[]> {
-    try {
-      const response = await fetch(`${API_URL}/api/files/user/${userId}`, {
-        headers: authHeaders(),
-      });
+    const response = await fetch(`${API_URL}/api/files/user/${userId}`, {
+      headers: authHeaders(),
+    });
 
-      if (!response.ok) {
-        throw new Error(await parseUploadError(response, 'Failed to get user files'));
-      }
-
-      const data = await response.json();
-      return data.data;
-    } catch (error) {
-      throw error;
+    if (!response.ok) {
+      throw new Error(await parseUploadError(response, 'Failed to get user files'));
     }
+
+    const data = await response.json();
+    return data.data;
   },
 
   /**
@@ -171,20 +151,16 @@ export const fileUploadService = {
    * @returns Boolean indicating success
    */
   async deleteFile(fileId: number): Promise<boolean> {
-    try {
-      const response = await fetch(`${API_URL}/api/files/${fileId}`, {
-        method: 'DELETE',
-        headers: authHeaders(),
-      });
+    const response = await fetch(`${API_URL}/api/files/${fileId}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
 
-      if (!response.ok) {
-        throw new Error(await parseUploadError(response, 'Failed to delete file'));
-      }
-
-      const data = await response.json();
-      return data.data.deleted;
-    } catch (error) {
-      throw error;
+    if (!response.ok) {
+      throw new Error(await parseUploadError(response, 'Failed to delete file'));
     }
+
+    const data = await response.json();
+    return data.data.deleted;
   },
 };

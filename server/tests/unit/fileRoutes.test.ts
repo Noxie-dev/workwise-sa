@@ -21,6 +21,13 @@ vi.mock('../../storage', () => ({
   },
 }));
 
+vi.mock('../../services/authenticatedUser', () => ({
+  resolveAuthenticatedDatabaseUser: vi.fn(async user => {
+    if (!user) throw Object.assign(new Error('Authentication required'), { statusCode: 401 });
+    return { id: 42, role: 'admin' };
+  }),
+}));
+
 import { storage } from '../../storage';
 import { errorHandler } from '../../middleware/errorHandler';
 import router from '../../routes/files';
@@ -71,6 +78,7 @@ async function invokeFinalHandler({
   req: Record<string, any>;
 }) {
   const handler = getFinalRouteHandler(path, method);
+  if (req.user === undefined) req.user = { uid: 'test-authenticated-user' };
   const response = createMockResponse();
   let capturedError: unknown;
 
@@ -178,7 +186,7 @@ describe('file routes', () => {
         userId: 77,
         originalName: 'avatar.png',
         fileType: 'profile_image',
-        fileUrl: expect.stringContaining('/uploads/profile-images/user-firebase-uid-77/'),
+        fileUrl: expect.stringContaining('/uploads/profile-images/user-77/'),
       })
     );
   });
@@ -207,7 +215,7 @@ describe('file routes', () => {
     expect(mockedStorage.createFile).not.toHaveBeenCalled();
   });
 
-  it('rejects generic uploads without a user id', async () => {
+  it('rejects generic uploads without authentication', async () => {
     const tempFile = path.join(uploadsRoot, 'temp', 'note-upload.png');
     fs.writeFileSync(tempFile, 'fake-image-content');
 
@@ -215,6 +223,7 @@ describe('file routes', () => {
       path: '/upload',
       method: 'post',
       req: {
+        user: null,
         body: { fileType: 'general' },
         file: {
           originalname: 'note.png',
@@ -226,7 +235,6 @@ describe('file routes', () => {
       },
     });
 
-    expect(response.statusCode).toBe(400);
-    expect(response.body.error.message).toMatch(/user id is required/i);
+    expect(response.statusCode).toBe(401);
   });
 });

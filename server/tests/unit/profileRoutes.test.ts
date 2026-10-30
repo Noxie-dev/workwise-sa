@@ -18,6 +18,13 @@ vi.mock('../../storage', () => ({
   },
 }));
 
+vi.mock('../../services/authenticatedUser', () => ({
+  resolveAuthenticatedDatabaseUser: vi.fn(async user => {
+    if (!user) throw Object.assign(new Error('Authentication required'), { statusCode: 401 });
+    return { id: 42, role: 'admin' };
+  }),
+}));
+
 import { storage } from '../../storage';
 import { errorHandler } from '../../middleware/errorHandler';
 import router from '../../routes/profile';
@@ -67,6 +74,7 @@ async function invokeRoute({
   req: Record<string, any>;
 }) {
   const handlers = getRouteHandlers(path, method);
+  req.user ??= { uid: 'test-authenticated-user' };
   const response = createMockResponse();
   let capturedError: unknown;
 
@@ -92,6 +100,8 @@ async function invokeRoute({
 describe('profile routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedStorage.getUserProfile.mockResolvedValue({ userId: 42 } as any);
+    mockedStorage.getUserByFirebaseUid.mockResolvedValue({ id: 77 } as any);
   });
 
   it('returns a profile by numeric user id', async () => {
@@ -139,7 +149,7 @@ describe('profile routes', () => {
     });
 
     expect(response.statusCode).toBe(200);
-    expect(mockedStorage.getUserProfileByFirebaseUid).toHaveBeenCalledWith('firebase-uid-77');
+    expect(mockedStorage.getUserProfile).toHaveBeenCalledWith(77);
   });
 
   it('updates a profile by resolved firebase uid lookup', async () => {
@@ -193,6 +203,6 @@ describe('profile routes', () => {
     });
 
     expect(response.statusCode).toBe(404);
-    expect(response.body.error.message).toMatch(/user not found/i);
+    expect(response.body.error.message).toMatch(/profile not found/i);
   });
 });

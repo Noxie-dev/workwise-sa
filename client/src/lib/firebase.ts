@@ -238,40 +238,28 @@ const ensureGoogleProvider = () => {
 
 // Sign up with email and password
 export const signUpWithEmail = async (email: string, password: string, displayName: string) => {
-  try {
-    ensureFirebaseClientOpsEnabled('sign up');
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  ensureFirebaseClientOpsEnabled('sign up');
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-    if (userCredential.user) {
-      await updateProfile(userCredential.user, { displayName });
-    }
-
-    return userCredential.user;
-  } catch (error: any) {
-    throw error;
+  if (userCredential.user) {
+    await updateProfile(userCredential.user, { displayName });
   }
+
+  return userCredential.user;
 };
 
 // Sign in with email and password
 export const signInWithEmail = async (email: string, password: string) => {
-  try {
-    ensureFirebaseClientOpsEnabled('sign in');
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
-  } catch (error: any) {
-    throw error;
-  }
+  ensureFirebaseClientOpsEnabled('sign in');
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  return userCredential.user;
 };
 
 // Sign in with Google
 export const signInWithGoogle = async () => {
-  try {
-    ensureFirebaseClientOpsEnabled('Google sign in');
-    const result = await signInWithPopup(auth, ensureGoogleProvider());
-    return result.user;
-  } catch (error) {
-    throw error;
-  }
+  ensureFirebaseClientOpsEnabled('Google sign in');
+  const result = await signInWithPopup(auth, ensureGoogleProvider());
+  return result.user;
 };
 
 // Sign out
@@ -319,27 +307,19 @@ function buildActionCodeSettings(continuePath?: string): ActionCodeSettings {
 
 // Send email link for passwordless sign-in
 export const sendSignInLink = async (email: string, continuePath?: string) => {
-  try {
-    ensureFirebaseClientOpsEnabled('email link sign in');
-    const normalizedEmail = email.trim();
-    await sendSignInLinkToEmail(auth, normalizedEmail, buildActionCodeSettings(continuePath));
-    window.localStorage.setItem('emailForSignIn', normalizedEmail);
-    return true;
-  } catch (error) {
-    throw error;
-  }
+  ensureFirebaseClientOpsEnabled('email link sign in');
+  const normalizedEmail = email.trim();
+  await sendSignInLinkToEmail(auth, normalizedEmail, buildActionCodeSettings(continuePath));
+  window.localStorage.setItem('emailForSignIn', normalizedEmail);
+  return true;
 };
 
 // Complete sign-in with email link
 export const completeSignInWithEmailLink = async (email: string, link: string) => {
-  try {
-    ensureFirebaseClientOpsEnabled('email link completion');
-    const result = await signInWithEmailLink(auth, email.trim(), link);
-    window.localStorage.removeItem('emailForSignIn');
-    return result.user;
-  } catch (error) {
-    throw error;
-  }
+  ensureFirebaseClientOpsEnabled('email link completion');
+  const result = await signInWithEmailLink(auth, email.trim(), link);
+  window.localStorage.removeItem('emailForSignIn');
+  return result.user;
 };
 
 export const sendPasswordReset = async (email: string) => {
@@ -363,15 +343,11 @@ export const getEmailFromStorage = (): string | null => {
 
 // Helper function for file uploads
 export const uploadFile = async (file: File, path: string): Promise<string> => {
-  try {
-    ensureFirebaseClientOpsEnabled('file upload');
-    const storageRef = ref(storage, path);
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    return downloadURL;
-  } catch (error) {
-    throw error;
-  }
+  ensureFirebaseClientOpsEnabled('file upload');
+  const storageRef = ref(storage, path);
+  const snapshot = await uploadBytes(storageRef, file);
+  const downloadURL = await getDownloadURL(snapshot.ref);
+  return downloadURL;
 };
 
 // AI Helper Functions

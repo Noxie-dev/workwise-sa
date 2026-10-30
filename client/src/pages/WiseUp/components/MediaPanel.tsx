@@ -18,7 +18,7 @@ import VideoPlayer, { VideoPlayerHandle } from './VideoPlayer';
 
 interface MediaPanelProps {
   currentItem: WiseUpItem | null;
-  playerRef: RefObject<VideoPlayerHandle | null>;
+  playerRef: RefObject<VideoPlayerHandle>;
   isPlaying: boolean;
   isMuted: boolean;
   volume: number;

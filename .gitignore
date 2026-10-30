@@ -83,3 +83,5 @@ dataconnect/.dataconnect/pgliteData/
 *.db
 *.sqlite
 *.sqlite3
+
+*-firebase-adminsdk-*.json

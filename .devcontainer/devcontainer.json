@@ -29,7 +29,16 @@
       }
     }
   },
-  "forwardPorts": [3001, 5173, 8080, 5001, 5050, 9099, 9199, 9000],
+  "forwardPorts": [
+    3001,
+    5173,
+    8080,
+    5001,
+    5050,
+    9099,
+    9199,
+    9000
+  ],
   "portsAttributes": {
     "3001": {
       "label": "Backend API Server",
@@ -64,7 +73,7 @@
       "onAutoForward": "notify"
     }
   },
-  "postCreateCommand": "npm install --no-audit --no-fund && npm --prefix client install --no-audit --no-fund && npm --prefix server install --no-audit --no-fund && npm --prefix functions install --no-audit --no-fund",
+  "postCreateCommand": "pnpm install --frozen-lockfile",
   "remoteUser": "node",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace"

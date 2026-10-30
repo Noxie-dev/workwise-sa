@@ -70,8 +70,8 @@ service cloud.firestore {
     
     // User Profiles - Users can read all, but only edit their own
     match /users/{userId} {
-      allow read: if true; // Public profiles for job matching
-      allow write: if isOwner(userId) || isAdmin();
+      allow read: if isAdmin(); // Private account records are accessed through the server
+      allow write: if isAdmin();
     }
     
 

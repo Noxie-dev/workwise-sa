@@ -52,7 +52,7 @@ const ingestBodySchema = z.union([jobIngestBatchSchema, z.object({ jobs: jobInge
 function hasValidIngestToken(req: Request) {
   const configuredToken = process.env.SCRAPING_INGEST_TOKEN;
   if (!configuredToken) {
-    return true;
+    return false;
   }
 
   const headerValue = req.header('x-ingest-token') ?? req.header('authorization');
@@ -285,7 +285,7 @@ v1Router.get('/jobs/category/:id', async (req, res) => {
   }
 });
 
-v1Router.get('/jobs/:id', async (req, res) => {
+v1Router.get('/jobs/:id', authenticate, async (req, res) => {
   try {
     const jobId = parseInt(req.params.id, 10);
     if (Number.isNaN(jobId)) {
@@ -310,6 +310,8 @@ v1Router.get('/jobs/:id', async (req, res) => {
 });
 
 v1Router.post('/jobs/ingest', async (req, res) => {
+  if (!process.env.SCRAPING_INGEST_TOKEN)
+    return res.status(503).json({ message: 'Job ingestion is unavailable' });
   if (!hasValidIngestToken(req)) {
     return res.status(401).json({ message: 'Invalid ingest token' });
   }
@@ -384,7 +386,10 @@ v1Router.post('/users/login', rateLimiters.auth, async (req, res) => {
 
 v1Router.post('/users/register', rateLimiters.auth, async (req, res) => {
   try {
-    const userData = insertUserSchema.parse(req.body);
+    const userData = insertUserSchema
+      .omit({ role: true, firebaseUid: true })
+      .strict()
+      .parse(req.body);
 
     if (userData.username) {
       const existingUser = await storage.getUserByUsername(userData.username);
@@ -481,7 +486,14 @@ v1Router.put(
         return res.status(400).json({ message: 'Invalid user ID' });
       }
 
-      const updatedUser = await storage.updateUser(userId, req.body);
+      const updatedUser = await storage.updateUser(
+        userId,
+        insertUserSchema
+          .omit({ role: true, firebaseUid: true, password: true, referredByUserId: true })
+          .partial()
+          .strict()
+          .parse(req.body)
+      );
       if (!updatedUser) {
         return res.status(404).json({ message: 'User not found' });
       }
@@ -576,32 +588,37 @@ v1Router.get('/analytics/hiring-trends', async (_req, res) => {
   }
 });
 
-v1Router.patch('/companies/:id/hiring-metrics', async (req, res) => {
-  try {
-    const companyId = parseInt(req.params.id, 10);
-    const metrics = req.body;
-    if (Number.isNaN(companyId) || !isValidHiringMetrics(metrics)) {
-      return res.status(400).json({ success: false, message: 'Invalid hiring metrics data' });
-    }
+v1Router.patch(
+  '/companies/:id/hiring-metrics',
+  authenticate,
+  authorize(['admin']),
+  async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.id, 10);
+      const metrics = req.body;
+      if (Number.isNaN(companyId) || !isValidHiringMetrics(metrics)) {
+        return res.status(400).json({ success: false, message: 'Invalid hiring metrics data' });
+      }
 
-    const updated = await storage.updateCompanyHiringMetrics(companyId, metrics);
-    if (!updated) {
-      return res.status(404).json({ success: false, message: 'Company not found' });
-    }
+      const updated = await storage.updateCompanyHiringMetrics(companyId, metrics);
+      if (!updated) {
+        return res.status(404).json({ success: false, message: 'Company not found' });
+      }
 
-    res.json({ success: true, message: 'Hiring metrics updated successfully' });
-  } catch (error) {
-    console.error('Error updating hiring metrics:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update hiring metrics',
-      error:
-        process.env.NODE_ENV === 'development' && error instanceof Error
-          ? error.message
-          : undefined,
-    });
+      res.json({ success: true, message: 'Hiring metrics updated successfully' });
+    } catch (error) {
+      console.error('Error updating hiring metrics:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update hiring metrics',
+        error:
+          process.env.NODE_ENV === 'development' && error instanceof Error
+            ? error.message
+            : undefined,
+      });
+    }
   }
-});
+);
 
 const cvRouter = Router();
 cvRouter.use(authenticate, rateLimiters.ai);

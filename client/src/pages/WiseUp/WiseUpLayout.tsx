@@ -9,7 +9,7 @@ interface WiseUpLayoutProps {
   items: WiseUpItem[];
   currentIndex: number;
   currentItem: WiseUpItem | null;
-  playerRef: RefObject<VideoPlayerHandle | null>;
+  playerRef: RefObject<VideoPlayerHandle>;
   isPlaying: boolean;
   isMuted: boolean;
   volume: number;
