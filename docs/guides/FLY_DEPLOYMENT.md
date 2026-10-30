@@ -11,3 +11,9 @@ Firebase Admin requires a replacement service-account credential or supported wo
 Free trial limits at setup: 2 aggregate VM hours or 7 days, whichever comes first. Trial machines stop after five minutes. Adding a payment method ends the free trial and starts billing. Check https://fly.io/docs/about/free-trial/ for current terms. No payment method was added during setup.
 
 To deploy after authentication: flyctl deploy --remote-only --ha=false. Include public Firebase build arguments. To inspect: flyctl status; flyctl logs. To verify: GET /health, GET /api/categories, and authenticated file access with a real Firebase ID token.
+
+## Live verification, 30 October 2026
+
+Deployment succeeded. GET /health, /, and /api/categories returned HTTP 200. Unauthenticated /api/v1/users and /uploads/cvs/user-1/cv-1.pdf returned HTTP 401. Inserted a temporary category into Neon, retrieved its matching ID through the live Fly API, then removed it. An initial EAI_AGAIN DNS failure resolved on retry. All 62 server tests pass.
+
+SECRET_SOURCE=env prevents fallback to Google Secret Manager on Fly. Firebase credentials are validated before background clients start. Missing Admin credentials leave protected Firebase operations unavailable while public routes continue. Public Firebase client configuration was obtained from the project's Firebase Hosting initialization endpoint and supplied as build arguments. AI keys in local configuration were placeholders and AI functionality is not verified.
