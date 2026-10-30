@@ -1,21 +1,15 @@
-// drizzle.config.ts
-import type { Config } from 'drizzle-kit';
-import * as dotenv from 'dotenv';
+import './server/env';
+import { defineConfig } from 'drizzle-kit';
 
-// Load environment variables
-dotenv.config();
+const url = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
+if (!url || url.startsWith('sqlite:'))
+  throw new Error('PostgreSQL DATABASE_URL is required for schema management');
 
-// Default to SQLite for development if no DATABASE_URL is provided
-const connectionString = process.env.DATABASE_URL || 'sqlite:./test.db';
-
-export default {
+export default defineConfig({
   schema: './shared/schema.ts',
   out: './migrations',
-  driver: connectionString.startsWith('sqlite') ? 'better-sqlite' : 'pg',
-  dbCredentials: {
-    connectionString,
-  },
-  // Customize naming of migration files
+  dialect: 'postgresql',
+  dbCredentials: { url },
   verbose: true,
   strict: true,
-} satisfies Config;
+});

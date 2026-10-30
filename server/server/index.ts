@@ -1,3 +1,4 @@
+import '../env';
 import { verifyFirebaseToken } from '../middleware/auth';
 import { resolveAuthenticatedDatabaseUser } from '../services/authenticatedUser';
 import path from 'path';

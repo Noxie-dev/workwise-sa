@@ -21,7 +21,7 @@ async function initializeFirebase() {
   const storageBucket = await secretManager.getSecret('FIREBASE_STORAGE_BUCKET');
   const serviceAccountPath =
     process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-    path.resolve(__dirname, '../service-account.json');
+    path.resolve(process.cwd(), 'service-account.json');
 
   if (fs.existsSync(serviceAccountPath)) {
     const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));

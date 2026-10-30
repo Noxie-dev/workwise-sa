@@ -85,3 +85,4 @@ dataconnect/.dataconnect/pgliteData/
 *.sqlite3
 
 *-firebase-adminsdk-*.json
+.neon

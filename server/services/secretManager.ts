@@ -1,3 +1,4 @@
+import '../env';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { config } from 'dotenv';
 
