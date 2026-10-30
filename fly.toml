@@ -1,0 +1,38 @@
+# fly.toml app configuration file generated for workwise-sa-noxie on 2026-10-30T11:33:24+02:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'workwise-sa-noxie'
+primary_region = 'jnb'
+
+[build]
+  dockerfile = 'Dockerfile'
+
+[env]
+  NODE_ENV = 'production'
+  PORT = '8080'
+  SEED_SAMPLE_DATA = 'false'
+  UPLOAD_DIR = '/app/uploads'
+
+[[mounts]]
+  source = 'uploads'
+  destination = '/app/uploads'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '30s'
+    method = 'GET'
+    path = '/health'
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '512mb'

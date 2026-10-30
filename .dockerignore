@@ -21,3 +21,12 @@ build
 .env.test.local
 .env.production.local
 
+.env.*
+!.env.example
+uploads
+*.db
+*.sqlite*
+*-firebase-adminsdk-*.json
+service-account.json
+.neon
+scrapy_jobs/venv

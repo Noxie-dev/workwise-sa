@@ -82,7 +82,12 @@ async function startServer() {
   setupSwagger(app as any);
 
   // Add a simple root route to prevent 500 errors
-  app.get('/', (req, res) => {
+  app.get('/health', (_req, res) => {
+    res.status(200).json({ status: 'ok' });
+  });
+
+  app.get('/', (req, res, next) => {
+    if (process.env.NODE_ENV === 'production') return next();
     res.json({
       message: 'WorkWise SA API Server',
       version: '1.0.0',
@@ -92,7 +97,7 @@ async function startServer() {
   });
 
   // Initialize database with sample data (skip in development with SQLite)
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.SEED_SAMPLE_DATA === 'true') {
     try {
       await storage.initializeData();
       logger.info('Database initialized with sample data');
@@ -112,6 +117,15 @@ async function startServer() {
 
   // For backward compatibility, register original routes
   const httpServer = await registerRoutes(app as any);
+
+  if (process.env.NODE_ENV === 'production') {
+    const publicDir = path.resolve(process.cwd(), 'dist/public');
+    app.use(express.static(publicDir));
+    app.get('/{*splat}', (req, res, next) => {
+      if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+      res.sendFile(path.join(publicDir, 'index.html'));
+    });
+  }
 
   // Error handling
   app.use(notFoundHandler);
