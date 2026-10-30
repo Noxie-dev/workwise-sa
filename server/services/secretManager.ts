@@ -8,13 +8,13 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 class SecretManagerService {
-  private client: SecretManagerServiceClient;
+  private client?: SecretManagerServiceClient;
   private secrets: Map<string, string> = new Map();
   private projectId: string;
 
   constructor() {
     this.projectId = process.env.GCP_PROJECT_ID || 'workwise-sa-project';
-    this.client = new SecretManagerServiceClient();
+
   }
 
   async getSecret(secretName: string): Promise<string | null> {
@@ -29,6 +29,9 @@ class SecretManagerService {
       return secret;
     }
 
+    // Hosts such as Fly inject secrets through the environment.
+    if (process.env.SECRET_SOURCE === 'env') return null;
+
     // In development, return null for missing secrets instead of throwing
     if (process.env.NODE_ENV !== 'production') {
       console.warn(`⚠️  Secret ${secretName} not found in environment variables, using null`);
@@ -37,6 +40,7 @@ class SecretManagerService {
 
     // Only try Google Cloud Secret Manager in production
     try {
+      this.client ??= new SecretManagerServiceClient();
       const [version] = await this.client.accessSecretVersion({
         name: `projects/${this.projectId}/secrets/${secretName}/versions/latest`,
       });

@@ -11,6 +11,7 @@ primary_region = 'jnb'
 
 [env]
   NODE_ENV = 'production'
+  SECRET_SOURCE = 'env'
   PORT = '8080'
   SEED_SAMPLE_DATA = 'false'
   UPLOAD_DIR = '/app/uploads'
