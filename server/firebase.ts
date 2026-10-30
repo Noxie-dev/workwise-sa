@@ -111,6 +111,11 @@ async function initializeFirebaseServices(maxRetries = 3, retryDelay = 2000): Pr
   while (retries < maxRetries) {
     try {
       firebaseApp = await initializeFirebase();
+      if (process.env.NODE_ENV === 'production') {
+        // Validate credentials before Firestore starts background clients.
+        // Missing credentials must fail here, inside the retry boundary.
+        await firebaseApp?.options.credential?.getAccessToken();
+      }
       const app = firebaseApp ?? undefined;
       authInstance = admin.auth(app);
       firestoreInstance = admin.firestore(app);
