@@ -30,3 +30,8 @@ uploads
 service-account.json
 .neon
 scrapy_jobs/venv
+
+# Duplicate source clips are not copied by scripts/copy-assets.js.
+public/wise-up_test-clips
+screenshots
+get-pip.py
